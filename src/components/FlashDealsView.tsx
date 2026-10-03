@@ -211,18 +211,18 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
           {/* Minimal Controls Bar: Combined Tabs & Quick Category Filter */}
           <div className="px-2.5 py-2 sm:px-5 sm:py-3 bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 space-y-2 shrink-0">
             {/* Row 1: Primary Tabs & Sort Selector */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+            <div className="flex items-center justify-between gap-2 min-w-0 w-full">
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-0.5 min-w-0 flex-1 pr-1">
                 <button
                   type="button"
                   onClick={() => setActiveTab('all')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 shrink-0 cursor-pointer ${
+                  className={`px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 shrink-0 whitespace-nowrap cursor-pointer ${
                     activeTab === 'all'
                       ? 'bg-amber-500 text-black shadow-xs font-black'
                       : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
                   }`}
                 >
-                  <Flame className="w-3.5 h-3.5 fill-current" />
+                  <Flame className="w-3.5 h-3.5 fill-current shrink-0" />
                   <span>{language === 'en' ? 'All Deals' : 'ሁሉም'}</span>
                   <span className="ml-1 bg-black/10 dark:bg-white/20 px-1.5 py-0.2 rounded-full text-[10px]">
                     {flashSaleItems.length}
@@ -232,50 +232,50 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveTab('lightning')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 shrink-0 cursor-pointer ${
+                  className={`px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 shrink-0 whitespace-nowrap cursor-pointer ${
                     activeTab === 'lightning'
                       ? 'bg-red-600 text-white shadow-xs font-black'
                       : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
                   }`}
                 >
-                  <Zap className="w-3.5 h-3.5 fill-current" />
+                  <Zap className="w-3.5 h-3.5 fill-current shrink-0" />
                   <span>{language === 'en' ? 'Lightning' : 'ፈጣን'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('weekly')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 shrink-0 cursor-pointer ${
+                  className={`px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 shrink-0 whitespace-nowrap cursor-pointer ${
                     activeTab === 'weekly'
                       ? 'bg-indigo-600 text-white shadow-xs font-black'
                       : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
                   }`}
                 >
-                  <Gift className="w-3.5 h-3.5" />
+                  <Gift className="w-3.5 h-3.5 shrink-0" />
                   <span>{language === 'en' ? 'Bundles' : 'የሳምንቱ'}</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('upcoming')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 shrink-0 cursor-pointer ${
+                  className={`px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1 shrink-0 whitespace-nowrap cursor-pointer ${
                     activeTab === 'upcoming'
                       ? 'bg-purple-600 text-white shadow-xs font-black'
                       : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-700'
                   }`}
                 >
-                  <Clock className="w-3.5 h-3.5" />
+                  <Clock className="w-3.5 h-3.5 shrink-0" />
                   <span>{language === 'en' ? 'Upcoming' : 'በቅርቡ'}</span>
                 </button>
               </div>
 
               {/* Sort Selector */}
-              <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex items-center gap-1 shrink-0">
                 <ArrowUpDown className="w-3 h-3 text-gray-400 hidden sm:inline" />
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white text-[11px] font-bold rounded-lg px-2.5 py-1 border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer"
+                  className="bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white text-[10px] sm:text-[11px] font-bold rounded-lg px-2 sm:px-2.5 py-1 border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer max-w-[125px] sm:max-w-none truncate"
                 >
                   <option value="discount">{language === 'en' ? 'Highest Discount' : 'ከፍተኛ ቅናሽ'}</option>
                   <option value="claimed">{language === 'en' ? 'Most Claimed' : 'በብዛት የተያዘ'}</option>
@@ -286,25 +286,44 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
             </div>
 
             {/* Row 2: Category Filters */}
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pt-0.5">
-              <span className="text-[10px] font-bold uppercase text-gray-400 dark:text-zinc-500 pr-1 shrink-0 flex items-center gap-1">
-                <Filter className="w-3 h-3" />
-                {language === 'en' ? 'Filter:' : 'ማጣሪያ:'}
+            <div className="flex items-center gap-2 pt-0.5 min-w-0 w-full">
+              <span className="text-[10px] sm:text-xs font-bold uppercase text-gray-400 dark:text-zinc-500 shrink-0 flex items-center gap-1 whitespace-nowrap">
+                <Filter className="w-3 h-3 text-amber-500" />
+                {language === 'en' ? 'FILTER:' : 'ማጣሪያ:'}
               </span>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
-                    selectedCategory === cat.id
-                      ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-950 font-black shadow-2xs'
-                      : 'bg-gray-100 dark:bg-zinc-800/80 text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white'
-                  }`}
+
+              {/* Mobile Category Dropdown Selector */}
+              <div className="sm:hidden flex-1 min-w-0">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full bg-gray-100 dark:bg-zinc-800 text-gray-900 dark:text-white text-xs font-bold rounded-lg px-2.5 py-1.5 border border-gray-200 dark:border-zinc-700 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer"
                 >
-                  {language === 'en' ? cat.labelEn : cat.labelAm}
-                </button>
-              ))}
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {language === 'en' ? cat.labelEn : cat.labelAm}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Desktop Horizontal Category Pills */}
+              <div className="hidden sm:flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none min-w-0 flex-1">
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
+                      selectedCategory === cat.id
+                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-950 font-black shadow-2xs'
+                        : 'bg-gray-100 dark:bg-zinc-800/80 text-gray-600 dark:text-zinc-400 hover:text-black dark:hover:text-white'
+                    }`}
+                  >
+                    {language === 'en' ? cat.labelEn : cat.labelAm}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

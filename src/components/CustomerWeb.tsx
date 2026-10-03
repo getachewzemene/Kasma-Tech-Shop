@@ -2693,7 +2693,6 @@ export default function CustomerWeb({
                     onInstantBuy={handleInstantBuy}
                     showToast={showToast}
                     badgeColor="indigo"
-                    recommendationReason={language === 'en' ? recItem.reason.en : recItem.reason.am}
                   />
                 );
               })}

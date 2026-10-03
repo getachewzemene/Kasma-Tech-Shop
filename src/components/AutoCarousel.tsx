@@ -167,7 +167,7 @@ export const AutoCarousel: React.FC<AutoCarouselProps> = ({
       {/* Carousel Track */}
       <div 
         ref={containerRef}
-        className="flex gap-2.5 sm:gap-5 overflow-x-auto pb-1.5 pt-1.5 sm:pt-3 px-0.5 scrollbar-none scroll-smooth snap-x snap-mandatory"
+        className="flex gap-2.5 sm:gap-5 overflow-x-auto pb-1.5 pt-1.5 sm:pt-3 px-0.5 no-scrollbar scrollbar-none scroll-smooth snap-x snap-mandatory"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {products.map((p) => {

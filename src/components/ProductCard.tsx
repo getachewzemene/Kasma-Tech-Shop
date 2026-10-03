@@ -326,14 +326,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Card Content / Description Section */}
         <div className={`${isFlashCard ? 'p-2 sm:p-3 gap-1' : 'p-2 sm:p-3.5 gap-1.5'} flex flex-col justify-between flex-1 min-h-0 text-left`}>
           <div className="space-y-1">
-            {/* Recommendation Behavioral Reason Tag if provided */}
-            {recommendationReason && (
-              <div className="inline-flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 text-[9px] font-extrabold px-1.5 py-0.5 rounded-md truncate max-w-full">
-                <Sparkles className="w-2.5 h-2.5 text-indigo-500 fill-current shrink-0" />
-                <span className="truncate">{recommendationReason}</span>
-              </div>
-            )}
-
             {/* Brand & Capsule Rating */}
             <div className="flex items-center justify-between gap-1">
               <div className="flex items-center gap-0.5 text-[8.5px] sm:text-[9.5px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider truncate">

@@ -203,6 +203,20 @@ mark {
   scrollbar-color: #3B82F6 rgba(255, 255, 255, 0.1);
 }
 
+/* Utility classes to completely hide scrollbars when requested (e.g., carousels with arrow navigation) */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar,
+.scrollbar-none {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+
 /* Custom Scrollbar Helper Classes */
 .custom-scrollbar {
   scrollbar-width: auto !important;
