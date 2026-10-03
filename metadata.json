@@ -1,0 +1,6 @@
+{
+  "name": "KasmaShop",
+  "description": "Premium Ethiopian cross-platform e-commerce ecosystem featuring Customer, Merchant, Admin, and Telegram Mini App simulator experiences with localized checkout, stock management, and offline cache controls.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

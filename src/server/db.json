@@ -1,0 +1,1372 @@
+{
+  "products": [
+    {
+      "id": "p1",
+      "nameEn": "SteelSeries Arctis Nova Pro Wireless Headset",
+      "nameAm": "ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ",
+      "descriptionEn": "Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.",
+      "descriptionAm": "ምርጥ ጥራት ያለው የጌሚንግ ማዳመጫ ከግርግር መከላከያ (Active Noise Cancellation)፣ ሁለት ሲስተም በአንድ ጊዜ የማገናኘት ብቃት እና ተለዋዋጭ ባትሪዎች ያሉት።",
+      "price": 19500,
+      "category": "gaming",
+      "brand": "SteelSeries",
+      "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80",
+      "lowStockThreshold": 5,
+      "merchantId": "m1",
+      "merchantName": "Girma Tech Store",
+      "status": "APPROVED",
+      "variants": [
+        {
+          "sku": "SS-ANP-BLK",
+          "name": "Charcoal Black",
+          "priceOffset": 0,
+          "onHand": 18,
+          "reserved": 0
+        },
+        {
+          "sku": "SS-ANP-WHT",
+          "name": "White Edition",
+          "priceOffset": 1200,
+          "onHand": 12,
+          "reserved": 1
+        }
+      ],
+      "featured": true
+    },
+    {
+      "id": "p2",
+      "nameEn": "Sony WF-1000XM5 True Wireless Earbuds",
+      "nameAm": "ሶኒ WF-1000XM5 ገመድ አልባ ብሉቱዝ ኢርበድስ",
+      "descriptionEn": "Industry-leading noise cancelling wireless earbuds with rich, spatial audio, crystal-clear call quality, and high-res audio support.",
+      "descriptionAm": "በከፍተኛ የድምጽ ማደሻ እና ድምጽ መከላከያ ቴክኖሎጂ ቀዳሚ የሆነው ሶኒ ብሉቱዝ ኢርበድስ፣ እጅግ ግልጽ የስልክ ጥሪ እና ሰፊ የድምፅ ጥራት ያለው።",
+      "price": 16500,
+      "category": "headphones",
+      "brand": "Sony",
+      "image": "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80",
+      "lowStockThreshold": 3,
+      "merchantId": "m2",
+      "merchantName": "Abebe Gadget Hub",
+      "status": "APPROVED",
+      "variants": [
+        {
+          "sku": "SNY-XM5-BLK",
+          "name": "Matte Black",
+          "priceOffset": 0,
+          "onHand": 8,
+          "reserved": 0
+        },
+        {
+          "sku": "SNY-XM5-SLV",
+          "name": "Platinum Silver",
+          "priceOffset": 500,
+          "onHand": 4,
+          "reserved": 0
+        }
+      ],
+      "featured": true
+    },
+    {
+      "id": "p3",
+      "nameEn": "Apple Watch Ultra 2 GPS + Cellular Titanium",
+      "nameAm": "አፕል ዎች አልትራ 2 የስማርት ሰዓት",
+      "descriptionEn": "The ultimate sports and adventure smartwatch. Features a robust aerospace-grade titanium case, precision dual-frequency GPS, and up to 36 hours of battery life.",
+      "descriptionAm": "ለስፖርት እና ለጀብዱ የተነደፈ የመጨረሻው ስማርት ሰዓት። ጠንካራ የቲታኒየም አካል፣ እጅግ ትክክለኛ ጂፒኤስ እና እስከ 36 ሰዓታት የሚቆይ ባትሪ ያለው።",
+      "price": 68000,
+      "category": "smartwatches",
+      "brand": "Apple",
+      "image": "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=600&q=80",
+      "lowStockThreshold": 4,
+      "merchantId": "m3",
+      "merchantName": "Kasma Authorized Reseller",
+      "status": "APPROVED",
+      "variants": [
+        {
+          "sku": "AWU2-49",
+          "name": "49mm Titanium Case",
+          "priceOffset": 0,
+          "onHand": 15,
+          "reserved": 2
+        }
+      ],
+      "featured": true
+    },
+    {
+      "id": "p4",
+      "nameEn": "Marshall Stanmore III Bluetooth Speaker",
+      "nameAm": "ማርሻል ስታንሞር III ብሉቱዝ ስፒከር",
+      "descriptionEn": "Bring your home to life with room-filling, legendary Marshall signature sound, redesigned for an even wider and more immersive soundstage.",
+      "descriptionAm": "ያለዎትን ሰፊ ቦታ በሚያናውጥ እና በሚያምር ድምፅ በሚታወቀው ማርሻል ስፒከር ቤቶን ያድምቁት። አዲስ እና ሰፊ የድምጽ ስርጭት ያለው።",
+      "price": 31500,
+      "category": "headphones",
+      "brand": "Marshall",
+      "image": "https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=600&q=80",
+      "lowStockThreshold": 4,
+      "merchantId": "m2",
+      "merchantName": "Abebe Gadget Hub",
+      "status": "APPROVED",
+      "variants": [
+        {
+          "sku": "MS-STN3-BLK",
+          "name": "Black Gold Classic",
+          "priceOffset": 0,
+          "onHand": 10,
+          "reserved": 1
+        },
+        {
+          "sku": "MS-STN3-BRW",
+          "name": "Vintage Brown",
+          "priceOffset": 1200,
+          "onHand": 6,
+          "reserved": 0
+        }
+      ],
+      "featured": true
+    },
+    {
+      "id": "p5",
+      "nameEn": "Hikvision PTZ Smart Outdoor CCTV Camera 4K",
+      "nameAm": "ሃይክቪዥን PTZ ስማርት የውጭ CCTV ካሜራ 4K",
+      "descriptionEn": "Professional-grade 4K security camera with intelligent AI human detection, 360-degree pan-tilt-zoom, and color night vision.",
+      "descriptionAm": "የባለሙያ ደረጃ 4K የደህንነት ካሜራ ከስማርት የሰው ልጅ መለያ AI፣ በ360 ዲግሪ መዞርና ማጉላት የሚችል፣ እንዲሁም በምሽት ባለቀለም ምስል የሚያሳይ።",
+      "price": 14800,
+      "category": "cameras",
+      "brand": "Hikvision",
+      "image": "https://images.unsplash.com/photo-1557862921-37829c790f19?auto=format&fit=crop&w=600&q=80",
+      "lowStockThreshold": 4,
+      "merchantId": "m4",
+      "merchantName": "Abyssinia Electronics",
+      "status": "APPROVED",
+      "variants": [
+        {
+          "sku": "HK-PTZ-4K",
+          "name": "4K Outdoor PTZ Camera",
+          "priceOffset": 0,
+          "onHand": 14,
+          "reserved": 0
+        }
+      ],
+      "featured": true
+    },
+    {
+      "id": "p6",
+      "nameEn": "Bose QuietComfort Ultra Wireless Headset",
+      "nameAm": "ቦስ ኩዊትኮምፎርት አልትራ ገመድ አልባ ማዳመጫ",
+      "descriptionEn": "World-class noise cancelling over-ear headphones with custom spatial audio profiles and premium comfort cushions for long sessions.",
+      "descriptionAm": "ከፍተኛ ደረጃ ያለው የድምጽ መከላከያ (Noise Cancelling) ማዳመጫ፣ በቦታ የሚስማማ ስማርት ኦዲዮ እና ለረጅም ሰዓት አገልግሎት የሚመች ለስላሳ ፓድ ያለው።",
+      "price": 26000,
+      "category": "headphones",
+      "brand": "Bose",
+      "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80",
+      "lowStockThreshold": 3,
+      "merchantId": "m1",
+      "merchantName": "Girma Tech Store",
+      "status": "APPROVED",
+      "variants": [
+        {
+          "sku": "BSE-QCU-BLK",
+          "name": "Triple Black",
+          "priceOffset": 0,
+          "onHand": 5,
+          "reserved": 1
+        },
+        {
+          "sku": "BSE-QCU-WHT",
+          "name": "White Smoke",
+          "priceOffset": 1500,
+          "onHand": 2,
+          "reserved": 0
+        }
+      ],
+      "featured": true
+    },
+    {
+      "id": "p7",
+      "nameEn": "Samsung Galaxy S24 Ultra - 512GB Titanium",
+      "nameAm": "ሳምሰንግ ጋላክሲ S24 አልትራ - 512ጂቢ ቲታኒየም",
+      "descriptionEn": "Premium titanium smartphone with built-in S Pen, cutting-edge Galaxy AI camera translation features, and 200MP quad-lens system.",
+      "descriptionAm": "ምርጥ የቲታኒየም ስማርት ስልክ አብሮ ከተሰራ ኤስ-ፔን፣ አዲሱ የጋላክሲ AI ካሜራ ትርጉምና 200MP ባለአራት ሌንስ ካሜራ ሲስተም ጋር።",
+      "price": 95000,
+      "category": "mobiles",
+      "brand": "Samsung",
+      "image": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=600&q=80",
+      "lowStockThreshold": 2,
+      "merchantId": "m4",
+      "merchantName": "Abyssinia Electronics",
+      "status": "APPROVED",
+      "variants": [
+        {
+          "sku": "S24U-TIT-BLK",
+          "name": "Titanium Black 512GB",
+          "priceOffset": 0,
+          "onHand": 5,
+          "reserved": 1
+        },
+        {
+          "sku": "S24U-TIT-GRY",
+          "name": "Titanium Gray 512GB",
+          "priceOffset": 3000,
+          "onHand": 2,
+          "reserved": 0
+        }
+      ],
+      "featured": true
+    },
+    {
+      "id": "p8",
+      "nameEn": "Sennheiser Momentum True Wireless 4 Earbuds",
+      "nameAm": "ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ",
+      "descriptionEn": "Audiophile-quality wireless earbuds with personalized adaptive noise cancellation and next-generation lossless audio technology.",
+      "descriptionAm": "እጅግ ጥራት ያለው የሙዚቃ ድምፅ የሚሰጥ ብሉቱዝ ማዳመጫ፣ ከራስዎ ፍላጎት ጋር የሚስማማ የድምፅ መከላከያ እና አዲስ ትውልድ የኦዲዮ ቴክኖሎጂ ያለው።",
+      "price": 18500,
+      "category": "headphones",
+      "brand": "Sennheiser",
+      "image": "https://images.unsplash.com/photo-1608156639585-b3a032ef9689?auto=format&fit=crop&w=600&q=80",
+      "lowStockThreshold": 3,
+      "merchantId": "m1",
+      "merchantName": "Girma Tech Store",
+      "status": "APPROVED",
+      "variants": [
+        {
+          "sku": "SEN-MT4-BLK",
+          "name": "Black Copper",
+          "priceOffset": 0,
+          "onHand": 4,
+          "reserved": 0
+        },
+        {
+          "sku": "SEN-MT4-SLV",
+          "name": "Metallic Silver",
+          "priceOffset": 0,
+          "onHand": 3,
+          "reserved": 0
+        }
+      ],
+      "featured": false
+    },
+    {
+      "id": "p9",
+      "nameEn": "Anker Prime 20,000mAh Smart Power Bank",
+      "nameAm": "አንከር ፕራይም 20,000mAh ስማርት ፓወርባንክ",
+      "descriptionEn": "High-capacity 200W rapid-charging smart power bank with dynamic digital display. Crucial for tech continuity in Ethiopian urban centers.",
+      "descriptionAm": "ከፍተኛ አቅም ያለው ባለ 200W ፈጣን ቻርጀር እና ዲጂታል ማሳያ ያለው ስማርት ፓወር ባንክ። በኢትዮጵያ ከተሞች የኃይል መቆራረጥ ሲያጋጥም አስተማማኝ አጋር።",
+      "price": 5400,
+      "category": "accessories",
+      "brand": "Anker",
+      "image": "https://images.unsplash.com/photo-1609592424109-dd9892f1b17c?auto=format&fit=crop&w=600&q=80",
+      "lowStockThreshold": 4,
+      "merchantId": "m4",
+      "merchantName": "Abyssinia Electronics",
+      "status": "APPROVED",
+      "variants": [
+        {
+          "sku": "ANK-PM-BLK",
+          "name": "Anker Prime Matte Black",
+          "priceOffset": 0,
+          "onHand": 3,
+          "reserved": 0
+        }
+      ],
+      "featured": true
+    }
+  ],
+  "merchants": [
+    {
+      "id": "m1",
+      "storeName": "Girma Tech Store",
+      "ownerName": "Girma Tesfaye",
+      "email": "girma.tech@gmail.com",
+      "phone": "+251911456789",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "kycDocument": "Trade_License_Girma_Tech.pdf",
+      "balance": 142500,
+      "payouts": [
+        {
+          "id": "py1",
+          "amount": 35000,
+          "bankName": "Commercial Bank of Ethiopia (CBE)",
+          "accountNumber": "1000123456789",
+          "status": "COMPLETED",
+          "createdAt": "2026-06-20T10:12:00Z"
+        }
+      ]
+    },
+    {
+      "id": "m2",
+      "storeName": "Abebe Gadget Hub",
+      "ownerName": "Abebe Girmay",
+      "email": "abebe.gadgets@yahoo.com",
+      "phone": "+251912654321",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "kycDocument": "Business_Reg_Abebe.pdf",
+      "balance": 88400,
+      "payouts": []
+    },
+    {
+      "id": "m3",
+      "storeName": "Kasma Authorized Reseller",
+      "ownerName": "Yared Kebede",
+      "email": "yared.kebede@kasmatech.com",
+      "phone": "+251920112233",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "kycDocument": "MOU_Kasma_Authorized.pdf",
+      "balance": 224300,
+      "payouts": [
+        {
+          "id": "py2",
+          "amount": 80000,
+          "bankName": "Awash Bank",
+          "accountNumber": "0150987654321",
+          "status": "COMPLETED",
+          "createdAt": "2026-06-15T14:30:00Z"
+        },
+        {
+          "id": "py3",
+          "amount": 45000,
+          "bankName": "Awash Bank",
+          "accountNumber": "0150987654321",
+          "status": "PENDING",
+          "createdAt": "2026-06-23T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "m4",
+      "storeName": "Abyssinia Electronics",
+      "ownerName": "Tsion Amare",
+      "email": "tsion.amare@abyssinia-tech.com",
+      "phone": "+251944889900",
+      "status": "PENDING_APPROVAL",
+      "kycStatus": "PENDING_VERIFICATION",
+      "kycDocument": "Tech_License_Abyssinia.pdf",
+      "balance": 0,
+      "payouts": []
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord-9831",
+      "customerId": "cust-9831",
+      "customerName": "Dawit Abera",
+      "customerPhone": "+251912345678",
+      "items": [
+        {
+          "product": {
+            "id": "p1",
+            "nameEn": "SteelSeries Arctis Nova Pro Wireless Headset",
+            "nameAm": "ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ",
+            "price": 19500,
+            "category": "gaming",
+            "brand": "SteelSeries",
+            "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80",
+            "merchantId": "m1",
+            "lowStockThreshold": 5,
+            "status": "APPROVED",
+            "variants": [
+              {
+                "sku": "SS-ANP-BLK",
+                "name": "Charcoal Black",
+                "priceOffset": 0,
+                "onHand": 18,
+                "reserved": 0
+              }
+            ]
+          },
+          "sku": "SS-ANP-BLK",
+          "variantName": "Charcoal Black",
+          "quantity": 1,
+          "price": 19500
+        }
+      ],
+      "subtotal": 19500,
+      "shippingFee": 150,
+      "total": 19650,
+      "status": "DELIVERED",
+      "paymentMethod": "TELEBIRR",
+      "paymentId": "TX-TB-5829103",
+      "shippingAddress": "Bole Sub City, Addis Ababa",
+      "createdAt": "2026-07-15T10:30:00.000Z",
+      "channel": "WEB"
+    }
+  ],
+  "stockLogs": [
+    {
+      "id": "sl1",
+      "sku": "SS-ANP-BLK",
+      "productName": "SteelSeries Arctis Nova Pro Wireless Headset",
+      "previousQty": 10,
+      "newQty": 18,
+      "difference": 8,
+      "reason": "Restock Event - Air freight shipment arrived",
+      "actor": "Girma Tesfaye (Merchant)",
+      "timestamp": "2026-06-24T05:14:00Z"
+    },
+    {
+      "id": "sl2",
+      "sku": "AWU2-49",
+      "productName": "Apple Watch Ultra 2 GPS + Cellular Titanium",
+      "previousQty": 5,
+      "newQty": 1,
+      "difference": -4,
+      "reason": "Sales order fulfilment (Auto-decrement)",
+      "actor": "System Integration",
+      "timestamp": "2026-06-24T03:40:00Z"
+    },
+    {
+      "id": "sl3",
+      "sku": "ANK-PM-BLK",
+      "productName": "Anker Prime 20,000mAh Smart Power Bank",
+      "previousQty": 5,
+      "newQty": 0,
+      "difference": -5,
+      "reason": "Sales order fulfilment (Auto-decrement)",
+      "actor": "System Integration",
+      "timestamp": "2026-06-23T18:22:15Z"
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "al1",
+      "actor": "System Security Engine",
+      "action": "TELEGRAM_INIT_DATA_VERIFIED",
+      "details": "Validated webhook payload signature from Telegram client user ID 4859302",
+      "severity": "INFO",
+      "timestamp": "2026-06-24T08:45:10-07:00"
+    },
+    {
+      "id": "al2",
+      "actor": "Admin (getchze1221@gmail.com)",
+      "action": "MERCHANT_KYC_APPROVED",
+      "details": "Approved trade license documentation for Kasma Authorized Reseller",
+      "severity": "INFO",
+      "timestamp": "2026-06-24T06:10:00-07:00"
+    },
+    {
+      "id": "al3",
+      "actor": "System Payment Gateway",
+      "action": "CHAPA_WEBHOOK_RECEIVED",
+      "details": "Verified Chapa checkout tx_ref ID: ch_tx_904828. Amount: 18500 ETB. Validated hash match.",
+      "severity": "INFO",
+      "timestamp": "2026-06-24T01:30:22-07:00"
+    }
+  ],
+  "alerts": [
+    {
+      "id": "ta1",
+      "type": "OUT_OF_STOCK",
+      "message": "⚠️ OUT OF STOCK: SKU: ANK-PM-BLK (Anker Prime Smart Power Bank) has reached 0 available on-hand stock.",
+      "timestamp": "2026-06-23T18:22:15Z",
+      "read": false
+    },
+    {
+      "id": "ta2",
+      "type": "LOW_STOCK",
+      "message": "🚨 LOW STOCK ALERT: SKU: AWU2-49 (Apple Watch Ultra 2 GPS + Cellular Titanium) stock level is at 1 (Threshold: 4). Restock immediately to prevent delisting.",
+      "timestamp": "2026-06-24T03:40:00Z",
+      "read": false
+    }
+  ],
+  "apiLogs": [
+    {
+      "id": "log-1787663748282-261",
+      "timestamp": "2026-08-25T13:15:48.282Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663745279-52",
+      "timestamp": "2026-08-25T13:15:45.279Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663742275-316",
+      "timestamp": "2026-08-25T13:15:42.275Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663739274-991",
+      "timestamp": "2026-08-25T13:15:39.274Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663736290-368",
+      "timestamp": "2026-08-25T13:15:36.290Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663733281-547",
+      "timestamp": "2026-08-25T13:15:33.281Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663730273-205",
+      "timestamp": "2026-08-25T13:15:30.273Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663727344-755",
+      "timestamp": "2026-08-25T13:15:27.344Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663724281-693",
+      "timestamp": "2026-08-25T13:15:24.281Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663721270-894",
+      "timestamp": "2026-08-25T13:15:21.270Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663718274-272",
+      "timestamp": "2026-08-25T13:15:18.274Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663715292-589",
+      "timestamp": "2026-08-25T13:15:15.292Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663712284-424",
+      "timestamp": "2026-08-25T13:15:12.284Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663709276-56",
+      "timestamp": "2026-08-25T13:15:09.276Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663706254-670",
+      "timestamp": "2026-08-25T13:15:06.254Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663703268-437",
+      "timestamp": "2026-08-25T13:15:03.268Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663700316-987",
+      "timestamp": "2026-08-25T13:15:00.316Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663696504-76",
+      "timestamp": "2026-08-25T13:14:56.504Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663693504-310",
+      "timestamp": "2026-08-25T13:14:53.504Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663690509-460",
+      "timestamp": "2026-08-25T13:14:50.509Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663687537-849",
+      "timestamp": "2026-08-25T13:14:47.537Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663684518-340",
+      "timestamp": "2026-08-25T13:14:44.518Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663681496-486",
+      "timestamp": "2026-08-25T13:14:41.496Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663678504-411",
+      "timestamp": "2026-08-25T13:14:38.504Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663675514-3",
+      "timestamp": "2026-08-25T13:14:35.514Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663672520-67",
+      "timestamp": "2026-08-25T13:14:32.520Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663669513-801",
+      "timestamp": "2026-08-25T13:14:29.513Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663666496-614",
+      "timestamp": "2026-08-25T13:14:26.496Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663663499-368",
+      "timestamp": "2026-08-25T13:14:23.499Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663660503-997",
+      "timestamp": "2026-08-25T13:14:20.503Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663657510-874",
+      "timestamp": "2026-08-25T13:14:17.510Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663654502-726",
+      "timestamp": "2026-08-25T13:14:14.502Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663652195-920",
+      "timestamp": "2026-08-25T13:14:12.195Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663648501-214",
+      "timestamp": "2026-08-25T13:14:08.501Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663645498-811",
+      "timestamp": "2026-08-25T13:14:05.498Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663642495-113",
+      "timestamp": "2026-08-25T13:14:02.495Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663639504-724",
+      "timestamp": "2026-08-25T13:13:59.504Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663636501-599",
+      "timestamp": "2026-08-25T13:13:56.501Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663633505-717",
+      "timestamp": "2026-08-25T13:13:53.505Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663630500-321",
+      "timestamp": "2026-08-25T13:13:50.500Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663627496-480",
+      "timestamp": "2026-08-25T13:13:47.496Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663624506-946",
+      "timestamp": "2026-08-25T13:13:44.506Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663621515-369",
+      "timestamp": "2026-08-25T13:13:41.515Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663618508-812",
+      "timestamp": "2026-08-25T13:13:38.508Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663615513-700",
+      "timestamp": "2026-08-25T13:13:35.513Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663612510-379",
+      "timestamp": "2026-08-25T13:13:32.510Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663609494-489",
+      "timestamp": "2026-08-25T13:13:29.494Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663606494-590",
+      "timestamp": "2026-08-25T13:13:26.494Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663603493-422",
+      "timestamp": "2026-08-25T13:13:23.493Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663600499-556",
+      "timestamp": "2026-08-25T13:13:20.499Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663597501-578",
+      "timestamp": "2026-08-25T13:13:17.501Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663594503-751",
+      "timestamp": "2026-08-25T13:13:14.503Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663591505-583",
+      "timestamp": "2026-08-25T13:13:11.505Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663588496-887",
+      "timestamp": "2026-08-25T13:13:08.496Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663585505-196",
+      "timestamp": "2026-08-25T13:13:05.505Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663582506-170",
+      "timestamp": "2026-08-25T13:13:02.506Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663579505-837",
+      "timestamp": "2026-08-25T13:12:59.505Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663576509-978",
+      "timestamp": "2026-08-25T13:12:56.509Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663573508-186",
+      "timestamp": "2026-08-25T13:12:53.508Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663570495-481",
+      "timestamp": "2026-08-25T13:12:50.495Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663567494-129",
+      "timestamp": "2026-08-25T13:12:47.494Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663564524-985",
+      "timestamp": "2026-08-25T13:12:44.525Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663561504-111",
+      "timestamp": "2026-08-25T13:12:41.504Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663558509-840",
+      "timestamp": "2026-08-25T13:12:38.509Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663555495-690",
+      "timestamp": "2026-08-25T13:12:35.495Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663552506-187",
+      "timestamp": "2026-08-25T13:12:32.506Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663549515-195",
+      "timestamp": "2026-08-25T13:12:29.515Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663546497-157",
+      "timestamp": "2026-08-25T13:12:26.497Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663543500-260",
+      "timestamp": "2026-08-25T13:12:23.500Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663540493-903",
+      "timestamp": "2026-08-25T13:12:20.493Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663537494-344",
+      "timestamp": "2026-08-25T13:12:17.494Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663534506-87",
+      "timestamp": "2026-08-25T13:12:14.506Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663531508-839",
+      "timestamp": "2026-08-25T13:12:11.508Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663528507-314",
+      "timestamp": "2026-08-25T13:12:08.507Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663525514-620",
+      "timestamp": "2026-08-25T13:12:05.514Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663522495-627",
+      "timestamp": "2026-08-25T13:12:02.495Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663519496-98",
+      "timestamp": "2026-08-25T13:11:59.496Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663516513-863",
+      "timestamp": "2026-08-25T13:11:56.513Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663513510-715",
+      "timestamp": "2026-08-25T13:11:53.510Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663510499-90",
+      "timestamp": "2026-08-25T13:11:50.499Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663507497-524",
+      "timestamp": "2026-08-25T13:11:47.497Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663504620-600",
+      "timestamp": "2026-08-25T13:11:44.620Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663501495-450",
+      "timestamp": "2026-08-25T13:11:41.495Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663498500-153",
+      "timestamp": "2026-08-25T13:11:38.500Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663495485-532",
+      "timestamp": "2026-08-25T13:11:35.485Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663492513-608",
+      "timestamp": "2026-08-25T13:11:32.514Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663489524-303",
+      "timestamp": "2026-08-25T13:11:29.524Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663486500-855",
+      "timestamp": "2026-08-25T13:11:26.500Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663483486-618",
+      "timestamp": "2026-08-25T13:11:23.486Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663480504-568",
+      "timestamp": "2026-08-25T13:11:20.504Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663477493-703",
+      "timestamp": "2026-08-25T13:11:17.493Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663474501-50",
+      "timestamp": "2026-08-25T13:11:14.501Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663471494-732",
+      "timestamp": "2026-08-25T13:11:11.494Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663468515-376",
+      "timestamp": "2026-08-25T13:11:08.515Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663465647-760",
+      "timestamp": "2026-08-25T13:11:05.647Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663462504-256",
+      "timestamp": "2026-08-25T13:11:02.504Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663459554-258",
+      "timestamp": "2026-08-25T13:10:59.554Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663456893-909",
+      "timestamp": "2026-08-25T13:10:56.893Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663453938-175",
+      "timestamp": "2026-08-25T13:10:53.938Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    },
+    {
+      "id": "log-1787663451274-828",
+      "timestamp": "2026-08-25T13:10:51.274Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 1,
+      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"descriptionEn\":\"Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.\",\"descriptionAm\""
+    }
+  ]
+}
