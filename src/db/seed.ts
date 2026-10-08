@@ -1,89 +1,75 @@
-import { db } from './index.ts';
-import { products, merchants, auditLogs, stockLogs } from './schema.ts';
-import { INITIAL_PRODUCTS, INITIAL_MERCHANTS, INITIAL_AUDIT_LOGS, INITIAL_STOCK_LOGS } from '../mockData.ts';
+import { PostgresService } from './products.ts';
+import { 
+  INITIAL_PRODUCTS, 
+  INITIAL_MERCHANTS, 
+  INITIAL_AUDIT_LOGS, 
+  INITIAL_STOCK_LOGS,
+  INITIAL_TELEGRAM_ALERTS
+} from '../mockData.ts';
+import fs from 'fs';
+import path from 'path';
 
 async function seed() {
-  console.log('Seeding Cloud SQL PostgreSQL database...');
+  console.log('🚀 Starting PostgreSQL migration & seed to Neon...');
 
   try {
     // 1. Seed Merchants
+    console.log(`📦 Seeding ${INITIAL_MERCHANTS.length} merchants...`);
     for (const m of INITIAL_MERCHANTS) {
-      await db.insert(merchants).values({
-        id: m.id,
-        storeName: m.storeName,
-        ownerName: m.ownerName,
-        email: m.email,
-        phone: m.phone,
-        status: m.status,
-        tier: (m as any).tier || 'Verified Merchant',
-        rating: (m as any).rating || 5.0,
-        commissionRate: (m as any).commissionRate || 0.08,
-        totalSalesEtb: (m as any).totalSalesEtb || 0,
-        pendingPayoutEtb: (m as any).pendingPayoutEtb || 0,
-        payoutHistory: (m as any).payoutHistory || [],
-        kyc: (m as any).kyc || null,
-      }).onConflictDoNothing();
+      await PostgresService.saveMerchant(m);
     }
-    console.log('Merchants seeded successfully.');
+    console.log('✅ Merchants seeded successfully.');
 
     // 2. Seed Products
+    console.log(`📦 Seeding ${INITIAL_PRODUCTS.length} products with variants and warranty...`);
     for (const p of INITIAL_PRODUCTS) {
-      await db.insert(products).values({
-        id: p.id,
-        nameEn: p.nameEn,
-        nameAm: p.nameAm,
-        category: p.category,
-        priceEtb: p.price,
-        brand: p.brand || 'Generic',
-        status: p.status || 'APPROVED',
-        inStock: true,
-        merchantId: p.merchantId || 'MERCH-001',
-        merchantName: p.merchantName || 'Kasma Express Tech',
-        descriptionEn: p.descriptionEn || '',
-        descriptionAm: p.descriptionAm || '',
-        image: p.image || '',
-        sku: p.variants && p.variants[0] ? p.variants[0].sku : `SKU-${p.id}`,
-        reorderThreshold: p.lowStockThreshold || 5,
-        variants: p.variants || [],
-        specifications: (p as any).specifications || {},
-      }).onConflictDoNothing();
+      await PostgresService.saveProduct(p);
     }
-    console.log('Products seeded successfully.');
+    console.log('✅ Products seeded successfully.');
 
     // 3. Seed Audit Logs
+    console.log(`📦 Seeding ${INITIAL_AUDIT_LOGS.length} audit logs...`);
     for (const a of INITIAL_AUDIT_LOGS) {
-      await db.insert(auditLogs).values({
-        id: a.id,
-        actor: a.actor,
-        action: a.action,
-        details: a.details,
-        severity: a.severity,
-        timestamp: a.timestamp,
-      }).onConflictDoNothing();
+      await PostgresService.logAudit(a.actor, a.action, a.details, a.severity);
     }
-    console.log('Audit logs seeded successfully.');
+    console.log('✅ Audit logs seeded successfully.');
 
-    // 4. Seed Stock Movement Logs
+    // 4. Seed Stock Logs
+    console.log(`📦 Seeding ${INITIAL_STOCK_LOGS.length} stock movement logs...`);
     for (const s of INITIAL_STOCK_LOGS) {
-      const changeVal = (s as any).qtyChange !== undefined ? (s as any).qtyChange : (s.newQty - s.previousQty);
-      await db.insert(stockLogs).values({
-        id: s.id,
-        productId: 'p1',
-        sku: s.sku,
-        change: changeVal,
-        previousQty: s.previousQty,
-        newQty: s.newQty,
-        reason: s.reason,
-        actor: s.actor,
-        timestamp: s.timestamp,
-      }).onConflictDoNothing();
+      await PostgresService.saveStockLog(s, 'p1');
     }
-    console.log('Stock movement logs seeded successfully.');
+    console.log('✅ Stock logs seeded successfully.');
 
-    console.log('Cloud SQL PostgreSQL seeding complete!');
+    // 5. Seed Telegram Alerts
+    console.log(`📦 Seeding ${INITIAL_TELEGRAM_ALERTS.length} telegram alerts...`);
+    for (const alert of INITIAL_TELEGRAM_ALERTS) {
+      await PostgresService.saveAlert(alert);
+    }
+    console.log('✅ Telegram alerts seeded successfully.');
+
+    // 6. Migrate any existing orders from db.json if present
+    const dbJsonPath = path.join(process.cwd(), 'src', 'server', 'db.json');
+    if (fs.existsSync(dbJsonPath)) {
+      try {
+        const raw = fs.readFileSync(dbJsonPath, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (parsed.orders && Array.isArray(parsed.orders) && parsed.orders.length > 0) {
+          console.log(`📦 Migrating ${parsed.orders.length} orders from db.json...`);
+          for (const order of parsed.orders) {
+            await PostgresService.saveOrder(order);
+          }
+          console.log('✅ Existing orders from db.json migrated.');
+        }
+      } catch (err) {
+        console.warn('Could not read existing db.json orders:', err);
+      }
+    }
+
+    console.log('🎉 Neon PostgreSQL migration & seeding finished successfully!');
     process.exit(0);
   } catch (err) {
-    console.error('Seeding Cloud SQL failed:', err);
+    console.error('❌ Seeding failed:', err);
     process.exit(1);
   }
 }

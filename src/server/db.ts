@@ -46,13 +46,29 @@ export class Database {
       if (sqlProducts && sqlProducts.length > 0) {
         this.products = sqlProducts;
       }
+      const sqlMerchants = await CloudSqlProductService.getAllMerchants();
+      if (sqlMerchants && sqlMerchants.length > 0) {
+        this.merchants = sqlMerchants;
+      }
       const sqlOrders = await CloudSqlProductService.getAllOrders();
       if (sqlOrders && sqlOrders.length > 0) {
         this.orders = sqlOrders;
       }
-      console.log(`[CLOUD_SQL] Hydrated ${this.products.length} products and ${this.orders.length} orders from PostgreSQL.`);
+      const sqlStockLogs = await CloudSqlProductService.getAllStockLogs();
+      if (sqlStockLogs && sqlStockLogs.length > 0) {
+        this.stockLogs = sqlStockLogs;
+      }
+      const sqlAuditLogs = await CloudSqlProductService.getAllAuditLogs();
+      if (sqlAuditLogs && sqlAuditLogs.length > 0) {
+        this.auditLogs = sqlAuditLogs;
+      }
+      const sqlAlerts = await CloudSqlProductService.getAllAlerts();
+      if (sqlAlerts && sqlAlerts.length > 0) {
+        this.alerts = sqlAlerts;
+      }
+      console.log(`[POSTGRES] Fully hydrated state from PostgreSQL: ${this.products.length} products, ${this.merchants.length} merchants, ${this.orders.length} orders.`);
     } catch (err) {
-      console.warn('[CLOUD_SQL] Hydration warning:', err);
+      console.warn('[POSTGRES] Hydration warning:', err);
     }
   }
 
@@ -340,6 +356,8 @@ export class ProductService {
     }
 
     db.save();
+    CloudSqlProductService.saveProduct(product).catch(() => {});
+    CloudSqlProductService.saveStockLog(movement, product.id).catch(() => {});
     return true;
   }
 
@@ -508,6 +526,7 @@ export class OrderService {
           `Credited store "${merchant.storeName}" with ${netSettlement.toLocaleString()} ETB (97% of ${merchantTotal.toLocaleString()} ETB). Kasma retained ${retainedFee.toLocaleString()} ETB commission fees.`,
           'INFO'
         );
+        CloudSqlProductService.saveMerchant(merchant).catch(() => {});
       }
 
       // Format automatic merchant Telegram alert message
@@ -667,6 +686,7 @@ export class MerchantService {
     );
 
     db.save();
+    CloudSqlProductService.saveMerchant(merchant).catch(() => {});
     return true;
   }
 
@@ -680,6 +700,7 @@ export class MerchantService {
     if (merchant.balance < payout.amount) {
       payout.status = 'FAILED';
       db.save();
+      CloudSqlProductService.saveMerchant(merchant).catch(() => {});
       return false;
     }
 
@@ -695,6 +716,7 @@ export class MerchantService {
     );
 
     db.save();
+    CloudSqlProductService.saveMerchant(merchant).catch(() => {});
     return true;
   }
 
@@ -713,6 +735,7 @@ export class MerchantService {
     );
 
     db.save();
+    CloudSqlProductService.saveMerchant(merchant).catch(() => {});
     return true;
   }
 
@@ -729,6 +752,7 @@ export class MerchantService {
     );
 
     db.save();
+    CloudSqlProductService.saveMerchant(merchant).catch(() => {});
     return true;
   }
 
