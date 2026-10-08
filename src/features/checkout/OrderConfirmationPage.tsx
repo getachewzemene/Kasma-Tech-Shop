@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { 
   CheckCircle, 
@@ -11,17 +11,19 @@ import {
   ShieldCheck, 
   Download,
   Share2,
-  Package
+  Package,
+  ExternalLink
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 export const OrderConfirmationPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const checkoutUrl = searchParams.get('checkoutUrl');
   const { orders, language } = useShop();
 
   const order = orders.find(o => o.id === id) || orders[0];
-
-  const verificationPin = order ? order.id.slice(-4) : '8492';
+  const verificationPin = order?.codVerificationPin || (order ? order.id.slice(-4) : '8492');
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
@@ -31,7 +33,9 @@ export const OrderConfirmationPage: React.FC = () => {
           <CheckCircle className="w-9 h-9" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-zinc-100 tracking-tight">
-          {language === 'en' ? 'Order Confirmed & Escrow Secured!' : 'ትዕዛዝዎ ተረጋግጧል!'}
+          {order?.paymentMethod === 'COD'
+            ? (language === 'en' ? 'Cash On Delivery Order Confirmed!' : 'የእጅ በእጅ ክፍያ ትዕዛዝ ተረጋግጧል!')
+            : (language === 'en' ? 'Order Confirmed & Escrow Secured!' : 'ትዕዛዝዎ ተረጋግጧል!')}
         </h1>
         <p className="text-xs text-gray-500 dark:text-zinc-400 max-w-md mx-auto leading-relaxed">
           {language === 'en'
@@ -39,6 +43,32 @@ export const OrderConfirmationPage: React.FC = () => {
             : 'ትዕዛዝዎ ወደ ነጋዴው ተልኳል። ፈጣን የማድረሻ መልዕክተኛ ተመድቦ ወደ እርስዎ ይላካል።'}
         </p>
       </div>
+
+      {/* Chapa Hosted Payment Callout (if digital payment link exists) */}
+      {checkoutUrl && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="space-y-0.5 text-center sm:text-left">
+            <span className="font-black text-emerald-900 dark:text-emerald-300 text-xs flex items-center gap-1.5 justify-center sm:justify-start">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>{language === 'en' ? 'Chapa Gateway Session Active' : 'የጫፓ ክፍያ ገጽ ዝግጁ ነው'}</span>
+            </span>
+            <p className="text-[11px] text-gray-600 dark:text-zinc-400">
+              {language === 'en'
+                ? 'Complete payment via Telebirr, CBE Birr, Awash, or Card on Chapa\'s secure hosted checkout.'
+                : 'በቴሌብር፣ በሲቢኢ ብር፣ በአዋሽ ወይም በባንክ ካርድ በጫፓ ደህንነቱ በተጠበቀ ገጽ ይክፈሉ።'}
+            </p>
+          </div>
+          <a
+            href={checkoutUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-sm shrink-0 flex items-center gap-2 transition-all cursor-pointer"
+          >
+            <span>{language === 'en' ? 'Pay with Chapa' : 'በጫፓ ክፈል'}</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
+      )}
 
       {/* Main Order Voucher Card */}
       <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 space-y-6 shadow-sm">

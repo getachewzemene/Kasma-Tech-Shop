@@ -370,7 +370,19 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setAppliedPromo(null);
   }, [clearCart]);
 
-  const updateProductStock = useCallback((productId: string, sku: string, qtyChange: number, reason: string) => {
+  // Helper to obtain admin token headers
+  const getAdminAuthHeaders = useCallback((): Record<string, string> => {
+    const token = localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  }, []);
+
+  // Helper to obtain merchant or admin token headers
+  const getMerchantAuthHeaders = useCallback((): Record<string, string> => {
+    const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  }, []);
+
+  const updateProductStock = useCallback(async (productId: string, sku: string, qtyChange: number, reason: string) => {
     setProducts(prev => prev.map(p => {
       if (p.id !== productId) return p;
       return {
@@ -378,7 +390,17 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         variants: p.variants.map(v => v.sku === sku ? { ...v, onHand: Math.max(0, v.onHand + qtyChange) } : v)
       };
     }));
-  }, []);
+    try {
+      await fetch(`/api/products/${productId}/stock`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getMerchantAuthHeaders()
+        },
+        body: JSON.stringify({ sku, change: qtyChange, reason })
+      });
+    } catch {}
+  }, [getMerchantAuthHeaders]);
 
   const updateOrderStatus = useCallback((orderId: string, newStatus: Order['status']) => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
@@ -397,6 +419,8 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logoutCustomer = useCallback(() => {
     setIsCustomerLoggedIn(false);
     localStorage.removeItem('kasma_customer_logged_in');
+    localStorage.removeItem('kasma_auth_token');
+    localStorage.removeItem('kasma_auth_user');
   }, []);
 
   const addAddress = useCallback((addr: Omit<DeliveryAddress, 'id'>) => {
@@ -408,38 +432,73 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setAddresses(prev => prev.filter(a => a.id !== id));
   }, []);
 
-  // Admin Actions
+  // Admin Actions with RBAC Bearer Headers
   const approveProduct = useCallback(async (id: string) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, status: 'APPROVED' } : p));
     try {
-      await fetch(`/api/products/${id}/approve`, { method: 'PUT' });
-      showToast('Product listing approved', 'success');
+      const res = await fetch(`/api/products/${id}/approve`, {
+        method: 'PUT',
+        headers: getAdminAuthHeaders()
+      });
+      if (res.ok) {
+        showToast('Product listing approved', 'success');
+      } else {
+        const err = await res.json();
+        showToast(err.error || 'Failed to approve product', 'warning');
+      }
     } catch {}
-  }, [showToast]);
+  }, [getAdminAuthHeaders, showToast]);
 
   const rejectProduct = useCallback(async (id: string) => {
     setProducts(prev => prev.map(p => p.id === id ? { ...p, status: 'REJECTED' } : p));
     try {
-      await fetch(`/api/products/${id}/reject`, { method: 'PUT' });
-      showToast('Product listing rejected', 'info');
+      const res = await fetch(`/api/products/${id}/reject`, {
+        method: 'PUT',
+        headers: getAdminAuthHeaders()
+      });
+      if (res.ok) {
+        showToast('Product listing rejected', 'info');
+      } else {
+        const err = await res.json();
+        showToast(err.error || 'Failed to reject product', 'warning');
+      }
     } catch {}
-  }, [showToast]);
+  }, [getAdminAuthHeaders, showToast]);
 
   const approveMerchantKyc = useCallback(async (merchantId: string) => {
     setMerchants(prev => prev.map(m => m.id === merchantId ? { ...m, kycStatus: 'APPROVED', status: 'ACTIVE' } : m));
     try {
-      await fetch(`/api/merchants/${merchantId}/kyc/approve`, { method: 'PUT' });
-      showToast('Merchant KYC approved', 'success');
+      const res = await fetch(`/api/merchants/${merchantId}/kyc/approve`, {
+        method: 'PUT',
+        headers: getAdminAuthHeaders()
+      });
+      if (res.ok) {
+        showToast('Merchant KYC approved', 'success');
+      } else {
+        const err = await res.json();
+        showToast(err.error || 'Failed to approve KYC', 'warning');
+      }
     } catch {}
-  }, [showToast]);
+  }, [getAdminAuthHeaders, showToast]);
 
   const toggleMerchantStatus = useCallback(async (merchantId: string) => {
+    let nextStatus: 'ACTIVE' | 'SUSPENDED' = 'ACTIVE';
     setMerchants(prev => prev.map(m => {
       if (m.id !== merchantId) return m;
-      const nextStatus = m.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+      nextStatus = m.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
       return { ...m, status: nextStatus };
     }));
-  }, []);
+    try {
+      await fetch(`/api/merchants/${merchantId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAdminAuthHeaders()
+        },
+        body: JSON.stringify({ status: nextStatus })
+      });
+    } catch {}
+  }, [getAdminAuthHeaders]);
 
   const approvePayout = useCallback(async (merchantId: string, payoutId: string) => {
     setMerchants(prev => prev.map(m => {
@@ -449,7 +508,19 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         payouts: m.payouts.map(p => p.id === payoutId ? { ...p, status: 'COMPLETED' } : p)
       };
     }));
-  }, []);
+    try {
+      const res = await fetch(`/api/merchants/${merchantId}/payout/${payoutId}/approve`, {
+        method: 'PUT',
+        headers: getAdminAuthHeaders()
+      });
+      if (res.ok) {
+        showToast('Payout approved and wire settlement confirmed', 'success');
+      } else {
+        const err = await res.json();
+        showToast(err.error || 'Failed to approve payout', 'warning');
+      }
+    } catch {}
+  }, [getAdminAuthHeaders, showToast]);
 
   return (
     <ShopContext.Provider

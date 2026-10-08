@@ -18,7 +18,7 @@ export const MerchantPortalPage: React.FC = () => {
   } = useShop();
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('kasma_merchant_auth') === 'true';
+    return localStorage.getItem('kasma_merchant_auth') === 'true' && !!localStorage.getItem('kasma_merchant_token');
   });
   const [tabMode, setTabMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
   const [authMethod, setAuthMethod] = useState<'PASSWORD' | 'TELEGRAM_QR'>('PASSWORD');
@@ -34,17 +34,31 @@ export const MerchantPortalPage: React.FC = () => {
   const [regPhone, setRegPhone] = useState('');
   const [regPassword, setRegPassword] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
-    // Check credentials or allow demo store
     if (!identifier || !password) {
       setAuthError('Please enter store email/name and password');
       return;
     }
-    setIsAuthenticated(true);
-    localStorage.setItem('kasma_merchant_auth', 'true');
-    showToast('Signed in to Merchant Portal', 'success');
+    try {
+      const res = await fetch('/api/auth/merchant-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to authenticate merchant.');
+      }
+      localStorage.setItem('kasma_merchant_token', data.token);
+      localStorage.setItem('kasma_auth_token', data.token);
+      localStorage.setItem('kasma_merchant_auth', 'true');
+      setIsAuthenticated(true);
+      showToast('Signed in to Merchant Portal with verified JWT credentials', 'success');
+    } catch (err: any) {
+      setAuthError(err.message || 'Authentication error');
+    }
   };
 
   const handleRegister = (e: React.FormEvent) => {
@@ -61,20 +75,29 @@ export const MerchantPortalPage: React.FC = () => {
   const handleLogout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('kasma_merchant_auth');
+    localStorage.removeItem('kasma_merchant_token');
     showToast('Logged out from Merchant Portal', 'info');
   };
 
   const handleAddProduct = async (p: Product) => {
     try {
-      await fetch('/api/products', {
+      const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(p)
       });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to submit product');
+      }
       await refreshState();
       showToast('Product draft submitted for admin approval', 'success');
-    } catch {
-      showToast('Failed to save product draft', 'error');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to save product draft', 'error');
     }
   };
 

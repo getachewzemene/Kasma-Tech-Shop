@@ -446,9 +446,13 @@ export default function AdminDashboard({
     const originalScore = calculateProductSeoScore(product);
 
     try {
+      const token = localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch('/api/seo/quick-fix', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           productId: product.id,
           nameEn: product.nameEn,
@@ -496,9 +500,13 @@ export default function AdminDashboard({
     const { product, result, projectedScore } = quickFixModalData;
 
     try {
+      const token = localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const res = await fetch(`/api/products/${product.id}/seo`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           descriptionEn: result.descriptionEn,
           descriptionAm: result.descriptionAm,

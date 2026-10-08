@@ -418,7 +418,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
   if (!isOpen) return null;
 
-  const handlePasswordSignIn = (e: React.FormEvent) => {
+  const handlePasswordSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginIdentifierInput.trim() || !loginPasswordInput.trim()) {
       showToast(
@@ -431,22 +431,48 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
     }
 
     setIsAuthenticating(true);
-    setTimeout(() => {
-      setIsAuthenticating(false);
-      
-      const identifier = loginIdentifierInput.trim();
-      const displayName = customerName || (identifier.includes('@') ? identifier.split('@')[0] : identifier);
-      const displayPhone = identifier.startsWith('+') || /^\d+$/.test(identifier) ? identifier : (customerPhone || '+251911223344');
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: loginIdentifierInput.trim(),
+          password: loginPasswordInput.trim(),
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Authentication failed. Please check your credentials.');
+      }
+
+      // Persist auth token and user
+      if (data.token) {
+        localStorage.setItem('kasma_auth_token', data.token);
+      }
+      if (data.user) {
+        localStorage.setItem('kasma_auth_user', JSON.stringify(data.user));
+        if (data.user.name) setCustomerName(data.user.name);
+        if (data.user.phone) setCustomerPhone(data.user.phone);
+        if (setCustomerEmail && data.user.email) setCustomerEmail(data.user.email);
+      }
+
+      const displayName = data.user?.name || customerName || loginIdentifierInput.trim();
+      const displayPhone = data.user?.phone || customerPhone || loginIdentifierInput.trim();
 
       onLogin(displayPhone, displayName);
-      
+
       showToast(
         language === 'en' 
           ? `Welcome back, ${displayName}! Signed in successfully.` 
           : `እንኳን ደህና መጡ ${displayName}! በተሳካ ሁኔታ ገብተዋል።`,
         'success'
       );
-    }, 500);
+    } catch (err: any) {
+      showToast(err.message || 'Authentication error', 'error');
+    } finally {
+      setIsAuthenticating(false);
+    }
   };
 
   const handleSendRecoveryCode = (e?: React.FormEvent) => {
@@ -520,21 +546,52 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
     }, 700);
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regNameInput.trim() || !regPhoneInput.trim()) {
       showToast(language === 'en' ? 'Please fill in name and phone number' : 'እባክዎን ስም እና ስልክ ቁጥር ያስገቡ', 'warning');
       return;
     }
+    if (!regPasswordInput || regPasswordInput.length < 6) {
+      showToast(
+        language === 'en' ? 'Password must be at least 6 characters long' : 'የምስጢር ቃል ቢያንስ 6 ፊደላት መሆን አለበት',
+        'warning'
+      );
+      return;
+    }
+
     setIsAuthenticating(true);
-    setTimeout(() => {
-      setIsAuthenticating(false);
-      onLogin(regPhoneInput, regNameInput);
-      if (setCustomerEmail && regEmailInput.trim()) {
-        setCustomerEmail(regEmailInput.trim());
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: regNameInput.trim(),
+          phone: regPhoneInput.trim(),
+          email: regEmailInput.trim() || undefined,
+          password: regPasswordInput.trim(),
+          role: 'customer',
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Registration failed');
       }
+
+      if (data.token) {
+        localStorage.setItem('kasma_auth_token', data.token);
+      }
+      if (data.user) {
+        localStorage.setItem('kasma_auth_user', JSON.stringify(data.user));
+        if (data.user.name) setCustomerName(data.user.name);
+        if (data.user.phone) setCustomerPhone(data.user.phone);
+        if (setCustomerEmail && data.user.email) setCustomerEmail(data.user.email);
+      }
+
+      onLogin(regPhoneInput.trim(), regNameInput.trim());
       onAddPoints(200, 'Welcome Account Registration Bonus (+200 PTS)', 'የመለያ ምዝገባ የጉርሻ ነጥብ (+200 ነጥብ)', 'BONUS');
-      
+
       if (addresses.length === 0) {
         onAddAddress({
           label: 'HOME',
@@ -553,23 +610,43 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           : `መለያዎ በተሳካ ሁኔታ ተፈጥሯል! እንኳን ደህና መጡ ${regNameInput}! 🎉 +200 ነጥብ ተሰጥቶዎታል።`,
         'success'
       );
-    }, 600);
+    } catch (err: any) {
+      showToast(err.message || 'Registration failed', 'error');
+    } finally {
+      setIsAuthenticating(false);
+    }
   };
 
-  const handleSelectDemoUser = (name: string, phone: string) => {
+  const handleSelectDemoUser = async (name: string, phone: string) => {
     setIsAuthenticating(true);
-    setTimeout(() => {
-      setIsAuthenticating(false);
-      setCustomerName(name);
-      setCustomerPhone(phone);
-      onLogin(phone, name);
-      showToast(
-        language === 'en' 
-          ? `Signed in as ${name}` 
-          : `እንደ ${name} በተሳካ ሁኔታ ገብተዋል`,
-        'success'
-      );
-    }, 400);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: phone,
+          password: 'demo_password',
+        }),
+      });
+      const data = await response.json();
+      if (data.success && data.token) {
+        localStorage.setItem('kasma_auth_token', data.token);
+        if (data.user) {
+          localStorage.setItem('kasma_auth_user', JSON.stringify(data.user));
+        }
+      }
+    } catch {}
+
+    setCustomerName(name);
+    setCustomerPhone(phone);
+    onLogin(phone, name);
+    setIsAuthenticating(false);
+    showToast(
+      language === 'en' 
+        ? `Signed in as ${name}` 
+        : `እንደ ${name} በተሳካ ሁኔታ ገብተዋል`,
+      'success'
+    );
   };
 
   const handleCreateAddress = (e: React.FormEvent) => {

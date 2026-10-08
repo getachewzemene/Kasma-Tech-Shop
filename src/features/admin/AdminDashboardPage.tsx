@@ -20,26 +20,39 @@ export const AdminDashboardPage: React.FC = () => {
   } = useShop();
 
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('kasma_admin_auth') === 'true';
+    return localStorage.getItem('kasma_admin_auth') === 'true' && !!localStorage.getItem('kasma_admin_token');
   });
   const [username, setUsername] = useState('kasma-admin');
   const [password, setPassword] = useState('kasma_admin123');
   const [authError, setAuthError] = useState('');
 
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === 'kasma-admin' && password === 'kasma_admin123') {
-      setIsAdminAuthenticated(true);
+    setAuthError('');
+    try {
+      const res = await fetch('/api/auth/admin-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Invalid administrator credentials.');
+      }
+      localStorage.setItem('kasma_admin_token', data.token);
+      localStorage.setItem('kasma_auth_token', data.token);
       localStorage.setItem('kasma_admin_auth', 'true');
-      showToast('Administrator session authenticated', 'success');
-    } else {
-      setAuthError('Invalid administrator credentials.');
+      setIsAdminAuthenticated(true);
+      showToast('Administrator session authenticated with JWT clearance', 'success');
+    } catch (err: any) {
+      setAuthError(err.message || 'Invalid administrator credentials.');
     }
   };
 
   const handleAdminLogout = () => {
     setIsAdminAuthenticated(false);
     localStorage.removeItem('kasma_admin_auth');
+    localStorage.removeItem('kasma_admin_token');
     showToast('Administrator logged out', 'info');
   };
 

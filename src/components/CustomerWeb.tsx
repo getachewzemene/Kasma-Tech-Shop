@@ -1808,6 +1808,9 @@ export default function CustomerWeb({
       }
 
       setActivePaymentSession(data);
+      if (data.token) {
+        localStorage.setItem('kasma_auth_token', data.token);
+      }
       setQrReferenceTx(data.txRef);
 
       if (paymentMethod === 'COD') {
@@ -1868,9 +1871,15 @@ export default function CustomerWeb({
     };
 
     try {
+      const token = localStorage.getItem('kasma_auth_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_merchant_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const res = await fetch('/api/payment/verify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           txRef,
           orderId: tempOrderId,

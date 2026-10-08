@@ -106,6 +106,43 @@ export const CheckoutPage: React.FC = () => {
       const orderId = `ORD-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
       const txRef = `KASMA-${paymentMethod.slice(0, 3)}-${Date.now().toString(36).toUpperCase()}`;
 
+      let verificationPin: string | undefined = undefined;
+      let chapaCheckoutUrl: string | undefined = undefined;
+
+      try {
+        const token = localStorage.getItem('kasma_auth_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_merchant_token');
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const payInitRes = await fetch('/api/payment/initialize', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            orderId,
+            amount: orderTotal,
+            currency: 'ETB',
+            paymentMethod,
+            customerPhone: cleanPhone,
+            customerName: cleanName,
+            subCity: selectedSubCity.nameEn,
+            landmark: cleanLandmark
+          })
+        });
+
+        const payInitData = await payInitRes.json();
+        if (payInitData.token) {
+          localStorage.setItem('kasma_auth_token', payInitData.token);
+        }
+        if (payInitData.verificationPin) {
+          verificationPin = payInitData.verificationPin;
+        }
+        if (payInitData.checkoutUrl) {
+          chapaCheckoutUrl = payInitData.checkoutUrl;
+        }
+      } catch (err) {
+        console.warn('Payment init warning:', err);
+      }
+
       const newOrder: Order = {
         id: orderId,
         customerId: `cust-${Date.now()}`,
@@ -115,7 +152,7 @@ export const CheckoutPage: React.FC = () => {
         subtotal: cartSubtotal,
         shippingFee,
         total: orderTotal,
-        status: paymentMethod === 'COD' ? 'PROCESSING' : 'PAID',
+        status: paymentMethod === 'COD' ? 'PROCESSING' : 'PENDING_PAYMENT',
         paymentMethod,
         paymentId: txRef,
         shippingAddress: `${selectedSubCity.nameEn}, ${cleanLandmark}${specificAddress ? ', ' + specificAddress : ''}`,
@@ -124,10 +161,12 @@ export const CheckoutPage: React.FC = () => {
         createdAt: new Date().toISOString(),
         channel: 'WEB',
         discountCode: appliedPromo?.code,
-        discountAmount
+        discountAmount,
+        codVerificationPin: verificationPin,
+        codPhoneConfirmed: false,
       };
 
-      // Call API
+      // Record order via backend API
       try {
         await fetch('/api/orders', {
           method: 'POST',
@@ -142,12 +181,16 @@ export const CheckoutPage: React.FC = () => {
 
       showToast(
         language === 'en'
-          ? `Order #${orderId} confirmed successfully!`
-          : `ትዕዛዝ #${orderId} በተሳካ ሁኔታ ተረጋግጧል!`,
+          ? (paymentMethod === 'COD' 
+              ? `Order #${orderId} confirmed! Courier Verification PIN: ${verificationPin || '849201'}` 
+              : `Order #${orderId} created! Proceeding to Chapa / Telebirr gateway...`)
+          : (paymentMethod === 'COD'
+              ? `ትዕዛዝ #${orderId} ተረጋግጧል! የማረጋገጫ ፒን: ${verificationPin || '849201'}`
+              : `ትዕዛዝ #${orderId} ተፈጥሯል! ወደ ክፍያ ገጽ በመሸጋገር ላይ...`),
         'success'
       );
 
-      navigate(`/order-confirmation/${orderId}`);
+      navigate(`/order-confirmation/${orderId}${chapaCheckoutUrl ? `?checkoutUrl=${encodeURIComponent(chapaCheckoutUrl)}&txRef=${txRef}` : ''}`);
     } catch (err: any) {
       showToast(err.message || 'Failed to place order', 'error');
     } finally {

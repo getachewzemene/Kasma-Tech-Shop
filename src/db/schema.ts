@@ -9,6 +9,7 @@ export const users = pgTable('users', {
   name: text('name'),
   phone: text('phone'),
   role: text('role').default('customer').notNull(), // 'customer' | 'merchant' | 'admin'
+  passwordHash: text('password_hash'),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -26,6 +27,7 @@ export const merchants = pgTable('merchants', {
   totalSalesEtb: real('total_sales_etb').default(0).notNull(),
   pendingPayoutEtb: real('pending_payout_etb').default(0).notNull(),
   balance: real('balance').default(0).notNull(),
+  passwordHash: text('password_hash'),
   kycStatus: text('kyc_status').default('APPROVED').notNull(), // 'NOT_SUBMITTED' | 'PENDING_VERIFICATION' | 'APPROVED'
   kycDocument: text('kyc_document'),
   telegramUsername: text('telegram_username'),

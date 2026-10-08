@@ -68,6 +68,10 @@ export interface Order {
   channel: 'WEB' | 'TELEGRAM_MINI_APP' | 'MOBILE';
   discountCode?: string;
   discountAmount?: number;
+  codVerificationPin?: string;
+  codPhoneConfirmed?: boolean;
+  chapaReference?: string;
+  chapaMethod?: string;
 }
 
 export interface StockMovementLog {
