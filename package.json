@@ -29,6 +29,8 @@
     "qrcode.react": "^4.2.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
+    "react-is": "^19.3.0",
+    "react-router-dom": "^7.3.0",
     "recharts": "^3.9.1",
     "vite": "^6.2.3"
   },
