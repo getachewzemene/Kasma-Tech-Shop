@@ -1,49 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Product, Variant, CartItem, Order, PriceAlert, PromoCode, DeliveryAddress, SavedPaymentMethod, KasmaPointsReward, KasmaPointsLog } from '../types';
-import { ShoppingCart, Heart, Search, Eye, Sparkles, Check, ChevronRight, ChevronLeft, MapPin, Phone, ShieldCheck, CreditCard, RefreshCw, SlidersHorizontal, ArrowRight, Truck, Package, Clock, Star, MessageSquare, ThumbsUp, Bell, TrendingDown, GitCompare, Gamepad2, Laptop, Camera, Tv, Watch, Smartphone, Headphones, Cpu, ChevronDown, Menu, Flame, Percent, User, Lock, Award, Plus, Zap, Scale, Box, Wifi, WifiOff, Database, Battery, QrCode, Copy, ExternalLink, Download, CheckCircle2, Home, Share2, Link2, Send, MessageCircle, RotateCcw, X, Layers, Filter, Tag, Printer, Activity, Info, BarChart2, Trash2, LogIn, UserPlus, Globe, Building2 } from 'lucide-react';
-import { CatalogCacheMeta } from '../utils/offlineCatalogCache';
-import { generateShareableCartUrl } from '../utils/cartSharing';
-import { generateWhatsAppCustomerWelcomeUrl } from '../utils/whatsappNotifications';
-import { QRCodeSVG } from 'qrcode.react';
-import { motion, AnimatePresence } from 'motion/react';
-import LiveCourierMap from './LiveCourierMap';
-import { OrderCourierMiniMap } from './OrderCourierMiniMap';
-import { OrderTrackingVisualizer } from './OrderTrackingVisualizer';
-import { LazyImage } from './LazyImage';
-import { Shimmer, ShimmerCircle } from './Skeletons';
-import MyOrdersView from './MyOrdersView';
-import UserProfileView from './UserProfileView';
-import { FlashDealsView } from './FlashDealsView';
-import { ProductCard } from './ProductCard';
-import { SectionHeader } from './SectionHeader';
-import DeliveryTimeEstimator from './DeliveryTimeEstimator';
-import { GridContainer, CarouselContainer } from './GridContainer';
-import { AutoCarousel } from './AutoCarousel';
-import { sendTelegramOrderConfirmation, sendTelegramShippingUpdate, sendStoreOwnerTelegramNotification } from '../utils/telegramBot';
-import { showTelegramMainButton, hideTelegramMainButton, setTelegramMainButtonProgress, isTelegramMiniApp } from '../utils/telegramWebApp';
-
-export interface SubCityOption {
-  id: string;
-  nameEn: string;
-  nameAm: string;
-  fee: number;
-  timeEn: string;
-  timeAm: string;
-}
-
-export const SUB_CITIES: SubCityOption[] = [
-  { id: 'bole', nameEn: 'Bole (ቦሌ)', nameAm: 'ቦሌ', fee: 100, timeEn: '1-2 Hours', timeAm: 'ከ1-2 ሰዓት' },
-  { id: 'kirkos', nameEn: 'Kirkos (ኪርቆስ)', nameAm: 'ኪርቆስ', fee: 110, timeEn: '1-2 Hours', timeAm: 'ከ1-2 ሰዓት' },
-  { id: 'yeka', nameEn: 'Yeka (የካ)', nameAm: 'የካ', fee: 130, timeEn: '2-3 Hours', timeAm: 'ከ2-3 ሰዓት' },
-  { id: 'arada', nameEn: 'Arada (አራዳ)', nameAm: 'አራዳ', fee: 90, timeEn: '1-2 Hours', timeAm: 'ከ1-2 ሰዓት' },
-  { id: 'lideta', nameEn: 'Lideta (ልደታ)', nameAm: 'ልደታ', fee: 120, timeEn: '2-3 Hours', timeAm: 'ከ2-3 ሰዓት' },
-  { id: 'nifas_silk', nameEn: 'Nifas Silk-Lafto (ንፋስ ስልክ ላፍቶ)', nameAm: 'ንፋስ ስልክ ላፍቶ', fee: 150, timeEn: '2-3 Hours', timeAm: 'ከ2-3 ሰዓት' },
-  { id: 'kolfe_keranio', nameEn: 'Kolfe Keranio (ኮልፌ ቀራንዮ)', nameAm: 'ኮልፌ ቀራንዮ', fee: 180, timeEn: '3-4 Hours', timeAm: 'ከ3-4 ሰዓት' },
-  { id: 'gullele', nameEn: 'Gullele (ጉለሌ)', nameAm: 'ጉለሌ', fee: 160, timeEn: '2-3 Hours', timeAm: 'ከ2-3 ሰዓት' },
-  { id: 'addis_ketema', nameEn: 'Addis Ketema (አዲስ ከተማ)', nameAm: 'አዲስ ከተማ', fee: 140, timeEn: '2 Hours', timeAm: 'ከ2 ሰዓት' },
-  { id: 'akaki_kality', nameEn: 'Akaki Kality (አቃቂ ቃሊቲ)', nameAm: 'አቃቂ ቃሊቲ', fee: 250, timeEn: '3-5 Hours', timeAm: 'ከ3-5 ሰዓት' },
-  { id: 'regional', nameEn: 'Regional Capitals (ክልል ከተሞች)', nameAm: 'የክልል ከተሞች', fee: 350, timeEn: '24-48 Hours', timeAm: 'ከ24-48 ሰዓት' }
-];
+import { SUB_CITIES, SubCityOption } from '../constants/locations';
+export { SUB_CITIES, type SubCityOption };
 
 interface CustomerWebProps {
   products: Product[];

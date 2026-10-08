@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Truck, MapPin, Phone, Clock, Navigation, ShieldCheck, Sparkles, Send, ExternalLink, Zap } from 'lucide-react';
-import { SUB_CITIES } from './CustomerWeb';
+import { SUB_CITIES } from '../constants/locations';
 
 interface OrderCourierMiniMapProps {
   language: 'en' | 'am';

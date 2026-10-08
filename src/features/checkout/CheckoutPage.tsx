@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
-import { SUB_CITIES } from '../../components/CustomerWeb';
+import { SUB_CITIES } from '../../constants/locations';
 import { Order } from '../../types';
 import { 
   ShieldCheck, 

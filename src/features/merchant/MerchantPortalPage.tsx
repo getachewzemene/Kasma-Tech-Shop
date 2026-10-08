@@ -252,6 +252,7 @@ export const MerchantPortalPage: React.FC = () => {
         onRequestPayout={() => {}}
         language={language}
         onLogout={handleLogout}
+        onOrderUpdated={async () => { await refreshState(); }}
       />
     </div>
   );

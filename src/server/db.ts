@@ -9,6 +9,7 @@ import {
   INITIAL_TELEGRAM_ALERTS 
 } from '../mockData';
 import { CloudSqlProductService } from '../db/products.ts';
+import { sendOrderAlertToTelegram, sendFulfillmentTelegramUpdate } from '../lib/telegram.ts';
 
 // API Traffic Log entry interface for the Live Traffic Console
 export interface ApiTrafficLog {
@@ -560,18 +561,9 @@ export class OrderService {
         'INFO'
       );
 
-      // Send live Telegram HTTP API call if BOT token is provided
-      if (process.env.TELEGRAM_BOT_TOKEN) {
-        const token = process.env.TELEGRAM_BOT_TOKEN;
-        fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: chatId,
-            text: merchantAlertMessage
-          })
-        }).catch(err => console.error(`Failed live Telegram send to merchant ${storeName}:`, err));
-      }
+      // Send live Telegram HTTP API call with inline buttons
+      sendOrderAlertToTelegram(order, storeName, chatId)
+        .catch(err => console.warn(`Failed live Telegram send to merchant ${storeName}:`, err));
     }
 
     // 4. Audit Log
@@ -590,6 +582,62 @@ export class OrderService {
 
     db.save();
     return order;
+  }
+
+  // Merchant Fulfillment Workflow Action: PACK, SHIP, DELIVER
+  public static updateFulfillment(
+    orderId: string,
+    status: 'PROCESSING' | 'SHIPPED' | 'DELIVERED',
+    details?: { courierName?: string; courierPhone?: string; trackingNotes?: string; actor?: string }
+  ): { success: boolean; order?: Order; error?: string } {
+    const order = db.orders.find(o => o.id === orderId);
+    if (!order) {
+      return { success: false, error: 'Order not found.' };
+    }
+
+    order.status = status;
+    const now = new Date().toISOString();
+
+    if (status === 'PROCESSING') {
+      order.packedAt = now;
+    } else if (status === 'SHIPPED') {
+      order.shippedAt = now;
+      if (details?.courierName) order.courierName = details.courierName;
+      if (details?.courierPhone) order.courierPhone = details.courierPhone;
+      if (details?.trackingNotes) order.trackingNotes = details.trackingNotes;
+    } else if (status === 'DELIVERED') {
+      order.deliveredAt = now;
+    }
+
+    db.save();
+    CloudSqlProductService.saveOrder(order).catch(() => {});
+
+    const actor = details?.actor || 'Merchant Fulfillment Hub';
+    db.logAudit(
+      actor,
+      `ORDER_FULFILLMENT_${status}`,
+      `Order #${order.id} state updated to ${status}. Courier: ${order.courierName || 'In-House Courier'} (${order.courierPhone || 'N/A'}).`,
+      'INFO'
+    );
+
+    const eventName = status === 'PROCESSING' ? 'PACKED' : (status as 'SHIPPED' | 'DELIVERED');
+    db.logTelegramAlert(
+      `ORDER_${eventName}`,
+      `📦 FULFILLMENT UPDATE: Order #${order.id} is now ${status}. Handled by: ${actor}. Courier: ${order.courierName || 'In-House'} (${order.courierPhone || 'N/A'}).`
+    );
+
+    // Real Telegram Bot message dispatch
+    sendFulfillmentTelegramUpdate(
+      order,
+      eventName,
+      {
+        name: order.courierName,
+        phone: order.courierPhone,
+        notes: order.trackingNotes
+      }
+    ).catch(err => console.warn('Telegram fulfillment notification dispatch warning:', err));
+
+    return { success: true, order };
   }
 
   // Batch SQLite Sync for Offline-first checkout client (WatermelonDB model reconciliation)

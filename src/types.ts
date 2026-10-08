@@ -72,6 +72,12 @@ export interface Order {
   codPhoneConfirmed?: boolean;
   chapaReference?: string;
   chapaMethod?: string;
+  courierName?: string;
+  courierPhone?: string;
+  trackingNotes?: string;
+  packedAt?: string;
+  shippedAt?: string;
+  deliveredAt?: string;
 }
 
 export interface StockMovementLog {

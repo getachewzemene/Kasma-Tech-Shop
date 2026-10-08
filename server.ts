@@ -1149,6 +1149,94 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
     res.json(OrderService.getOrders());
   });
 
+  // Merchant Order Fulfillment Action (Pack, Ship, Deliver)
+  app.put('/api/merchants/orders/:id/fulfillment', requireMerchant, (req: AuthRequest, res) => {
+    try {
+      const { status, courierName, courierPhone, trackingNotes } = req.body || {};
+      if (!status || !['PROCESSING', 'SHIPPED', 'DELIVERED'].includes(status)) {
+        res.status(400).json({ error: 'Valid fulfillment status (PROCESSING, SHIPPED, DELIVERED) is required.' });
+        return;
+      }
+
+      const result = OrderService.updateFulfillment(
+        req.params.id,
+        status,
+        {
+          courierName,
+          courierPhone,
+          trackingNotes,
+          actor: req.user?.name || 'Merchant Fulfillment Hub'
+        }
+      );
+
+      if (!result.success) {
+        res.status(404).json({ error: result.error || 'Order fulfillment update failed.' });
+        return;
+      }
+
+      res.json({
+        success: true,
+        order: result.order,
+        orders: db.orders
+      });
+    } catch (err: any) {
+      console.error('Merchant fulfillment update error:', err);
+      res.status(500).json({ error: err?.message || 'Server error updating fulfillment.' });
+    }
+  });
+
+  // Public Order Tracking by Phone + Order ID
+  app.get('/api/orders/track', (req, res) => {
+    try {
+      const orderId = (req.query.orderId as string || '').trim().toLowerCase();
+      const phone = (req.query.phone as string || '').trim().replace(/[\s\-\+\(\)]/g, '');
+
+      if (!orderId && !phone) {
+        res.status(400).json({ error: 'Please provide an Order ID reference or contact Phone number.' });
+        return;
+      }
+
+      // Filter matching orders
+      const matching = db.orders.filter(o => {
+        const oId = (o.id || '').toLowerCase();
+        const oPayId = (o.paymentId || '').toLowerCase();
+        const oPhone = (o.customerPhone || '').replace(/[\s\-\+\(\)]/g, '');
+
+        if (orderId && phone) {
+          const idMatches = oId.includes(orderId) || oPayId.includes(orderId);
+          const phoneMatches = oPhone.endsWith(phone) || phone.endsWith(oPhone);
+          return idMatches && phoneMatches;
+        }
+
+        if (orderId) {
+          return oId.includes(orderId) || oPayId.includes(orderId);
+        }
+
+        if (phone) {
+          return oPhone.endsWith(phone) || phone.endsWith(oPhone);
+        }
+
+        return false;
+      });
+
+      if (matching.length === 0) {
+        res.status(404).json({
+          success: false,
+          error: 'No order records found matching the provided reference and phone number. Please check details and try again.'
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        order: matching[0],
+        orders: matching
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || 'Order tracking lookup failed.' });
+    }
+  });
+
   app.post('/api/orders', (req, res) => {
     try {
       const orderData = req.body as Order;

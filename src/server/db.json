@@ -33,7 +33,13 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true
+      "featured": true,
+      "condition": "SEALED",
+      "conditionTextEn": "Factory Sealed",
+      "conditionTextAm": "በፋብሪካው የታሸገ",
+      "warrantyMonths": 12,
+      "warrantyTextEn": "12 Months Official Warranty",
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
     },
     {
       "id": "p2",
@@ -68,7 +74,13 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true
+      "featured": true,
+      "condition": "BRAND_NEW",
+      "conditionTextEn": "Brand New",
+      "conditionTextAm": "አዲስ",
+      "warrantyMonths": 12,
+      "warrantyTextEn": "12 Months Official Warranty",
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
     },
     {
       "id": "p3",
@@ -96,7 +108,13 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true
+      "featured": true,
+      "condition": "SEALED",
+      "conditionTextEn": "Factory Sealed",
+      "conditionTextAm": "በፋብሪካው የታሸገ",
+      "warrantyMonths": 24,
+      "warrantyTextEn": "24 Months Official Warranty",
+      "warrantyTextAm": "የ24 ወራት ኦፊሴላዊ ዋስትና"
     },
     {
       "id": "p4",
@@ -131,7 +149,13 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true
+      "featured": true,
+      "condition": "BRAND_NEW",
+      "conditionTextEn": "Brand New",
+      "conditionTextAm": "አዲስ",
+      "warrantyMonths": 12,
+      "warrantyTextEn": "12 Months Official Warranty",
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
     },
     {
       "id": "p5",
@@ -159,7 +183,13 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true
+      "featured": true,
+      "condition": "BRAND_NEW",
+      "conditionTextEn": "Brand New",
+      "conditionTextAm": "አዲስ",
+      "warrantyMonths": 24,
+      "warrantyTextEn": "24 Months Official Warranty",
+      "warrantyTextAm": "የ24 ወራት ኦፊሴላዊ ዋስትና"
     },
     {
       "id": "p6",
@@ -194,7 +224,13 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true
+      "featured": true,
+      "condition": "BRAND_NEW",
+      "conditionTextEn": "Brand New",
+      "conditionTextAm": "አዲስ",
+      "warrantyMonths": 12,
+      "warrantyTextEn": "12 Months Official Warranty",
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
     },
     {
       "id": "p7",
@@ -229,7 +265,13 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true
+      "featured": true,
+      "condition": "SEALED",
+      "conditionTextEn": "Factory Sealed",
+      "conditionTextAm": "በፋብሪካው የታሸገ",
+      "warrantyMonths": 24,
+      "warrantyTextEn": "24 Months Official Warranty",
+      "warrantyTextAm": "የ24 ወራት ኦፊሴላዊ ዋስትና"
     },
     {
       "id": "p8",
@@ -264,7 +306,13 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true
+      "featured": true,
+      "condition": "BRAND_NEW",
+      "conditionTextEn": "Brand New",
+      "conditionTextAm": "አዲስ",
+      "warrantyMonths": 12,
+      "warrantyTextEn": "12 Months Official Warranty",
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
     },
     {
       "id": "p9",
@@ -292,7 +340,13 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true
+      "featured": true,
+      "condition": "BRAND_NEW",
+      "conditionTextEn": "Brand New",
+      "conditionTextAm": "አዲስ",
+      "warrantyMonths": 12,
+      "warrantyTextEn": "12 Months Official Warranty",
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
     }
   ],
   "merchants": [
@@ -372,6 +426,51 @@
     }
   ],
   "orders": [
+    {
+      "id": "ORD-1791475361260",
+      "customerId": "cust-456",
+      "customerName": "Tigist Alemu",
+      "customerPhone": "+251911889900",
+      "items": [
+        {
+          "product": {
+            "id": "p2",
+            "nameEn": "MacBook Pro M3 Max",
+            "nameAm": "ማክቡክ ፕሮ M3 Max",
+            "descriptionEn": "",
+            "descriptionAm": "",
+            "price": 185000,
+            "category": "computers",
+            "brand": "Apple",
+            "image": "",
+            "variants": [],
+            "status": "APPROVED",
+            "lowStockThreshold": 3,
+            "merchantId": "m1",
+            "merchantName": "Selam Electronics"
+          },
+          "sku": "MBP-M3-1TB",
+          "variantName": "Space Black 1TB",
+          "quantity": 1,
+          "price": 185000
+        }
+      ],
+      "subtotal": 185000,
+      "shippingFee": 200,
+      "total": 185200,
+      "status": "DELIVERED",
+      "paymentMethod": "TELEBIRR",
+      "shippingAddress": "Bole Medhanialem, Addis Ababa",
+      "subCity": "Bole",
+      "createdAt": "2026-10-08T16:02:41.260Z",
+      "channel": "WEB",
+      "packedAt": "2026-10-08T16:02:41.263Z",
+      "shippedAt": "2026-10-08T16:02:41.463Z",
+      "courierName": "Kassahun T.",
+      "courierPhone": "+251911554433",
+      "trackingNotes": "Motorcycle dispatch via Bole Ring Road",
+      "deliveredAt": "2026-10-08T16:02:41.474Z"
+    },
     {
       "id": "ord-9831",
       "customerId": "cust-9831",
@@ -454,6 +553,30 @@
   ],
   "auditLogs": [
     {
+      "id": "al-1791475361478-23",
+      "actor": "Selam Electronics",
+      "action": "ORDER_FULFILLMENT_DELIVERED",
+      "details": "Order #ORD-1791475361260 state updated to DELIVERED. Courier: Kassahun T. (+251911554433).",
+      "severity": "INFO",
+      "timestamp": "2026-10-08T16:02:41.478Z"
+    },
+    {
+      "id": "al-1791475361467-48",
+      "actor": "Selam Electronics",
+      "action": "ORDER_FULFILLMENT_SHIPPED",
+      "details": "Order #ORD-1791475361260 state updated to SHIPPED. Courier: Kassahun T. (+251911554433).",
+      "severity": "INFO",
+      "timestamp": "2026-10-08T16:02:41.467Z"
+    },
+    {
+      "id": "al-1791475361284-70",
+      "actor": "Selam Electronics",
+      "action": "ORDER_FULFILLMENT_PROCESSING",
+      "details": "Order #ORD-1791475361260 state updated to PROCESSING. Courier: In-House Courier (N/A).",
+      "severity": "INFO",
+      "timestamp": "2026-10-08T16:02:41.284Z"
+    },
+    {
       "id": "al1",
       "actor": "System Security Engine",
       "action": "TELEGRAM_INIT_DATA_VERIFIED",
@@ -479,6 +602,27 @@
     }
   ],
   "alerts": [
+    {
+      "id": "ta-1791475361481-62",
+      "type": "ORDER_DELIVERED",
+      "message": "📦 FULFILLMENT UPDATE: Order #ORD-1791475361260 is now DELIVERED. Handled by: Selam Electronics. Courier: Kassahun T. (+251911554433).",
+      "timestamp": "2026-10-08T16:02:41.481Z",
+      "read": false
+    },
+    {
+      "id": "ta-1791475361470-754",
+      "type": "ORDER_SHIPPED",
+      "message": "📦 FULFILLMENT UPDATE: Order #ORD-1791475361260 is now SHIPPED. Handled by: Selam Electronics. Courier: Kassahun T. (+251911554433).",
+      "timestamp": "2026-10-08T16:02:41.470Z",
+      "read": false
+    },
+    {
+      "id": "ta-1791475361288-604",
+      "type": "ORDER_PACKED",
+      "message": "📦 FULFILLMENT UPDATE: Order #ORD-1791475361260 is now PROCESSING. Handled by: Selam Electronics. Courier: In-House (N/A).",
+      "timestamp": "2026-10-08T16:02:41.288Z",
+      "read": false
+    },
     {
       "id": "ta1",
       "type": "OUT_OF_STOCK",

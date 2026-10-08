@@ -49,6 +49,7 @@ import {
 
 // Modular Imports
 import DashboardTab from './merchant/DashboardTab';
+import OrdersTab from './merchant/OrdersTab';
 import CatalogTab from './merchant/CatalogTab';
 import StockTab from './merchant/StockTab';
 import PayoutTab from './merchant/PayoutTab';
@@ -80,6 +81,7 @@ interface MerchantPortalProps {
   onRequestPayout: (merchantId: string, amount: number, bank: string, account: string) => void;
   language: 'en' | 'am';
   onLogout?: () => void;
+  onOrderUpdated?: (order: Order) => void;
 }
 
 export default function MerchantPortal({
@@ -96,7 +98,8 @@ export default function MerchantPortal({
   onUpdateMerchantKyc,
   onRequestPayout,
   language,
-  onLogout
+  onLogout,
+  onOrderUpdated
 }: MerchantPortalProps) {
   // Simulator State: Select active merchant (Default to Selam Agricultural or stored session)
   const [selectedMerchantId, setSelectedMerchantId] = useState<string>(() => {
@@ -107,7 +110,7 @@ export default function MerchantPortal({
   }, [merchants, selectedMerchantId]);
 
   // Main navigation tab & Collapsible Sidebar State
-  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'CATALOG' | 'STOCK' | 'STOCK_ACTIVITY' | 'FORECAST' | 'PERFORMANCE' | 'PAYOUT' | 'KYC'>('DASHBOARD');
+  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'ORDERS' | 'CATALOG' | 'STOCK' | 'STOCK_ACTIVITY' | 'FORECAST' | 'PERFORMANCE' | 'PAYOUT' | 'KYC'>('DASHBOARD');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Low stock background alarm system
@@ -544,6 +547,22 @@ export default function MerchantPortal({
           </button>
 
           <button
+            onClick={() => setActiveTab('ORDERS')}
+            title={language === 'en' ? 'Orders & Fulfillment' : 'ትዕዛዞች & ማድረስ'}
+            className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-3'} rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'ORDERS'
+                ? 'bg-black text-white dark:bg-white dark:text-zinc-900 shadow-xs'
+                : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900'
+            }`}
+          >
+            <span className="flex items-center gap-2.5">
+              <Package className="w-4.5 h-4.5 shrink-0 text-[#0052FF]" />
+              {!isSidebarCollapsed && <span>{language === 'en' ? 'Orders & Fulfillment' : 'ትዕዛዞች & ማድረስ'}</span>}
+            </span>
+            {!isSidebarCollapsed && <ChevronRight className="w-3.5 h-3.5 opacity-40" />}
+          </button>
+
+          <button
             onClick={() => setActiveTab('CATALOG')}
             title={language === 'en' ? 'Product Catalog' : 'የምርት ካታሎግ'}
             className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-3'} rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -751,6 +770,18 @@ export default function MerchantPortal({
           >
             <LayoutDashboard className="w-3.5 h-3.5" />
             <span>{language === 'en' ? 'Dashboard' : 'ዳሽቦርድ'}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ORDERS')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'ORDERS'
+                ? 'bg-black text-white dark:bg-white dark:text-zinc-900 shadow-xs'
+                : 'text-gray-600 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-900'
+            }`}
+          >
+            <Package className="w-3.5 h-3.5 text-[#0052FF]" />
+            <span>{language === 'en' ? 'Orders' : 'ትዕዛዞች'}</span>
           </button>
 
           <button
@@ -1015,6 +1046,16 @@ export default function MerchantPortal({
                   orders={orders}
                   language={language}
                   onNavigateToTab={setActiveTab}
+                />
+              )}
+
+              {activeTab === 'ORDERS' && (
+                <OrdersTab
+                  orders={orders}
+                  currentMerchant={currentMerchant}
+                  language={language}
+                  onOrderUpdated={onOrderUpdated}
+                  showToast={showToast}
                 />
               )}
 
