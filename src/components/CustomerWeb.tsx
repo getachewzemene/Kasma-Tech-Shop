@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Product, Variant, CartItem, Order, PriceAlert, PromoCode, DeliveryAddress, SavedPaymentMethod, KasmaPointsReward, KasmaPointsLog } from '../types';
-import { ShoppingCart, Heart, Search, Eye, Sparkles, Check, ChevronRight, ChevronLeft, MapPin, Phone, ShieldCheck, CreditCard, RefreshCw, SlidersHorizontal, ArrowRight, Truck, Package, Clock, Star, MessageSquare, ThumbsUp, Bell, TrendingDown, GitCompare, Gamepad2, Laptop, Camera, Tv, Watch, Smartphone, Headphones, Cpu, ChevronDown, Menu, Flame, Percent, User, Lock, Award, Plus, Zap, Scale, Box, Wifi, WifiOff, Database, Battery, QrCode, Copy, ExternalLink, Download, CheckCircle2, Home, Share2, Link2, Send, MessageCircle, RotateCcw, X, Layers, Filter, Tag, Printer, Activity, Info, BarChart2, Trash2, LogIn, UserPlus, Globe } from 'lucide-react';
+import { ShoppingCart, Heart, Search, Eye, Sparkles, Check, ChevronRight, ChevronLeft, MapPin, Phone, ShieldCheck, CreditCard, RefreshCw, SlidersHorizontal, ArrowRight, Truck, Package, Clock, Star, MessageSquare, ThumbsUp, Bell, TrendingDown, GitCompare, Gamepad2, Laptop, Camera, Tv, Watch, Smartphone, Headphones, Cpu, ChevronDown, Menu, Flame, Percent, User, Lock, Award, Plus, Zap, Scale, Box, Wifi, WifiOff, Database, Battery, QrCode, Copy, ExternalLink, Download, CheckCircle2, Home, Share2, Link2, Send, MessageCircle, RotateCcw, X, Layers, Filter, Tag, Printer, Activity, Info, BarChart2, Trash2, LogIn, UserPlus, Globe, Building2 } from 'lucide-react';
 import { CatalogCacheMeta } from '../utils/offlineCatalogCache';
 import { generateShareableCartUrl } from '../utils/cartSharing';
 import { generateWhatsAppCustomerWelcomeUrl } from '../utils/whatsappNotifications';
@@ -531,14 +531,32 @@ export default function CustomerWeb({
     }
   };
 
-  // Checkout Form State
+  // Checkout Form State (Landmark-based Ethiopian addressing & Integrated Payment APIs)
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('+2519');
+  const [customerLandmark, setCustomerLandmark] = useState('');
   const [shippingAddress, setShippingAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'TELEBIRR' | 'CHAPA' | 'METAMASK' | 'COD'>('TELEBIRR');
+  const [paymentMethod, setPaymentMethod] = useState<'TELEBIRR' | 'CBE_BIRR' | 'CHAPA' | 'METAMASK' | 'COD'>('TELEBIRR');
   const [web3WalletAddress, setWeb3WalletAddress] = useState<string | null>(null);
   const [isConnectingWeb3, setIsConnectingWeb3] = useState<boolean>(false);
   const [selectedSubCity, setSelectedSubCity] = useState<string>('bole');
+  const [activePaymentSession, setActivePaymentSession] = useState<{
+    txRef: string;
+    orderId: string;
+    amount: number;
+    currency: string;
+    paymentMethod: string;
+    provider?: string;
+    ussdCode?: string;
+    directPaymentUrl?: string;
+    checkoutUrl?: string;
+    qrPayload?: string;
+    promptText?: string;
+    verificationPin?: string;
+    status: string;
+  } | null>(null);
+  const [isInitializingPayment, setIsInitializingPayment] = useState<boolean>(false);
+  const [paymentApiError, setPaymentApiError] = useState<string | null>(null);
 
   // MetaMask Web3 Wallet Connect with Graceful Error Handling & Sandbox Fallback
   const connectMetaMaskWallet = async () => {
@@ -1717,45 +1735,178 @@ export default function CustomerWeb({
 
   const cartTotal = Math.max(0, cartSubtotal + shippingFee - activeDiscount);
 
-  const handleCheckoutSubmit = (e: React.FormEvent) => {
+  const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName || customerPhone.length < 12 || !shippingAddress) {
-      showToast(language === 'en' 
-        ? 'Please fill in all checkout fields. Phone must include country code (e.g. +2519...)' 
-        : 'እባክዎን ሁሉንም መረጃዎች በትክክል ይሙሉ (ስልክ ቁጥር +2519 መጀመር አለበት)',
+
+    // Defensive validation for Ethiopian addressing & contact
+    const cleanPhone = customerPhone.trim().replace(/\s+/g, '');
+    const cleanName = customerName.trim();
+    const cleanLandmark = customerLandmark.trim();
+
+    if (!cleanName) {
+      showToast(language === 'en' ? 'Recipient Full Name is required.' : 'እባክዎን ሙሉ ስምዎን ያስገቡ።', 'warning');
+      return;
+    }
+
+    if (!selectedSubCity) {
+      showToast(language === 'en' ? 'Sub-city selection is required for delivery routing.' : 'እባክዎን ክፍለ ከተማ ይምረጡ።', 'warning');
+      return;
+    }
+
+    if (!cleanLandmark) {
+      showToast(
+        language === 'en' 
+          ? 'Known Landmark / Area is required (e.g. Behind Edna Mall, Near Medhanialem Church).' 
+          : 'እባክዎን የሚታወቅ መለያ ቦታ ያስገቡ (ለምሳሌ፡ ከኤድና ሞል ጀርባ፣ ከመድኃኔዓለም ቤተክርስቲያን አጠገብ)።', 
         'warning'
       );
       return;
     }
 
-    if (paymentMethod === 'COD') {
-      completeOrder('PENDING_PAYMENT');
+    // Require Ethiopian mobile phone format
+    const isEthPhone = /^(\+2519|\+2517|09|07)\d{8}$/.test(cleanPhone);
+    if (!isEthPhone) {
       showToast(
         language === 'en' 
-          ? 'COD order placed! Redirecting to Kasma Admin Telegram...' 
-          : 'የሲኦዲ ትዕዛዝ ተመዝግቧል! ወደ ካስማ አድሚን ቴሌግራም በመሄድ ላይ...', 
-        'success'
+          ? 'Valid Ethiopian mobile number required (+251 9... / +251 7... or 09... / 07...).' 
+          : 'ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ (+2519... ወይም 09...)።', 
+        'warning'
       );
-      window.open('https://t.me/kasma_admin', '_blank');
       return;
     }
 
-    setQrReferenceTx(`KS-QR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
-    setGatewayPaymentTab('QR');
-    setPaymentStep('GATEWAY');
+    if (paymentMethod === 'METAMASK') {
+      setQrReferenceTx(`KS-META-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
+      setGatewayPaymentTab('QR');
+      setPaymentStep('GATEWAY');
+      return;
+    }
+
+    // Initialize Transaction via Real Integrated Payment Gateway API
+    setIsInitializingPayment(true);
+    setPaymentApiError(null);
+
+    try {
+      const res = await fetch('/api/payment/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: cartTotal,
+          currency: 'ETB',
+          paymentMethod,
+          customerPhone: cleanPhone,
+          customerName: cleanName,
+          customerEmail,
+          subCity: selectedSubCity,
+          landmark: cleanLandmark
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Payment gateway initialization failed.');
+      }
+
+      setActivePaymentSession(data);
+      setQrReferenceTx(data.txRef);
+
+      if (paymentMethod === 'COD') {
+        completeOrder('PENDING_PAYMENT', data.txRef);
+        showToast(
+          language === 'en' 
+            ? `Cash on Delivery order registered! Courier Verification PIN: ${data.verificationPin || '8492'}` 
+            : `የሲኦዲ ትዕዛዝ በማረጋገጫ ፒን ተመዝግቧል፡ ${data.verificationPin || '8492'}`, 
+          'success'
+        );
+        return;
+      }
+
+      setGatewayPaymentTab('QR');
+      setPaymentStep('GATEWAY');
+      showToast(
+        language === 'en'
+          ? `Integrated ${data.paymentMethod} gateway initialized (Ref: ${data.txRef})`
+          : `የ${data.paymentMethod} ክፍያ ሂደት ተጀምሯል (መለያ: ${data.txRef})`,
+        'info'
+      );
+    } catch (err: any) {
+      console.error('Payment API initialization failed:', err);
+      setPaymentApiError(err.message || 'Payment API initialization crashed.');
+      showToast(err.message || 'Payment gateway unreachable.', 'warning');
+    } finally {
+      setIsInitializingPayment(false);
+    }
+  };
+
+  // Verify payment transaction via Integrated Payment Gateway API (/api/payment/verify)
+  const handleVerifyPaymentApi = async () => {
+    setIsProcessingPayment(true);
+    const txRef = activePaymentSession?.txRef || qrReferenceTx;
+    const selectedSubCityObj = SUB_CITIES.find(sc => sc.id === selectedSubCity);
+    const subCityLabel = selectedSubCityObj ? selectedSubCityObj.nameEn : selectedSubCity;
+    const tempOrderId = `KS-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const orderData: Partial<Order> = {
+      id: tempOrderId,
+      customerId: `cust-${Math.floor(Math.random() * 1000)}`,
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
+      items: [...cart],
+      subtotal: cartSubtotal,
+      shippingFee,
+      total: cartTotal,
+      status: 'PAID',
+      paymentMethod,
+      paymentId: txRef,
+      subCity: selectedSubCity,
+      landmark: customerLandmark.trim(),
+      shippingAddress: `[${subCityLabel} - Landmark: ${customerLandmark.trim()}] ${shippingAddress.trim() || 'Courier Dispatch'}`,
+      createdAt: new Date().toISOString(),
+      channel: 'WEB',
+      discountCode: appliedPromo ? appliedPromo.code : undefined,
+      discountAmount: activeDiscount > 0 ? activeDiscount : undefined
+    };
+
+    try {
+      const res = await fetch('/api/payment/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          txRef,
+          orderId: tempOrderId,
+          paymentMethod,
+          orderData
+        })
+      });
+
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Payment gateway verification pending or authorization rejected.');
+      }
+
+      showToast(
+        language === 'en'
+          ? `Payment verified via ${paymentMethod}! (Ref: ${txRef})`
+          : `ክፍያው በተሳካ ሁኔታ ተረጋግጧል! (መለያ: ${txRef})`,
+        'success'
+      );
+
+      completeOrder('PAID', txRef);
+    } catch (err: any) {
+      console.warn('Payment verification issue:', err);
+      showToast(
+        language === 'en'
+          ? `Verification issue: ${err.message || 'Check your payment app approval.'}`
+          : `የማረጋገጫ ችግር፡ ${err.message || 'በአፕሊኬሽንዎ ክፍያውን ያረጋግጡ'}`,
+        'warning'
+      );
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   const handleSimulatePayment = () => {
-    setIsProcessingPayment(true);
-    setTimeout(() => {
-      setIsProcessingPayment(false);
-      if (paymentMethod === 'TELEBIRR') {
-        setPaymentStep('OTP');
-      } else {
-        // Chapa bypasses OTP, directly finishes
-        completeOrder();
-      }
-    }, 1500);
+    handleVerifyPaymentApi();
   };
 
   const handleVerifyOtp = () => {
@@ -1763,11 +1914,7 @@ export default function CustomerWeb({
       showToast(language === 'en' ? 'Please enter a 6-digit OTP' : 'እባክዎን ባለ 6 አሃዝ ኮድ ያስገቡ', 'warning');
       return;
     }
-    setIsProcessingPayment(true);
-    setTimeout(() => {
-      setIsProcessingPayment(false);
-      completeOrder();
-    }, 1200);
+    handleVerifyPaymentApi();
   };
 
   // Telegram Mini App MainButton Integration
@@ -1870,29 +2017,37 @@ export default function CustomerWeb({
   ]);
 
 
-  const completeOrder = (overrideStatus?: Order['status']) => {
-    // Generate order
+  const completeOrder = (overrideStatus?: Order['status'], verifiedPaymentId?: string) => {
+    // Generate order with landmark-based Ethiopian addressing
     const selectedSubCityObj = SUB_CITIES.find(sc => sc.id === selectedSubCity);
     const subCityLabel = selectedSubCityObj ? selectedSubCityObj.nameEn : selectedSubCity;
+    const resolvedTxRef = verifiedPaymentId || activePaymentSession?.txRef || (
+      paymentMethod === 'TELEBIRR' 
+        ? `tb_tx_${Math.random().toString(36).substring(7)}` 
+        : paymentMethod === 'CBE_BIRR'
+        ? `cbe_tx_${Math.random().toString(36).substring(7)}`
+        : paymentMethod === 'CHAPA'
+        ? `ch_tx_${Math.random().toString(36).substring(7)}`
+        : paymentMethod === 'METAMASK'
+        ? `meta_tx_0x${Math.random().toString(16).substring(2, 10)}`
+        : `cod_pin_${activePaymentSession?.verificationPin || Math.floor(1000 + Math.random() * 9000)}`
+    );
+
     const newOrder: Order = {
       id: `KS-${Math.floor(1000 + Math.random() * 9000)}`,
       customerId: `cust-${Math.floor(Math.random() * 1000)}`,
-      customerName,
-      customerPhone,
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
       items: [...cart],
       subtotal: cartSubtotal,
       shippingFee,
       total: cartTotal,
       status: overrideStatus || (paymentMethod === 'COD' ? 'PENDING_PAYMENT' : 'PAID'),
       paymentMethod,
-      paymentId: paymentMethod === 'TELEBIRR' 
-        ? `tb_tx_${Math.random().toString(36).substring(7)}` 
-        : paymentMethod === 'CHAPA'
-        ? `ch_tx_${Math.random().toString(36).substring(7)}`
-        : paymentMethod === 'METAMASK'
-        ? `meta_tx_0x${Math.random().toString(16).substring(2, 10)}`
-        : `cod_telegram_${Math.random().toString(36).substring(7)}`,
-      shippingAddress: `[${subCityLabel}] ${shippingAddress}`,
+      paymentId: resolvedTxRef,
+      subCity: selectedSubCity,
+      landmark: customerLandmark.trim(),
+      shippingAddress: `[${subCityLabel} - Landmark: ${customerLandmark.trim()}] ${shippingAddress.trim() || 'Courier Dispatch'}`,
       createdAt: new Date().toISOString(),
       channel: 'WEB',
       discountCode: appliedPromo ? appliedPromo.code : undefined,
@@ -1971,8 +2126,11 @@ export default function CustomerWeb({
     setPaymentStep('FORM');
     setCustomerName('');
     setCustomerPhone('+2519');
+    setCustomerLandmark('');
     setShippingAddress('');
     setTelebirrOtp('');
+    setActivePaymentSession(null);
+    setPaymentApiError(null);
   };
 
   // Calculate sorted products
@@ -3682,6 +3840,66 @@ export default function CustomerWeb({
                       <h3 className="text-lg sm:text-2xl font-black text-gray-950 dark:text-white tracking-tight leading-tight">
                         {highlightText(language === 'en' ? selectedProduct.nameEn : selectedProduct.nameAm, searchQuery)}
                       </h3>
+
+                      {/* Product Condition & Authenticity Section on Detail Page */}
+                      <div className="bg-gray-50/90 dark:bg-zinc-850/80 p-3 sm:p-3.5 rounded-2xl border border-gray-200/80 dark:border-zinc-750/70 space-y-2">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {selectedProduct.condition === 'SEALED' ? (
+                              <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-emerald-100/90 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                                <Lock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                <span>{language === 'en' ? 'Factory Sealed' : 'በፋብሪካው የታሸገ'}</span>
+                              </span>
+                            ) : selectedProduct.condition === 'BRAND_NEW' ? (
+                              <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-blue-100/90 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800">
+                                <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                                <span>{language === 'en' ? 'Brand New' : 'አዲስ (ያልተከፈተ)'}</span>
+                              </span>
+                            ) : selectedProduct.condition === 'OPEN_BOX' ? (
+                              <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-amber-100/90 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                                <Package className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                                <span>{language === 'en' ? 'Open Box' : 'ክፍት ሳጥን'}</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-purple-100/90 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800">
+                                <RotateCcw className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                                <span>{language === 'en' ? 'Certified Refurbished' : 'የታደሰ'}</span>
+                              </span>
+                            )}
+
+                            <span className="inline-flex items-center gap-1 text-[10.5px] font-bold px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 font-mono shadow-2xs">
+                              <ShieldCheck className="w-3 h-3 text-[#0052FF]" />
+                              <span>
+                                {language === 'en'
+                                  ? (selectedProduct.warrantyTextEn || `${selectedProduct.warrantyMonths || 12} Mo Official Warranty`)
+                                  : (selectedProduct.warrantyTextAm || `የ${selectedProduct.warrantyMonths || 12} ወር ዋስትና`)}
+                              </span>
+                            </span>
+                          </div>
+
+                          <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                            {language === 'en' ? 'Condition Verified' : 'ሁኔታው የተረጋገጠ'}
+                          </span>
+                        </div>
+
+                        <p className="text-[11px] text-gray-600 dark:text-zinc-400 leading-snug">
+                          {selectedProduct.condition === 'SEALED'
+                            ? (language === 'en' 
+                                ? '🔒 Factory Sealed: Manufacturer original box with intact tamper-evident holographic seal. Never opened, unsealed, or activated.' 
+                                : '🔒 በፋብሪካው የታሸገ፡ የፋብሪካው ኦሪጅናል ማሸጊያ ያልተከፈተና ያልበራ አዲስ እቃ።')
+                            : selectedProduct.condition === 'BRAND_NEW'
+                              ? (language === 'en' 
+                                  ? '✨ Brand New: 100% brand new, zero operational hours, with all genuine accessories and factory documentation.' 
+                                  : '✨ አዲስ እቃ፡ 100% አዲስ ያልተጠቀሙበት እቃ ከሙሉ ኦሪጅናል መለዋወጫዎች ጋር።')
+                              : selectedProduct.condition === 'OPEN_BOX'
+                                ? (language === 'en' 
+                                    ? '📦 Open Box: Original packaging opened for display or inspection. Device is in mint condition and 100% tested.' 
+                                    : '📦 ክፍት ሳጥን፡ ለማሳያ ወይም ምርመራ የተከፈተ ሳጥን፣ 100% የሚሰራ ያለ ምንም ጉድለት።')
+                                : (language === 'en' 
+                                    ? '🔄 Certified Refurbished: Professionally inspected, repaired, and certified to meet original manufacturer standards.' 
+                                    : '🔄 የታደሰ፡ በካስማ ቴክኒሻኖች በሚገባ የተፈተሸ እና የተረጋገጠ።')}
+                        </p>
+                      </div>
 
                       {/* Average Rating Summary */}
                       {(() => {
@@ -5629,61 +5847,134 @@ export default function CustomerWeb({
             <div className="p-4 sm:p-6 overflow-y-auto flex-1 touch-pan-y overscroll-contain space-y-4">
               {paymentStep === 'FORM' && (
                 <form onSubmit={handleCheckoutSubmit} className="space-y-4">
-                  <h4 className="font-bold text-gray-900 dark:text-zinc-200 text-[10px] border-b border-gray-100 dark:border-zinc-800 pb-2 uppercase tracking-widest">
-                    {language === 'en' ? '1. Recipient & Delivery Information' : '1. የተቀባይ እና የማድረሻ መረጃ'}
-                  </h4>
+                  <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-2">
+                    <h4 className="font-bold text-gray-900 dark:text-zinc-200 text-[10px] uppercase tracking-widest flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-[#0052FF]" />
+                      <span>{language === 'en' ? '1. Recipient & Ethiopian Delivery Address' : '1. የተቀባይ እና የአድራሻ መረጃ'}</span>
+                    </h4>
+                    <span className="text-[9px] text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-200/60 dark:border-amber-900/50">
+                      {language === 'en' ? 'Landmark-Based' : 'በመለያ ቦታ የሚላክ'}
+                    </span>
+                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                  {paymentApiError && (
+                    <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-300 rounded-xl text-xs flex items-center gap-2">
+                      <Info className="w-4 h-4 text-red-500 shrink-0" />
+                      <span>{paymentApiError}</span>
+                    </div>
+                  )}
+
+                  {/* Row 1: Full Name and Mobile Phone Number */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-widest">{language === 'en' ? 'Full Name' : 'ሙሉ ስም'}</label>
+                      <label className="text-[9px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-widest flex items-center justify-between">
+                        <span>{language === 'en' ? 'Recipient Full Name *' : 'ሙሉ ስም *'}</span>
+                      </label>
                       <input
                         type="text"
                         required
-                        placeholder="e.g. Dawit Abera"
+                        placeholder={language === 'en' ? 'e.g. Dawit Abera' : 'ለምሳሌ ዳዊት አበራ'}
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        className="w-full border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0052FF] text-gray-900 dark:text-white transition-all"
+                        className="w-full border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0052FF] text-gray-900 dark:text-white transition-all font-semibold"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-widest">{language === 'en' ? 'Mobile Number (OTP Enabled)' : 'የስልክ ቁጥር'}</label>
+                      <div className="flex items-center justify-between text-[9px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-widest">
+                        <span>{language === 'en' ? 'Ethiopian Mobile Phone *' : 'የስልክ ቁጥር *'}</span>
+                        {customerPhone.startsWith('+2519') || customerPhone.startsWith('09') ? (
+                          <span className="text-[8.5px] font-extrabold text-emerald-600 dark:text-emerald-400">Ethio telecom (Telebirr)</span>
+                        ) : customerPhone.startsWith('+2517') || customerPhone.startsWith('07') ? (
+                          <span className="text-[8.5px] font-extrabold text-blue-600 dark:text-blue-400">Safaricom (M-PESA)</span>
+                        ) : null}
+                      </div>
                       <input
                         type="tel"
                         required
-                        placeholder="+251912345678"
+                        placeholder="+251912345678 or 0912345678"
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
-                        className="w-full border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0052FF] text-gray-900 dark:text-white transition-all"
+                        className="w-full border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0052FF] text-gray-900 dark:text-white transition-all font-mono font-bold"
                       />
                     </div>
                   </div>
 
+                  {/* Row 2: Sub-City Selection (Required Dropdown) & Estimated Delivery */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-widest">{language === 'en' ? 'City / Region / Country' : 'ከተማ / ክልል / አገር'}</label>
-                      <input
-                        type="text"
+                      <label className="text-[9px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-widest flex items-center justify-between">
+                        <span>{language === 'en' ? 'Sub-City / Area (Addis Ababa) *' : 'ክፍለ ከተማ / አካባቢ *'}</span>
+                        <span className="text-[#0052FF] font-bold">
+                          +{SUB_CITIES.find(sc => sc.id === selectedSubCity)?.fee || 100} ETB
+                        </span>
+                      </label>
+                      <select
                         required
-                        placeholder={language === 'en' ? 'e.g. Addis Ababa, Hawassa, London, Dubai, New York' : 'ምሳሌ፡ አዲስ አበባ፣ ሐዋሳ፣ ለንደን፣ ዱባይ'}
                         value={selectedSubCity}
                         onChange={(e) => setSelectedSubCity(e.target.value)}
-                        className="w-full border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0052FF] text-gray-900 dark:text-white transition-all font-bold"
-                      />
+                        className="w-full border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0052FF] text-gray-900 dark:text-white transition-all font-bold cursor-pointer"
+                      >
+                        {SUB_CITIES.map((sc) => (
+                          <option key={sc.id} value={sc.id}>
+                            {language === 'en' ? sc.nameEn : sc.nameAm} (+{sc.fee} ETB • {language === 'en' ? sc.timeEn : sc.timeAm})
+                          </option>
+                        ))}
+                      </select>
                     </div>
+
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-widest">{language === 'en' ? 'Estimated Time' : 'ግምታዊ ጊዜ'}</label>
-                      <div className="w-full border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950 rounded-xl px-3 py-2 text-xs text-gray-700 dark:text-zinc-300 font-bold flex items-center gap-1.5 h-[34px]">
-                        <Globe className="w-3.5 h-3.5 text-[#0052FF]" />
-                        <span>{language === 'en' ? 'Global & Local Express (1-3 Days)' : 'ዓለም አቀፍ እና የአገር ውስጥ ኤክስፕረስ (1-3 ቀን)'}</span>
+                      <label className="text-[9px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-widest">
+                        {language === 'en' ? 'Estimated Courier Dispatch' : 'ግምታዊ የማድረሻ ጊዜ'}
+                      </label>
+                      <div className="w-full border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950 rounded-xl px-3 py-2 text-xs text-gray-700 dark:text-zinc-300 font-bold flex items-center justify-between h-[34px]">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <Truck className="w-3.5 h-3.5 text-[#0052FF] shrink-0" />
+                          <span className="truncate">
+                            {SUB_CITIES.find(sc => sc.id === selectedSubCity)?.nameEn.split(' ')[0]} Express
+                          </span>
+                        </div>
+                        <span className="font-mono text-[#0052FF] text-[11px] shrink-0">
+                          {language === 'en' 
+                            ? (SUB_CITIES.find(sc => sc.id === selectedSubCity)?.timeEn || '1-2 Hours') 
+                            : (SUB_CITIES.find(sc => sc.id === selectedSubCity)?.timeAm || 'ከ1-2 ሰዓት')}
+                        </span>
                       </div>
                     </div>
                   </div>
 
+                  {/* Row 3: Prominent Landmark / Specific Area (Required) */}
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-widest">{language === 'en' ? 'Detailed Street & Door Address' : 'ሙሉ የቤት እና የመንገድ አድራሻ'}</label>
-                    <textarea
+                    <div className="flex items-center justify-between">
+                      <label className="text-[9px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-emerald-600" />
+                        <span>{language === 'en' ? 'Prominent Landmark / Area Description *' : 'የሚታወቅ መለያ ቦታ / አካባቢ *'}</span>
+                      </label>
+                      <span className="text-[8.5px] text-gray-400">Required for Ethiopian courier</span>
+                    </div>
+                    <input
+                      type="text"
                       required
-                      placeholder="e.g. Bole Medhanialem, Building 4A, Addis Ababa / 221B Baker St, London / Downtown 5th Ave, NY"
+                      placeholder={language === 'en' 
+                        ? 'e.g. Behind Edna Mall, Near Bole Medhanialem Church, Beside CBE Atlas Branch' 
+                        : 'ለምሳሌ፡ ከኤድና ሞል ጀርባ፣ ከመድኃኔዓለም ቤተክርስቲያን አጠገብ፣ ከአትላስ ሲቢኢ ቅርንጫፍ ጎን'}
+                      value={customerLandmark}
+                      onChange={(e) => setCustomerLandmark(e.target.value)}
+                      className="w-full border border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#0052FF] text-gray-900 dark:text-white transition-all font-semibold"
+                    />
+                    <p className="text-[8.5px] text-gray-400 leading-tight">
+                      {language === 'en'
+                        ? 'Our delivery dispatchers navigate using prominent landmarks, banks, commercial malls, or churches.'
+                        : 'አድራሾቻችን የሚታወቁ ሕንጻዎችን፣ ባንኮችን ወይም ታዋቂ ቦታዎችን ተጠቅመው በቀላሉ ያደርሳሉ።'}
+                    </p>
+                  </div>
+
+                  {/* Row 4: Specific Door / Street / Floor Notes (Optional) */}
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold text-gray-400 dark:text-zinc-400 uppercase tracking-widest flex items-center justify-between">
+                      <span>{language === 'en' ? 'House #, Floor or Delivery Instructions (Optional)' : 'የቤት ቁጥር፣ ፎቅ ወይም ተጨማሪ መመሪያ (አማራጭ)'}</span>
+                    </label>
+                    <textarea
+                      placeholder={language === 'en' ? 'e.g. Building 4B, 3rd Floor, Office 302 / Call upon arrival' : 'ምሳሌ፡ ሕንጻ 4B፣ 3ኛ ፎቅ፣ ቢሮ 302 / ሲደርሱ ይደውሉ'}
                       rows={2}
                       value={shippingAddress}
                       onChange={(e) => setShippingAddress(e.target.value)}
@@ -5691,83 +5982,99 @@ export default function CustomerWeb({
                     />
                   </div>
 
+                  {/* Section 2: Integrated Payment Methods */}
                   <h4 className="font-bold text-gray-900 dark:text-zinc-200 text-[10px] border-b border-gray-100 dark:border-zinc-800 pb-2 uppercase tracking-widest pt-2">
-                    {language === 'en' ? '2. Payment Methods & Escrow Gateway' : '2. የክፍያ እና ኤስክሮው ዘዴዎች'}
+                    {language === 'en' ? '2. Integrated Payment Methods & Gateways' : '2. የተቀናጁ የክፍያ መንገዶች'}
                   </h4>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    {/* Telebirr */}
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('TELEBIRR')}
-                      className={`p-2.5 sm:p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
+                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                         paymentMethod === 'TELEBIRR' 
                           ? 'border-[#004C61] bg-[#004C61]/10 dark:bg-[#004C61]/25 ring-2 ring-[#004C61]/30 shadow-xs' 
                           : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
                       }`}
                     >
-                      {/* Telebirr Visual Icon Badge */}
                       <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#003B4A] via-[#005B73] to-[#00A3E0] text-white font-mono font-black text-xs flex items-center justify-center shadow-xs border border-white/30">
                         <span className="text-[#FFD23F] font-black">t</span>
                         <span className="text-white font-black">b</span>
                       </div>
-                      <span className="font-extrabold text-xs text-gray-900 dark:text-white">telebirr</span>
-                      <span className="text-[9px] text-gray-400 dark:text-zinc-400 font-medium">{language === 'en' ? 'ethio telecom' : 'ኢትዮ ቴሌኮም'}</span>
+                      <span className="font-extrabold text-[11px] text-gray-900 dark:text-white truncate">telebirr</span>
+                      <span className="text-[8.5px] text-gray-400 dark:text-zinc-400 font-medium">*127# Push</span>
                     </button>
 
+                    {/* CBE Birr */}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('CBE_BIRR')}
+                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
+                        paymentMethod === 'CBE_BIRR' 
+                          ? 'border-purple-800 bg-purple-50 dark:bg-purple-950/30 ring-2 ring-purple-600/30 shadow-xs' 
+                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-950 via-purple-900 to-indigo-950 text-amber-300 font-mono font-black text-[9px] flex items-center justify-center shadow-xs border border-amber-400/40">
+                        CBE
+                      </div>
+                      <span className="font-extrabold text-[11px] text-gray-900 dark:text-white truncate">CBE Birr</span>
+                      <span className="text-[8.5px] text-purple-700 dark:text-purple-300 font-medium">*847# Chapa</span>
+                    </button>
+
+                    {/* Chapa Gateway */}
                     <button
                       type="button"
                       onClick={() => setPaymentMethod('CHAPA')}
-                      className={`p-2.5 sm:p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
+                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                         paymentMethod === 'CHAPA' 
                           ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-emerald-600/30 shadow-xs' 
                           : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
                       }`}
                     >
-                      {/* Chapa Visual Icon Badge */}
                       <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-800 via-teal-700 to-emerald-500 text-white font-mono font-black text-xs flex items-center justify-center shadow-xs border border-white/30">
                         <span className="text-[#00FF9D] tracking-tighter font-extrabold">Ch</span>
                       </div>
-                      <span className="font-extrabold text-xs text-gray-900 dark:text-white">Chapa (ጫፓ)</span>
-                      <span className="text-[9px] text-gray-400 dark:text-zinc-400 font-medium">{language === 'en' ? 'CBE & Cards' : 'ሲቢኢ እና ካርዶች'}</span>
+                      <span className="font-extrabold text-[11px] text-gray-900 dark:text-white truncate">Chapa (ጫፓ)</span>
+                      <span className="text-[8.5px] text-gray-400 dark:text-zinc-400 font-medium">Cards & Banks</span>
                     </button>
 
+                    {/* COD */}
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('COD')}
+                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
+                        paymentMethod === 'COD' 
+                          ? 'border-[#229ED9] bg-[#229ED9]/10 dark:bg-[#229ED9]/25 ring-2 ring-[#229ED9]/30 shadow-xs' 
+                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#229ED9] via-sky-600 to-blue-700 text-white font-black text-xs flex items-center justify-center shadow-xs border border-white/30">
+                        <Truck className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="font-extrabold text-[11px] text-gray-900 dark:text-white truncate">Cash / CoD</span>
+                      <span className="text-[8.5px] text-gray-400 dark:text-zinc-400 font-medium">Courier PIN</span>
+                    </button>
+
+                    {/* MetaMask Web3 */}
                     <button
                       type="button"
                       onClick={() => {
                         setPaymentMethod('METAMASK');
                         connectMetaMaskWallet();
                       }}
-                      className={`p-2.5 sm:p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
+                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                         paymentMethod === 'METAMASK' 
                           ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/30 ring-2 ring-amber-500/30 shadow-xs' 
                           : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
                       }`}
                     >
-                      {/* MetaMask Visual Badge */}
                       <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 via-orange-500 to-amber-700 text-white text-base flex items-center justify-center shadow-xs border border-white/30">
                         🦊
                       </div>
-                      <span className="font-extrabold text-xs text-amber-950 dark:text-amber-300 flex items-center gap-1">
-                        MetaMask
-                      </span>
-                      <span className="text-[9px] text-amber-700 dark:text-amber-400 font-semibold">{language === 'en' ? 'Web3 Escrow' : 'Web3 ኤስክሮው'}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('COD')}
-                      className={`p-2.5 sm:p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
-                        paymentMethod === 'COD' 
-                          ? 'border-[#229ED9] bg-[#229ED9]/10 dark:bg-[#229ED9]/25 ring-2 ring-[#229ED9]/30 shadow-xs' 
-                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
-                      }`}
-                    >
-                      {/* COD Visual Badge */}
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#229ED9] via-sky-600 to-blue-700 text-white font-black text-xs flex items-center justify-center shadow-xs border border-white/30">
-                        <Send className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="font-extrabold text-xs text-gray-900 dark:text-white">COD</span>
-                      <span className="text-[9px] text-gray-400 dark:text-zinc-400 font-medium">{language === 'en' ? 'Telegram Admin' : 'በቴሌግራም'}</span>
+                      <span className="font-extrabold text-[11px] text-amber-950 dark:text-amber-300 truncate">MetaMask</span>
+                      <span className="text-[8.5px] text-amber-700 dark:text-amber-400 font-semibold truncate">Web3 Escrow</span>
                     </button>
                   </div>
 
@@ -5792,23 +6099,28 @@ export default function CustomerWeb({
                     </div>
                   </div>
 
-                  {paymentMethod === 'COD' ? (
-                    <button
-                      type="submit"
-                      className="w-full bg-[#229ED9] hover:bg-[#1e8dbf] active:scale-[0.99] text-white font-black py-3.5 rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
-                    >
-                      <Send className="w-4 h-4 text-white" />
-                      <span>{language === 'en' ? 'Contact on Telegram' : 'በቴሌግራም ያግኙን'}</span>
-                    </button>
-                  ) : (
-                    <button
-                      type="submit"
-                      className="w-full bg-[#0052FF] hover:bg-blue-600 active:scale-[0.99] text-white font-black py-3.5 rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider"
-                    >
-                      <CreditCard className="w-4 h-4 text-white" />
-                      <span>{language === 'en' ? 'Proceed to payment' : 'ወደ ክፍያ ይቀጥሉ'}</span>
-                    </button>
-                  )}
+                  <button
+                    type="submit"
+                    disabled={isInitializingPayment}
+                    className="w-full bg-[#0052FF] hover:bg-blue-600 active:scale-[0.99] text-white font-black py-3.5 rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer uppercase tracking-wider disabled:opacity-60"
+                  >
+                    {isInitializingPayment ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                        <span>{language === 'en' ? 'Connecting to Payment API...' : 'ከክፍያ ጌትዌይ ጋር በመገናኘት ላይ...'}</span>
+                      </>
+                    ) : paymentMethod === 'COD' ? (
+                      <>
+                        <Truck className="w-4 h-4 text-white" />
+                        <span>{language === 'en' ? 'Confirm Cash on Delivery Order' : 'በትዕዛዝ ማረጋገጫ ይቀጥሉ'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="w-4 h-4 text-white" />
+                        <span>{language === 'en' ? `Initialize ${paymentMethod === 'CBE_BIRR' ? 'CBE Birr' : paymentMethod === 'TELEBIRR' ? 'Telebirr' : paymentMethod} Payment API` : `ወደ ${paymentMethod} የክፍያ ገፅ ይቀጥሉ`}</span>
+                      </>
+                    )}
+                  </button>
                 </form>
               )}
 
@@ -5874,322 +6186,412 @@ export default function CustomerWeb({
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {/* Mode Selector Tabs: QR Code vs Direct Push */}
-                      <div className="flex bg-gray-100 p-1 rounded-2xl border border-gray-200/70">
+                      {/* Mode Selector Tabs: QR Code vs Direct Push / USSD */}
+                      <div className="flex bg-gray-100 dark:bg-zinc-800 p-1 rounded-2xl border border-gray-200/70 dark:border-zinc-700">
                         <button
                           type="button"
                           onClick={() => setGatewayPaymentTab('QR')}
                           className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                             gatewayPaymentTab === 'QR'
-                              ? 'bg-white text-gray-950 shadow-xs border border-gray-200/80 font-black'
-                              : 'text-gray-500 hover:text-gray-900'
+                              ? 'bg-white dark:bg-zinc-900 text-gray-950 dark:text-white shadow-xs border border-gray-200/80 dark:border-zinc-700 font-black'
+                              : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
                           }`}
                         >
-                          <QrCode className="w-4 h-4 text-[#2563EB]" />
+                          <QrCode className="w-4 h-4 text-[#0052FF]" />
                           <span>{language === 'en' ? 'Scan QR Code' : 'የQR ኮድ ስካን'}</span>
-                          <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-bold">Fast</span>
+                          <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-bold">Instant</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setGatewayPaymentTab('DIRECT')}
                           className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                             gatewayPaymentTab === 'DIRECT'
-                              ? 'bg-white text-gray-950 shadow-xs border border-gray-200/80 font-black'
-                              : 'text-gray-500 hover:text-gray-900'
+                              ? 'bg-white dark:bg-zinc-900 text-gray-950 dark:text-white shadow-xs border border-gray-200/80 dark:border-zinc-700 font-black'
+                              : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
                           }`}
                         >
                           <Smartphone className="w-4 h-4 text-emerald-600" />
-                          <span>{language === 'en' ? 'Direct Mobile Push' : 'የስልክ መለያ ክፍያ'}</span>
+                          <span>{language === 'en' ? 'Direct Mobile / USSD' : 'የስልክ / USSD ክፍያ'}</span>
                         </button>
                       </div>
 
-                  {gatewayPaymentTab === 'QR' ? (
-                    <div className="space-y-4">
-                      {/* Brand Header Banner */}
-                      <div className={`p-4 rounded-2xl text-white shadow-xs relative overflow-hidden ${
-                        paymentMethod === 'TELEBIRR'
-                          ? 'bg-gradient-to-r from-[#004C61] via-[#00607A] to-[#0D1F2D]'
-                          : 'bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-950'
-                      }`}>
-                        <div className="flex justify-between items-center relative z-10">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center border border-white/20 shrink-0">
-                              <QrCode className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <h4 className="font-black text-sm text-white uppercase tracking-wider">
-                                  {paymentMethod === 'TELEBIRR' ? 'telebirr Quick QR Pay' : 'Chapa QR Gateway'}
-                                </h4>
-                                <span className="bg-white/20 text-white text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold">LIVE</span>
+                      {gatewayPaymentTab === 'QR' ? (
+                        <div className="space-y-4">
+                          {/* Brand Header Banner */}
+                          <div className={`p-4 rounded-2xl text-white shadow-xs relative overflow-hidden ${
+                            paymentMethod === 'TELEBIRR'
+                              ? 'bg-gradient-to-r from-[#004C61] via-[#00607A] to-[#0D1F2D]'
+                              : paymentMethod === 'CBE_BIRR'
+                              ? 'bg-gradient-to-r from-purple-950 via-purple-900 to-indigo-950'
+                              : 'bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-950'
+                          }`}>
+                            <div className="flex justify-between items-center relative z-10">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center border border-white/20 shrink-0">
+                                  <QrCode className="w-5 h-5 text-white" />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-1.5">
+                                    <h4 className="font-black text-sm text-white uppercase tracking-wider">
+                                      {paymentMethod === 'TELEBIRR' 
+                                        ? 'telebirr Quick QR Pay' 
+                                        : paymentMethod === 'CBE_BIRR'
+                                        ? 'CBE Birr Instant QR Pay'
+                                        : 'Chapa Unified Gateway'}
+                                    </h4>
+                                    <span className="bg-white/20 text-white text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold">API CONNECTED</span>
+                                  </div>
+                                  <p className="text-[10px] text-white/80">
+                                    {paymentMethod === 'TELEBIRR' 
+                                      ? (language === 'en' ? 'Scan with ethio telecom telebirr SuperApp' : 'በቴሌብር ሞባይል አፕ ስካን ያድርጉ')
+                                      : paymentMethod === 'CBE_BIRR'
+                                      ? (language === 'en' ? 'Commercial Bank of Ethiopia (CBE Birr via Chapa/ArifPay)' : 'በሲቢኢ ብር ሞባይል አፕ ወይም *847# ስካን ያድርጉ')
+                                      : (language === 'en' ? 'Supports Telebirr, CBE Birr & Debit Cards' : 'በቴሌብር፣ ሲቢኢ ብር እና ባንክ ካርዶች የሚሰራ')
+                                    }
+                                  </p>
+                                </div>
                               </div>
-                              <p className="text-[10px] text-white/80">
-                                {paymentMethod === 'TELEBIRR' 
-                                  ? (language === 'en' ? 'Scan with ethio telecom telebirr SuperApp' : 'በቴሌብር ሞባይል አፕ ስካን ያድርጉ')
-                                  : (language === 'en' ? 'Supports CBE Birr, Telebirr & Mobile Banking' : 'በCBE Birr፣ ቴሌብር እና ባንክ አፕ የሚሰራ')
-                                }
-                              </p>
+                              <div className="text-right font-mono">
+                                <span className="text-[9px] text-white/70 block uppercase font-bold">{language === 'en' ? 'Total Amount' : 'ጠቅላላ ዋጋ'}</span>
+                                <span className="text-base font-black text-white">{cartTotal.toLocaleString()} ETB</span>
+                              </div>
                             </div>
-                          </div>
-                          <div className="text-right font-mono">
-                            <span className="text-[9px] text-white/70 block uppercase font-bold">{language === 'en' ? 'Total Amount' : 'ጠቅላላ ዋጋ'}</span>
-                            <span className="text-base font-black text-white">{cartTotal.toLocaleString()} ETB</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Interactive QR Display Card */}
-                      <div className="bg-gray-50/70 border border-gray-200/80 rounded-3xl p-5 text-center space-y-4 relative overflow-hidden">
-                        
-                        {/* Visual Payment Provider Partner Icons Strip */}
-                        <div className="bg-white p-3 rounded-2xl border border-gray-200/80 space-y-2 shadow-2xs">
-                          <div className="flex items-center justify-between text-[10px] font-black uppercase text-gray-400 tracking-wider">
-                            <span>{language === 'en' ? 'Supported Payment Partners' : 'የተደገፉ የክፍያ አጋሮች'}</span>
-                            <span className="text-emerald-600 font-bold flex items-center gap-1">
-                              <ShieldCheck className="w-3.5 h-3.5" />
-                              {language === 'en' ? 'Verified Gateway' : 'የተረጋገጠ መክፈያ'}
-                            </span>
                           </div>
 
-                          <div className="flex items-center justify-center gap-2 flex-wrap pt-0.5">
-                            {/* Telebirr Visual Provider Badge */}
-                            <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all ${
-                              paymentMethod === 'TELEBIRR'
-                                ? 'bg-[#004C61]/10 border-[#004C61] ring-1 ring-[#004C61]/30 text-[#004C61] font-black'
-                                : 'bg-gray-50 border-gray-200 text-gray-600 opacity-70'
-                            }`}>
-                              <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-[#003B4A] via-[#005B73] to-[#00A3E0] text-white font-mono font-black text-[10px] flex items-center justify-center shrink-0 border border-white/20">
-                                <span className="text-[#FFD23F] font-black">t</span>
-                                <span className="text-white font-black">b</span>
+                          {/* Interactive QR Display Card */}
+                          <div className="bg-gray-50/70 dark:bg-zinc-800/50 border border-gray-200/80 dark:border-zinc-700/70 rounded-3xl p-5 text-center space-y-4 relative overflow-hidden">
+                            {/* Visual Payment Provider Partner Icons Strip */}
+                            <div className="bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-gray-200/80 dark:border-zinc-800 space-y-2 shadow-2xs">
+                              <div className="flex items-center justify-between text-[10px] font-black uppercase text-gray-400 tracking-wider">
+                                <span>{language === 'en' ? 'Active Gateway Rails' : 'ገቢር የክፍያ መንገዶች'}</span>
+                                <span className="text-emerald-600 font-bold flex items-center gap-1">
+                                  <ShieldCheck className="w-3.5 h-3.5" />
+                                  <span>Chapa / ArifPay Integrated</span>
+                                </span>
                               </div>
-                              <span className="text-[11px] font-extrabold tracking-tight">telebirr</span>
-                              {paymentMethod === 'TELEBIRR' && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#004C61] animate-pulse" />
+
+                              <div className="flex items-center justify-center gap-2 flex-wrap pt-0.5">
+                                {/* Telebirr Visual Provider Badge */}
+                                <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all ${
+                                  paymentMethod === 'TELEBIRR'
+                                    ? 'bg-[#004C61]/10 border-[#004C61] ring-1 ring-[#004C61]/30 text-[#004C61] font-black'
+                                    : 'bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 opacity-70'
+                                }`}>
+                                  <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-[#003B4A] via-[#005B73] to-[#00A3E0] text-white font-mono font-black text-[10px] flex items-center justify-center shrink-0 border border-white/20">
+                                    <span className="text-[#FFD23F] font-black">t</span>
+                                    <span className="text-white font-black">b</span>
+                                  </div>
+                                  <span className="text-[11px] font-extrabold tracking-tight">telebirr</span>
+                                  {paymentMethod === 'TELEBIRR' && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#004C61] animate-pulse" />
+                                  )}
+                                </div>
+
+                                {/* CBE Birr Partner Badge */}
+                                <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all ${
+                                  paymentMethod === 'CBE_BIRR'
+                                    ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-800 ring-1 ring-purple-600/30 text-purple-900 dark:text-purple-300 font-black'
+                                    : 'bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 opacity-70'
+                                }`}>
+                                  <div className="w-5 h-5 rounded-lg bg-purple-900 text-amber-400 font-mono font-black text-[8px] flex items-center justify-center shrink-0 border border-purple-700">
+                                    CBE
+                                  </div>
+                                  <span className="text-[11px] font-extrabold tracking-tight">CBE Birr</span>
+                                  {paymentMethod === 'CBE_BIRR' && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
+                                  )}
+                                </div>
+
+                                {/* Chapa Visual Provider Badge */}
+                                <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all ${
+                                  paymentMethod === 'CHAPA'
+                                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-600 ring-1 ring-emerald-600/30 text-emerald-800 dark:text-emerald-300 font-black'
+                                    : 'bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 opacity-70'
+                                }`}>
+                                  <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-emerald-800 via-teal-700 to-emerald-500 text-white font-mono font-black text-[10px] flex items-center justify-center shrink-0 border border-white/20">
+                                    <span className="text-[#00FF9D] tracking-tighter font-black">Ch</span>
+                                  </div>
+                                  <span className="text-[11px] font-extrabold tracking-tight">Chapa</span>
+                                  {paymentMethod === 'CHAPA' && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                                  )}
+                                </div>
+
+                                {/* Visa / Mastercard Cards Badge */}
+                                <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-[10.5px] font-bold">
+                                  <CreditCard className="w-3.5 h-3.5 text-blue-600" />
+                                  <span>Cards</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Scanning beam visual effect */}
+                            <div className="relative inline-block p-4 bg-white rounded-2xl shadow-sm border border-gray-200/90 group">
+                              {/* Generated SVG QR Code */}
+                              <QRCodeSVG
+                                value={activePaymentSession?.qrPayload || (paymentMethod === 'TELEBIRR'
+                                  ? `telebirr://pay?merchant=KASMA_ENTERPRISE&amount=${cartTotal}&ref=${qrReferenceTx}&phone=${encodeURIComponent(customerPhone)}`
+                                  : paymentMethod === 'CBE_BIRR'
+                                  ? `cbebirr://pay?merchant=KASMA_SHOP&amount=${cartTotal}&ref=${qrReferenceTx}`
+                                  : `https://checkout.chapa.co/pay/ch_tx_${qrReferenceTx}?amount=${cartTotal}&currency=ETB&email=getchze1221%40gmail.com`
+                                )}
+                                size={185}
+                                level="H"
+                                includeMargin={true}
+                                fgColor={paymentMethod === 'TELEBIRR' ? '#004C61' : paymentMethod === 'CBE_BIRR' ? '#3B0764' : '#047857'}
+                                bgColor="#FFFFFF"
+                              />
+
+                              {/* Center Brand Badge */}
+                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                <div className="w-9 h-9 bg-white rounded-full shadow-md border-2 border-gray-800 flex items-center justify-center p-1">
+                                  {paymentMethod === 'TELEBIRR' ? (
+                                    <span className="text-[10px] font-black text-[#004C61] tracking-tighter">tb</span>
+                                  ) : paymentMethod === 'CBE_BIRR' ? (
+                                    <span className="text-[9px] font-black text-purple-900 tracking-tighter">CBE</span>
+                                  ) : (
+                                    <span className="text-[10px] font-black text-emerald-700 tracking-tighter">Ch</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Pulse indicator */}
+                            <div className="flex items-center justify-center gap-2 text-xs text-gray-600 dark:text-zinc-300 font-semibold bg-white/90 dark:bg-zinc-900 py-1.5 px-3 rounded-full border border-gray-200/60 dark:border-zinc-700 max-w-xs mx-auto shadow-2xs">
+                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                              <span className="text-[11px] truncate">
+                                {language === 'en' ? 'Awaiting camera scan / mobile authorization...' : 'የስልክ ስካን / ፈቃድ በመጠባበቅ ላይ...'}
+                              </span>
+                            </div>
+
+                            {/* QR Details Chips */}
+                            <div className="grid grid-cols-2 gap-2 text-[11px] bg-white dark:bg-zinc-900 p-2.5 rounded-xl border border-gray-200/70 dark:border-zinc-800 text-left">
+                              <div>
+                                <span className="text-gray-400 block text-[9px] uppercase font-bold">{language === 'en' ? 'Merchant / Rail' : 'የነጋዴ ስም'}</span>
+                                <span className="font-extrabold text-gray-900 dark:text-white truncate block">
+                                  {paymentMethod === 'CBE_BIRR' ? 'KASMA CBE BIRR PAY' : 'KASMA SHOP ENTERPRISE'}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-400 block text-[9px] uppercase font-bold">{language === 'en' ? 'Transaction Ref' : 'መለያ ቁጥር'}</span>
+                                <span className="font-mono font-black text-[#0052FF] dark:text-blue-400 truncate block">
+                                  {activePaymentSession?.txRef || qrReferenceTx}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Quick Link & Copy Actions */}
+                            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const payload = activePaymentSession?.checkoutUrl || activePaymentSession?.directPaymentUrl || (paymentMethod === 'TELEBIRR'
+                                    ? `telebirr://pay?merchant=KASMA_ENTERPRISE&amount=${cartTotal}&ref=${qrReferenceTx}`
+                                    : paymentMethod === 'CBE_BIRR'
+                                    ? `https://checkout.chapa.co/pay/cbe_${qrReferenceTx}?amount=${cartTotal}&currency=ETB`
+                                    : `https://checkout.chapa.co/pay/ch_tx_${qrReferenceTx}?amount=${cartTotal}`);
+                                  navigator.clipboard.writeText(payload);
+                                  setCopiedQrLink(true);
+                                  showToast(
+                                    language === 'en' ? 'Payment Session Link copied to clipboard!' : 'የክፍያ ሊንኩ ተቀድቷል!',
+                                    'success'
+                                  );
+                                  setTimeout(() => setCopiedQrLink(false), 2500);
+                                }}
+                                className="px-3.5 py-1.5 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 hover:bg-gray-100 text-gray-700 dark:text-zinc-200 text-[10px] font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                              >
+                                {copiedQrLink ? (
+                                  <>
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>{language === 'en' ? 'Copied!' : 'ተቀድቷል!'}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="w-3.5 h-3.5 text-gray-500" />
+                                    <span>{language === 'en' ? 'Copy Pay Link' : 'ሊንኩን ቅዳ'}</span>
+                                  </>
+                                )}
+                              </button>
+
+                              {/* Dial USSD Button */}
+                              {(paymentMethod === 'TELEBIRR' || paymentMethod === 'CBE_BIRR') && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const ussd = paymentMethod === 'TELEBIRR' ? '*127#' : '*847#';
+                                    navigator.clipboard.writeText(ussd);
+                                    showToast(
+                                      language === 'en' ? `USSD ${ussd} copied! Dial in your Phone App.` : `USSD ${ussd} ተቀድቷል! በስልክዎ ይደውሉ`,
+                                      'info'
+                                    );
+                                  }}
+                                  className="px-3.5 py-1.5 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-300 text-[10px] font-mono font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                >
+                                  <Phone className="w-3.5 h-3.5 text-purple-600" />
+                                  <span>Dial {paymentMethod === 'TELEBIRR' ? '*127#' : '*847#'}</span>
+                                </button>
                               )}
-                            </div>
 
-                            {/* Chapa Visual Provider Badge */}
-                            <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all ${
-                              paymentMethod === 'CHAPA'
-                                ? 'bg-emerald-50 border-emerald-600 ring-1 ring-emerald-600/30 text-emerald-800'
-                                : 'bg-gray-50 border-gray-200 text-gray-600 opacity-70'
-                            }`}>
-                              <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-emerald-800 via-teal-700 to-emerald-500 text-white font-mono font-black text-[10px] flex items-center justify-center shrink-0 border border-white/20">
-                                <span className="text-[#00FF9D] tracking-tighter font-black">Ch</span>
-                              </div>
-                              <span className="text-[11px] font-extrabold tracking-tight">Chapa</span>
-                              {paymentMethod === 'CHAPA' && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                              )}
-                            </div>
-
-                            {/* CBE Birr Partner Badge */}
-                            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 text-[10.5px] font-bold">
-                              <div className="w-5 h-5 rounded-lg bg-purple-900 text-amber-400 font-mono font-black text-[8px] flex items-center justify-center shrink-0 border border-purple-700">
-                                CBE
-                              </div>
-                              <span>CBE Birr</span>
-                            </div>
-
-                            {/* Visa / Mastercard Cards Badge */}
-                            <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-gray-700 text-[10.5px] font-bold">
-                              <CreditCard className="w-3.5 h-3.5 text-blue-600" />
-                              <span>Cards</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const link = activePaymentSession?.checkoutUrl || activePaymentSession?.directPaymentUrl || (paymentMethod === 'TELEBIRR'
+                                    ? `https://telebirr.ethiotelecom.et/checkout?ref=${qrReferenceTx}&amount=${cartTotal}`
+                                    : paymentMethod === 'CBE_BIRR'
+                                    ? `https://checkout.chapa.co/pay/cbe_${qrReferenceTx}?amount=${cartTotal}&currency=ETB`
+                                    : `https://checkout.chapa.co/pay/ch_tx_${qrReferenceTx}?amount=${cartTotal}`);
+                                  window.open(link, '_blank');
+                                }}
+                                className="px-3.5 py-1.5 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 hover:bg-gray-100 text-gray-700 dark:text-zinc-200 text-[10px] font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5 text-gray-500" />
+                                <span>{language === 'en' ? 'Open App Checkout' : 'በአፕሊኬሽን ክፈት'}</span>
+                              </button>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Scanning beam visual effect */}
-                        <div className="relative inline-block p-4 bg-white rounded-2xl shadow-sm border border-gray-200/90 group">
-                          {/* Generated SVG QR Code */}
-                          <QRCodeSVG
-                            value={paymentMethod === 'TELEBIRR'
-                              ? `telebirr://pay?merchant=KASMA_ENTERPRISE&amount=${cartTotal}&ref=${qrReferenceTx}&phone=${encodeURIComponent(customerPhone)}`
-                              : `https://checkout.chapa.co/pay/ch_tx_${qrReferenceTx}?amount=${cartTotal}&currency=ETB&email=getchze1221%40gmail.com`
-                            }
-                            size={185}
-                            level="H"
-                            includeMargin={true}
-                            fgColor={paymentMethod === 'TELEBIRR' ? '#004C61' : '#047857'}
-                            bgColor="#FFFFFF"
-                          />
-
-                          {/* Center Brand Badge */}
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="w-9 h-9 bg-white rounded-full shadow-md border-2 border-[#004C61] flex items-center justify-center p-1">
-                              {paymentMethod === 'TELEBIRR' ? (
-                                <span className="text-[10px] font-black text-[#004C61] tracking-tighter">tb</span>
-                              ) : (
-                                <span className="text-[10px] font-black text-emerald-700 tracking-tighter">Ch</span>
-                              )}
+                          {/* Instructions */}
+                          <div className="bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 p-3.5 rounded-2xl text-[11px] text-amber-950 dark:text-amber-200 space-y-1.5">
+                            <div className="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-300">
+                              <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                              <span>{language === 'en' ? 'Payment Authorization Steps:' : 'የክፍያ ማረጋገጫ ቅደም-ተከተል፡'}</span>
                             </div>
-                          </div>
-                        </div>
-
-                        {/* Scanner Beam / Pulse indicator */}
-                        <div className="flex items-center justify-center gap-2 text-xs text-gray-600 font-semibold bg-white/90 py-1.5 px-3 rounded-full border border-gray-200/60 max-w-xs mx-auto shadow-2xs">
-                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                          <span className="text-[11px] truncate">
-                            {language === 'en' ? 'Awaiting camera scan from your phone...' : 'የስልክ ስካን ምልክት በመጠባበቅ ላይ...'}
-                          </span>
-                        </div>
-
-                        {/* QR Details Chips */}
-                        <div className="grid grid-cols-2 gap-2 text-[11px] bg-white p-2.5 rounded-xl border border-gray-200/70 text-left">
-                          <div>
-                            <span className="text-gray-400 block text-[9px] uppercase font-bold">{language === 'en' ? 'Merchant Name' : 'የነጋዴ ስም'}</span>
-                            <span className="font-extrabold text-gray-900 truncate block">KASMA SHOP LTD</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-400 block text-[9px] uppercase font-bold">{language === 'en' ? 'Reference Code' : 'መለያ ቁጥር'}</span>
-                            <span className="font-mono font-black text-gray-900 truncate block">{qrReferenceTx}</span>
-                          </div>
-                        </div>
-
-                        {/* Quick Link & Copy Actions */}
-                        <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const payload = paymentMethod === 'TELEBIRR'
-                                ? `telebirr://pay?merchant=KASMA_ENTERPRISE&amount=${cartTotal}&ref=${qrReferenceTx}`
-                                : `https://checkout.chapa.co/pay/ch_tx_${qrReferenceTx}?amount=${cartTotal}`;
-                              navigator.clipboard.writeText(payload);
-                              setCopiedQrLink(true);
-                              showToast(
-                                language === 'en' ? 'QR Payment Link copied to clipboard!' : 'የክፍያ ሊንኩ ተቀድቷል!',
-                                'success'
-                              );
-                              setTimeout(() => setCopiedQrLink(false), 2500);
-                            }}
-                            className="px-3.5 py-1.5 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 text-[10px] font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                          >
-                            {copiedQrLink ? (
-                              <>
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>{language === 'en' ? 'Copied!' : 'ተቀድቷል!'}</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3.5 h-3.5 text-gray-500" />
-                                <span>{language === 'en' ? 'Copy Pay Link' : 'ሊንኩን ቅዳ'}</span>
-                              </>
-                            )}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const link = paymentMethod === 'TELEBIRR'
-                                ? `telebirr://pay?merchant=KASMA_ENTERPRISE&amount=${cartTotal}&ref=${qrReferenceTx}`
-                                : `https://checkout.chapa.co/pay/ch_tx_${qrReferenceTx}?amount=${cartTotal}`;
-                              window.open(link, '_blank');
-                            }}
-                            className="px-3.5 py-1.5 bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 text-[10px] font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5 text-gray-500" />
-                            <span>{language === 'en' ? 'Open App Link' : 'በአፕሊኬሽን ክፈት'}</span>
-                          </button>
-                        </div>
-
-                      </div>
-
-                      {/* Instructions Accordion / Steps */}
-                      <div className="bg-amber-50/60 border border-amber-200/60 p-3.5 rounded-2xl text-[11px] text-amber-950 space-y-1.5">
-                        <div className="flex items-center gap-1.5 font-bold text-amber-900">
-                          <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-                          <span>{language === 'en' ? 'How to Pay via Mobile QR:' : 'በQR ኮድ እንዴት መክፈል እንደሚቻል፡'}</span>
-                        </div>
-                        <ol className="list-decimal list-inside space-y-1 text-amber-900/80 font-medium text-[10.5px] leading-relaxed">
-                          <li>{language === 'en' ? `Open Telebirr or CBE Birr / Chapa app on your smartphone.` : `የቴሌብር ወይም የሲቢኢ ብር አፕሊኬሽን በስልክዎ ይክፈቱ።`}</li>
-                          <li>{language === 'en' ? `Tap "Scan QR" on the home screen and aim camera at the QR code.` : `በስክሪኑ ላይ ያለውን የQR ኮድ በአፕሊኬሽኑ ካሜራ ስካን ያድርጉ።`}</li>
-                          <li>{language === 'en' ? `Confirm payment of ${cartTotal.toLocaleString()} ETB, then tap "Authorize Payment" below.` : `የ${cartTotal.toLocaleString()} ብር ክፍያውን ያረጋግጡና ከታች ያለውን አዝራር ይጫኑ።`}</li>
-                        </ol>
-                      </div>
-                    </div>
-                  ) : (
-                    /* DIRECT PUSH PAYMENT MODE */
-                    <div className="space-y-4">
-                      {paymentMethod === 'TELEBIRR' ? (
-                        <div className="space-y-4 text-center">
-                          <div className="bg-[#2563EB]/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
-                            <Phone className="w-8 h-8 text-[#2563EB] animate-pulse" />
-                          </div>
-                          <div>
-                            <h4 className="font-extrabold text-[#2563EB] text-lg">telebirr Direct Push Gateway</h4>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Secure instant connection to ethio telecom mobile payment system.
-                            </p>
-                          </div>
-                          <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 text-left text-xs space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Merchant Name:</span>
-                              <span className="font-bold">KASMA SHOP LTD</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Payer Phone:</span>
-                              <span className="font-bold">{customerPhone}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Amount (ETB):</span>
-                              <span className="font-bold text-black">{cartTotal.toLocaleString()} ETB</span>
-                            </div>
+                            <ol className="list-decimal list-inside space-y-1 text-amber-900/80 dark:text-amber-200/80 font-medium text-[10.5px] leading-relaxed">
+                              <li>
+                                {paymentMethod === 'TELEBIRR'
+                                  ? (language === 'en' ? 'Open Telebirr SuperApp and approve the push notification prompt, or dial *127#.' : 'የቴሌብር አፕሊኬሽን ይክፈቱ ወይም በስልክዎ *127# ይደውሉ።')
+                                  : paymentMethod === 'CBE_BIRR'
+                                  ? (language === 'en' ? 'Open CBE Birr app or dial *847# on your mobile phone to approve the payment.' : 'የሲቢኢ ብር አፕሊኬሽን ይክፈቱ ወይም በስልክዎ *847# በመደወል ያረጋግጡ።')
+                                  : (language === 'en' ? 'Scan QR or proceed on Chapa hosted checkout.' : 'በስክሪኑ ላይ ያለውን የQR ኮድ ስካን ያድርጉ ወይም ጫፓን ይጠቀሙ።')}
+                              </li>
+                              <li>
+                                {language === 'en'
+                                  ? `Confirm total amount of ${cartTotal.toLocaleString()} ETB, then click "Verify with Payment Gateway API" below.`
+                                  : `የ${cartTotal.toLocaleString()} ብር ክፍያውን ካረጋገጡ በኋላ ከታች ያለውን "በክፍያ ጌትዌይ አረጋግጥ" ይጫኑ።`}
+                              </li>
+                            </ol>
                           </div>
                         </div>
                       ) : (
-                        <div className="space-y-4 text-center">
-                          <div className="bg-emerald-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto border border-emerald-100">
-                            <CreditCard className="w-8 h-8 text-emerald-600 animate-pulse" />
-                          </div>
-                          <div>
-                            <h4 className="font-extrabold text-emerald-700 text-lg">Chapa (ጫፓ) Gateway</h4>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Supports CBE Birr, Awash Bank, and international credit cards.
-                            </p>
-                          </div>
-                          <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 text-left text-xs space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Chapa Reference:</span>
-                              <span className="font-mono font-semibold">{qrReferenceTx}</span>
+                        /* DIRECT PUSH & USSD MODE */
+                        <div className="space-y-4">
+                          {paymentMethod === 'TELEBIRR' ? (
+                            <div className="space-y-4 text-center">
+                              <div className="bg-[#2563EB]/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
+                                <Phone className="w-8 h-8 text-[#2563EB] animate-pulse" />
+                              </div>
+                              <div>
+                                <h4 className="font-extrabold text-[#2563EB] text-lg">telebirr Direct Push Gateway</h4>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Secure instant connection to ethio telecom mobile payment system.
+                                </p>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-2xl border border-gray-200 dark:border-zinc-700 text-left text-xs space-y-2">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">Merchant Name:</span>
+                                  <span className="font-bold">KASMA SHOP LTD</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">Payer Phone:</span>
+                                  <span className="font-bold font-mono">{customerPhone}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">USSD Direct Code:</span>
+                                  <span className="font-mono font-bold text-[#0052FF]">*127# (Option 3: Pay Merchant)</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">Amount (ETB):</span>
+                                  <span className="font-bold text-black dark:text-white font-mono">{cartTotal.toLocaleString()} ETB</span>
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Total Amount:</span>
-                              <span className="font-black text-emerald-700">{cartTotal.toLocaleString()} ETB</span>
+                          ) : paymentMethod === 'CBE_BIRR' ? (
+                            <div className="space-y-4 text-center">
+                              <div className="bg-purple-100 dark:bg-purple-950/50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto border border-purple-200">
+                                <Building2 className="w-8 h-8 text-purple-700 animate-pulse" />
+                              </div>
+                              <div>
+                                <h4 className="font-extrabold text-purple-900 dark:text-purple-300 text-lg">CBE Birr Instant Direct Gateway</h4>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Commercial Bank of Ethiopia payment rail via Chapa/ArifPay API.
+                                </p>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-2xl border border-gray-200 dark:border-zinc-700 text-left text-xs space-y-2">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">CBE Birr Merchant:</span>
+                                  <span className="font-bold">KASMA SHOP LTD (CBE Pay)</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">Payer Phone:</span>
+                                  <span className="font-bold font-mono">{customerPhone}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">CBE USSD Code:</span>
+                                  <span className="font-mono font-bold text-purple-700">*847# (Pay Bill / Merchant)</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">Total Payable:</span>
+                                  <span className="font-black text-purple-900 dark:text-purple-300 font-mono">{cartTotal.toLocaleString()} ETB</span>
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-500">Payer Email:</span>
-                              <span className="font-semibold">getchze1221@gmail.com</span>
+                          ) : (
+                            <div className="space-y-4 text-center">
+                              <div className="bg-emerald-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto border border-emerald-100">
+                                <CreditCard className="w-8 h-8 text-emerald-600 animate-pulse" />
+                              </div>
+                              <div>
+                                <h4 className="font-extrabold text-emerald-700 text-lg">Chapa (ጫፓ) Gateway</h4>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Supports CBE Birr, Awash Bank, and international credit cards.
+                                </p>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-2xl border border-gray-200 dark:border-zinc-700 text-left text-xs space-y-2">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">Chapa Reference:</span>
+                                  <span className="font-mono font-semibold">{activePaymentSession?.txRef || qrReferenceTx}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">Total Amount:</span>
+                                  <span className="font-black text-emerald-700 font-mono">{cartTotal.toLocaleString()} ETB</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-500">Customer Delivery:</span>
+                                  <span className="font-semibold">{selectedSubCity} • {customerLandmark}</span>
+                                </div>
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
                       )}
                     </div>
                   )}
-                </div>
-              )}
 
                   {/* Shared Gateway Action Footer Buttons */}
-                  <div className="flex gap-3 justify-center pt-2">
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
                     <button
                       type="button"
                       onClick={() => setPaymentStep('FORM')}
-                      className="px-5 py-2.5 border border-gray-200 rounded-full text-xs font-bold text-gray-500 hover:bg-gray-50 cursor-pointer transition-all"
+                      className="px-5 py-2.5 border border-gray-200 dark:border-zinc-700 rounded-full text-xs font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer transition-all"
                     >
-                      {language === 'en' ? 'Back' : 'ተመለስ'}
+                      {language === 'en' ? 'Back to Address' : 'ወደ አድራሻ ተመለስ'}
                     </button>
                     <button
                       type="button"
                       disabled={isProcessingPayment}
-                      onClick={handleSimulatePayment}
-                      className="px-6 py-2.5 bg-black hover:bg-zinc-950 text-white rounded-full text-xs font-bold flex items-center gap-2 cursor-pointer transition-all shadow-sm"
+                      onClick={handleVerifyPaymentApi}
+                      className="px-6 py-2.5 bg-[#0052FF] hover:bg-blue-600 text-white rounded-full text-xs font-black flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md disabled:opacity-60"
                     >
                       {isProcessingPayment ? (
                         <>
                           <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                          <span>{language === 'en' ? 'Authorizing Payment...' : 'ክፍያ በመፈጸም ላይ...'}</span>
+                          <span>{language === 'en' ? 'Verifying with Payment API...' : 'ከክፍያ ጌትዌይ ጋር በማረጋገጥ ላይ...'}</span>
                         </>
                       ) : (
-                        <span>{language === 'en' ? 'Authorize Payment ✔' : 'ክፍያውን አረጋግጥ ✔'}</span>
+                        <>
+                          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                          <span>{language === 'en' ? 'Verify with Payment Gateway API ✔' : 'በክፍያ ጌትዌይ አረጋግጥ ✔'}</span>
+                        </>
                       )}
                     </button>
                   </div>

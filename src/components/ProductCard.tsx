@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Star, ShoppingCart, Eye, Flame, Share2, Copy, Check, X, Send, Facebook, MessageCircle, ExternalLink, Tag, Zap, GitCompare, Sparkles } from 'lucide-react';
+import { Heart, Star, ShoppingCart, Eye, Flame, Share2, Copy, Check, X, Send, Facebook, MessageCircle, ExternalLink, Tag, Zap, GitCompare, Sparkles, ShieldCheck } from 'lucide-react';
 import { Product, Variant } from '../types';
 import { LazyImage } from './LazyImage';
 

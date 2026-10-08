@@ -89,6 +89,27 @@ export class Database {
           this.orders = [];
           this.apiLogs = [];
           this.save();
+        } else {
+          // Guarantee distinct condition and warranty on all existing products
+          this.products = this.products.map(p => {
+            let condition = p.condition;
+            if (!condition || condition === 'BRAND_NEW_SEALED') {
+              condition = (p.category === 'mobiles' || p.category === 'smartwatches' || p.category === 'gaming') ? 'SEALED' : 'BRAND_NEW';
+            }
+            const conditionTextEn = condition === 'SEALED' ? 'Factory Sealed' : condition === 'BRAND_NEW' ? 'Brand New' : condition === 'OPEN_BOX' ? 'Open Box' : 'Certified Refurbished';
+            const conditionTextAm = condition === 'SEALED' ? 'በፋብሪካው የታሸገ' : condition === 'BRAND_NEW' ? 'አዲስ' : condition === 'OPEN_BOX' ? 'ክፍት ሳጥን' : 'የታደሰ';
+            const warrantyMonths = p.warrantyMonths || (p.category === 'mobiles' || p.category === 'cameras' || p.category === 'smartwatches' ? 24 : 12);
+            return {
+              ...p,
+              condition,
+              conditionTextEn,
+              conditionTextAm,
+              warrantyMonths,
+              warrantyTextEn: p.warrantyTextEn || `${warrantyMonths} Months Official Warranty`,
+              warrantyTextAm: p.warrantyTextAm || `የ${warrantyMonths} ወራት ኦፊሴላዊ ዋስትና`
+            };
+          });
+          this.save();
         }
       } else {
         // Seed with initial datasets
@@ -179,7 +200,24 @@ export const db = new Database();
 // 1. PRODUCT & INVENTORY SERVICE
 export class ProductService {
   public static getProducts(): Product[] {
-    return db.products;
+    return db.products.map(p => {
+      let condition = p.condition;
+      if (!condition || condition === 'BRAND_NEW_SEALED') {
+        condition = (p.category === 'mobiles' || p.category === 'smartwatches' || p.category === 'gaming') ? 'SEALED' : 'BRAND_NEW';
+      }
+      const conditionTextEn = condition === 'SEALED' ? 'Factory Sealed' : condition === 'BRAND_NEW' ? 'Brand New' : condition === 'OPEN_BOX' ? 'Open Box' : 'Certified Refurbished';
+      const conditionTextAm = condition === 'SEALED' ? 'በፋብሪካው የታሸገ' : condition === 'BRAND_NEW' ? 'አዲስ' : condition === 'OPEN_BOX' ? 'ክፍት ሳጥን' : 'የታደሰ';
+      const warrantyMonths = p.warrantyMonths || (p.category === 'mobiles' || p.category === 'cameras' || p.category === 'smartwatches' ? 24 : 12);
+      return {
+        ...p,
+        condition,
+        conditionTextEn,
+        conditionTextAm,
+        warrantyMonths,
+        warrantyTextEn: p.warrantyTextEn || `${warrantyMonths} Months Official Warranty`,
+        warrantyTextAm: p.warrantyTextAm || `የ${warrantyMonths} ወራት ኦፊሴላዊ ዋስትና`
+      };
+    });
   }
 
   public static createProduct(newProd: Product): Product {

@@ -16,6 +16,12 @@ export interface Product {
   featured?: boolean;
   createdAt?: string;
   reviews?: Review[];
+  condition?: 'SEALED' | 'BRAND_NEW' | 'OPEN_BOX' | 'CERTIFIED_REFURBISHED' | 'BRAND_NEW_SEALED';
+  conditionTextEn?: string;
+  conditionTextAm?: string;
+  warrantyMonths?: number;
+  warrantyTextEn?: string;
+  warrantyTextAm?: string;
 }
 
 export interface Review {
@@ -53,9 +59,11 @@ export interface Order {
   shippingFee: number;
   total: number;
   status: 'PENDING_PAYMENT' | 'PAID' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
-  paymentMethod: 'TELEBIRR' | 'CHAPA' | 'METAMASK' | 'COD';
+  paymentMethod: 'TELEBIRR' | 'CHAPA' | 'METAMASK' | 'COD' | 'CBE_BIRR';
   paymentId?: string;
   shippingAddress: string;
+  subCity?: string;
+  landmark?: string;
   createdAt: string;
   channel: 'WEB' | 'TELEGRAM_MINI_APP' | 'MOBILE';
   discountCode?: string;

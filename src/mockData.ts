@@ -29,7 +29,13 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'SEN-MT4-BLK', name: 'Black Copper', priceOffset: 0, onHand: 4, reserved: 0 },
       { sku: 'SEN-MT4-SLV', name: 'Metallic Silver', priceOffset: 0, onHand: 3, reserved: 0 }
     ],
-    featured: true
+    featured: true,
+    condition: 'SEALED',
+    conditionTextEn: 'Factory Sealed',
+    conditionTextAm: 'በፋብሪካው የታሸገ',
+    warrantyMonths: 12,
+    warrantyTextEn: '12 Months Official Warranty',
+    warrantyTextAm: 'የ12 ወራት ኦፊሴላዊ ዋስትና'
   },
   {
     id: 'p1',
@@ -49,7 +55,13 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'SS-ANP-BLK', name: 'Charcoal Black', priceOffset: 0, onHand: 18, reserved: 0 },
       { sku: 'SS-ANP-WHT', name: 'White Edition', priceOffset: 1200, onHand: 12, reserved: 1 }
     ],
-    featured: true
+    featured: true,
+    condition: 'SEALED',
+    conditionTextEn: 'Factory Sealed',
+    conditionTextAm: 'በፋብሪካው የታሸገ',
+    warrantyMonths: 12,
+    warrantyTextEn: '12 Months Official Warranty',
+    warrantyTextAm: 'የ12 ወራት ኦፊሴላዊ ዋስትና'
   },
   {
     id: 'p2',
@@ -69,7 +81,13 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'SNY-XM5-BLK', name: 'Matte Black', priceOffset: 0, onHand: 8, reserved: 0 },
       { sku: 'SNY-XM5-SLV', name: 'Platinum Silver', priceOffset: 500, onHand: 4, reserved: 0 }
     ],
-    featured: true
+    featured: true,
+    condition: 'BRAND_NEW',
+    conditionTextEn: 'Brand New',
+    conditionTextAm: 'አዲስ (ያልተከፈተ)',
+    warrantyMonths: 12,
+    warrantyTextEn: '12 Months Official Warranty',
+    warrantyTextAm: 'የ12 ወራት ኦፊሴላዊ ዋስትና'
   },
   {
     id: 'p3',
@@ -88,7 +106,13 @@ export const INITIAL_PRODUCTS: Product[] = [
     variants: [
       { sku: 'AWU2-49', name: '49mm Titanium Case', priceOffset: 0, onHand: 15, reserved: 2 }
     ],
-    featured: true
+    featured: true,
+    condition: 'SEALED',
+    conditionTextEn: 'Factory Sealed',
+    conditionTextAm: 'በፋብሪካው የታሸገ',
+    warrantyMonths: 24,
+    warrantyTextEn: '24 Months Official Warranty',
+    warrantyTextAm: 'የ24 ወራት ኦፊሴላዊ ዋስትና'
   },
   {
     id: 'p4',
@@ -108,7 +132,13 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'MS-STN3-BLK', name: 'Black Gold Classic', priceOffset: 0, onHand: 10, reserved: 1 },
       { sku: 'MS-STN3-BRW', name: 'Vintage Brown', priceOffset: 1200, onHand: 6, reserved: 0 }
     ],
-    featured: true
+    featured: true,
+    condition: 'BRAND_NEW',
+    conditionTextEn: 'Brand New',
+    conditionTextAm: 'አዲስ',
+    warrantyMonths: 12,
+    warrantyTextEn: '12 Months Official Warranty',
+    warrantyTextAm: 'የ12 ወራት ኦፊሴላዊ ዋስትና'
   },
   {
     id: 'p5',
@@ -127,7 +157,13 @@ export const INITIAL_PRODUCTS: Product[] = [
     variants: [
       { sku: 'HK-PTZ-4K', name: '4K Outdoor PTZ Camera', priceOffset: 0, onHand: 14, reserved: 0 }
     ],
-    featured: true
+    featured: true,
+    condition: 'BRAND_NEW',
+    conditionTextEn: 'Brand New',
+    conditionTextAm: 'አዲስ',
+    warrantyMonths: 24,
+    warrantyTextEn: '24 Months Official Warranty',
+    warrantyTextAm: 'የ24 ወራት ኦፊሴላዊ ዋስትና'
   },
   {
     id: 'p6',
@@ -147,7 +183,13 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'BSE-QCU-BLK', name: 'Triple Black', priceOffset: 0, onHand: 5, reserved: 1 },
       { sku: 'BSE-QCU-WHT', name: 'White Smoke', priceOffset: 1500, onHand: 2, reserved: 0 }
     ],
-    featured: true
+    featured: true,
+    condition: 'OPEN_BOX',
+    conditionTextEn: 'Open Box',
+    conditionTextAm: 'ክፍት ሳጥን',
+    warrantyMonths: 12,
+    warrantyTextEn: '12 Months Official Warranty',
+    warrantyTextAm: 'የ12 ወራት ኦፊሴላዊ ዋስትና'
   },
   {
     id: 'p7',
@@ -167,7 +209,13 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'S24U-TIT-BLK', name: 'Titanium Black 512GB', priceOffset: 0, onHand: 5, reserved: 1 },
       { sku: 'S24U-TIT-GRY', name: 'Titanium Gray 512GB', priceOffset: 3000, onHand: 2, reserved: 0 }
     ],
-    featured: true
+    featured: true,
+    condition: 'SEALED',
+    conditionTextEn: 'Factory Sealed',
+    conditionTextAm: 'በፋብሪካው የታሸገ',
+    warrantyMonths: 24,
+    warrantyTextEn: '24 Months Official Warranty',
+    warrantyTextAm: 'የ24 ወራት ኦፊሴላዊ ዋስትና'
   },
   {
     id: 'p9',
@@ -186,7 +234,13 @@ export const INITIAL_PRODUCTS: Product[] = [
     variants: [
       { sku: 'ANK-PM-BLK', name: 'Anker Prime Matte Black', priceOffset: 0, onHand: 3, reserved: 0 }
     ],
-    featured: true
+    featured: true,
+    condition: 'BRAND_NEW',
+    conditionTextEn: 'Brand New',
+    conditionTextAm: 'አዲስ',
+    warrantyMonths: 18,
+    warrantyTextEn: '18 Months Official Warranty',
+    warrantyTextAm: 'የ18 ወራት ኦፊሴላዊ ዋስትና'
   }
 ];
 
