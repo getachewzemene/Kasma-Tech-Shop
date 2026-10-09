@@ -13,6 +13,7 @@ export interface Product {
   lowStockThreshold: number;
   merchantId: string;
   merchantName: string;
+  merchantTelegram?: string;
   featured?: boolean;
   createdAt?: string;
   reviews?: Review[];

@@ -303,6 +303,8 @@ export const INITIAL_MERCHANTS: Merchant[] = [
     email: 'tsion.amare@abyssinia-tech.com',
     phone: '+251944889900',
     password: 'tsion_pass123',
+    telegramUsername: '@abyssinia_tech',
+    telegramChatId: '89109999',
     status: 'PENDING_APPROVAL',
     kycStatus: 'PENDING_VERIFICATION',
     kycDocument: 'Tech_License_Abyssinia.pdf',

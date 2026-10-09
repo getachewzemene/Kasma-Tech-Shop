@@ -17,7 +17,8 @@ import {
   Clock,
   Box,
   Building2,
-  Heart
+  Heart,
+  Send
 } from 'lucide-react';
 
 export const ProductDetailPage: React.FC = () => {
@@ -25,6 +26,7 @@ export const ProductDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { 
     products, 
+    merchants,
     language, 
     addToCart, 
     favorites, 
@@ -73,6 +75,77 @@ export const ProductDetailPage: React.FC = () => {
   const isFavorite = favorites.includes(product.id);
   const onHand = activeVariant ? activeVariant.onHand : 0;
   const isOutOfStock = onHand <= 0;
+
+  // Resolve Merchant & Clean Telegram Handle
+  const merchant = useMemo(() => {
+    if (!product) return null;
+    return merchants.find(m => m.id === product.merchantId || m.storeName === product.merchantName) || null;
+  }, [merchants, product]);
+
+  const rawHandle = product.merchantTelegram || merchant?.telegramUsername || 'girma_tech';
+  const cleanTelegramHandle = rawHandle.replace(/^@/, '').trim();
+
+  // Pre-formatted conversational inquiry for 1-click Telegram chat
+  const getTelegramMessage = (inquiryType?: 'general' | 'stock' | 'color' | 'delivery' | 'warranty') => {
+    if (!product) return '';
+    const variantName = activeVariant ? `(${activeVariant.name})` : '';
+    const prodTitle = language === 'en' ? product.nameEn : (product.nameAm || product.nameEn);
+    const storeName = merchant?.storeName || product.merchantName || 'Kasma Seller';
+    const prodUrl = window.location.href;
+
+    if (language === 'en') {
+      let specificQuestion = `Is this item currently in stock and available for delivery in Addis Ababa?`;
+      if (inquiryType === 'stock') {
+        specificQuestion = `Can you confirm if you have ${selectedQuantity} unit(s) readily available in stock right now?`;
+      } else if (inquiryType === 'color') {
+        specificQuestion = `What color variants and specifications do you currently have in stock for this model?`;
+      } else if (inquiryType === 'delivery') {
+        specificQuestion = `Can you deliver this to my sub-city in Addis Ababa today, and do you support Cash on Delivery?`;
+      } else if (inquiryType === 'warranty') {
+        specificQuestion = `Does this come with official warranty and official VAT tax receipt?`;
+      }
+
+      return `Hello ${storeName}! 👋\n\n` +
+             `I am viewing "${prodTitle}" ${variantName} (${unitPrice.toLocaleString()} ETB) on Kasma Tech Shop.\n\n` +
+             `❓ Question: ${specificQuestion}\n\n` +
+             `🔗 Product: ${prodUrl}`;
+    } else {
+      let specificQuestion = `እቃው አሁን በክምችት አለ ወይ? ዛሬ አዲስ አበባ ውስጥ ማድረስ ይቻላል?`;
+      if (inquiryType === 'stock') {
+        specificQuestion = `አሁን ${selectedQuantity} ፍሬ በክምችት ዝግጁ አለ ወይ?`;
+      } else if (inquiryType === 'color') {
+        specificQuestion = `ለዚህ እቃ አሁን ምን ምን አይነት ከለር እና አማራጮች አሉዎት?`;
+      } else if (inquiryType === 'delivery') {
+        specificQuestion = `ዛሬ አዲስ አበባ ውስጥ ማድረስ ይቻላል? እቃው ሲደርስ መክፈል እችላለሁ?`;
+      } else if (inquiryType === 'warranty') {
+        specificQuestion = `ኦፊሴላዊ የዋስትና ደብተር እና የግብር ደረሰኝ አለው?`;
+      }
+
+      return `ሰላም ${storeName}! 👋\n\n` +
+             `በካስማ ቴክ ሾፕ ላይ "${prodTitle}" ${variantName} (${unitPrice.toLocaleString()} ብር) እያየሁ ነበር።\n\n` +
+             `❓ ጥያቄ፡ ${specificQuestion}\n\n` +
+             `🔗 የእቃው ሊንክ፡ ${prodUrl}`;
+    }
+  };
+
+  const handleChatOnTelegram = (inquiryType?: 'general' | 'stock' | 'color' | 'delivery' | 'warranty') => {
+    const textToSend = getTelegramMessage(inquiryType);
+    const deepLinkUrl = `https://t.me/${cleanTelegramHandle}?text=${encodeURIComponent(textToSend)}`;
+
+    // If running in Telegram Mini App
+    if ((window as any).Telegram?.WebApp?.openTelegramLink) {
+      (window as any).Telegram.WebApp.openTelegramLink(deepLinkUrl);
+    } else {
+      window.open(deepLinkUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    showToast(
+      language === 'en'
+        ? `Connecting to seller @${cleanTelegramHandle} on Telegram...`
+        : `ከ @${cleanTelegramHandle} ጋር በቴሌግራም በመገናኘት ላይ...`,
+      'info'
+    );
+  };
 
   const handleAddToCart = () => {
     if (isOutOfStock) return;
@@ -319,6 +392,76 @@ export const ProductDetailPage: React.FC = () => {
                 <span>{language === 'en' ? 'Instant Buy' : 'ወዲያውኑ ግዛ'}</span>
               </button>
             </div>
+
+            {/* 1-Click "Chat with Seller on Telegram" Button */}
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() => handleChatOnTelegram('general')}
+                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-[#229ED9] via-[#0088cc] to-[#0077b3] hover:from-[#1ea0dc] hover:to-[#006da3] text-white text-xs font-bold shadow-md shadow-sky-500/20 hover:shadow-sky-500/30 transition-all flex items-center justify-between group cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+                    <Send className="w-4 h-4 fill-current text-white -rotate-12 translate-x-px" />
+                  </div>
+                  <div className="text-left">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-extrabold tracking-wide text-white">
+                        {language === 'en' ? 'Chat with Seller on Telegram' : 'ከነጋዴው ጋር በቴሌግራም ተወያዩ'}
+                      </span>
+                      <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-mono font-medium text-white">
+                        @{cleanTelegramHandle}
+                      </span>
+                    </div>
+                    <p className="text-[10.5px] text-white/85 font-normal mt-0.5">
+                      {language === 'en' 
+                        ? 'Confirm stock, colors & Addis courier ETA in 1-click' 
+                        : 'ክምችት፣ ከለር እና የማድረሻ ሰዓት በቴሌግራም ወዲያውኑ ያረጋግጡ'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="hidden sm:flex items-center gap-1.5 text-[10.5px] font-bold text-white/95 bg-white/20 px-2.5 py-1 rounded-xl shrink-0">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>{language === 'en' ? '~5m reply' : 'ፈጣን ምላሽ'}</span>
+                </div>
+              </button>
+
+              {/* Quick Conversational Inquiry Pills */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-zinc-500">
+                  {language === 'en' ? 'Quick Ask:' : 'ፈጣን ጥያቄ፡'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleChatOnTelegram('stock')}
+                  className="px-2 py-1 rounded-lg border border-dashed border-[#229ED9]/40 hover:border-[#229ED9] bg-[#229ED9]/5 hover:bg-[#229ED9]/15 text-[10px] font-semibold text-[#0088cc] dark:text-[#38a5e0] transition-colors cursor-pointer"
+                >
+                  {language === 'en' ? '📦 Check Stock' : '📦 ክምችት አለ?'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChatOnTelegram('color')}
+                  className="px-2 py-1 rounded-lg border border-dashed border-[#229ED9]/40 hover:border-[#229ED9] bg-[#229ED9]/5 hover:bg-[#229ED9]/15 text-[10px] font-semibold text-[#0088cc] dark:text-[#38a5e0] transition-colors cursor-pointer"
+                >
+                  {language === 'en' ? '🎨 Color Variants' : '🎨 ምን ከለር አለ?'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChatOnTelegram('delivery')}
+                  className="px-2 py-1 rounded-lg border border-dashed border-[#229ED9]/40 hover:border-[#229ED9] bg-[#229ED9]/5 hover:bg-[#229ED9]/15 text-[10px] font-semibold text-[#0088cc] dark:text-[#38a5e0] transition-colors cursor-pointer"
+                >
+                  {language === 'en' ? '🛵 Today Delivery' : '🛵 ዛሬ ይደርሳል?'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleChatOnTelegram('warranty')}
+                  className="px-2 py-1 rounded-lg border border-dashed border-[#229ED9]/40 hover:border-[#229ED9] bg-[#229ED9]/5 hover:bg-[#229ED9]/15 text-[10px] font-semibold text-[#0088cc] dark:text-[#38a5e0] transition-colors cursor-pointer"
+                >
+                  {language === 'en' ? '🛡️ Warranty & Tax' : '🛡️ ዋስትና/ደረሰኝ'}
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Social Share Buttons */}
@@ -350,26 +493,43 @@ export const ProductDetailPage: React.FC = () => {
           </div>
 
           {/* Merchant Store Info Card */}
-          <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 flex items-center justify-between">
+          <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center font-black">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center font-black shrink-0">
                 <Building2 className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-900 dark:text-zinc-100">
-                  {product.merchantName || 'Kasma Verified Merchant'}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-bold text-gray-900 dark:text-zinc-100">
+                    {merchant?.storeName || product.merchantName || 'Kasma Verified Merchant'}
+                  </p>
+                  <span className="text-[10px] font-mono text-[#229ED9] bg-[#229ED9]/10 px-1.5 py-0.5 rounded">
+                    @{cleanTelegramHandle}
+                  </span>
+                </div>
                 <p className="text-[11px] text-gray-500 dark:text-zinc-400">
-                  Verified Ethiopian Seller • Kasma Escrow Protected
+                  {merchant?.ownerName ? `${merchant.ownerName} • ` : ''}Verified Ethiopian Seller • Kasma Escrow Protected
                 </p>
               </div>
             </div>
-            <Link
-              to="/merchant"
-              className="text-xs font-bold text-[#0052FF] hover:underline"
-            >
-              {language === 'en' ? 'View Store' : 'መደብሩን እይ'}
-            </Link>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleChatOnTelegram('general')}
+                className="px-3 py-1.5 rounded-xl bg-[#229ED9]/10 hover:bg-[#229ED9]/20 text-[#229ED9] text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                title="Direct Telegram Chat"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>{language === 'en' ? 'Direct Chat' : 'ቴሌግራም'}</span>
+              </button>
+              <Link
+                to="/merchant"
+                className="px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-200 text-xs font-bold transition-colors"
+              >
+                {language === 'en' ? 'Store' : 'መደብር'}
+              </Link>
+            </div>
           </div>
         </div>
       </div>
