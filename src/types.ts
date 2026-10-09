@@ -64,6 +64,8 @@ export interface Order {
   shippingAddress: string;
   subCity?: string;
   landmark?: string;
+  coordinates?: { lat: number; lng: number };
+  gateNotes?: string;
   createdAt: string;
   channel: 'WEB' | 'TELEGRAM_MINI_APP' | 'MOBILE';
   discountCode?: string;

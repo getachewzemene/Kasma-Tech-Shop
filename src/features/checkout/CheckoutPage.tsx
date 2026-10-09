@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { SUB_CITIES } from '../../constants/locations';
 import { Order } from '../../types';
+import { AddisLocationPicker } from '../../components/checkout/AddisLocationPicker';
 import { 
   ShieldCheck, 
   Truck, 
@@ -12,11 +13,12 @@ import {
   CheckCircle, 
   AlertCircle, 
   Lock, 
-  ArrowLeft,
-  CreditCard,
-  Building,
-  Sparkles,
-  Smartphone
+  ArrowLeft, 
+  CreditCard, 
+  Building, 
+  Sparkles, 
+  Smartphone,
+  Navigation
 } from 'lucide-react';
 
 export const CheckoutPage: React.FC = () => {
@@ -29,8 +31,8 @@ export const CheckoutPage: React.FC = () => {
     language, 
     customerName, 
     customerPhone, 
-    customerEmail,
-    addOrder,
+    customerEmail, 
+    addOrder, 
     showToast 
   } = useShop();
 
@@ -39,6 +41,8 @@ export const CheckoutPage: React.FC = () => {
   const [email, setEmail] = useState(customerEmail || '');
   const [selectedSubCityId, setSelectedSubCityId] = useState('bole');
   const [landmark, setLandmark] = useState('');
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>({ lat: 8.9953, lng: 38.7885 });
+  const [gateNotes, setGateNotes] = useState('');
   const [specificAddress, setSpecificAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'TELEBIRR' | 'CBE_BIRR' | 'CHAPA' | 'COD'>('TELEBIRR');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,6 +148,14 @@ export const CheckoutPage: React.FC = () => {
         console.warn('Payment init warning:', err);
       }
 
+      const formattedAddress = [
+        `${selectedSubCity.nameEn} (${selectedSubCity.nameAm})`,
+        cleanLandmark,
+        gateNotes.trim() ? `Gate: ${gateNotes.trim()}` : '',
+        specificAddress.trim() ? `Building: ${specificAddress.trim()}` : '',
+        coordinates ? `GPS: (${coordinates.lat.toFixed(5)}, ${coordinates.lng.toFixed(5)})` : ''
+      ].filter(Boolean).join(', ');
+
       const newOrder: Order = {
         id: orderId,
         customerId: `cust-${Date.now()}`,
@@ -156,9 +168,11 @@ export const CheckoutPage: React.FC = () => {
         status: paymentMethod === 'COD' ? 'PROCESSING' : 'PENDING_PAYMENT',
         paymentMethod,
         paymentId: txRef,
-        shippingAddress: `${selectedSubCity.nameEn}, ${cleanLandmark}${specificAddress ? ', ' + specificAddress : ''}`,
+        shippingAddress: formattedAddress,
         subCity: selectedSubCity.nameEn,
         landmark: cleanLandmark,
+        coordinates: coordinates || undefined,
+        gateNotes: gateNotes.trim() || undefined,
         createdAt: new Date().toISOString(),
         channel: 'WEB',
         discountCode: appliedPromo?.code,
@@ -256,13 +270,18 @@ export const CheckoutPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Section 2: Localized Addis Ababa Delivery */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 space-y-4 shadow-sm">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#0052FF]" />
-              <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
-                {language === 'en' ? '2. Delivery Routing & Sub-City' : '2. የማድረሻ አድራሻ እና ክፍለ ከተማ'}
-              </h2>
+          {/* Section 2: Localized Addis Ababa Delivery with Visual Landmark Drop-Pin */}
+          <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 space-y-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-[#0052FF]" />
+                <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                  {language === 'en' ? '2. Delivery Routing & Drop-Pin' : '2. የማድረሻ አድራሻ እና ካርታ'}
+                </h2>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] border border-blue-200 dark:border-blue-900/60">
+                {selectedSubCity.nameEn} • {shippingFee} ETB ({language === 'en' ? selectedSubCity.timeEn : selectedSubCity.timeAm})
+              </span>
             </div>
 
             <div className="space-y-4">
@@ -277,15 +296,28 @@ export const CheckoutPage: React.FC = () => {
                 >
                   {SUB_CITIES.map(s => (
                     <option key={s.id} value={s.id}>
-                      {s.nameEn} — {s.fee} ETB ({s.timeEn})
+                      {s.nameEn} ({s.nameAm}) — {s.fee} ETB ({language === 'en' ? s.timeEn : s.timeAm})
                     </option>
                   ))}
                 </select>
               </div>
 
+              {/* Addis Ababa Visual Landmark & Neighborhood Drop-Pin (Leaflet / OpenStreetMap) */}
+              <AddisLocationPicker
+                selectedSubCityId={selectedSubCityId}
+                onSubCityChange={(subCityId) => setSelectedSubCityId(subCityId)}
+                landmark={landmark}
+                onLandmarkChange={(newLandmark) => setLandmark(newLandmark)}
+                coordinates={coordinates}
+                onCoordinatesChange={(newCoords) => setCoordinates(newCoords)}
+                gateNotes={gateNotes}
+                onGateNotesChange={(newNotes) => setGateNotes(newNotes)}
+                language={language}
+              />
+
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
-                  {language === 'en' ? 'Known Landmark / Area (መለያ ቦታ) *' : 'የሚታወቅ መለያ ቦታ *'}
+                  {language === 'en' ? 'Confirmed Landmark / Area Description (መለያ ቦታ) *' : 'የሚታወቅ መለያ ቦታ *'}
                 </label>
                 <input
                   type="text"
@@ -299,7 +331,7 @@ export const CheckoutPage: React.FC = () => {
 
               <div>
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
-                  {language === 'en' ? 'Specific House / Building (Optional)' : 'የቤት ወይም ህንፃ ቁጥር (አማራጭ)'}
+                  {language === 'en' ? 'Specific House / Building / Flat (Optional)' : 'የቤት ወይም ህንፃ ቁጥር (አማራጭ)'}
                 </label>
                 <input
                   type="text"

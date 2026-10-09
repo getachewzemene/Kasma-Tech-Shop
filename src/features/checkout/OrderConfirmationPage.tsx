@@ -103,6 +103,22 @@ export const OrderConfirmationPage: React.FC = () => {
             <p className="font-bold text-gray-900 dark:text-zinc-100 mt-1">
               {order?.shippingAddress || 'Bole, Addis Ababa'}
             </p>
+            {order?.coordinates && (
+              <div className="pt-1 flex items-center gap-2">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-300 border border-blue-200 dark:border-blue-900/40">
+                  📍 GPS: {order.coordinates.lat.toFixed(4)}°N, {order.coordinates.lng.toFixed(4)}°E
+                </span>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${order.coordinates.lat},${order.coordinates.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] font-bold text-[#0052FF] hover:underline flex items-center gap-0.5"
+                >
+                  <span>Google Maps</span>
+                  <ExternalLink className="w-2.5 h-2.5" />
+                </a>
+              </div>
+            )}
             <p className="text-[11px] text-gray-400">
               Recipient: {order?.customerName} (📞 {order?.customerPhone})
             </p>

@@ -399,9 +399,9 @@ export const OrderTrackingPage: React.FC = () => {
           )}
 
           {/* Destination Details */}
-          <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-gray-150 dark:border-zinc-850 flex items-center justify-between text-xs">
+          <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-gray-150 dark:border-zinc-850 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
             <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-[#0052FF]" />
+              <MapPin className="w-5 h-5 text-[#0052FF] shrink-0" />
               <div>
                 <p className="font-bold text-gray-900 dark:text-zinc-100">{activeOrder.shippingAddress}</p>
                 <p className="text-[11px] text-gray-500">
@@ -409,6 +409,24 @@ export const OrderTrackingPage: React.FC = () => {
                 </p>
               </div>
             </div>
+
+            {activeOrder.coordinates && (
+              <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                <span className="text-[10px] font-mono px-2 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-300 border border-blue-200 dark:border-blue-900/40">
+                  {activeOrder.coordinates.lat.toFixed(4)}°N, {activeOrder.coordinates.lng.toFixed(4)}°E
+                </span>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${activeOrder.coordinates.lat},${activeOrder.coordinates.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1 rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[11px] font-bold text-[#0052FF] hover:bg-blue-50 flex items-center gap-1 transition-all"
+                  title="Open exact courier destination in Google Maps"
+                >
+                  <span>Google Maps</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Items In Order Summary */}
