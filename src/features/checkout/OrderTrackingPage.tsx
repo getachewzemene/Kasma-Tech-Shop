@@ -16,8 +16,10 @@ import {
   ExternalLink,
   ChevronRight,
   RefreshCw,
-  ShoppingBag
+  ShoppingBag,
+  Download
 } from 'lucide-react';
+import { generateCustomerReceiptPDF } from '../../lib/pdfGenerator';
 
 export const OrderTrackingPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
@@ -262,9 +264,18 @@ export const OrderTrackingPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="text-left sm:text-right">
+            <div className="flex flex-col sm:items-end gap-1.5">
               <span className="text-xs text-gray-400 block">{language === 'en' ? 'Total Settlement' : 'ጠቅላላ ክፍያ'}</span>
               <span className="text-xl font-black text-[#0052FF]">{activeOrder.total.toLocaleString()} ETB</span>
+              <button
+                type="button"
+                onClick={() => generateCustomerReceiptPDF(activeOrder, { language })}
+                className="mt-1 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-750 text-gray-800 dark:text-zinc-200 font-bold text-[11px] flex items-center gap-1.5 transition-all shadow-xs cursor-pointer group"
+                title="Download Tax Receipt & Warranty PDF"
+              >
+                <Download className="w-3.5 h-3.5 text-[#0052FF] group-hover:-translate-y-0.5 transition-transform" />
+                <span>{language === 'en' ? 'Tax Receipt & Warranty (PDF)' : 'የሽያጭ ደረሰኝ (PDF)'}</span>
+              </button>
             </div>
           </div>
 
@@ -435,6 +446,17 @@ export const OrderTrackingPage: React.FC = () => {
                 <span>{language === 'en' ? 'Total Paid' : 'ጠቅላላ ክፍያ'}</span>
                 <span className="text-[#0052FF]">{activeOrder.total.toLocaleString()} ETB</span>
               </div>
+            </div>
+
+            <div className="pt-3">
+              <button
+                type="button"
+                onClick={() => generateCustomerReceiptPDF(activeOrder, { language })}
+                className="w-full py-3 px-4 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-750 text-gray-900 dark:text-zinc-100 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer group"
+              >
+                <Download className="w-4 h-4 text-[#0052FF] group-hover:-translate-y-0.5 transition-transform" />
+                <span>{language === 'en' ? 'Download Official Tax Receipt & Warranty (PDF)' : 'ህጋዊ የሽያጭ ደረሰኝ እና የዋስትና ሰነድ አውርድ (PDF)'}</span>
+              </button>
             </div>
           </div>
         </div>

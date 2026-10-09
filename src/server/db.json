@@ -19,7 +19,7 @@
           "sku": "SS-ANP-BLK",
           "name": "Charcoal Black",
           "priceOffset": 0,
-          "onHand": 18,
+          "onHand": 16,
           "reserved": 0
         },
         {
@@ -347,6 +347,36 @@
       "warrantyMonths": 12,
       "warrantyTextEn": "12 Months Official Warranty",
       "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
+    },
+    {
+      "id": "prod-audit-1791536779259",
+      "nameEn": "Audit Test Product",
+      "nameAm": "የሙከራ እቃ",
+      "descriptionEn": "Test item for RBAC",
+      "descriptionAm": "የሙከራ እቃ",
+      "price": 3200,
+      "category": "accessories",
+      "brand": "Kasma Test",
+      "image": "https://images.unsplash.com/photo-1546868871-7041f2a55e12",
+      "variants": [
+        {
+          "id": "v1",
+          "name": "Std",
+          "sku": "SKU-1791536779259",
+          "price": 3200,
+          "onHand": 15
+        }
+      ],
+      "status": "APPROVED",
+      "lowStockThreshold": 5,
+      "merchantId": "m1",
+      "merchantName": "Selam Electronics",
+      "condition": "BRAND_NEW",
+      "conditionTextEn": "Brand New",
+      "conditionTextAm": "አዲስ",
+      "warrantyMonths": 12,
+      "warrantyTextEn": "12 Months Official Warranty",
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
     }
   ],
   "merchants": [
@@ -359,8 +389,16 @@
       "status": "ACTIVE",
       "kycStatus": "APPROVED",
       "kycDocument": "Trade_License_Girma_Tech.pdf",
-      "balance": 142500,
+      "balance": 175330,
       "payouts": [
+        {
+          "id": "py-1791536779273-74",
+          "amount": 5000,
+          "bankName": "Commercial Bank of Ethiopia (CBE)",
+          "accountNumber": "1000123456789",
+          "status": "COMPLETED",
+          "createdAt": "2026-10-09T09:06:19.273Z"
+        },
         {
           "id": "py1",
           "amount": 35000,
@@ -426,6 +464,148 @@
     }
   ],
   "orders": [
+    {
+      "id": "ORD-COD-1791536779190",
+      "customerId": "cust-test-001",
+      "customerName": "Solomon Tesfaye",
+      "customerPhone": "+251912345678",
+      "customerEmail": "solomon@kasma.et",
+      "items": [
+        {
+          "product": {
+            "id": "p1",
+            "nameEn": "SteelSeries Arctis Nova Pro Wireless Headset",
+            "nameAm": "ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ",
+            "category": "gaming",
+            "price": 19500,
+            "brand": "SteelSeries",
+            "status": "APPROVED",
+            "lowStockThreshold": 5,
+            "merchantId": "m1",
+            "merchantName": "Girma Tech Store",
+            "descriptionEn": "Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.",
+            "descriptionAm": "ምርጥ ጥራት ያለው የጌሚንግ ማዳመጫ ከግርግር መከላከያ (Active Noise Cancellation)፣ ሁለት ሲስተም በአንድ ጊዜ የማገናኘት ብቃት እና ተለዋዋጭ ባትሪዎች ያሉት።",
+            "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80",
+            "variants": [
+              {
+                "sku": "SS-ANP-BLK",
+                "name": "Charcoal Black",
+                "priceOffset": 0,
+                "onHand": 16,
+                "reserved": 0
+              },
+              {
+                "sku": "SS-ANP-WHT",
+                "name": "White Edition",
+                "priceOffset": 1200,
+                "onHand": 12,
+                "reserved": 1
+              }
+            ],
+            "specifications": {},
+            "rating": 4.8,
+            "reviewsCount": 0,
+            "featured": true,
+            "condition": "SEALED",
+            "conditionTextEn": "Factory Sealed",
+            "conditionTextAm": "በፋብሪካው የታሸገ",
+            "warrantyMonths": 12,
+            "warrantyTextEn": "12 Months Official Warranty",
+            "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
+          },
+          "sku": "SS-ANP-BLK",
+          "variantName": "Charcoal Black",
+          "quantity": 1,
+          "price": 19500
+        }
+      ],
+      "subtotal": 19500,
+      "shippingFee": 150,
+      "discountAmount": 0,
+      "total": 19650,
+      "status": "PROCESSING",
+      "paymentMethod": "COD",
+      "shippingAddress": "Bole Atlas, House 402, Addis Ababa",
+      "subCity": "Bole",
+      "deliveryInstructions": "Ring bell on arrival",
+      "createdAt": "2026-10-09T09:06:19.054Z",
+      "channel": "WEB",
+      "codVerificationPin": "849201",
+      "codPhoneConfirmed": true
+    },
+    {
+      "id": "ORD-E2E-1791536779054",
+      "customerId": "cust-test-001",
+      "customerName": "Solomon Tesfaye",
+      "customerPhone": "+251912345678",
+      "customerEmail": "solomon@kasma.et",
+      "items": [
+        {
+          "product": {
+            "id": "p1",
+            "nameEn": "SteelSeries Arctis Nova Pro Wireless Headset",
+            "nameAm": "ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ",
+            "category": "gaming",
+            "price": 19500,
+            "brand": "SteelSeries",
+            "status": "APPROVED",
+            "lowStockThreshold": 5,
+            "merchantId": "m1",
+            "merchantName": "Girma Tech Store",
+            "descriptionEn": "Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.",
+            "descriptionAm": "ምርጥ ጥራት ያለው የጌሚንግ ማዳመጫ ከግርግር መከላከያ (Active Noise Cancellation)፣ ሁለት ሲስተም በአንድ ጊዜ የማገናኘት ብቃት እና ተለዋዋጭ ባትሪዎች ያሉት።",
+            "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80",
+            "variants": [
+              {
+                "sku": "SS-ANP-BLK",
+                "name": "Charcoal Black",
+                "priceOffset": 0,
+                "onHand": 16,
+                "reserved": 0
+              },
+              {
+                "sku": "SS-ANP-WHT",
+                "name": "White Edition",
+                "priceOffset": 1200,
+                "onHand": 12,
+                "reserved": 1
+              }
+            ],
+            "specifications": {},
+            "rating": 4.8,
+            "reviewsCount": 0,
+            "featured": true,
+            "condition": "SEALED",
+            "conditionTextEn": "Factory Sealed",
+            "conditionTextAm": "በፋብሪካው የታሸገ",
+            "warrantyMonths": 12,
+            "warrantyTextEn": "12 Months Official Warranty",
+            "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
+          },
+          "sku": "SS-ANP-BLK",
+          "variantName": "Charcoal Black",
+          "quantity": 1,
+          "price": 19500
+        }
+      ],
+      "subtotal": 19500,
+      "shippingFee": 150,
+      "discountAmount": 0,
+      "total": 19650,
+      "status": "DELIVERED",
+      "paymentMethod": "TELEBIRR",
+      "shippingAddress": "Bole Atlas, House 402, Addis Ababa",
+      "subCity": "Bole",
+      "deliveryInstructions": "Ring bell on arrival",
+      "createdAt": "2026-10-09T09:06:19.054Z",
+      "channel": "WEB",
+      "packedAt": "2026-10-09T09:06:19.208Z",
+      "shippedAt": "2026-10-09T09:06:19.244Z",
+      "courierName": "Ermias Berhanu",
+      "courierPhone": "+251911998877",
+      "trackingNotes": "Dispatched via Bole express motorbike courier",
+      "deliveredAt": "2026-10-09T09:06:19.251Z"
+    },
     {
       "id": "ORD-1791475361260",
       "customerId": "cust-456",
@@ -518,6 +698,28 @@
   ],
   "stockLogs": [
     {
+      "id": "sl-1791536779190-149",
+      "sku": "SS-ANP-BLK",
+      "productName": "SteelSeries Arctis Nova Pro Wireless Headset",
+      "previousQty": 17,
+      "newQty": 16,
+      "difference": -1,
+      "reason": "Order Checkout #ORD-COD-1791536779190",
+      "actor": "Transactional Engine",
+      "timestamp": "2026-10-09T09:06:19.190Z"
+    },
+    {
+      "id": "sl-1791536779055-457",
+      "sku": "SS-ANP-BLK",
+      "productName": "SteelSeries Arctis Nova Pro Wireless Headset",
+      "previousQty": 18,
+      "newQty": 17,
+      "difference": -1,
+      "reason": "Order Checkout #ORD-E2E-1791536779054",
+      "actor": "Transactional Engine",
+      "timestamp": "2026-10-09T09:06:19.056Z"
+    },
+    {
       "id": "sl1",
       "sku": "SS-ANP-BLK",
       "productName": "SteelSeries Arctis Nova Pro Wireless Headset",
@@ -552,6 +754,126 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "al-1791536779282-33",
+      "actor": "Financial Risk Desk",
+      "action": "PAYOUT_COMPLETED",
+      "details": "Authorized CBE/Awash wire payout of 5,000 ETB for \"Girma Tech Store\". Balance adjusted to 175,330 ETB.",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.282Z"
+    },
+    {
+      "id": "al-1791536779273-26",
+      "actor": "Merchant: Girma Tech Store",
+      "action": "PAYOUT_REQUESTED",
+      "details": "Queued CBE/Awash bank transfer payout of 5,000 ETB to account 1000123456789 (Commercial Bank of Ethiopia (CBE)). Awaiting escrow compliance approval.",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.273Z"
+    },
+    {
+      "id": "al-1791536779265-37",
+      "actor": "System Administrator",
+      "action": "PRODUCT_APPROVED",
+      "details": "Compliance approved product listing: \"Audit Test Product\" submitted by Selam Electronics. Listing went Live.",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.265Z"
+    },
+    {
+      "id": "al-1791536779259-8",
+      "actor": "Merchant: Selam Electronics",
+      "action": "CATALOG_PRODUCT_DRAFT_CREATED",
+      "details": "Submitted product listing draft: \"Audit Test Product\" / \"የሙከራ እቃ\" awaiting compliance approval.",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.259Z"
+    },
+    {
+      "id": "al-1791536779253-4",
+      "actor": "Ermias Berhanu",
+      "action": "ORDER_FULFILLMENT_DELIVERED",
+      "details": "Order #ORD-E2E-1791536779054 state updated to DELIVERED. Courier: Ermias Berhanu (+251911998877).",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.253Z"
+    },
+    {
+      "id": "al-1791536779246-60",
+      "actor": "Merchant Fulfillment Hub",
+      "action": "ORDER_FULFILLMENT_SHIPPED",
+      "details": "Order #ORD-E2E-1791536779054 state updated to SHIPPED. Courier: Ermias Berhanu (+251911998877).",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.246Z"
+    },
+    {
+      "id": "al-1791536779213-67",
+      "actor": "Selam Electronics Warehouse",
+      "action": "ORDER_FULFILLMENT_PROCESSING",
+      "details": "Order #ORD-E2E-1791536779054 state updated to PROCESSING. Courier: In-House Courier (N/A).",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.213Z"
+    },
+    {
+      "id": "al-1791536779202-81",
+      "actor": "Payment Broker",
+      "action": "TRANSACTION_SETTLED",
+      "details": "Processed Order #ORD-COD-1791536779190 via channel WEB. Total paid: 19,650 ETB via COD. Broker Ref: undefined",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.202Z"
+    },
+    {
+      "id": "al-1791536779199-45",
+      "actor": "Telegram Merchant Notifier",
+      "action": "AUTOMATIC_MERCHANT_TELEGRAM_DISPATCHED",
+      "details": "Dispatched automatic Telegram notification to merchant \"Girma Tech Store\" (@merchant) for 1 product(s) in Order #ORD-COD-1791536779190 totaling 19,500 ETB.",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.199Z"
+    },
+    {
+      "id": "al-1791536779195-47",
+      "actor": "Escrow Ledger",
+      "action": "ESCROW_SETTLEMENT_POSTED",
+      "details": "Credited store \"Girma Tech Store\" with 18,915 ETB (97% of 19,500 ETB). Kasma retained 585 ETB commission fees.",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.195Z"
+    },
+    {
+      "id": "al-1791536779191-37",
+      "actor": "Transactional Engine",
+      "action": "INVENTORY_STOCK_CHANGE",
+      "details": "Adjusted SKU: SS-ANP-BLK (SteelSeries Arctis Nova Pro Wireless Headset) from 17 to 16. Difference: -1. Reason: Order Checkout #ORD-COD-1791536779190",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.191Z"
+    },
+    {
+      "id": "al-1791536779185-92",
+      "actor": "Payment Broker",
+      "action": "TRANSACTION_SETTLED",
+      "details": "Processed Order #ORD-E2E-1791536779054 via channel WEB. Total paid: 19,650 ETB via TELEBIRR. Broker Ref: undefined",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.185Z"
+    },
+    {
+      "id": "al-1791536779118-58",
+      "actor": "Telegram Merchant Notifier",
+      "action": "AUTOMATIC_MERCHANT_TELEGRAM_DISPATCHED",
+      "details": "Dispatched automatic Telegram notification to merchant \"Girma Tech Store\" (@merchant) for 1 product(s) in Order #ORD-E2E-1791536779054 totaling 19,500 ETB.",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.118Z"
+    },
+    {
+      "id": "al-1791536779114-99",
+      "actor": "Escrow Ledger",
+      "action": "ESCROW_SETTLEMENT_POSTED",
+      "details": "Credited store \"Girma Tech Store\" with 18,915 ETB (97% of 19,500 ETB). Kasma retained 585 ETB commission fees.",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.114Z"
+    },
+    {
+      "id": "al-1791536779056-49",
+      "actor": "Transactional Engine",
+      "action": "INVENTORY_STOCK_CHANGE",
+      "details": "Adjusted SKU: SS-ANP-BLK (SteelSeries Arctis Nova Pro Wireless Headset) from 18 to 17. Difference: -1. Reason: Order Checkout #ORD-E2E-1791536779054",
+      "severity": "INFO",
+      "timestamp": "2026-10-09T09:06:19.056Z"
+    },
     {
       "id": "al-1791475361478-23",
       "actor": "Selam Electronics",
@@ -602,6 +924,59 @@
     }
   ],
   "alerts": [
+    {
+      "id": "ta-1791536779255-224",
+      "type": "ORDER_DELIVERED",
+      "message": "📦 FULFILLMENT UPDATE: Order #ORD-E2E-1791536779054 is now DELIVERED. Handled by: Ermias Berhanu. Courier: Ermias Berhanu (+251911998877).",
+      "timestamp": "2026-10-09T09:06:19.255Z",
+      "read": false
+    },
+    {
+      "id": "ta-1791536779247-700",
+      "type": "ORDER_SHIPPED",
+      "message": "📦 FULFILLMENT UPDATE: Order #ORD-E2E-1791536779054 is now SHIPPED. Handled by: Merchant Fulfillment Hub. Courier: Ermias Berhanu (+251911998877).",
+      "timestamp": "2026-10-09T09:06:19.247Z",
+      "read": false
+    },
+    {
+      "id": "ta-1791536779215-387",
+      "type": "ORDER_PACKED",
+      "message": "📦 FULFILLMENT UPDATE: Order #ORD-E2E-1791536779054 is now PROCESSING. Handled by: Selam Electronics Warehouse. Courier: In-House (N/A).",
+      "timestamp": "2026-10-09T09:06:19.215Z",
+      "read": false
+    },
+    {
+      "id": "ta-1791536779204-228",
+      "type": "ORDER_NEW",
+      "message": "🛍️ NEW SALE REGISTERED: Order #ORD-COD-1791536779190 completed via WEB. Total: 19,650 ETB. Payer: Solomon Tesfaye (+251912345678). Shipping Address: Bole Atlas, House 402, Addis Ababa. Dispatch SLA: Active.",
+      "timestamp": "2026-10-09T09:06:19.204Z",
+      "read": false
+    },
+    {
+      "id": "ta-1791536779197-141",
+      "type": "ORDER_NEW",
+      "message": "🛍️ NEW SALE NOTIFICATION FOR STORE: GIRMA TECH STORE\nOrder ID: #ORD-COD-1791536779190 | Channel: WEB\nCustomer: Solomon Tesfaye (📞 +251912345678)\nShipping Address: 📍 Bole Atlas, House 402, Addis Ababa\n\nYOUR STORE'S ORDERED PRODUCTS:\n• SteelSeries Arctis Nova Pro Wireless Headset (Charcoal Black) x1 @ 19,500 ETB = 19,500 ETB\n\nStore Subtotal: 19,500 ETB\nNet Settlement (97%): 💰 18,915 ETB\nPayment Method: COD\nDispatch SLA: Active (24h fulfillment required)",
+      "timestamp": "2026-10-09T09:06:19.197Z",
+      "read": false,
+      "orderId": "ORD-COD-1791536779190",
+      "chatId": "849201948"
+    },
+    {
+      "id": "ta-1791536779187-39",
+      "type": "ORDER_NEW",
+      "message": "🛍️ NEW SALE REGISTERED: Order #ORD-E2E-1791536779054 completed via WEB. Total: 19,650 ETB. Payer: Solomon Tesfaye (+251912345678). Shipping Address: Bole Atlas, House 402, Addis Ababa. Dispatch SLA: Active.",
+      "timestamp": "2026-10-09T09:06:19.187Z",
+      "read": false
+    },
+    {
+      "id": "ta-1791536779117-717",
+      "type": "ORDER_NEW",
+      "message": "🛍️ NEW SALE NOTIFICATION FOR STORE: GIRMA TECH STORE\nOrder ID: #ORD-E2E-1791536779054 | Channel: WEB\nCustomer: Solomon Tesfaye (📞 +251912345678)\nShipping Address: 📍 Bole Atlas, House 402, Addis Ababa\n\nYOUR STORE'S ORDERED PRODUCTS:\n• SteelSeries Arctis Nova Pro Wireless Headset (Charcoal Black) x1 @ 19,500 ETB = 19,500 ETB\n\nStore Subtotal: 19,500 ETB\nNet Settlement (97%): 💰 18,915 ETB\nPayment Method: TELEBIRR\nDispatch SLA: Active (24h fulfillment required)",
+      "timestamp": "2026-10-09T09:06:19.117Z",
+      "read": false,
+      "orderId": "ORD-E2E-1791536779054",
+      "chatId": "849201948"
+    },
     {
       "id": "ta-1791475361481-62",
       "type": "ORDER_DELIVERED",

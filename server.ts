@@ -23,7 +23,16 @@ import {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = parseInt(process.env.PORT || '3000', 10);
+
+  // Security Headers for Production & CDN Readiness
+  app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    next();
+  });
 
   // Middleware for body-parsing with rawBody preservation for HMAC signature checks
   app.use(express.json({
@@ -1967,8 +1976,18 @@ Your requirements:
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    // 1. Serve hashed production assets with 1-year immutable caching for CDN speed
+    app.use('/assets', express.static(path.join(distPath, 'assets'), {
+      maxAge: '1y',
+      immutable: true
+    }));
+    // 2. Serve public root assets (favicon, manifest, robots.txt) with 1-hour cache
+    app.use(express.static(distPath, {
+      maxAge: '1h'
+    }));
+    // 3. SPA fallback: index.html served with no-cache so newly deployed releases load immediately
+    app.get('*', (_req, res) => {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

@@ -493,9 +493,7 @@ export default function CustomerWeb({
   const [customerPhone, setCustomerPhone] = useState('+2519');
   const [customerLandmark, setCustomerLandmark] = useState('');
   const [shippingAddress, setShippingAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'TELEBIRR' | 'CBE_BIRR' | 'CHAPA' | 'METAMASK' | 'COD'>('TELEBIRR');
-  const [web3WalletAddress, setWeb3WalletAddress] = useState<string | null>(null);
-  const [isConnectingWeb3, setIsConnectingWeb3] = useState<boolean>(false);
+  const [paymentMethod, setPaymentMethod] = useState<'TELEBIRR' | 'CBE_BIRR' | 'CHAPA' | 'COD'>('TELEBIRR');
   const [selectedSubCity, setSelectedSubCity] = useState<string>('bole');
   const [activePaymentSession, setActivePaymentSession] = useState<{
     txRef: string;
@@ -514,54 +512,6 @@ export default function CustomerWeb({
   } | null>(null);
   const [isInitializingPayment, setIsInitializingPayment] = useState<boolean>(false);
   const [paymentApiError, setPaymentApiError] = useState<string | null>(null);
-
-  // MetaMask Web3 Wallet Connect with Graceful Error Handling & Sandbox Fallback
-  const connectMetaMaskWallet = async () => {
-    setIsConnectingWeb3(true);
-    try {
-      if (typeof window !== 'undefined' && (window as any).ethereum) {
-        try {
-          const ethPromise = (window as any).ethereum
-            .request({ method: 'eth_requestAccounts' })
-            .catch((err: any) => {
-              console.warn('MetaMask request caught error:', err?.message || err);
-              return null;
-            });
-          const timeoutPromise = new Promise<null>((resolve) =>
-            setTimeout(() => resolve(null), 2000)
-          );
-          
-          const accounts = await Promise.race([ethPromise, timeoutPromise]);
-          if (accounts && Array.isArray(accounts) && accounts.length > 0) {
-            setWeb3WalletAddress(accounts[0]);
-            showToast(
-              language === 'en' 
-                ? `Connected MetaMask: ${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}` 
-                : 'MetaMask ቦርሳ ተገናኝቷል', 
-              'success'
-            );
-            return;
-          }
-        } catch (err: any) {
-          console.warn('MetaMask connection notice, activating Web3 sandbox fallback:', err?.message || err);
-        }
-      }
-      
-      // Fallback to Kasma Web3 Escrow Sandbox Wallet
-      setWeb3WalletAddress('0x71C7656EC7ab88b098defB751B7401B5f6d8976F');
-      showToast(
-        language === 'en' 
-          ? 'Connected via Kasma Web3 Escrow Sandbox.' 
-          : 'በካስማ Web3 ኤስክሮው ተገናኝቷል።', 
-        'info'
-      );
-    } catch (globalErr: any) {
-      console.warn('Web3 connection global fallback:', globalErr?.message || globalErr);
-      setWeb3WalletAddress('0x71C7656EC7ab88b098defB751B7401B5f6d8976F');
-    } finally {
-      setIsConnectingWeb3(false);
-    }
-  };
 
   // Payment Gateway QR Code State
   const [gatewayPaymentTab, setGatewayPaymentTab] = useState<'QR' | 'DIRECT'>('QR');
@@ -1732,13 +1682,6 @@ export default function CustomerWeb({
       return;
     }
 
-    if (paymentMethod === 'METAMASK') {
-      setQrReferenceTx(`KS-META-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
-      setGatewayPaymentTab('QR');
-      setPaymentStep('GATEWAY');
-      return;
-    }
-
     // Initialize Transaction via Real Integrated Payment Gateway API
     setIsInitializingPayment(true);
     setPaymentApiError(null);
@@ -1994,8 +1937,6 @@ export default function CustomerWeb({
         ? `cbe_tx_${Math.random().toString(36).substring(7)}`
         : paymentMethod === 'CHAPA'
         ? `ch_tx_${Math.random().toString(36).substring(7)}`
-        : paymentMethod === 'METAMASK'
-        ? `meta_tx_0x${Math.random().toString(16).substring(2, 10)}`
         : `cod_pin_${activePaymentSession?.verificationPin || Math.floor(1000 + Math.random() * 9000)}`
     );
 
@@ -6022,26 +5963,6 @@ export default function CustomerWeb({
                       <span className="font-extrabold text-[11px] text-gray-900 dark:text-white truncate">Cash / CoD</span>
                       <span className="text-[8.5px] text-gray-400 dark:text-zinc-400 font-medium">Courier PIN</span>
                     </button>
-
-                    {/* MetaMask Web3 */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPaymentMethod('METAMASK');
-                        connectMetaMaskWallet();
-                      }}
-                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
-                        paymentMethod === 'METAMASK' 
-                          ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/30 ring-2 ring-amber-500/30 shadow-xs' 
-                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
-                      }`}
-                    >
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 via-orange-500 to-amber-700 text-white text-base flex items-center justify-center shadow-xs border border-white/30">
-                        🦊
-                      </div>
-                      <span className="font-extrabold text-[11px] text-amber-950 dark:text-amber-300 truncate">MetaMask</span>
-                      <span className="text-[8.5px] text-amber-700 dark:text-amber-400 font-semibold truncate">Web3 Escrow</span>
-                    </button>
                   </div>
 
                   <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 space-y-1.5 text-xs">
@@ -6092,66 +6013,7 @@ export default function CustomerWeb({
 
               {paymentStep === 'GATEWAY' && (
                 <div className="py-2 space-y-5 text-left">
-                  {paymentMethod === 'METAMASK' ? (
-                    <div className="space-y-4">
-                      {/* MetaMask Web3 Escrow Header Banner */}
-                      <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 p-4 rounded-2xl text-white shadow-md space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xl">🦊</span>
-                            <h4 className="font-extrabold text-sm uppercase tracking-wider">
-                              {language === 'en' ? 'MetaMask Web3 Smart Contract Escrow' : 'MetaMask Web3 ኤስክሮው'}
-                            </h4>
-                          </div>
-                          <span className="bg-white/20 text-white text-[9px] font-mono px-2 py-0.5 rounded-full font-bold">
-                            EVM COMPATIBLE
-                          </span>
-                        </div>
-                        <p className="text-xs text-amber-100/90">
-                          {language === 'en' 
-                            ? 'Lock funds securely in Kasma decentralized escrow smart contract. Released only upon confirmed delivery.'
-                            : 'ገንዘብዎ በካስማ ስማርት ኮንትራክት በደህንነት ይጠበቃል።'}
-                        </p>
-                      </div>
-
-                      {/* Wallet details */}
-                      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 space-y-3 text-xs">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500 font-bold">{language === 'en' ? 'Connected Wallet:' : 'የተገናኘው ቦርሳ፡'}</span>
-                          {web3WalletAddress ? (
-                            <span className="font-mono text-emerald-700 font-extrabold bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg text-[11px]">
-                              {web3WalletAddress.substring(0, 8)}...{web3WalletAddress.substring(web3WalletAddress.length - 6)} ✔
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={connectMetaMaskWallet}
-                              disabled={isConnectingWeb3}
-                              className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold text-[11px] cursor-pointer transition-all shadow-xs"
-                            >
-                              {isConnectingWeb3 ? 'Connecting...' : 'Connect Wallet'}
-                            </button>
-                          )}
-                        </div>
-
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500 font-bold">{language === 'en' ? 'Escrow Contract:' : 'የኤስክሮው አድራሻ፡'}</span>
-                          <span className="font-mono text-gray-700 font-semibold text-[11px]">0x89205A3A3b2...43e7</span>
-                        </div>
-
-                        <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                          <span className="text-gray-700 font-extrabold">{language === 'en' ? 'Escrow Deposit Amount:' : 'የክፍያ መጠን፡'}</span>
-                          <div className="text-right">
-                            <span className="font-mono font-black text-amber-600 text-sm block">
-                              {(cartTotal / 350000).toFixed(6)} ETH
-                            </span>
-                            <span className="text-[10px] text-gray-400 font-bold">({cartTotal.toLocaleString()} ETB)</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
+                  <div className="space-y-4">
                       {/* Mode Selector Tabs: QR Code vs Direct Push / USSD */}
                       <div className="flex bg-gray-100 dark:bg-zinc-800 p-1 rounded-2xl border border-gray-200/70 dark:border-zinc-700">
                         <button
@@ -6527,11 +6389,9 @@ export default function CustomerWeb({
                                 </div>
                               </div>
                             </div>
-                          )}
                         </div>
                       )}
                     </div>
-                  )}
 
                   {/* Shared Gateway Action Footer Buttons */}
                   <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
@@ -6984,23 +6844,37 @@ export default function CustomerWeb({
                           onStatusChange={handleUpdateTrackedOrderStatus} 
                         />
 
-                        {/* Live Delivery Radar Map Widget */}
+                        {/* Live Delivery Dispatch Status Widget */}
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
                             <h4 className="text-[10px] uppercase font-black text-gray-400 tracking-wider flex items-center gap-1.5">
-                              <Truck className="w-4 h-4 text-kasma-blue animate-pulse" />
-                              <span>{language === 'en' ? 'Live Courier Tracking Radar' : 'የቀጥታ መልዕክተኞች መከታተያ ራዳር'}</span>
+                              <Truck className="w-4 h-4 text-[#0052FF]" />
+                              <span>{language === 'en' ? 'Live Courier Dispatch Status' : 'የቀጥታ መልዕክተኞች ሁኔታ'}</span>
                             </h4>
-                            <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-widest animate-pulse flex items-center gap-1">
+                            <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-widest flex items-center gap-1">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                              <span>{language === 'en' ? 'Live Coords Connected' : 'የቀጥታ ግንኙነት ገቢር'}</span>
+                              <span>{language === 'en' ? 'Live Dispatch' : 'ገቢር'}</span>
                             </span>
                           </div>
                           
-                          <LiveCourierMap 
-                            language={language}
-                            trackedOrder={trackedOrder}
-                          />
+                          <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-gray-150 dark:border-zinc-850 flex items-center justify-between text-xs">
+                            <div>
+                              <p className="font-bold text-gray-900 dark:text-zinc-100">
+                                {trackedOrder?.courierName || (language === 'en' ? 'Express Addis Courier' : 'ፈጣን የአዲስ አበባ መልዕክተኛ')}
+                              </p>
+                              <p className="text-[11px] text-gray-400">
+                                {trackedOrder?.courierPhone ? `📞 ${trackedOrder.courierPhone}` : (language === 'en' ? 'Addis Ababa City Fleet' : 'የአዲስ አበባ መልዕክተኞች')}
+                              </p>
+                            </div>
+                            {trackedOrder && (
+                              <a
+                                href={`/tracking/${trackedOrder.id}`}
+                                className="px-3 py-1.5 rounded-xl bg-[#0052FF] text-white font-bold text-xs"
+                              >
+                                {language === 'en' ? 'Track' : 'መከታተያ'}
+                              </a>
+                            )}
+                          </div>
                         </div>
 
                         {/* Beautiful Telemetry Timeline Progress Indicator */}

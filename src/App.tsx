@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ShopProvider } from './context/ShopContext';
 import { RootLayout } from './components/layout/RootLayout';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 // Domain Feature Pages with Code-Splitting
 const CatalogPage = React.lazy(() => import('./features/catalog/CatalogPage').then(m => ({ default: m.CatalogPage })));
@@ -41,8 +42,22 @@ export default function App() {
               <Route path="tracking/:id" element={<OrderTrackingPage />} />
 
               {/* Partner & Management Portals */}
-              <Route path="merchant/*" element={<MerchantPortalPage />} />
-              <Route path="admin/*" element={<AdminDashboardPage />} />
+              <Route 
+                path="merchant/*" 
+                element={
+                  <ProtectedRoute requiredRole="merchant">
+                    <MerchantPortalPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="admin/*" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboardPage />
+                  </ProtectedRoute>
+                } 
+              />
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />

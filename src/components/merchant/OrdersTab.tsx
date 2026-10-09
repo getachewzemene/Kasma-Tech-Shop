@@ -15,9 +15,12 @@ import {
   User,
   ShieldCheck,
   ChevronRight,
-  Filter
+  Filter,
+  Printer,
+  FileText
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { generateCourierWaybillPDF, generateCustomerReceiptPDF } from '../../lib/pdfGenerator';
 
 interface OrdersTabProps {
   orders: Order[];
@@ -374,6 +377,28 @@ export default function OrdersTab({
                       </button>
                     )}
 
+                    {/* Action 4: Print Courier Waybill & Packing Slip */}
+                    <button
+                      type="button"
+                      onClick={() => generateCourierWaybillPDF(order, { merchantStoreName: currentMerchant.storeName })}
+                      className="px-3 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-[#0052FF] dark:text-blue-400 font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                      title={language === 'en' ? 'Print Courier Waybill & Packing Slip (PDF)' : 'የማጓጓዣ ማረጋገጫ እና የማስረከቢያ ወረቀት አትም'}
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>{language === 'en' ? 'Print Waybill' : 'ማጓጓዣ አትም'}</span>
+                    </button>
+
+                    {/* Action 5: Print Official Customer Tax Receipt */}
+                    <button
+                      type="button"
+                      onClick={() => generateCustomerReceiptPDF(order, { language })}
+                      className="px-2.5 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 font-bold text-xs flex items-center gap-1 transition-all cursor-pointer"
+                      title={language === 'en' ? 'Download Official Customer Tax Receipt' : 'የደንበኛ ደረሰኝ አውርድ'}
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>{language === 'en' ? 'Receipt' : 'ደረሰኝ'}</span>
+                    </button>
+
                     {/* View Tracking Link */}
                     <a
                       href={`/tracking/${order.id}`}
@@ -474,6 +499,15 @@ export default function OrdersTab({
                   className="px-4 py-2 rounded-xl border border-gray-200 dark:border-zinc-800 text-xs font-bold text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer"
                 >
                   {language === 'en' ? 'Cancel' : 'ይቅር'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => generateCourierWaybillPDF({ ...selectedOrderForShip, courierName, courierPhone }, { merchantStoreName: currentMerchant.storeName })}
+                  className="px-3.5 py-2 rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 text-[#0052FF] dark:text-blue-400 font-bold text-xs flex items-center gap-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/60 cursor-pointer"
+                  title="Print Waybill for physical parcel attachment"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>{language === 'en' ? 'Print Waybill' : 'ማጓጓዣ አትም'}</span>
                 </button>
                 <button
                   type="button"

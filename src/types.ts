@@ -59,7 +59,7 @@ export interface Order {
   shippingFee: number;
   total: number;
   status: 'PENDING_PAYMENT' | 'PAID' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
-  paymentMethod: 'TELEBIRR' | 'CHAPA' | 'METAMASK' | 'COD' | 'CBE_BIRR';
+  paymentMethod: 'TELEBIRR' | 'CHAPA' | 'COD' | 'CBE_BIRR';
   paymentId?: string;
   shippingAddress: string;
   subCity?: string;
@@ -186,7 +186,7 @@ export interface DeliveryAddress {
 
 export interface SavedPaymentMethod {
   id: string;
-  type: 'TELEBIRR' | 'CHAPA' | 'BANK_CARD' | 'CBE_BIRR' | 'METAMASK';
+  type: 'TELEBIRR' | 'CHAPA' | 'BANK_CARD' | 'CBE_BIRR';
   title: string;
   accountMasked: string;
   encryptedToken: string;

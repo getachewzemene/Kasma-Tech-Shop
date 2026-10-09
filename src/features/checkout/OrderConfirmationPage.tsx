@@ -15,6 +15,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { generateCustomerReceiptPDF } from '../../lib/pdfGenerator';
 
 export const OrderConfirmationPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -150,21 +151,32 @@ export const OrderConfirmationPage: React.FC = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-4 flex flex-col sm:flex-row gap-3">
-          <Link
-            to={`/tracking/${order ? order.id : id}`}
-            className="flex-1 py-3.5 px-4 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+        <div className="pt-4 space-y-3">
+          <button
+            type="button"
+            onClick={() => order && generateCustomerReceiptPDF(order, { language })}
+            className="w-full py-3.5 px-4 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-750 text-gray-900 dark:text-zinc-100 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer group"
           >
-            <Truck className="w-4 h-4" />
-            <span>{language === 'en' ? 'Track Live Dispatch' : 'ትዕዛዙን ተከታተል'}</span>
-          </Link>
-          <Link
-            to="/"
-            className="flex-1 py-3.5 px-4 rounded-xl bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-900 dark:text-zinc-100 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <span>{language === 'en' ? 'Continue Shopping' : 'ግዢ ቀጥል'}</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+            <Download className="w-4 h-4 text-[#0052FF] group-hover:-translate-y-0.5 transition-transform" />
+            <span>{language === 'en' ? 'Download Official Tax Receipt & Warranty (PDF)' : 'ህጋዊ የሽያጭ ደረሰኝ እና የዋስትና ሰነድ አውርድ (PDF)'}</span>
+          </button>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              to={`/tracking/${order ? order.id : id}`}
+              className="flex-1 py-3.5 px-4 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Truck className="w-4 h-4" />
+              <span>{language === 'en' ? 'Track Live Dispatch' : 'ትዕዛዙን ተከታተል'}</span>
+            </Link>
+            <Link
+              to="/"
+              className="flex-1 py-3.5 px-4 rounded-xl bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-900 dark:text-zinc-100 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>{language === 'en' ? 'Continue Shopping' : 'ግዢ ቀጥል'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </div>
     </div>

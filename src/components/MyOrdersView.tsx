@@ -30,7 +30,6 @@ import {
 } from 'lucide-react';
 import { Order, Product, CartItem } from '../types';
 import { OrderTrackingVisualizer } from './OrderTrackingVisualizer';
-import LiveCourierMap from './LiveCourierMap';
 import { OrderCourierMiniMap } from './OrderCourierMiniMap';
 import { sendTelegramOrderConfirmation } from '../utils/telegramBot';
 
@@ -784,24 +783,54 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
                               />
                             )}
 
-                            {/* Live Courier Radar Map */}
+                            {/* Live Courier Dispatch Status */}
                             {(trackingViewMode === 'SPLIT' || trackingViewMode === 'MAP') && (
                               <div className="space-y-2.5">
                                 <div className="flex justify-between items-center bg-white dark:bg-zinc-900 p-2.5 rounded-2xl border border-gray-150 dark:border-zinc-800">
                                   <h4 className="text-[10px] uppercase font-black text-gray-700 dark:text-zinc-200 tracking-wider flex items-center gap-1.5">
-                                    <Truck className="w-4 h-4 text-[#0052FF] animate-pulse" />
-                                    <span>{language === 'en' ? 'Live Courier Radar Map' : 'የቀጥታ መልዕክተኞች መከታተያ ራዳር'}</span>
+                                    <Truck className="w-4 h-4 text-[#0052FF]" />
+                                    <span>{language === 'en' ? 'Courier Dispatch Status' : 'የመልዕክተኛ ሁኔታ'}</span>
                                   </h4>
-                                  <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-widest animate-pulse flex items-center gap-1">
+                                  <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full font-extrabold uppercase tracking-widest flex items-center gap-1">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                    <span>{language === 'en' ? 'Live GPS Active' : 'የቀጥታ ግንኙነት ገቢር'}</span>
+                                    <span>{language === 'en' ? 'Active Dispatch' : 'ገቢር'}</span>
                                   </span>
                                 </div>
 
-                                <LiveCourierMap
-                                  language={language}
-                                  trackedOrder={ord}
-                                />
+                                <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-gray-150 dark:border-zinc-800 space-y-3 text-xs">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="font-bold text-gray-900 dark:text-zinc-100">
+                                        {ord.courierName || (language === 'en' ? 'Assigned Express Courier' : 'የተመደበ ፈጣን መልዕክተኛ')}
+                                      </p>
+                                      <p className="text-[11px] text-gray-500">
+                                        {ord.courierPhone ? `📞 ${ord.courierPhone}` : (language === 'en' ? 'Addis Ababa Courier Fleet' : 'የአዲስ አበባ መልዕክተኞች')}
+                                      </p>
+                                    </div>
+                                    {ord.courierPhone && (
+                                      <a
+                                        href={`tel:${ord.courierPhone.replace(/\s+/g, '')}`}
+                                        className="px-3 py-1.5 rounded-xl bg-[#0052FF] text-white font-bold text-[11px] flex items-center gap-1 shadow-xs"
+                                      >
+                                        <Phone className="w-3 h-3" />
+                                        <span>{language === 'en' ? 'Call' : 'ደውል'}</span>
+                                      </a>
+                                    )}
+                                  </div>
+
+                                  <div className="pt-2 border-t border-gray-200 dark:border-zinc-850 flex items-center justify-between text-[11px]">
+                                    <span className="text-gray-400">{language === 'en' ? 'Delivery SLA:' : 'የማድረሻ ጊዜ:'} <b>1 - 3 Hours</b></span>
+                                    <a
+                                      href={`/tracking/${ord.id}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="font-bold text-[#0052FF] hover:underline flex items-center gap-1"
+                                    >
+                                      <span>{language === 'en' ? 'Full Tracking Page' : 'ሙሉ መከታተያ'}</span>
+                                      <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                  </div>
+                                </div>
                               </div>
                             )}
 
