@@ -1,4 +1,4 @@
-import { Order, TelegramUserSettings, TelegramMessageLog } from '../types';
+import { Order, Product, TelegramUserSettings, TelegramMessageLog } from '../types';
 
 const STORAGE_KEY_SETTINGS = 'kasma_telegram_settings';
 const STORAGE_KEY_LOGS = 'kasma_telegram_logs';
@@ -12,6 +12,8 @@ export const DEFAULT_TELEGRAM_SETTINGS: TelegramUserSettings = {
   shippingUpdates: true,
   priceDropAlerts: true,
   telegramDeals: true,
+  lowStockAlerts: true,
+  lowStockThreshold: 3,
   botToken: '',
 };
 
@@ -333,7 +335,52 @@ export async function sendStoreOwnerTelegramNotification(
 
 export const sendTelegramStoreOwnerOrderAlert = sendStoreOwnerTelegramNotification;
 
-export async function sendTelegramTestAlert(type: 'ORDER' | 'SHIPPING' | 'PRICE', language: 'en' | 'am' = 'en'): Promise<void> {
+export async function sendTelegramLowStockAlert(
+  product: Product,
+  variant: { sku: string; name: string; onHand: number },
+  threshold: number = 3,
+  merchantStoreName: string = 'Kasma Merchant',
+  language: 'en' | 'am' = 'en'
+): Promise<{ success: boolean; message: string }> {
+  const isEn = language === 'en';
+  const isOutOfStock = variant.onHand <= 0;
+  const emoji = isOutOfStock ? '🚨' : '⚠️';
+  const title = isEn 
+    ? `${emoji} INVENTORY ALERT: ${variant.sku}` 
+    : `${emoji} የክምችት ማሳወቂያ: ${variant.sku}`;
+
+  const formattedText = isEn
+    ? `<b>${emoji} INVENTORY ALERT — ${merchantStoreName.toUpperCase()}</b>\n\n` +
+      `<b>Product:</b> ${product.nameEn}\n` +
+      `<b>Variant:</b> ${variant.name} (<code>${variant.sku}</code>)\n` +
+      `<b>Status:</b> ${isOutOfStock ? '<b>OUT OF STOCK</b> ❌' : `<b>CRITICAL LOW STOCK</b> (Only <b>${variant.onHand}</b> left)`}\n` +
+      `<b>Threshold:</b> ${threshold} units\n` +
+      `<b>Price:</b> ETB ${product.price.toLocaleString()}\n\n` +
+      `<i>Immediate restock recommended to prevent checkout failures on Kasma.</i>`
+    : `<b>${emoji} የክምችት ማሳወቂያ — ${merchantStoreName}</b>\n\n` +
+      `<b>እቃ:</b> ${product.nameAm}\n` +
+      `<b>አይነት:</b> ${variant.name} (<code>${variant.sku}</code>)\n` +
+      `<b>ቀሪ መጠን:</b> <b>${variant.onHand} ብቻ</b>\n` +
+      `<b>ዝቅተኛ ገደብ:</b> ${threshold}\n\n` +
+      `<i>እባክዎ እቃውን በፍጥነት ይሙሉ!</i>`;
+
+  await dispatchTelegramNotification(
+    title,
+    formattedText,
+    isOutOfStock ? 'OUT_OF_STOCK' : 'LOW_STOCK',
+    [
+      { label: isEn ? '⚡ Quick Restock' : '⚡ ክምችት ጨምር', actionUrl: '#/merchant' },
+      { label: isEn ? '📦 Product Page' : '📦 የምርት ገፅ', actionUrl: `#/product/${product.id}` }
+    ]
+  );
+
+  return {
+    success: true,
+    message: isEn ? `Low-stock Telegram alert dispatched for SKU ${variant.sku}` : `የቴሌግራም ዝቅተኛ ክምችት ማሳወቂያ ተልኳል`
+  };
+}
+
+export async function sendTelegramTestAlert(type: 'ORDER' | 'SHIPPING' | 'PRICE' | 'LOW_STOCK', language: 'en' | 'am' = 'en'): Promise<void> {
   const isEn = language === 'en';
   if (type === 'ORDER') {
     await dispatchTelegramNotification(
@@ -352,6 +399,18 @@ export async function sendTelegramTestAlert(type: 'ORDER' | 'SHIPPING' | 'PRICE'
         : '<b>🚚 የትራንስፖርት የሙከራ መልዕክት</b>\n\nእቃዎ በመንገድ ላይ ይገኛል!',
       'SHIPPING_UPDATE',
       [{ label: '📍 Courier GPS', actionUrl: '#/track' }]
+    );
+  } else if (type === 'LOW_STOCK') {
+    await dispatchTelegramNotification(
+      isEn ? '⚠️ TEST: Inventory Low-Stock Alert' : '⚠️ ሙከራ: ዝቅተኛ የክምችት ማሳወቂያ',
+      isEn
+        ? '<b>⚠️ CRITICAL LOW STOCK ALERT!</b>\n\nYour store inventory is running low for high-velocity items!\n\n<b>Product:</b> Apple MacBook Pro 16" M3 Max\n<b>SKU:</b> MBP16-M3M-SLV\n<b>Remaining Units:</b> <b>1 unit left!</b>\n<b>Threshold:</b> 3 units\n\n<i>Restock promptly via the Merchant Portal.</i>'
+        : '<b>⚠️ ዝቅተኛ የክምችት ማሳወቂያ!</b>\n\nበመደብርዎ ውስጥ ያለው እቃ ሊያልቅ ተቃርቧል!\n\n<b>እቃ:</b> አፕል ማክቡክ ፕሮ 16"\n<b>ቀሪ መጠን:</b> 1 ብቻ\n<b>ዝቅተኛ ገደብ:</b> 3',
+      'LOW_STOCK',
+      [
+        { label: isEn ? '⚡ Restock in Portal' : '⚡ ክምችት ጨምር', actionUrl: '#/merchant' },
+        { label: isEn ? '📦 View Catalog' : '📦 ካታሎግ እይ', actionUrl: '#/merchant' }
+      ]
     );
   } else {
     await dispatchTelegramNotification(

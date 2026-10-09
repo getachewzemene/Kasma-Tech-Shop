@@ -18,8 +18,15 @@ import {
   Box,
   Building2,
   Heart,
-  Send
+  Send,
+  FileBadge,
+  QrCode
 } from 'lucide-react';
+import { DigitalWarrantyPass } from '../../types';
+import { DigitalWarrantyPassModal } from '../../components/warranty/DigitalWarrantyPassModal';
+import { WarrantyClaimModal } from '../../components/warranty/WarrantyClaimModal';
+import { SerialCoverageCheckerModal } from '../../components/warranty/SerialCoverageCheckerModal';
+import { generateDeviceSerial, generateTamperProofHash } from '../../lib/warrantyService';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,8 +38,14 @@ export const ProductDetailPage: React.FC = () => {
     addToCart, 
     favorites, 
     toggleFavorite,
-    showToast 
+    showToast,
+    submitWarrantyClaim
   } = useShop();
+
+  const [isSerialCheckerOpen, setIsSerialCheckerOpen] = useState(false);
+  const [selectedWarrantyPass, setSelectedWarrantyPass] = useState<DigitalWarrantyPass | null>(null);
+  const [isPassModalOpen, setIsPassModalOpen] = useState(false);
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
   const product = useMemo(() => {
     return products.find(p => p.id === id);
@@ -43,6 +56,39 @@ export const ProductDetailPage: React.FC = () => {
   const [newReviewRating, setNewReviewRating] = useState<number>(5);
   const [newReviewComment, setNewReviewComment] = useState<string>('');
   const [newReviewAuthor, setNewReviewAuthor] = useState<string>('');
+
+  const handlePreviewProductPass = () => {
+    if (!product) return;
+    const deviceSerial = generateDeviceSerial(product.brand, product.category);
+    const months = product.warrantyMonths || 12;
+    const issueDate = new Date().toISOString();
+    const expiryDateObj = new Date();
+    expiryDateObj.setMonth(expiryDateObj.getMonth() + months);
+    const previewPass: DigitalWarrantyPass = {
+      id: `KASMA-PREVIEW-${Math.floor(10000 + Math.random() * 90000)}`,
+      orderId: 'PREVIEW-CHECKOUT',
+      productId: product.id,
+      productNameEn: product.nameEn,
+      productNameAm: product.nameAm,
+      brand: product.brand,
+      sku: activeVariant?.sku || product.variants[0]?.sku || 'SKU-01',
+      variantName: activeVariant?.name || 'Standard',
+      serialNumber: deviceSerial.serial,
+      imei: deviceSerial.imei,
+      customerName: 'Valued Shopper',
+      customerPhone: '+251 91 123 4567',
+      merchantName: merchant?.storeName || product.merchantName || 'Kasma Certified',
+      issueDate,
+      expiryDate: expiryDateObj.toISOString(),
+      warrantyMonths: months,
+      status: 'ACTIVE',
+      coverageType: 'FULL_HARDWARE_REPLACEMENT',
+      qrVerificationUrl: `https://kasma.et/verify-warranty?serial=${encodeURIComponent(deviceSerial.serial)}`,
+      tamperProofHash: generateTamperProofHash(deviceSerial.serial)
+    };
+    setSelectedWarrantyPass(previewPass);
+    setIsPassModalOpen(true);
+  };
 
   if (!product) {
     return (
@@ -217,17 +263,24 @@ export const ProductDetailPage: React.FC = () => {
 
           {/* Value Badges Under Image */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-900/60 border border-gray-150 dark:border-zinc-800/80 flex items-center gap-2.5">
-              <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-              <div>
-                <p className="text-[11px] font-bold text-gray-900 dark:text-zinc-100">
+            <button
+              type="button"
+              onClick={() => setIsSerialCheckerOpen(true)}
+              className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-900/60 hover:bg-blue-50/70 dark:hover:bg-blue-950/40 border border-gray-150 dark:border-zinc-800/80 hover:border-blue-400 dark:hover:border-blue-800 flex items-center gap-2.5 text-left transition-all cursor-pointer group"
+            >
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold text-gray-900 dark:text-zinc-100 group-hover:text-[#0052FF] transition-colors truncate">
                   {product.warrantyTextEn || 'Official Warranty'}
                 </p>
-                <p className="text-[10px] text-gray-500 dark:text-zinc-400">
-                  {language === 'en' ? 'Serial-verified genuine unit' : 'በመለያ ቁጥር የተረጋገጠ'}
+                <p className="text-[10px] text-gray-500 dark:text-zinc-400 flex items-center gap-1">
+                  <span>{language === 'en' ? 'Verify S/N' : 'መለያ ቁጥር ፈትሽ'}</span>
+                  <span className="text-[#0052FF] font-bold underline">→</span>
                 </p>
               </div>
-            </div>
+            </button>
 
             <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-900/60 border border-gray-150 dark:border-zinc-800/80 flex items-center gap-2.5">
               <Truck className="w-5 h-5 text-[#0052FF] shrink-0" />
@@ -239,6 +292,49 @@ export const ProductDetailPage: React.FC = () => {
                   {language === 'en' ? 'Bole, Kirkos, Yeka, Arada' : 'ቦሌ፣ ኪርቆስ፣ የካ፣ አራዳ'}
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* Tamper-Evident Warranty Pass Interactive Card */}
+          <div className="p-4 rounded-3xl bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-emerald-50/50 dark:from-blue-950/20 dark:via-indigo-950/20 dark:to-emerald-950/20 border border-blue-200/60 dark:border-blue-900/40 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-[#0052FF] text-white flex items-center justify-center font-black">
+                  <FileBadge className="w-4 h-4" />
+                </div>
+                <h4 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                  {language === 'en' ? 'Tamper-Evident Warranty Pass' : 'የዲጂታል ዋስትና ሰነድ እና መለያ ቁጥር'}
+                </h4>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-mono">
+                {product.warrantyMonths || 12}M OFFICIAL
+              </span>
+            </div>
+
+            <p className="text-[11px] text-gray-600 dark:text-zinc-300 leading-relaxed">
+              {language === 'en'
+                ? 'Every unit is serialized and backed by Kasma Care with a downloadable digital certificate, QR verification, and free Addis Ababa courier claim pickup.'
+                : 'እያንዳንዱ እቃ በመለያ ቁጥር ተመዝግቦ በዲጂታል የዋስትና ሰነድ፣ በQR ኮድ እና በአዲስ አበባ ነፃ የኩሪየር ጥገና ይቀርባል።'}
+            </p>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsSerialCheckerOpen(true)}
+                className="flex-1 py-2 px-3 rounded-xl bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-750 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <QrCode className="w-3.5 h-3.5 text-[#0052FF]" />
+                <span>{language === 'en' ? 'Verify S/N or IMEI' : 'መለያ ቁጥር አረጋግጥ'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handlePreviewProductPass}
+                className="py-2 px-3 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <FileBadge className="w-3.5 h-3.5" />
+                <span>{language === 'en' ? 'Sample Pass' : 'ናሙና ሰነድ'}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -533,6 +629,39 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Digital Warranty & Serial Modals */}
+      <SerialCoverageCheckerModal
+        isOpen={isSerialCheckerOpen}
+        onClose={() => setIsSerialCheckerOpen(false)}
+        product={product}
+        language={language}
+        onViewPass={(pass) => {
+          setSelectedWarrantyPass(pass);
+          setIsPassModalOpen(true);
+        }}
+      />
+
+      <DigitalWarrantyPassModal
+        warranty={selectedWarrantyPass}
+        isOpen={isPassModalOpen}
+        onClose={() => setIsPassModalOpen(false)}
+        language={language}
+        onRequestClaim={(pass) => {
+          setSelectedWarrantyPass(pass);
+          setIsClaimModalOpen(true);
+        }}
+      />
+
+      <WarrantyClaimModal
+        warranty={selectedWarrantyPass}
+        isOpen={isClaimModalOpen}
+        onClose={() => setIsClaimModalOpen(false)}
+        language={language}
+        onSubmitClaim={async (claimData) => {
+          return await submitWarrantyClaim(claimData);
+        }}
+      />
     </div>
   );
 };

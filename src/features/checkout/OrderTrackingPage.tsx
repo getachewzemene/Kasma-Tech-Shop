@@ -18,20 +18,29 @@ import {
   RefreshCw,
   ShoppingBag,
   Download,
-  Star
+  Star,
+  FileBadge,
+  Wrench
 } from 'lucide-react';
+import { DigitalWarrantyPass, WarrantyClaim } from '../../types';
 import { generateCustomerReceiptPDF } from '../../lib/pdfGenerator';
 import { PostDeliveryReviewModal } from '../../components/orders/PostDeliveryReviewModal';
+import { DigitalWarrantyPassModal } from '../../components/warranty/DigitalWarrantyPassModal';
+import { WarrantyClaimModal } from '../../components/warranty/WarrantyClaimModal';
+import { createDigitalWarrantyPass } from '../../lib/warrantyService';
 
 export const OrderTrackingPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
-  const { orders, language } = useShop();
+  const { orders, language, getOrderWarranties, submitWarrantyClaim } = useShop();
 
   const [orderIdInput, setOrderIdInput] = useState(id || '');
   const [phoneInput, setPhoneInput] = useState('');
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [selectedWarranty, setSelectedWarranty] = useState<DigitalWarrantyPass | null>(null);
+  const [isWarrantyPassModalOpen, setIsWarrantyPassModalOpen] = useState(false);
+  const [isWarrantyClaimModalOpen, setIsWarrantyClaimModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [copiedId, setCopiedId] = useState(false);
@@ -515,20 +524,107 @@ export const OrderTrackingPage: React.FC = () => {
               <span>{language === 'en' ? 'Items in Package' : 'የተካተቱ እቃዎች'}</span>
             </h3>
             <div className="space-y-2">
-              {activeOrder.items.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-zinc-950 border border-gray-100 dark:border-zinc-850 text-xs">
-                  <div>
-                    <p className="font-bold text-gray-900 dark:text-zinc-100">{item.product.nameEn}</p>
-                    <p className="text-[11px] text-gray-400">
-                      {item.variantName || 'Standard'} • Qty: {item.quantity}
-                    </p>
+              {activeOrder.items.map((item, idx) => {
+                const itemWarranties = getOrderWarranties ? getOrderWarranties(activeOrder) : (activeOrder.warranties || []);
+                const itemWarranty = itemWarranties.find(w => w.productId === item.product.id && w.sku === item.sku) 
+                  || itemWarranties[idx] 
+                  || createDigitalWarrantyPass(activeOrder, item);
+
+                return (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-gray-100 dark:border-zinc-850 space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-bold text-gray-900 dark:text-zinc-100">{item.product.nameEn}</p>
+                        <p className="text-[11px] text-gray-400">
+                          {item.variantName || 'Standard'} • Qty: {item.quantity}
+                        </p>
+                      </div>
+                      <span className="font-mono font-bold text-gray-900 dark:text-zinc-100">
+                        {(item.price * item.quantity).toLocaleString()} ETB
+                      </span>
+                    </div>
+
+                    {/* Tamper-Evident Warranty Pass Action Bar */}
+                    <div className="pt-2 border-t border-gray-150 dark:border-zinc-850 flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 text-[10.5px] font-mono text-gray-500">
+                        <span className="font-bold text-gray-400">S/N:</span>
+                        <span className="font-bold text-gray-800 dark:text-zinc-200 bg-white dark:bg-zinc-900 px-2 py-0.5 rounded-md border border-gray-200 dark:border-zinc-800">
+                          {itemWarranty.serialNumber}
+                        </span>
+                        {itemWarranty.imei && (
+                          <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold hidden sm:inline">
+                            • IMEI Ready
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedWarranty(itemWarranty);
+                            setIsWarrantyPassModalOpen(true);
+                          }}
+                          className="px-2.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-[#0052FF] dark:text-blue-300 font-bold text-[11px] transition-all flex items-center gap-1.5 cursor-pointer border border-blue-200 dark:border-blue-900/50"
+                        >
+                          <FileBadge className="w-3.5 h-3.5" />
+                          <span>{language === 'en' ? 'Digital Warranty Pass' : 'የዋስትና ሰነድ'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedWarranty(itemWarranty);
+                            setIsWarrantyClaimModalOpen(true);
+                          }}
+                          className="px-2 py-1.5 rounded-xl bg-gray-100 dark:bg-zinc-850 hover:bg-gray-200 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-bold text-[11px] transition-all flex items-center gap-1 cursor-pointer"
+                          title="File Claim"
+                        >
+                          <Wrench className="w-3 h-3 text-amber-500" />
+                          <span>{language === 'en' ? 'Claim' : 'ጥገና'}</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <span className="font-mono font-bold text-gray-900 dark:text-zinc-100">
-                    {(item.price * item.quantity).toLocaleString()} ETB
+                );
+              })}
+            </div>
+
+            {/* Active Warranty Claims Section (if any) */}
+            {activeOrder.warrantyClaims && activeOrder.warrantyClaims.length > 0 && (
+              <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 space-y-3 mt-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Wrench className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <h4 className="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                      {language === 'en' ? 'Active Warranty Claims' : 'የገቢር ዋስትና ጥያቄዎች'}
+                    </h4>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-900 text-amber-800 dark:text-amber-200">
+                    {activeOrder.warrantyClaims.length} {language === 'en' ? 'Claim(s)' : 'ጥያቄ'}
                   </span>
                 </div>
-              ))}
-            </div>
+
+                <div className="space-y-2">
+                  {activeOrder.warrantyClaims.map((claim) => (
+                    <div key={claim.id} className="p-3 rounded-xl bg-white/90 dark:bg-zinc-900/90 border border-amber-200/60 dark:border-amber-900/40 text-xs space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-gray-900 dark:text-zinc-100">{claim.id}</span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 uppercase">
+                          {claim.status}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-600 dark:text-zinc-300">
+                        {claim.issueType} • {claim.serviceMethod === 'COURIER_PICKUP' ? '🛵 Free Courier Pickup' : '🏢 Bole Hub Walk-in'}
+                      </p>
+                      <p className="text-[10px] text-gray-400 italic">
+                        "{claim.description}"
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="pt-3 border-t border-gray-150 dark:border-zinc-800 space-y-1 text-xs">
               <div className="flex justify-between text-gray-500">
@@ -568,6 +664,29 @@ export const OrderTrackingPage: React.FC = () => {
           language={language}
         />
       )}
+
+      {/* Digital Warranty Pass Certificate Modal */}
+      <DigitalWarrantyPassModal
+        warranty={selectedWarranty}
+        isOpen={isWarrantyPassModalOpen}
+        onClose={() => setIsWarrantyPassModalOpen(false)}
+        language={language}
+        onRequestClaim={(warrantyPass) => {
+          setSelectedWarranty(warrantyPass);
+          setIsWarrantyClaimModalOpen(true);
+        }}
+      />
+
+      {/* Warranty Claim Submission Modal */}
+      <WarrantyClaimModal
+        warranty={selectedWarranty}
+        isOpen={isWarrantyClaimModalOpen}
+        onClose={() => setIsWarrantyClaimModalOpen(false)}
+        language={language}
+        onSubmitClaim={async (claimData) => {
+          return await submitWarrantyClaim(claimData);
+        }}
+      />
     </div>
   );
 };

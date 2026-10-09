@@ -15,7 +15,7 @@ export interface AddisLandmark {
   subCityId: string;
   lat: number;
   lng: number;
-  category: 'mall' | 'transport' | 'church' | 'institution' | 'square' | 'residential';
+  category: 'mall' | 'transport' | 'church' | 'institution' | 'square' | 'residential' | 'commercial';
   hintEn?: string;
   hintAm?: string;
 }

@@ -21,7 +21,13 @@ interface MerchantTelegramNotificationCardProps {
   merchant: Merchant;
   orders: Order[];
   language: 'en' | 'am';
-  onUpdateTelegramSettings?: (updated: { telegramUsername?: string; telegramChatId?: string; telegramNotificationsEnabled?: boolean }) => void;
+  onUpdateTelegramSettings?: (updated: { 
+    telegramUsername?: string; 
+    telegramChatId?: string; 
+    telegramNotificationsEnabled?: boolean;
+    telegramLowStockAlerts?: boolean;
+    lowStockThreshold?: number;
+  }) => void;
 }
 
 export default function MerchantTelegramNotificationCard({
@@ -34,8 +40,12 @@ export default function MerchantTelegramNotificationCard({
   const [username, setUsername] = useState(merchant.telegramUsername || '@ethio_merchant');
   const [chatId, setChatId] = useState(merchant.telegramChatId || '849201948');
   const [enabled, setEnabled] = useState(merchant.telegramNotificationsEnabled !== false);
+  const [lowStockEnabled, setLowStockEnabled] = useState(merchant.telegramLowStockAlerts !== false);
+  const [threshold, setThreshold] = useState<number>(merchant.lowStockThreshold || 3);
+  const [previewTab, setPreviewTab] = useState<'ORDER' | 'LOW_STOCK'>('LOW_STOCK');
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [isTestingLowStock, setIsTestingLowStock] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [copiedBot, setCopiedBot] = useState(false);
@@ -54,7 +64,9 @@ export default function MerchantTelegramNotificationCard({
         body: JSON.stringify({
           telegramUsername: username,
           telegramChatId: chatId,
-          telegramNotificationsEnabled: enabled
+          telegramNotificationsEnabled: enabled,
+          telegramLowStockAlerts: lowStockEnabled,
+          lowStockThreshold: threshold
         })
       });
       if (res.ok) {
@@ -64,7 +76,9 @@ export default function MerchantTelegramNotificationCard({
           onUpdateTelegramSettings({
             telegramUsername: username,
             telegramChatId: chatId,
-            telegramNotificationsEnabled: enabled
+            telegramNotificationsEnabled: enabled,
+            telegramLowStockAlerts: lowStockEnabled,
+            lowStockThreshold: threshold
           });
         }
       }
@@ -84,12 +98,30 @@ export default function MerchantTelegramNotificationCard({
       });
       const data = await res.json();
       if (data.success) {
-        setTestResult(data.alert || 'Test alert dispatched successfully!');
+        setTestResult(data.alert || 'Test order alert dispatched successfully!');
       }
     } catch (err) {
       console.error('Failed to send test Telegram alert:', err);
     } finally {
       setIsTesting(false);
+    }
+  };
+
+  const handleTestLowStockNotification = async () => {
+    setIsTestingLowStock(true);
+    setTestResult(null);
+    try {
+      const res = await fetch(`/api/merchants/${merchant.id}/test-low-stock-telegram`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTestResult(data.alert || 'Test low-stock alert dispatched successfully!');
+      }
+    } catch (err) {
+      console.error('Failed to send test Telegram low-stock alert:', err);
+    } finally {
+      setIsTestingLowStock(false);
     }
   };
 
@@ -112,7 +144,7 @@ export default function MerchantTelegramNotificationCard({
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-bold text-white tracking-tight">
-                {isEn ? 'Automatic Merchant Order Telegram Notifications' : 'የነጋዴ አውቶማቲክ ትዕዛዝ ቴሌግራም ማሳወቂያዎች'}
+                {isEn ? 'Automatic Merchant Telegram Inventory & Orders' : 'የነጋዴ አውቶማቲክ ቴሌግራም ክምችት እና ትዕዛዝ ማሳወቂያዎች'}
               </h3>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
                 <Sparkles className="w-3 h-3" />
@@ -121,24 +153,37 @@ export default function MerchantTelegramNotificationCard({
             </div>
             <p className="text-sm text-slate-400 mt-0.5">
               {isEn 
-                ? 'Receive instant Telegram alerts whenever a customer purchases your store’s specific products.' 
-                : 'ደንበኛ የእርስዎን ምርት በገዛ ቁጥር ወዲያውኑ በቴሌግራም ማሳወቂያ ያግኙ።'}
+                ? 'Instant Telegram bot alerts when sales arrive or inventory dips below your custom low-stock threshold.' 
+                : 'ሽያጭ ሲካሄድ ወይም ክምችት ከዝቅተኛው ገደብ በታች ሲወርድ ፈጣን የቴሌግራም ማሳወቂያ ያግኙ።'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 self-start md:self-auto">
+        <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
+          <button
+            onClick={handleTestLowStockNotification}
+            disabled={isTestingLowStock}
+            className="flex items-center gap-1.5 px-3 py-2 bg-amber-500/15 hover:bg-amber-500/25 active:scale-95 text-amber-300 border border-amber-500/30 rounded-xl text-xs font-bold transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+          >
+            {isTestingLowStock ? (
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+            )}
+            <span>{isEn ? 'Test Low-Stock Alert' : 'የዝቅተኛ ክምችት ሙከራ'}</span>
+          </button>
+
           <button
             onClick={handleTestNotification}
             disabled={isTesting}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-sky-400 border border-sky-500/30 rounded-xl text-sm font-medium transition-all shadow-sm disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 active:scale-95 text-sky-400 border border-sky-500/30 rounded-xl text-xs font-bold transition-all shadow-sm disabled:opacity-50 cursor-pointer"
           >
             {isTesting ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
             ) : (
-              <Bot className="w-4 h-4 text-sky-400" />
+              <Bot className="w-3.5 h-3.5 text-sky-400" />
             )}
-            <span>{isEn ? 'Send Test Alert' : 'የሙከራ ማሳወቂያ ላክ'}</span>
+            <span>{isEn ? 'Test Order Alert' : 'የትዕዛዝ ሙከራ'}</span>
           </button>
         </div>
       </div>
@@ -202,10 +247,47 @@ export default function MerchantTelegramNotificationCard({
               <button
                 type="button"
                 onClick={() => setEnabled(!enabled)}
-                className={`w-11 h-6 rounded-full transition-colors relative p-0.5 ${enabled ? 'bg-sky-500' : 'bg-slate-700'}`}
+                className={`w-11 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${enabled ? 'bg-sky-500' : 'bg-slate-700'}`}
               >
                 <div className={`w-5 h-5 rounded-full bg-white transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
+            </div>
+
+            {/* Low-Stock Alerts Toggle */}
+            <div className="pt-2 flex items-center justify-between border-t border-slate-800/80">
+              <div>
+                <span className="text-xs font-medium text-slate-200 block">
+                  {isEn ? '⚠️ Inventory Low-Stock Alerts' : '⚠️ የዝቅተኛ ክምችት ማሳወቂያ'}
+                </span>
+                <span className="text-[11px] text-slate-400 block">
+                  {isEn ? 'Automated alert when SKU on-hand dips to threshold' : 'የእቃው ክምችት ከገደቡ በታች ሲደርስ ወዲያውኑ ላክ'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLowStockEnabled(!lowStockEnabled)}
+                className={`w-11 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer ${lowStockEnabled ? 'bg-amber-500' : 'bg-slate-700'}`}
+              >
+                <div className={`w-5 h-5 rounded-full bg-white transition-transform ${lowStockEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+              </button>
+            </div>
+
+            {/* Threshold Input */}
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1">
+                {isEn ? 'Default Low-Stock Threshold (Units)' : 'ዝቅተኛ የክምችት መጠን ገደብ (ፍሬ)'}
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  max="50"
+                  value={threshold}
+                  onChange={(e) => setThreshold(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 font-mono"
+                />
+                <span className="text-xs text-slate-400 shrink-0 font-medium">{isEn ? 'units or fewer' : 'ወይም ከዚያ በታች'}</span>
+              </div>
             </div>
           </div>
 
@@ -213,7 +295,7 @@ export default function MerchantTelegramNotificationCard({
             <button
               onClick={handleSaveSettings}
               disabled={isSaving}
-              className="px-4 py-2 bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-medium text-xs rounded-lg transition-all flex items-center gap-2 shadow-sm"
+              className="px-4 py-2 bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-medium text-xs rounded-lg transition-all flex items-center gap-2 shadow-sm cursor-pointer"
             >
               {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
               <span>{isEn ? 'Save Integration Settings' : 'መረጃውን አስቀምጥ'}</span>
@@ -234,7 +316,7 @@ export default function MerchantTelegramNotificationCard({
             </div>
             <button
               onClick={copyBotHandle}
-              className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors"
+              className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white transition-colors cursor-pointer"
               title="Copy bot handle"
             >
               {copiedBot ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -245,13 +327,29 @@ export default function MerchantTelegramNotificationCard({
         {/* Real-Time Preview & Activity Feed */}
         <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
           <div className="bg-slate-950/80 rounded-xl border border-slate-800 p-4 space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5 text-sky-400" />
-                {isEn ? 'Live Telegram Notification Payload Preview' : 'የቴሌግራም መልእክት ቅድመ እይታ'}
-              </span>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800/80 flex-wrap gap-2">
+              <div className="flex items-center gap-1 bg-slate-900 p-0.5 rounded-lg border border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => { setPreviewTab('LOW_STOCK'); setTestResult(null); }}
+                  className={`px-2.5 py-1 rounded text-xs font-bold transition-all cursor-pointer ${
+                    previewTab === 'LOW_STOCK' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {isEn ? '⚠️ Low-Stock Alert' : '⚠️ ዝቅተኛ ክምችት'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setPreviewTab('ORDER'); setTestResult(null); }}
+                  className={`px-2.5 py-1 rounded text-xs font-bold transition-all cursor-pointer ${
+                    previewTab === 'ORDER' ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {isEn ? '🛍️ New Order Alert' : '🛍️ አዲስ ትዕዛዝ'}
+                </button>
+              </div>
               <span className="text-[11px] font-mono text-sky-400/90 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">
-                HTML Format
+                Telegram HTML
               </span>
             </div>
 
@@ -281,9 +379,30 @@ export default function MerchantTelegramNotificationCard({
                   >
                     {testResult}
                   </motion.div>
+                ) : previewTab === 'LOW_STOCK' ? (
+                  <motion.div 
+                    key="preview-lowstock"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="whitespace-pre-line leading-relaxed text-slate-300 font-sans text-[12px] space-y-2"
+                  >
+                    <div>
+                      <span className="font-bold text-amber-400">⚠️ INVENTORY LOW-STOCK ALERT — {merchant.storeName.toUpperCase()}</span>{'\n'}
+                      <strong>Product:</strong> Apple MacBook Pro 16" M3 Max{'\n'}
+                      <strong>SKU:</strong> <code>MBP16-M3M-SLV</code> (Silver / 36GB / 1TB){'\n'}
+                      <strong>Status:</strong> <span className="text-red-400 font-bold">CRITICAL LOW STOCK (Only 1 unit left!)</span>{'\n'}
+                      <strong>Alert Threshold:</strong> {threshold} units{'\n'}
+                      <strong>Retail Price:</strong> 245,000 ETB{'\n\n'}
+                      <span className="text-slate-400 italic">High conversion detected in Addis Ababa. Immediate restock recommended to prevent out-of-stock cancellations.</span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="px-3 py-1.5 bg-[#2b5278] hover:bg-[#346290] text-white rounded-lg text-[11px] font-bold">⚡ Restock in Portal</span>
+                      <span className="px-3 py-1.5 bg-slate-700/60 text-slate-300 rounded-lg text-[11px]">🔍 View on Kasma</span>
+                    </div>
+                  </motion.div>
                 ) : (
                   <motion.div 
-                    key="default"
+                    key="preview-order"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     className="whitespace-pre-line leading-relaxed text-slate-300 font-sans text-[12px]"

@@ -13,8 +13,11 @@ import {
   DeliveryAddress,
   SavedPaymentMethod,
   KasmaPointsLog,
-  KasmaPointsReward
+  KasmaPointsReward,
+  DigitalWarrantyPass,
+  WarrantyClaim
 } from '../types';
+import { createDigitalWarrantyPass } from '../lib/warrantyService';
 import { 
   INITIAL_CATEGORIES, 
   INITIAL_PRODUCTS, 
@@ -115,6 +118,21 @@ interface ShopContextType {
     deliveryRating?: number;
     tags?: string[];
   }) => Promise<boolean>;
+
+  // Digital Warranty & Serial Claims
+  submitWarrantyClaim: (params: {
+    orderId: string;
+    warrantyId: string;
+    productId: string;
+    productName: string;
+    serialNumber: string;
+    customerName: string;
+    customerPhone: string;
+    issueType: WarrantyClaim['issueType'];
+    description: string;
+    serviceMethod: WarrantyClaim['serviceMethod'];
+  }) => Promise<WarrantyClaim>;
+  getOrderWarranties: (order: Order) => DigitalWarrantyPass[];
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -378,7 +396,16 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Orders
   const addOrder = useCallback((order: Order) => {
-    setOrders(prev => [order, ...prev]);
+    const warranties = order.warranties && order.warranties.length > 0
+      ? order.warranties
+      : order.items.map(item => createDigitalWarrantyPass(order, item));
+
+    const enrichedOrder: Order = {
+      ...order,
+      warranties
+    };
+
+    setOrders(prev => [enrichedOrder, ...prev]);
     clearCart();
     setAppliedPromo(null);
   }, [clearCart]);
@@ -650,6 +677,78 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return true;
   }, [orders, customerName, customerPhone, language, showToast]);
 
+  const getOrderWarranties = useCallback((order: Order): DigitalWarrantyPass[] => {
+    if (order.warranties && order.warranties.length > 0) {
+      return order.warranties;
+    }
+    return order.items.map(item => createDigitalWarrantyPass(order, item));
+  }, []);
+
+  const submitWarrantyClaim = useCallback(async (params: {
+    orderId: string;
+    warrantyId: string;
+    productId: string;
+    productName: string;
+    serialNumber: string;
+    customerName: string;
+    customerPhone: string;
+    issueType: WarrantyClaim['issueType'];
+    description: string;
+    serviceMethod: WarrantyClaim['serviceMethod'];
+  }): Promise<WarrantyClaim> => {
+    const claimId = `CLM-ET-${Date.now().toString().slice(-6)}`;
+    const newClaim: WarrantyClaim = {
+      id: claimId,
+      warrantyId: params.warrantyId,
+      orderId: params.orderId,
+      productId: params.productId,
+      productName: params.productName,
+      serialNumber: params.serialNumber,
+      customerName: params.customerName,
+      customerPhone: params.customerPhone,
+      issueType: params.issueType,
+      description: params.description,
+      serviceMethod: params.serviceMethod,
+      status: 'SUBMITTED',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Update local state orders
+    setOrders(prev => prev.map(o => {
+      if (o.id !== params.orderId) return o;
+      const existingClaims = o.warrantyClaims || [];
+      const updatedWarranties = (o.warranties || []).map(w => 
+        w.id === params.warrantyId ? { ...w, status: 'CLAIM_PENDING' as const } : w
+      );
+      return {
+        ...o,
+        warranties: updatedWarranties,
+        warrantyClaims: [newClaim, ...existingClaims]
+      };
+    }));
+
+    // Post to backend API
+    try {
+      await fetch('/api/warranties/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newClaim)
+      });
+    } catch (err) {
+      console.warn('Backend warranty claim persistence notice:', err);
+    }
+
+    showToast(
+      language === 'en'
+        ? `🛡️ Warranty Claim #${claimId} submitted. Bole Hub team notified!`
+        : `🛡️ የዋስትና ጥያቄ #${claimId} ተመዝግቧል። የቦሌ ማዕከል ቡድናችን ይደውላል!`,
+      'success'
+    );
+
+    return newClaim;
+  }, [language, showToast]);
+
   return (
     <ShopContext.Provider
       value={{
@@ -715,7 +814,9 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         toggleMerchantStatus,
         approvePayout,
 
-        addProductReview
+        addProductReview,
+        submitWarrantyClaim,
+        getOrderWarranties
       }}
     >
       {children}

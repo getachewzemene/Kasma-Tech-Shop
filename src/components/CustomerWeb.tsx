@@ -1,4 +1,25 @@
 import React, { useState, useEffect } from 'react';
+import { Product, Variant, CartItem, Order, PriceAlert, PromoCode, DeliveryAddress, SavedPaymentMethod, KasmaPointsReward, KasmaPointsLog } from '../types';
+import { ShoppingCart, Heart, Search, Eye, Sparkles, Check, ChevronRight, ChevronLeft, MapPin, Phone, ShieldCheck, CreditCard, RefreshCw, SlidersHorizontal, ArrowRight, Truck, Package, Clock, Star, MessageSquare, ThumbsUp, Bell, TrendingDown, GitCompare, Gamepad2, Laptop, Camera, Tv, Watch, Smartphone, Headphones, Cpu, ChevronDown, Menu, Flame, Percent, User, Lock, Award, Plus, Zap, Scale, Box, Wifi, WifiOff, Database, Battery, QrCode, Copy, ExternalLink, Download, CheckCircle2, Home, Share2, Link2, Send, MessageCircle, RotateCcw, X, Layers, Filter, Tag, Printer, Activity, Info, BarChart2, Trash2, LogIn, UserPlus, Globe, Building2 } from 'lucide-react';
+import { CatalogCacheMeta } from '../utils/offlineCatalogCache';
+import { generateShareableCartUrl } from '../utils/cartSharing';
+import { generateWhatsAppCustomerWelcomeUrl } from '../utils/whatsappNotifications';
+import { QRCodeSVG } from 'qrcode.react';
+import { motion, AnimatePresence } from 'motion/react';
+import { OrderCourierMiniMap } from './OrderCourierMiniMap';
+import { OrderTrackingVisualizer } from './OrderTrackingVisualizer';
+import { LazyImage } from './LazyImage';
+import { Shimmer, ShimmerCircle } from './Skeletons';
+import MyOrdersView from './MyOrdersView';
+import UserProfileView from './UserProfileView';
+import { FlashDealsView } from './FlashDealsView';
+import { ProductCard } from './ProductCard';
+import { SectionHeader } from './SectionHeader';
+import DeliveryTimeEstimator from './DeliveryTimeEstimator';
+import { GridContainer, CarouselContainer } from './GridContainer';
+import { AutoCarousel } from './AutoCarousel';
+import { sendTelegramOrderConfirmation, sendTelegramShippingUpdate, sendStoreOwnerTelegramNotification } from '../utils/telegramBot';
+import { showTelegramMainButton, hideTelegramMainButton, setTelegramMainButtonProgress, isTelegramMiniApp } from '../utils/telegramWebApp';
 import { SUB_CITIES, SubCityOption } from '../constants/locations';
 export { SUB_CITIES, type SubCityOption };
 
@@ -6389,6 +6410,7 @@ export default function CustomerWeb({
                                 </div>
                               </div>
                             </div>
+                          )}
                         </div>
                       )}
                     </div>

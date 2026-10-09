@@ -16,6 +16,7 @@ import {
   TrendingUp, 
   BarChart3, 
   PackageCheck, 
+  Package, 
   Bell, 
   X, 
   Sparkles, 

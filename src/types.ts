@@ -49,12 +49,56 @@ export interface Variant {
   reserved: number;
 }
 
+export interface DigitalWarrantyPass {
+  id: string; // e.g. "KASMA-WAR-84920"
+  orderId: string;
+  productId: string;
+  productNameEn: string;
+  productNameAm: string;
+  brand: string;
+  sku: string;
+  variantName: string;
+  serialNumber: string;
+  imei?: string;
+  customerName: string;
+  customerPhone: string;
+  merchantName: string;
+  issueDate: string; // ISO date
+  expiryDate: string; // ISO date
+  warrantyMonths: number;
+  status: 'ACTIVE' | 'EXPIRED' | 'CLAIM_PENDING' | 'REPLACED' | 'VOIDED';
+  coverageType: 'FULL_HARDWARE_REPLACEMENT' | 'PARTS_AND_LABOR' | 'MANUFACTURER_WARRANTY';
+  qrVerificationUrl: string;
+  tamperProofHash: string;
+}
+
+export interface WarrantyClaim {
+  id: string;
+  warrantyId: string;
+  orderId: string;
+  productId: string;
+  productName: string;
+  serialNumber: string;
+  customerName: string;
+  customerPhone: string;
+  issueType: 'SCREEN_DISPLAY' | 'BATTERY_CHARGING' | 'MOTHERBOARD_POWER' | 'AUDIO_SPEAKER' | 'ACCESSORY_DEFECT' | 'OTHER';
+  description: string;
+  serviceMethod: 'COURIER_PICKUP' | 'SERVICE_CENTER_WALKIN';
+  status: 'SUBMITTED' | 'UNDER_REVIEW' | 'INSPECTION_SCHEDULED' | 'APPROVED_REPAIR' | 'APPROVED_REPLACEMENT' | 'REJECTED';
+  createdAt: string;
+  updatedAt: string;
+  resolutionNotes?: string;
+}
+
 export interface CartItem {
   product: Product;
   sku: string;
   variantName: string;
   quantity: number;
   price: number;
+  serialNumber?: string;
+  imei?: string;
+  warrantyCertificateId?: string;
 }
 
 export interface Order {
@@ -91,6 +135,9 @@ export interface Order {
   reviewed?: boolean;
   reviewedAt?: string;
   orderReviews?: { productId: string; rating: number; comment: string; createdAt: string }[];
+  warranties?: DigitalWarrantyPass[];
+  warrantyClaims?: WarrantyClaim[];
+  deliveryInstructions?: string;
 }
 
 export interface StockMovementLog {
@@ -115,6 +162,8 @@ export interface Merchant {
   telegramUsername?: string;
   telegramChatId?: string;
   telegramNotificationsEnabled?: boolean;
+  telegramLowStockAlerts?: boolean;
+  lowStockThreshold?: number;
   status: 'PENDING_APPROVAL' | 'ACTIVE' | 'SUSPENDED';
   kycStatus: 'NOT_SUBMITTED' | 'PENDING_VERIFICATION' | 'APPROVED';
   kycDocument?: string;
@@ -142,7 +191,7 @@ export interface AuditLog {
 
 export interface TelegramAlert {
   id: string;
-  type: 'ORDER_NEW' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'DAILY_SUMMARY' | 'WEEKLY_SUMMARY' | 'PAYMENT_FAILED' | 'ORDER_CONFIRMATION' | 'SHIPPING_UPDATE' | 'PRICE_DROP';
+  type: 'ORDER_NEW' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'DAILY_SUMMARY' | 'WEEKLY_SUMMARY' | 'PAYMENT_FAILED' | 'ORDER_CONFIRMATION' | 'SHIPPING_UPDATE' | 'PRICE_DROP' | 'ORDER_SHIPPED' | 'ORDER_DELIVERED' | 'ORDER_PACKED' | 'CLAIM_NEW';
   message: string;
   timestamp: string;
   read: boolean;
@@ -159,12 +208,14 @@ export interface TelegramUserSettings {
   shippingUpdates: boolean;
   priceDropAlerts: boolean;
   telegramDeals: boolean;
+  lowStockAlerts?: boolean;
+  lowStockThreshold?: number;
   botToken?: string;
 }
 
 export interface TelegramMessageLog {
   id: string;
-  type: 'ORDER_CONFIRMATION' | 'SHIPPING_UPDATE' | 'PRICE_DROP' | 'TEST';
+  type: 'ORDER_CONFIRMATION' | 'SHIPPING_UPDATE' | 'PRICE_DROP' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'TEST';
   title: string;
   formattedText: string;
   buttons?: { label: string; actionUrl?: string; actionType?: string }[];

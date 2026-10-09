@@ -35,7 +35,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     conditionTextAm: 'በፋብሪካው የታሸገ',
     warrantyMonths: 12,
     warrantyTextEn: '12 Months Official Warranty',
-    warrantyTextAm: 'የ12 ወራት ኦፊሴላዊ ዋስትና'
+    warrantyTextAm: 'የ12 ወራት   ዋስትና'
   },
   {
     id: 'p1',
@@ -61,7 +61,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     conditionTextAm: 'በፋብሪካው የታሸገ',
     warrantyMonths: 12,
     warrantyTextEn: '12 Months Official Warranty',
-    warrantyTextAm: 'የ12 ወራት ኦፊሴላዊ ዋስትና'
+    warrantyTextAm: 'የ12 ወራት ዋስትና'
   },
   {
     id: 'p2',
@@ -87,7 +87,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     conditionTextAm: 'አዲስ (ያልተከፈተ)',
     warrantyMonths: 12,
     warrantyTextEn: '12 Months Official Warranty',
-    warrantyTextAm: 'የ12 ወራት ኦፊሴላዊ ዋስትና'
+    warrantyTextAm: 'የ12 ወራት   ዋስትና'
   },
   {
     id: 'p3',
@@ -112,7 +112,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     conditionTextAm: 'በፋብሪካው የታሸገ',
     warrantyMonths: 24,
     warrantyTextEn: '24 Months Official Warranty',
-    warrantyTextAm: 'የ24 ወራት ኦፊሴላዊ ዋስትና'
+    warrantyTextAm: 'የ24 ወራት   ዋስትና'
   },
   {
     id: 'p4',
@@ -138,7 +138,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     conditionTextAm: 'አዲስ',
     warrantyMonths: 12,
     warrantyTextEn: '12 Months Official Warranty',
-    warrantyTextAm: 'የ12 ወራት ኦፊሴላዊ ዋስትና'
+    warrantyTextAm: 'የ12 ወራት   ዋስትና'
   },
   {
     id: 'p5',
@@ -163,7 +163,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     conditionTextAm: 'አዲስ',
     warrantyMonths: 24,
     warrantyTextEn: '24 Months Official Warranty',
-    warrantyTextAm: 'የ24 ወራት ኦፊሴላዊ ዋስትና'
+    warrantyTextAm: 'የ24 ወራት   ዋስትና'
   },
   {
     id: 'p6',
@@ -189,7 +189,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     conditionTextAm: 'ክፍት ሳጥን',
     warrantyMonths: 12,
     warrantyTextEn: '12 Months Official Warranty',
-    warrantyTextAm: 'የ12 ወራት ኦፊሴላዊ ዋስትና'
+    warrantyTextAm: 'የ12 ወራት   ዋስትና'
   },
   {
     id: 'p7',
@@ -215,7 +215,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     conditionTextAm: 'በፋብሪካው የታሸገ',
     warrantyMonths: 24,
     warrantyTextEn: '24 Months Official Warranty',
-    warrantyTextAm: 'የ24 ወራት ኦፊሴላዊ ዋስትና'
+    warrantyTextAm: 'የ24 ወራት   ዋስትና'
   },
   {
     id: 'p9',
@@ -240,7 +240,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     conditionTextAm: 'አዲስ',
     warrantyMonths: 18,
     warrantyTextEn: '18 Months Official Warranty',
-    warrantyTextAm: 'የ18 ወራት ኦፊሴላዊ ዋስትና'
+    warrantyTextAm: 'የ18 ወራት   ዋስትና'
   }
 ];
 

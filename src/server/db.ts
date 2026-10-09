@@ -9,7 +9,7 @@ import {
   INITIAL_TELEGRAM_ALERTS 
 } from '../mockData';
 import { CloudSqlProductService } from '../db/products.ts';
-import { sendOrderAlertToTelegram, sendFulfillmentTelegramUpdate } from '../lib/telegram.ts';
+import { sendOrderAlertToTelegram, sendFulfillmentTelegramUpdate, sendLowStockAlertToTelegram } from '../lib/telegram.ts';
 
 // API Traffic Log entry interface for the Live Traffic Console
 export interface ApiTrafficLog {
@@ -343,17 +343,33 @@ export class ProductService {
       actualDiff < 0 && newQty <= product.lowStockThreshold ? 'WARNING' : 'INFO'
     );
 
-    // System Alerting rules
+    // System Alerting rules & Automated Merchant Telegram Dispatch
+    const threshold = product.lowStockThreshold !== undefined ? product.lowStockThreshold : 3;
     if (newQty === 0) {
       db.logTelegramAlert(
         'OUT_OF_STOCK',
         `🚨 INVENTORY OUT OF STOCK: SKU ${sku} (${product.nameEn}) depleted. Immediate restock recommended!`
       );
-    } else if (newQty <= product.lowStockThreshold) {
+    } else if (newQty <= threshold) {
       db.logTelegramAlert(
         'LOW_STOCK',
-        `⚠️ INVENTORY LOW STOCK: SKU ${sku} (${product.nameEn}) dipped to ${newQty} items (Threshold is ${product.lowStockThreshold}).`
+        `⚠️ INVENTORY LOW STOCK: SKU ${sku} (${product.nameEn}) dipped to ${newQty} items (Threshold is ${threshold}).`
       );
+    }
+
+    // Auto-dispatch live Telegram alert to product's merchant
+    const merchant = db.merchants.find(m => m.id === product.merchantId);
+    if (merchant && merchant.telegramNotificationsEnabled !== false && merchant.telegramLowStockAlerts !== false) {
+      if (newQty <= threshold) {
+        sendLowStockAlertToTelegram(
+          product,
+          variant,
+          newQty,
+          threshold,
+          merchant.storeName,
+          merchant.telegramChatId
+        ).catch(err => console.warn('Failed to dispatch low-stock Telegram alert to merchant:', err));
+      }
     }
 
     db.save();

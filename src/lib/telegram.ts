@@ -1,4 +1,4 @@
-import { Order } from '../types';
+import { Order, Product, Variant } from '../types';
 
 export interface TelegramInlineButton {
   text: string;
@@ -191,6 +191,55 @@ export async function sendFulfillmentTelegramUpdate(
 
   return await sendTelegramMessage({
     chatId: recipientChatId || order.customerId,
+    text,
+    parseMode: 'HTML',
+    buttons
+  });
+}
+
+/**
+ * Dispatches an automated Low-Stock or Out-of-Stock alert to the Merchant via Telegram
+ */
+export async function sendLowStockAlertToTelegram(
+  product: Product,
+  variant: Variant,
+  currentStock: number,
+  threshold: number,
+  merchantStoreName: string = 'Kasma Merchant',
+  merchantChatId?: string,
+  appUrl: string = process.env.APP_URL || 'http://localhost:3000'
+): Promise<TelegramDispatchResult> {
+  const isOutOfStock = currentStock <= 0;
+  const emoji = isOutOfStock ? '🚨' : '⚠️';
+  const statusBadge = isOutOfStock 
+    ? '<b>OUT OF STOCK</b> ❌' 
+    : `<b>CRITICAL LOW STOCK</b> (Only <b>${currentStock}</b> left)`;
+
+  const merchantPortalLink = `${appUrl}/merchant`;
+  const productCatalogLink = `${appUrl}/product/${product.id}`;
+
+  const text = 
+    `${emoji} <b>INVENTORY TELEGRAM ALERT — ${merchantStoreName.toUpperCase()}</b>\n\n` +
+    `<b>Item:</b> <b>${product.nameEn}</b>\n` +
+    `<b>Variant / SKU:</b> <code>${variant.sku}</code> (${variant.name})\n` +
+    `<b>Status:</b> ${statusBadge}\n` +
+    `<b>Current On-Hand:</b> <b>${currentStock} units</b>\n` +
+    `<b>Alert Threshold:</b> ${threshold} units\n` +
+    `<b>Retail Price:</b> ${(product.price + (variant.priceOffset || 0)).toLocaleString()} ETB\n\n` +
+    (isOutOfStock 
+      ? `<i>Immediate action required: Customers can no longer place orders for this item on Kasma. Please replenish stock or update listings immediately.</i>`
+      : `<i>Notice: High conversion rate detected in Addis Ababa. Inventory is nearing depletion. Please restock soon to avoid lost sales.</i>`) +
+    `\n\n🕒 <i>Alert timestamp: ${new Date().toLocaleString()}</i>`;
+
+  const buttons: TelegramInlineButton[][] = [
+    [
+      { text: '⚡ Restock in Merchant Portal', url: merchantPortalLink },
+      { text: '🔍 View on Kasma Shop', url: productCatalogLink }
+    ]
+  ];
+
+  return await sendTelegramMessage({
+    chatId: merchantChatId,
     text,
     parseMode: 'HTML',
     buttons

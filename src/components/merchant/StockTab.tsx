@@ -27,8 +27,10 @@ import {
   QrCode,
   Printer,
   Camera,
-  MessageCircle
+  MessageCircle,
+  Send
 } from 'lucide-react';
+import { sendTelegramLowStockAlert } from '../../utils/telegramBot';
 import { dispatchWhatsAppLowStockAlert, dispatchBulkWhatsAppLowStockAlert } from '../../utils/whatsappNotifications';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -476,9 +478,203 @@ export default function StockTab({
     return [...list].sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [stockLogs, allVariants, searchTerm]);
 
+  // Compute products/variants running below threshold
+  const lowStockItems = useMemo(() => {
+    const list: Array<{
+      product: Product;
+      variant: Variant;
+      threshold: number;
+      isOutOfStock: boolean;
+    }> = [];
+
+    merchantProducts.forEach(prod => {
+      const threshold = prod.lowStockThreshold || currentMerchant.lowStockThreshold || 3;
+      prod.variants.forEach(v => {
+        if (v.onHand <= threshold) {
+          list.push({
+            product: prod,
+            variant: v,
+            threshold,
+            isOutOfStock: v.onHand <= 0
+          });
+        }
+      });
+    });
+
+    return list.sort((a, b) => a.variant.onHand - b.variant.onHand);
+  }, [merchantProducts, currentMerchant]);
+
+  const [dispatchingTelegramSku, setDispatchingTelegramSku] = useState<string | null>(null);
+  const [telegramAlertSuccessSku, setTelegramAlertSuccessSku] = useState<string | null>(null);
+
+  const handleSendTelegramStockAlert = async (product: Product, variant: Variant, threshold: number) => {
+    setDispatchingTelegramSku(variant.sku);
+    try {
+      const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/products/${product.id}/telegram-stock-alert`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ sku: variant.sku })
+      });
+      if (res.ok) {
+        setTelegramAlertSuccessSku(variant.sku);
+        setTimeout(() => setTelegramAlertSuccessSku(null), 3000);
+      }
+      // Also dispatch to local client feed
+      await sendTelegramLowStockAlert(
+        product,
+        variant,
+        threshold,
+        currentMerchant.storeName,
+        language
+      );
+    } catch (err) {
+      console.error('Failed to trigger Telegram stock alert:', err);
+    } finally {
+      setDispatchingTelegramSku(null);
+    }
+  };
+
+  const handleQuickRestock = (productId: string, sku: string, qty: number) => {
+    onUpdateProductStock(productId, sku, qty, `Quick Restock (+${qty} units via Low-Stock Alert Hub)`);
+  };
+
   return (
     <div className="space-y-6">
       
+      {/* 🚨 Automated Low-Stock Telegram Alerts & Quick Restock Hub */}
+      {lowStockItems.length > 0 && (
+        <div className="bg-gradient-to-r from-amber-500/10 via-red-500/10 to-amber-500/5 border border-amber-500/30 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center shrink-0 border border-amber-500/30">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+                    {language === 'en' ? '🚨 Low-Stock Telegram Alerts & Quick Restock' : '🚨 የዝቅተኛ ክምችት የቴሌግራም ማንቂያ እና ፈጣን ማሟያ'}
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-red-500 text-white animate-pulse">
+                    {lowStockItems.length} {language === 'en' ? 'SKUs Critical' : 'ወሳኝ እቃዎች'}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-zinc-400 mt-0.5">
+                  {language === 'en'
+                    ? 'These high-velocity items are running below your safety threshold. Alert your Telegram channel or execute 1-click restocks.'
+                    : 'እነዚህ እቃዎች ከደህንነት ገደብዎ በታች ናቸው። ወደ ቴሌግራም ማሳወቂያ ይላኩ ወይም በ1-ጠቅታ ክምችት ይጨምሩ።'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+              <button
+                type="button"
+                onClick={async () => {
+                  for (const item of lowStockItems.slice(0, 5)) {
+                    await handleSendTelegramStockAlert(item.product, item.variant, item.threshold);
+                  }
+                }}
+                className="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>{language === 'en' ? 'Send All to Telegram Bot' : 'ሁሉንም በቴሌግራም ላክ'}</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+            {lowStockItems.map((item, idx) => {
+              const isDispatched = telegramAlertSuccessSku === item.variant.sku;
+              const isDispatching = dispatchingTelegramSku === item.variant.sku;
+              return (
+                <div
+                  key={idx}
+                  className="bg-white dark:bg-zinc-900 rounded-xl p-3.5 border border-amber-300/60 dark:border-amber-900/40 shadow-2xs space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <img
+                        src={item.product.image}
+                        alt={item.product.nameEn}
+                        className="w-10 h-10 rounded-lg object-cover bg-gray-100 dark:bg-zinc-800 shrink-0 border border-gray-150 dark:border-zinc-800"
+                      />
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-xs text-gray-900 dark:text-white truncate">
+                          {language === 'en' ? item.product.nameEn : item.product.nameAm}
+                        </h4>
+                        <p className="text-[10px] text-gray-400 font-mono">
+                          SKU: {item.variant.sku}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase shrink-0 ${
+                      item.isOutOfStock 
+                        ? 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20' 
+                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                    }`}>
+                      {item.isOutOfStock 
+                        ? (language === 'en' ? 'OUT OF STOCK' : 'አልቋል') 
+                        : `${item.variant.onHand} ${language === 'en' ? 'left' : 'ቀሪ'}`}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-100 dark:border-zinc-800">
+                    <span>{language === 'en' ? 'Threshold:' : 'ገደብ:'} <strong className="text-gray-700 dark:text-zinc-300">{item.threshold}</strong></span>
+                    <span>{language === 'en' ? 'Price:' : 'ዋጋ:'} <strong className="text-gray-900 dark:text-white">{(item.product.price + (item.variant.priceOffset || 0)).toLocaleString()} ETB</strong></span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleSendTelegramStockAlert(item.product, item.variant, item.threshold)}
+                      disabled={isDispatching}
+                      className={`flex-1 py-1.5 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                        isDispatched
+                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                          : 'bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100'
+                      }`}
+                      title="Send alert to linked Telegram bot"
+                    >
+                      {isDispatching ? (
+                        <RefreshCw className="w-3 h-3 animate-spin" />
+                      ) : isDispatched ? (
+                        <Check className="w-3 h-3 text-emerald-500" />
+                      ) : (
+                        <Send className="w-3 h-3 text-sky-500" />
+                      )}
+                      <span>{isDispatched ? (language === 'en' ? 'Sent!' : 'ተልኳል!') : (language === 'en' ? 'Telegram' : 'ቴሌግራም')}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleQuickRestock(item.product.id, item.variant.sku, 5)}
+                      className="py-1.5 px-2 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-900 dark:text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer"
+                      title="Quick add 5 units to inventory"
+                    >
+                      +5
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleQuickRestock(item.product.id, item.variant.sku, 10)}
+                      className="py-1.5 px-2 bg-[#0052FF] hover:bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer shadow-xs"
+                      title="Quick add 10 units to inventory"
+                    >
+                      +10
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Sub tabs layout navigation */}
       <div className="flex bg-gray-100/50 dark:bg-zinc-850/40 p-1.5 rounded-xl border border-gray-200/50 dark:border-zinc-800/80 max-w-4xl flex-wrap gap-1 md:flex-nowrap">
         <button
