@@ -20,6 +20,14 @@ import {
   verifyChapaTransaction, 
   verifyChapaWebhookSignature 
 } from './src/lib/chapa.ts';
+import { 
+  createAndSendOtp, 
+  verifyOtp, 
+  sendCodConfirmationSms, 
+  sendOrderShippedSms, 
+  sendOrderDeliveredSms,
+  normalizeEthiopianPhone
+} from './src/lib/smsGateway.ts';
 
 async function startServer() {
   const app = express();
@@ -378,6 +386,116 @@ async function startServer() {
   // 5. Current User Profile Verification
   app.get('/api/auth/me', requireAuth, (req: AuthRequest, res) => {
     res.json({ success: true, user: req.user });
+  });
+
+  // 6. Ethiopian SMS Gateway: Send Phone Login / Registration OTP
+  app.post('/api/sms/send-otp', async (req, res) => {
+    try {
+      const { phone } = req.body || {};
+      if (!phone) {
+        res.status(400).json({ error: 'Valid Ethiopian mobile phone number is required.' });
+        return;
+      }
+
+      const result = await createAndSendOtp(phone);
+
+      db.logAudit(
+        'SMS Gateway',
+        'OTP_SMS_DISPATCHED',
+        `Dispatched 6-digit OTP verification SMS to Ethiopian phone ${result.phone}. Message ID: ${result.messageId}.`,
+        'INFO'
+      );
+
+      res.json({
+        success: true,
+        message: 'Verification code sent successfully via SMS.',
+        ...result,
+      });
+    } catch (err: any) {
+      console.error('Error dispatching SMS OTP:', err);
+      res.status(400).json({ error: err.message || 'Failed to dispatch verification code.' });
+    }
+  });
+
+  // 7. Ethiopian SMS Gateway: Verify OTP & Sign In Customer
+  app.post('/api/sms/verify-otp', async (req, res) => {
+    try {
+      const { phone, otp, name } = req.body || {};
+      if (!phone || !otp) {
+        res.status(400).json({ error: 'Both phone number and 6-digit OTP code are required.' });
+        return;
+      }
+
+      const check = verifyOtp(phone, otp);
+      if (!check.valid) {
+        res.status(400).json({ error: check.error || 'Invalid or expired verification code.' });
+        return;
+      }
+
+      const norm = normalizeEthiopianPhone(phone);
+      const cleanPhone = norm.valid ? norm.e164 : phone;
+
+      // Find or create customer account in PostgreSQL
+      let user: any = null;
+      try {
+        const found = await pgDb.select().from(usersTable).where(eq(usersTable.phone, cleanPhone));
+        user = found[0];
+      } catch (dbErr) {
+        console.warn('PostgreSQL query fallback in verify-otp:', dbErr);
+      }
+
+      if (!user) {
+        const uid = `usr-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`;
+        const customerName = name ? name.trim() : (norm.valid ? `Shopper (${norm.domestic})` : 'Kasma Shopper');
+        const inserted = await pgDb.insert(usersTable).values({
+          uid,
+          email: `${norm.domestic || Date.now()}@kasma.et`,
+          name: customerName,
+          phone: cleanPhone,
+          role: 'customer',
+        }).returning().catch(() => []);
+        user = inserted[0] || {
+          id: `cust-${Date.now()}`,
+          uid,
+          name: customerName,
+          phone: cleanPhone,
+          email: `${norm.domestic || Date.now()}@kasma.et`,
+          role: 'customer',
+        };
+      }
+
+      const token = generateToken({
+        id: String(user.id),
+        uid: user.uid,
+        email: user.email,
+        name: user.name || undefined,
+        phone: user.phone || undefined,
+        role: (user.role as any) || 'customer',
+      });
+
+      db.logAudit(
+        user.name || 'Customer',
+        'CUSTOMER_LOGGED_IN_SMS_OTP',
+        `Authenticated customer session via verified SMS OTP code for ${cleanPhone}.`,
+        'INFO'
+      );
+
+      res.json({
+        success: true,
+        token,
+        user: {
+          id: user.id,
+          uid: user.uid,
+          email: user.email,
+          name: user.name,
+          phone: user.phone,
+          role: user.role,
+        },
+      });
+    } catch (err: any) {
+      console.error('Error verifying SMS OTP:', err);
+      res.status(500).json({ error: err.message || 'Failed to authenticate phone OTP.' });
+    }
   });
 
   // Firebase Auth & Cloud SQL User Sync Endpoint
@@ -1183,6 +1301,23 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
         return;
       }
 
+      // Automated Customer SMS Notification on SHIPPED or DELIVERED status
+      if (result.order && result.order.customerPhone) {
+        if (status === 'SHIPPED') {
+          sendOrderShippedSms(
+            result.order.customerPhone,
+            result.order.id,
+            courierName || 'Kasma Express Driver',
+            courierPhone || '+251 91 100 2233'
+          ).catch(smsErr => console.warn('[SMS GATEWAY] Shipped SMS dispatch failed:', smsErr.message));
+        } else if (status === 'DELIVERED') {
+          sendOrderDeliveredSms(
+            result.order.customerPhone,
+            result.order.id
+          ).catch(smsErr => console.warn('[SMS GATEWAY] Delivered SMS dispatch failed:', smsErr.message));
+        }
+      }
+
       res.json({
         success: true,
         order: result.order,
@@ -1348,6 +1483,14 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
           existingOrder.status = 'PENDING_PAYMENT';
           db.save();
         }
+
+        // Dispatch real Ethiopian SMS with Cash on Delivery confirmation PIN
+        sendCodConfirmationSms(
+          customerPhone,
+          orderId || txRef,
+          verificationPin,
+          amount
+        ).catch(smsErr => console.warn('[SMS GATEWAY] COD SMS dispatch failed:', smsErr.message));
       } else {
         // Digital Rails: Chapa Unified Gateway (handles Telebirr, CBE Birr, Awash & Cards)
         const appUrl = process.env.APP_URL || 'http://localhost:3000';

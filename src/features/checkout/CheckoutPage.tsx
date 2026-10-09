@@ -15,7 +15,8 @@ import {
   ArrowLeft,
   CreditCard,
   Building,
-  Sparkles
+  Sparkles,
+  Smartphone
 } from 'lucide-react';
 
 export const CheckoutPage: React.FC = () => {
@@ -413,6 +414,22 @@ export const CheckoutPage: React.FC = () => {
                 </div>
               </button>
             </div>
+
+            {paymentMethod === 'COD' && (
+              <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
+                <Smartphone className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <p className="font-bold">
+                    {language === 'en' ? 'Instant SMS OTP Confirmation' : 'ቅጽበታዊ የኤስኤምኤስ ማረጋገጫ'}
+                  </p>
+                  <p className="text-[11px] opacity-90 mt-0.5">
+                    {language === 'en'
+                      ? 'Upon clicking "Complete Order", a 6-digit confirmation PIN will be dispatched via SMS to your phone. Present this PIN to your dispatcher upon delivery.'
+                      : 'ትዕዛዙን እንዳጠናቀቁ ባለ 6-አሃዝ የማረጋገጫ ኮድ በኤስኤምኤስ ይላክልዎታል። እቃው ሲደርስ ለአሽከርካሪው ያሳውቁ።'}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

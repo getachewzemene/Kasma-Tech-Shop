@@ -199,6 +199,14 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
+  // Phone SMS OTP Sign In State
+  const [signInMethod, setSignInMethod] = useState<'SMS_OTP' | 'PASSWORD'>('SMS_OTP');
+  const [otpPhoneInput, setOtpPhoneInput] = useState(customerPhone || '+251 91 122 3344');
+  const [otpCodeInput, setOtpCodeInput] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [otpNotice, setOtpNotice] = useState('');
+
   // International Country Codes
   const COUNTRY_CODES = useMemo(() => [
     { code: '+251', country: 'Ethiopia', flag: '🇪🇹' },
@@ -417,6 +425,85 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   }, [orders]);
 
   if (!isOpen) return null;
+
+  const handleSendSmsOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!otpPhoneInput.trim()) {
+      showToast(language === 'en' ? 'Please enter your Ethiopian mobile phone number' : 'እባክዎን የስልክ ቁጥርዎን ያስገቡ', 'warning');
+      return;
+    }
+    setIsSendingOtp(true);
+    setOtpNotice('');
+    try {
+      const res = await fetch('/api/sms/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: otpPhoneInput.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to dispatch SMS verification code');
+      }
+      setIsOtpSent(true);
+      setResendCountdown(60);
+      if (data.devOtp) {
+        setOtpCodeInput(data.devOtp);
+      }
+      setOtpNotice(language === 'en' 
+        ? `Verification code dispatched to ${data.phone || otpPhoneInput} via AfroMessage/Ethio Telecom.` 
+        : `የማረጋገጫ ኮድ ወደ ${data.phone || otpPhoneInput} ተልኳል።`);
+      showToast(
+        language === 'en' ? 'SMS verification code sent!' : 'የማረጋገጫ ኮድ በኤስኤምኤስ ተልኳል!',
+        'success'
+      );
+    } catch (err: any) {
+      showToast(err.message || 'Error sending SMS', 'error');
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifySmsOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpCodeInput.trim()) {
+      showToast(language === 'en' ? 'Please enter the 6-digit verification code' : 'እባክዎን 6-አሃዝ የማረጋገጫ ኮዱን ያስገቡ', 'warning');
+      return;
+    }
+    setIsAuthenticating(true);
+    try {
+      const res = await fetch('/api/sms/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          phone: otpPhoneInput.trim(), 
+          otp: otpCodeInput.trim(),
+          name: customerName 
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Invalid or expired verification code');
+      }
+      if (data.token) {
+        localStorage.setItem('kasma_auth_token', data.token);
+      }
+      if (data.user) {
+        localStorage.setItem('kasma_auth_user', JSON.stringify(data.user));
+        if (data.user.name) setCustomerName(data.user.name);
+        if (data.user.phone) setCustomerPhone(data.user.phone);
+        if (setCustomerEmail && data.user.email) setCustomerEmail(data.user.email);
+      }
+      onLogin(data.user?.phone || otpPhoneInput.trim(), data.user?.name || customerName);
+      showToast(
+        language === 'en' ? 'Verified phone successfully! Signed in to Kasma.' : 'ስልክዎ ተረጋግጧል! ወደ ካስማ ገብተዋል።',
+        'success'
+      );
+    } catch (err: any) {
+      showToast(err.message || 'OTP verification failed', 'error');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
 
   const handlePasswordSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -893,11 +980,156 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 font-medium">
                       {language === 'en' 
-                        ? 'Sign in with your username, email address, or mobile phone number' 
-                        : 'በተጠቃሚ ስም፣ ኢሜይል ወይም ስልክ ቁጥርዎ ይግቡ'}
+                        ? 'Sign in with your mobile phone number via SMS OTP or password' 
+                        : 'በስልክ ቁጥርዎ በኤስኤምኤስ ኮድ ወይም በምስጢር ቃል ይግቡ'}
                     </p>
                   </div>
 
+                  {/* Phone OTP vs Password Sub-tabs */}
+                  <div className="grid grid-cols-2 gap-1.5 p-1 bg-gray-100 dark:bg-zinc-800/80 rounded-xl text-xs font-bold">
+                    <button
+                      type="button"
+                      onClick={() => setSignInMethod('SMS_OTP')}
+                      className={`py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        signInMethod === 'SMS_OTP'
+                          ? 'bg-white dark:bg-zinc-900 text-[#0052FF] dark:text-blue-400 shadow-xs'
+                          : 'text-gray-500 hover:text-gray-800 dark:hover:text-zinc-200'
+                      }`}
+                    >
+                      <Smartphone className="w-3.5 h-3.5" />
+                      <span>{language === 'en' ? 'Phone SMS OTP' : 'የስልክ ኤስኤምኤስ'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSignInMethod('PASSWORD')}
+                      className={`py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        signInMethod === 'PASSWORD'
+                          ? 'bg-white dark:bg-zinc-900 text-[#0052FF] dark:text-blue-400 shadow-xs'
+                          : 'text-gray-500 hover:text-gray-800 dark:hover:text-zinc-200'
+                      }`}
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>{language === 'en' ? 'Password' : 'የምስጢር ቃል'}</span>
+                    </button>
+                  </div>
+
+                  {signInMethod === 'SMS_OTP' ? (
+                    <div className="space-y-4">
+                      {/* Phone Number Input */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-700 dark:text-zinc-300 flex items-center justify-between">
+                          <span>{language === 'en' ? 'Ethiopian Mobile Number' : 'የኢትዮጵያ ሞባይል ስልክ ቁጥር'}</span>
+                          <span className="text-[10px] text-emerald-600 font-bold">AfroMessage / Ethio Telecom</span>
+                        </label>
+                        <div className="relative flex">
+                          <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 text-xs font-bold text-gray-700 dark:text-zinc-300">
+                            🇪🇹 +251
+                          </span>
+                          <input
+                            type="text"
+                            value={otpPhoneInput.replace(/^\+251\s?/, '')}
+                            onChange={(e) => {
+                              const val = e.target.value.trim();
+                              setOtpPhoneInput(val.startsWith('+') ? val : `+251 ${val}`);
+                            }}
+                            placeholder="91 122 3344"
+                            disabled={isOtpSent}
+                            className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-zinc-800/60 border border-gray-200 dark:border-zinc-700 rounded-r-xl text-xs font-semibold text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#0052FF] disabled:opacity-75"
+                          />
+                        </div>
+                        <p className="text-[10px] text-gray-400">
+                          {language === 'en' ? 'Supports all 09... (Ethio Telecom) and 07... (Safaricom) numbers.' : 'ሁሉንም የ09... እና 07... የኢትዮጵያ ስልኮች ይደግፋል።'}
+                        </p>
+                      </div>
+
+                      {otpNotice && (
+                        <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl text-xs text-blue-800 dark:text-blue-300 flex items-start gap-2">
+                          <Smartphone className="w-4 h-4 shrink-0 mt-0.5 text-blue-600" />
+                          <span>{otpNotice}</span>
+                        </div>
+                      )}
+
+                      {!isOtpSent ? (
+                        <button
+                          type="button"
+                          onClick={handleSendSmsOtp}
+                          disabled={isSendingOtp}
+                          className="w-full py-3 bg-[#0052FF] hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                        >
+                          {isSendingOtp ? (
+                            <>
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                              <span>{language === 'en' ? 'Dispatching SMS...' : 'ኤስኤምኤስ በመላክ ላይ...'}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-4 h-4" />
+                              <span>{language === 'en' ? 'Send 6-Digit SMS Code' : 'የ6-አሃዝ ማረጋገጫ ኮድ ላክ'}</span>
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <form onSubmit={handleVerifySmsOtp} className="space-y-4">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between items-center">
+                              <label className="text-xs font-bold text-gray-700 dark:text-zinc-300">
+                                {language === 'en' ? '6-Digit Verification Code' : 'የ6-አሃዝ ማረጋገጫ ኮድ'}
+                              </label>
+                              {resendCountdown > 0 ? (
+                                <span className="text-[10px] font-mono text-gray-400">
+                                  {language === 'en' ? `Resend in ${resendCountdown}s` : `በ${resendCountdown}ሰከንድ ውስጥ`}
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={handleSendSmsOtp}
+                                  className="text-[10px] font-bold text-[#0052FF] hover:underline cursor-pointer"
+                                >
+                                  {language === 'en' ? 'Resend SMS Code' : 'ኮድ በድጋሚ ላክ'}
+                                </button>
+                              )}
+                            </div>
+                            <input
+                              type="text"
+                              maxLength={6}
+                              value={otpCodeInput}
+                              onChange={(e) => setOtpCodeInput(e.target.value.replace(/\D/g, ''))}
+                              placeholder="849201"
+                              className="w-full text-center tracking-[0.4em] text-lg font-mono font-black py-2.5 bg-gray-50 dark:bg-zinc-800/60 border border-gray-200 dark:border-zinc-700 rounded-xl text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#0052FF]"
+                              required
+                            />
+                          </div>
+
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => { setIsOtpSent(false); setOtpCodeInput(''); }}
+                              className="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 text-xs font-bold text-gray-600 dark:text-zinc-300 hover:bg-gray-50 cursor-pointer"
+                            >
+                              {language === 'en' ? 'Change Phone' : 'ስልክ ቀይር'}
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={isAuthenticating}
+                              className="flex-1 py-2.5 bg-[#0052FF] hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                            >
+                              {isAuthenticating ? (
+                                <>
+                                  <RefreshCw className="w-4 h-4 animate-spin" />
+                                  <span>{language === 'en' ? 'Verifying...' : 'በማረጋገጥ ላይ...'}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="w-4 h-4" />
+                                  <span>{language === 'en' ? 'Verify & Sign In' : 'አረጋግጥና ግባ'}</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
+                  ) : (
                   <form onSubmit={handlePasswordSignIn} className="space-y-4">
                     {/* Identifier Input */}
                     <div className="space-y-1.5">
@@ -980,6 +1212,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                       )}
                     </button>
                   </form>
+                  )}
 
                   {/* Demo Quick Auto-Fill credentials buttons */}
                   <div className="p-3.5 bg-gray-50 dark:bg-zinc-850/70 rounded-xl border border-gray-200/80 dark:border-zinc-800 space-y-2">

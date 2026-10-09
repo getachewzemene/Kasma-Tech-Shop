@@ -486,8 +486,8 @@ export default function OrdersTab({
                   <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-blue-600" />
                   <span>
                     {language === 'en'
-                      ? 'Submitting will dispatch a real Telegram alert to the customer and update the live tracking timeline.'
-                      : 'ይህን መላክ ለደንበኛው በቴሌግራም መልዕክት ይልካል እና የቀጥታ መከታተያውን ያዘምናል።'}
+                      ? 'Submitting will automatically dispatch real SMS & Telegram alerts to the customer with driver contact details.'
+                      : 'ይህን መላክ ለደንበኛው በኤስኤምኤስ እና በቴሌግራም የአሽከርካሪውን መረጃ በራስ-ሰር ይልካል!'}
                   </span>
                 </div>
               </div>
