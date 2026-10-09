@@ -17,9 +17,11 @@ import {
   ChevronRight,
   RefreshCw,
   ShoppingBag,
-  Download
+  Download,
+  Star
 } from 'lucide-react';
 import { generateCustomerReceiptPDF } from '../../lib/pdfGenerator';
+import { PostDeliveryReviewModal } from '../../components/orders/PostDeliveryReviewModal';
 
 export const OrderTrackingPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
@@ -29,6 +31,7 @@ export const OrderTrackingPage: React.FC = () => {
   const [orderIdInput, setOrderIdInput] = useState(id || '');
   const [phoneInput, setPhoneInput] = useState('');
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [copiedId, setCopiedId] = useState(false);
@@ -398,6 +401,82 @@ export const OrderTrackingPage: React.FC = () => {
             </div>
           )}
 
+          {/* Post-Delivery Customer Review & Rating Banner (Exclusive to DELIVERED status) */}
+          {activeOrder.status === 'DELIVERED' && (
+            <div className="p-5 rounded-3xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 dark:border-amber-500/20 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-amber-500/20">
+                    <Star className="w-5 h-5 fill-white" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                        {language === 'en' ? 'Verified Post-Delivery Review & Rating' : 'የተረጋገጠ የገዢ ደረጃ እና አስተያየት'}
+                      </h3>
+                      {activeOrder.reviewed && (
+                        <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>{language === 'en' ? 'Reviewed' : 'ተገምግሟል'}</span>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-600 dark:text-zinc-300 mt-0.5">
+                      {activeOrder.reviewed
+                        ? (language === 'en' 
+                            ? 'Thank you! Your verified review helps other Ethiopian tech shoppers.' 
+                            : 'እናመሰግናለን! የእርስዎ ግምገማ ሌሎች ኢትዮጵያውያን ሸማቾችን ይረዳል/ያበረታታል።')
+                        : (language === 'en'
+                            ? 'Your package has been delivered. Share your rating on product authenticity & courier speed.'
+                            : 'እቃዎ ደርሷል። ስለ እቃው ጥራት እና ስለ ማድረሻ ፍጥነቱ ደረጃ ይስጡ።')}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsReviewModalOpen(true)}
+                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-bold shadow-md shadow-amber-500/20 transition-all flex items-center gap-2 cursor-pointer self-start sm:self-auto shrink-0"
+                >
+                  <Star className="w-3.5 h-3.5 fill-white" />
+                  <span>
+                    {activeOrder.reviewed
+                      ? (language === 'en' ? 'View / Update Review' : 'ግምገማ ይመልከቱ/ያሻሽሉ')
+                      : (language === 'en' ? 'Rate Delivered Items (⭐)' : 'ደረጃ ይስጡ (⭐)')}
+                  </span>
+                </button>
+              </div>
+
+              {activeOrder.orderReviews && activeOrder.orderReviews.length > 0 && (
+                <div className="pt-2 border-t border-amber-500/20 space-y-2">
+                  {activeOrder.orderReviews.map((rev, rIdx) => (
+                    <div key={rIdx} className="p-3 rounded-2xl bg-white/80 dark:bg-zinc-900/80 border border-amber-200/50 dark:border-amber-900/30 text-xs flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                              key={s}
+                              className={`w-3.5 h-3.5 ${s <= rev.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`}
+                            />
+                          ))}
+                        </div>
+                        <span className="font-bold text-gray-800 dark:text-zinc-200">
+                          {rev.rating}/5
+                        </span>
+                        <span className="text-gray-500 italic truncate max-w-xs">
+                          "{rev.comment.split('\n')[0]}"
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-gray-400">
+                        {new Date(rev.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Destination Details */}
           <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-gray-150 dark:border-zinc-850 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
             <div className="flex items-center gap-3">
@@ -478,6 +557,16 @@ export const OrderTrackingPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Post-Delivery Customer Review & Rating Modal */}
+      {activeOrder && (
+        <PostDeliveryReviewModal
+          order={activeOrder}
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          language={language}
+        />
       )}
     </div>
   );

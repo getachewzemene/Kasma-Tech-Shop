@@ -3,6 +3,7 @@ import {
   Product, 
   Merchant, 
   Order, 
+  Review,
   StockMovementLog, 
   AuditLog, 
   TelegramAlert, 
@@ -102,6 +103,18 @@ interface ShopContextType {
   approveMerchantKyc: (merchantId: string) => Promise<void>;
   toggleMerchantStatus: (merchantId: string) => Promise<void>;
   approvePayout: (merchantId: string, payoutId: string) => Promise<void>;
+
+  // Post-Delivery Reviews
+  addProductReview: (params: {
+    orderId: string;
+    productId: string;
+    rating: number;
+    comment: string;
+    reviewerName?: string;
+    reviewerPhone?: string;
+    deliveryRating?: number;
+    tags?: string[];
+  }) => Promise<boolean>;
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -522,6 +535,121 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch {}
   }, [getAdminAuthHeaders, showToast]);
 
+  // Post-Delivery Review Handler
+  const addProductReview = useCallback(async (params: {
+    orderId: string;
+    productId: string;
+    rating: number;
+    comment: string;
+    reviewerName?: string;
+    reviewerPhone?: string;
+    deliveryRating?: number;
+    tags?: string[];
+  }): Promise<boolean> => {
+    const { orderId, productId, rating, comment, reviewerName, reviewerPhone, deliveryRating, tags } = params;
+
+    const order = orders.find(o => o.id === orderId);
+    if (!order) {
+      showToast(language === 'en' ? 'Order record not found.' : 'የትዕዛዝ መረጃ አልተገኘም።', 'error');
+      return false;
+    }
+
+    if (order.status !== 'DELIVERED') {
+      showToast(
+        language === 'en' 
+          ? 'Reviews can only be submitted for completed orders in DELIVERED status.' 
+          : 'ግምገማ መስጠት የሚቻለው የደረሱ ትዕዛዞች ላይ ብቻ ነው።', 
+        'warning'
+      );
+      return false;
+    }
+
+    const cleanAuthor = (reviewerName || order.customerName || customerName || 'Verified Customer').trim();
+    const cleanComment = comment.trim();
+
+    if (!cleanComment) {
+      showToast(language === 'en' ? 'Please provide feedback comments.' : 'እባክዎ አስተያየትዎን ይጻፉ።', 'warning');
+      return false;
+    }
+
+    const newReview: Review = {
+      id: `rev-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+      rating,
+      comment: cleanComment,
+      reviewerName: cleanAuthor,
+      reviewerPhone: reviewerPhone || order.customerPhone || customerPhone,
+      orderId,
+      productId,
+      merchantId: order.items.find(i => i.product.id === productId)?.product.merchantId,
+      deliveryRating: deliveryRating || rating,
+      tags: tags || [],
+      createdAt: new Date().toISOString(),
+      verifiedPurchase: true,
+    };
+
+    // Update Product Reviews state locally
+    setProducts(prevProducts => {
+      return prevProducts.map(p => {
+        if (p.id === productId) {
+          const currentReviews = p.reviews || [];
+          const updatedReviews = [newReview, ...currentReviews];
+          const newAvg = Number((updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length).toFixed(1));
+            return {
+              ...p,
+              reviews: updatedReviews,
+              reviewsCount: (p.reviewsCount || currentReviews.length) + 1,
+              rating: newAvg
+            };
+        }
+        return p;
+      });
+    });
+
+    // Mark Order as reviewed
+    setOrders(prevOrders => {
+      return prevOrders.map(o => {
+        if (o.id === orderId) {
+          const prevOrderReviews = o.orderReviews || [];
+          return {
+            ...o,
+            reviewed: true,
+            reviewedAt: new Date().toISOString(),
+            orderReviews: [
+              ...prevOrderReviews,
+              { productId, rating, comment: cleanComment, createdAt: new Date().toISOString() }
+            ]
+          };
+        }
+        return o;
+      });
+    });
+
+    // Persist to backend API
+    try {
+      await fetch(`/api/products/${productId}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rating,
+          comment: cleanComment,
+          reviewerName: cleanAuthor,
+          reviewerPhone: reviewerPhone || order.customerPhone,
+          orderId
+        })
+      });
+    } catch (err) {
+      console.warn('Backend review persistence notice:', err);
+    }
+
+    showToast(
+      language === 'en'
+        ? `⭐ Thank you! Your verified ${rating}-star review has been published.`
+        : `⭐ እናመሰግናለን! የእርስዎ ባለ ${rating}-ኮከብ ግምገማ ታትሟል።`,
+      'success'
+    );
+    return true;
+  }, [orders, customerName, customerPhone, language, showToast]);
+
   return (
     <ShopContext.Provider
       value={{
@@ -585,7 +713,9 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         rejectProduct,
         approveMerchantKyc,
         toggleMerchantStatus,
-        approvePayout
+        approvePayout,
+
+        addProductReview
       }}
     >
       {children}

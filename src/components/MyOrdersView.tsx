@@ -26,12 +26,14 @@ import {
   ExternalLink,
   Tag,
   Filter,
-  Send
+  Send,
+  Star
 } from 'lucide-react';
 import { Order, Product, CartItem } from '../types';
 import { OrderTrackingVisualizer } from './OrderTrackingVisualizer';
 import { OrderCourierMiniMap } from './OrderCourierMiniMap';
 import { sendTelegramOrderConfirmation } from '../utils/telegramBot';
+import { PostDeliveryReviewModal } from './orders/PostDeliveryReviewModal';
 
 export interface MyOrdersViewProps {
   orders: Order[];
@@ -62,9 +64,10 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
   const [selectedFilter, setSelectedFilter] = useState<'ALL' | 'ACTIVE' | 'DELIVERED' | 'CANCELLED' | 'OFFLINE'>('ALL');
   const [sortBy, setSortBy] = useState<'NEWEST' | 'OLDEST' | 'PRICE_HIGH' | 'PRICE_LOW'>('NEWEST');
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
-  const [activeTabPerOrder, setActiveTabPerOrder] = useState<Record<string, 'ITEMS' | 'TRACKING' | 'RECEIPT'>>({});
+  const [activeTabPerOrder, setActiveTabPerOrder] = useState<Record<string, 'ITEMS' | 'TRACKING' | 'RECEIPT' | 'REVIEW'>>({});
   const [trackingViewMode, setTrackingViewMode] = useState<'SPLIT' | 'TIMELINE' | 'MAP'>('SPLIT');
   const [selectedReceiptOrder, setSelectedReceiptOrder] = useState<Order | null>(null);
+  const [reviewingOrder, setReviewingOrder] = useState<Order | null>(null);
 
   // Combine online and offline orders
   const allOrders = useMemo(() => {
@@ -132,7 +135,7 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
     });
   };
 
-  const handleTabChange = (orderId: string, tab: 'ITEMS' | 'TRACKING' | 'RECEIPT') => {
+  const handleTabChange = (orderId: string, tab: 'ITEMS' | 'TRACKING' | 'RECEIPT' | 'REVIEW') => {
     setActiveTabPerOrder(prev => ({ ...prev, [orderId]: tab }));
     if (expandedOrderId !== orderId) {
       setExpandedOrderId(orderId);
@@ -483,6 +486,24 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
                           <span className="hidden md:inline">{language === 'en' ? 'Telegram Receipt' : 'የቴሌግራም ደረሰኝ'}</span>
                         </button>
 
+                        {/* Post-Delivery Customer Review & Rating Button (DELIVERED exclusive) */}
+                        {ord.status === 'DELIVERED' && (
+                          <button
+                            onClick={() => setReviewingOrder(ord)}
+                            className={`px-3 py-2 text-xs font-black uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                              ord.reviewed
+                                ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 hover:bg-amber-100'
+                                : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-amber-500/20'
+                            }`}
+                            title={language === 'en' ? 'Review & Rate delivered items' : 'ደረጃ እና አስተያየት ይስጡ'}
+                          >
+                            <Star className={`w-3.5 h-3.5 ${ord.reviewed ? 'fill-amber-500 text-amber-500' : 'fill-white text-white'}`} />
+                            <span className="hidden sm:inline">
+                              {ord.reviewed ? (language === 'en' ? 'Reviewed ★' : 'ተገምግሟል ★') : (language === 'en' ? 'Review & Rate' : 'ደረጃ ይስጡ')}
+                            </span>
+                          </button>
+                        )}
+
                         {/* Buy Again Button */}
                         <button
                           onClick={() => handleBuyAgain(ord)}
@@ -573,6 +594,25 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
                             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                           )}
                         </button>
+
+                        {/* Post-Delivery Review Sub-Tab (DELIVERED exclusive) */}
+                        {ord.status === 'DELIVERED' && (
+                          <button
+                            onClick={() => handleTabChange(ord.id, 'REVIEW')}
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+                              activeTab === 'REVIEW'
+                                ? 'bg-amber-500 text-white shadow-xs'
+                                : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100'
+                            }`}
+                          >
+                            <Star className={`w-3.5 h-3.5 ${activeTab === 'REVIEW' || ord.reviewed ? 'fill-current' : ''}`} />
+                            <span>
+                              {ord.reviewed 
+                                ? (language === 'en' ? 'Verified Review ★' : 'የተረጋገጠ ግምገማ ★') 
+                                : (language === 'en' ? 'Review & Rate' : 'ደረጃ ይስጡ')}
+                            </span>
+                          </button>
+                        )}
 
                         <button
                           onClick={() => setSelectedReceiptOrder(ord)}
@@ -836,6 +876,109 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
 
                           </div>
                         </div>
+                      {/* SUB TAB 3: POST-DELIVERY REVIEWS & RATINGS (DELIVERED exclusive) */}
+                      {activeTab === 'REVIEW' && ord.status === 'DELIVERED' && (
+                        <div className="space-y-4 animate-in fade-in duration-300">
+                          <div className="p-6 rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 dark:border-amber-500/20 space-y-5">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                              <div className="flex items-start gap-3">
+                                <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/30">
+                                  <Star className="w-6 h-6 fill-white" />
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="text-sm font-black uppercase tracking-wider text-gray-950 dark:text-white">
+                                      {language === 'en' ? 'Verified Post-Delivery Review' : 'የተረጋገጠ የገዢ ደረጃ እና አስተያየት'}
+                                    </h4>
+                                    {ord.reviewed && (
+                                      <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        <span>{language === 'en' ? 'Verified' : 'የተረጋገጠ'}</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-600 dark:text-zinc-300 mt-1">
+                                    {ord.reviewed
+                                      ? (language === 'en'
+                                          ? 'Your rating and feedback helps other Ethiopian shoppers shop with confidence.'
+                                          : 'የሰጡት ደረጃ እና አስተያየት ሌሎች ኢትዮጵያውያን ሸማቾችን ይረዳል።')
+                                      : (language === 'en'
+                                          ? 'Rate your items and express courier delivery speed to earn verified buyer status.'
+                                          : 'ስለ እቃው ጥራት እና ስለ ማድረሻ ፍጥነቱ ደረጃ ይስጡ።')}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <button
+                                onClick={() => setReviewingOrder(ord)}
+                                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-xs font-black uppercase tracking-wider shadow-md shadow-amber-500/20 transition-all flex items-center gap-2 cursor-pointer shrink-0 self-start sm:self-auto"
+                              >
+                                <Star className="w-4 h-4 fill-white" />
+                                <span>
+                                  {ord.reviewed
+                                    ? (language === 'en' ? 'Edit / Add Review' : 'ግምገማ አሻሽል / ጨምር')
+                                    : (language === 'en' ? 'Write Review (⭐)' : 'ደረጃ ይስጡ (⭐)')}
+                                </span>
+                              </button>
+                            </div>
+
+                            {/* List of reviews for this order */}
+                            {ord.orderReviews && ord.orderReviews.length > 0 ? (
+                              <div className="space-y-3 pt-2">
+                                <h5 className="text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400">
+                                  {language === 'en' ? 'Your Submitted Ratings' : 'ያስገቧቸው ግምገማዎች'}
+                                </h5>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                  {ord.orderReviews.map((rev, rIdx) => {
+                                    const matchingItem = ord.items.find(it => it.product.id === rev.productId);
+                                    return (
+                                      <div key={rIdx} className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-amber-200/60 dark:border-amber-900/40 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-1 text-amber-500">
+                                            {[1, 2, 3, 4, 5].map((s) => (
+                                              <Star
+                                                key={s}
+                                                className={`w-3.5 h-3.5 ${s <= rev.rating ? 'fill-current' : 'text-gray-300 dark:text-zinc-700'}`}
+                                              />
+                                            ))}
+                                            <span className="font-bold text-xs ml-1 text-gray-900 dark:text-white">{rev.rating}/5</span>
+                                          </div>
+                                          <span className="text-[10px] text-gray-400 font-mono">
+                                            {new Date(rev.createdAt).toLocaleDateString()}
+                                          </span>
+                                        </div>
+
+                                        {matchingItem && (
+                                          <p className="text-xs font-bold text-gray-800 dark:text-zinc-200 truncate">
+                                            {language === 'en' ? matchingItem.product.nameEn : matchingItem.product.nameAm}
+                                          </p>
+                                        )}
+
+                                        <p className="text-xs text-gray-600 dark:text-zinc-300 italic bg-gray-50 dark:bg-zinc-800/50 p-2.5 rounded-lg border border-gray-100 dark:border-zinc-800">
+                                          "{rev.comment}"
+                                        </p>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="p-4 rounded-xl bg-white/60 dark:bg-zinc-900/60 border border-dashed border-amber-300 dark:border-amber-800/60 text-center space-y-2">
+                                <p className="text-xs text-gray-500 dark:text-zinc-400">
+                                  {language === 'en'
+                                    ? 'No reviews submitted yet for this delivered order.'
+                                    : 'ለዚህ የደረሰ ትዕዛዝ እስካሁን ምንም ግምገማ አልተሰጠም።'}
+                                </p>
+                                <button
+                                  onClick={() => setReviewingOrder(ord)}
+                                  className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
+                                >
+                                  {language === 'en' ? 'Click here to rate your experience' : 'ደረጃ ለመስጠት እዚህ ይጫኑ'} →
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       )}
 
                     </div>
@@ -994,6 +1137,16 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
 
           </div>
         </div>
+      )}
+
+      {/* Post-Delivery Customer Review & Rating Modal (DELIVERED exclusive) */}
+      {reviewingOrder && (
+        <PostDeliveryReviewModal
+          order={reviewingOrder}
+          isOpen={Boolean(reviewingOrder)}
+          onClose={() => setReviewingOrder(null)}
+          language={language}
+        />
       )}
     </div>
   );

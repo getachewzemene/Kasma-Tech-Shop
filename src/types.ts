@@ -14,6 +14,7 @@ export interface Product {
   merchantId: string;
   merchantName: string;
   merchantTelegram?: string;
+  rating?: number;
   featured?: boolean;
   createdAt?: string;
   reviews?: Review[];
@@ -31,7 +32,13 @@ export interface Review {
   comment: string;
   reviewerName: string;
   reviewerPhone?: string;
+  orderId?: string;
+  productId?: string;
+  merchantId?: string;
+  deliveryRating?: number;
+  tags?: string[];
   createdAt: string;
+  verifiedPurchase?: boolean;
 }
 
 export interface Variant {
@@ -81,6 +88,9 @@ export interface Order {
   packedAt?: string;
   shippedAt?: string;
   deliveredAt?: string;
+  reviewed?: boolean;
+  reviewedAt?: string;
+  orderReviews?: { productId: string; rating: number; comment: string; createdAt: string }[];
 }
 
 export interface StockMovementLog {
