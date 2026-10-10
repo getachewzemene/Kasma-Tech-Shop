@@ -16,8 +16,11 @@ import {
   Camera, 
   Layers, 
   Zap,
-  ArrowUpDown
+  ArrowUpDown,
+  Scale
 } from 'lucide-react';
+import { FloatingCompareDock } from '../../components/catalog/FloatingCompareDock';
+import { TechSpecsComparisonModal } from '../../components/catalog/TechSpecsComparisonModal';
 
 export const CatalogPage: React.FC = () => {
   const navigate = useNavigate();
@@ -32,7 +35,12 @@ export const CatalogPage: React.FC = () => {
     addToCart,
     favorites,
     toggleFavorite,
-    showToast
+    showToast,
+    comparedProductIds,
+    toggleCompare,
+    isCompareModalOpen,
+    setIsCompareModalOpen,
+    openCompareWith
   } = useShop();
 
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'rating'>('featured');
@@ -119,6 +127,27 @@ export const CatalogPage: React.FC = () => {
               ? 'Explore factory sealed smartphones, high-performance laptops, noise-canceling headphones, and gaming consoles with official warranty & verified Telebirr escrow.'
               : 'በፋብሪካው የታሸጉ ስልኮች፣ ላፕቶፖች፣ የጆሮ ማዳመጫዎች እና የጨዋታ ኮንሶሎች በኦፊሴላዊ ዋስትና እና በቴሌብር ክፍያ ያግኙ።'}
           </p>
+
+          {/* Quick Side-by-Side Comparison Shortcuts */}
+          <div className="flex flex-wrap items-center gap-2.5 pt-2">
+            <span className="text-[11px] font-bold text-gray-400">
+              {language === 'en' ? 'Quick Compare:' : 'ፈጣን ማነጻጸሪያ፡'}
+            </span>
+            <button
+              onClick={() => openCompareWith(['p11', 'p12'])}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-black backdrop-blur-md transition-all cursor-pointer shadow-xs hover:scale-105 active:scale-95"
+            >
+              <Scale className="w-3.5 h-3.5 text-blue-300" />
+              <span>{language === 'en' ? '⚖️ Laptops: M3 Max vs XPS 15' : '⚖️ ላፕቶፖች፡ M3 Max vs XPS 15'}</span>
+            </button>
+            <button
+              onClick={() => openCompareWith(['p7', 'p10'])}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-black backdrop-blur-md transition-all cursor-pointer shadow-xs hover:scale-105 active:scale-95"
+            >
+              <Scale className="w-3.5 h-3.5 text-purple-300" />
+              <span>{language === 'en' ? '⚖️ Phones: S24 Ultra vs iPhone 15 Pro' : '⚖️ ስልኮች፡ S24 Ultra vs iPhone 15'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Ambient Glow */}
@@ -198,22 +227,41 @@ export const CatalogPage: React.FC = () => {
           </select>
         </div>
 
-        {/* Sort By Dropdown */}
-        <div className="flex items-center gap-2 shrink-0">
-          <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs text-gray-500 font-medium">
-            {language === 'en' ? 'Sort by:' : 'አደራድር፡'}
-          </span>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 dark:bg-zinc-800 border border-transparent text-gray-700 dark:text-zinc-300 outline-none cursor-pointer"
+        {/* Controls Right: Compare Tool & Sort By */}
+        <div className="flex items-center gap-3 shrink-0 flex-wrap sm:flex-nowrap">
+          {/* Quick Comparison Modal Launcher */}
+          <button
+            onClick={() => setIsCompareModalOpen(true)}
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 border border-blue-200 dark:border-blue-800 text-[#0052FF] dark:text-blue-400 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
           >
-            <option value="featured">{language === 'en' ? 'Featured / Popular' : 'ተወዳጅ'}</option>
-            <option value="price-asc">{language === 'en' ? 'Price: Low to High' : 'ዋጋ፡ ከዝቅተኛ ወደ ከፍተኛ'}</option>
-            <option value="price-desc">{language === 'en' ? 'Price: High to Low' : 'ዋጋ፡ ከከፍተኛ ወደ ዝቅተኛ'}</option>
-            <option value="rating">{language === 'en' ? 'Highest Rated' : 'ከፍተኛ ደረጃ የተሰጠው'}</option>
-          </select>
+            <Scale className="w-3.5 h-3.5" />
+            <span>
+              {language === 'en' ? 'Side-by-Side Compare' : 'ጎን ለጎን አነጻጽር'}
+            </span>
+            {comparedProductIds.length > 0 && (
+              <span className="w-4 h-4 rounded-full bg-[#0052FF] text-white text-[10px] font-black flex items-center justify-center">
+                {comparedProductIds.length}
+              </span>
+            )}
+          </button>
+
+          {/* Sort By Dropdown */}
+          <div className="flex items-center gap-2 shrink-0">
+            <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
+            <span className="text-xs text-gray-500 font-medium">
+              {language === 'en' ? 'Sort by:' : 'አደራድር፡'}
+            </span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 dark:bg-zinc-800 border border-transparent text-gray-700 dark:text-zinc-300 outline-none cursor-pointer"
+            >
+              <option value="featured">{language === 'en' ? 'Featured / Popular' : 'ተወዳጅ'}</option>
+              <option value="price-asc">{language === 'en' ? 'Price: Low to High' : 'ዋጋ፡ ከዝቅተኛ ወደ ከፍተኛ'}</option>
+              <option value="price-desc">{language === 'en' ? 'Price: High to Low' : 'ዋጋ፡ ከከፍተኛ ወደ ዝቅተኛ'}</option>
+              <option value="rating">{language === 'en' ? 'Highest Rated' : 'ከፍተኛ ደረጃ የተሰጠው'}</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -243,6 +291,8 @@ export const CatalogPage: React.FC = () => {
               language={language}
               isFavorite={favorites.includes(product.id)}
               onToggleFavorite={() => toggleFavorite(product.id)}
+              isCompared={comparedProductIds.includes(product.id)}
+              onToggleCompare={() => toggleCompare(product.id)}
               onOpenProduct={(p) => navigate(`/product/${p.id}`)}
               onAddToCart={(p, v, q) => addToCart(p, v?.sku, q)}
               onInstantBuy={(p, v, q) => {
@@ -254,6 +304,15 @@ export const CatalogPage: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Floating Bottom Comparison Dock (Displays when 1 or 2 products selected) */}
+      <FloatingCompareDock />
+
+      {/* ⚖️ Side-by-Side Tech Specs Comparison Tool Modal */}
+      <TechSpecsComparisonModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+      />
     </div>
   );
 };

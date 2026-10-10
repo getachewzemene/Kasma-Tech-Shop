@@ -270,18 +270,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* Action Buttons: Glassmorphism Compare, Share & Favorite */}
           <div className="absolute top-2 right-2 flex items-center gap-1 z-30 pointer-events-auto">
-            {/* Compare Button - Desktop only */}
+            {/* Compare Button */}
             {onToggleCompare && (
               <button
                 type="button"
-                title={language === 'en' ? 'Compare Product' : 'ምርቶችን ያነፃፅሩ'}
+                title={language === 'en' ? 'Side-by-Side Specs Compare' : 'ጎን ለጎን ዝርዝር መግለጫ ማነጻጸሪያ'}
                 onClick={(e) => {
                   e.stopPropagation();
                   onToggleCompare(product.id, e);
                 }}
-                className={`hidden sm:flex p-1.5 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-xs hover:scale-110 active:scale-95 z-30 min-w-[28px] min-h-[28px] items-center justify-center ${
+                className={`flex p-1.5 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-xs hover:scale-110 active:scale-95 z-30 min-w-[28px] min-h-[28px] items-center justify-center ${
                   isCompared
-                    ? 'bg-blue-50 dark:bg-blue-950/90 text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-800'
+                    ? 'bg-[#0052FF] text-white border border-blue-400 shadow-md shadow-blue-500/30'
                     : 'bg-white/90 dark:bg-zinc-900/90 hover:bg-white text-gray-600 dark:text-zinc-300 hover:text-blue-600 border border-white/60 dark:border-zinc-700/60'
                 }`}
               >

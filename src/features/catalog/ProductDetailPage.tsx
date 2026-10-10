@@ -20,12 +20,15 @@ import {
   Heart,
   Send,
   FileBadge,
-  QrCode
+  QrCode,
+  Scale
 } from 'lucide-react';
 import { DigitalWarrantyPass } from '../../types';
 import { DigitalWarrantyPassModal } from '../../components/warranty/DigitalWarrantyPassModal';
 import { WarrantyClaimModal } from '../../components/warranty/WarrantyClaimModal';
 import { SerialCoverageCheckerModal } from '../../components/warranty/SerialCoverageCheckerModal';
+import { SideBySideSpecComparisonSection } from '../../components/catalog/SideBySideSpecComparisonSection';
+import { TechSpecsComparisonModal } from '../../components/catalog/TechSpecsComparisonModal';
 import { generateDeviceSerial, generateTamperProofHash } from '../../lib/warrantyService';
 
 export const ProductDetailPage: React.FC = () => {
@@ -39,7 +42,12 @@ export const ProductDetailPage: React.FC = () => {
     favorites, 
     toggleFavorite,
     showToast,
-    submitWarrantyClaim
+    submitWarrantyClaim,
+    openCompareWith,
+    isCompareModalOpen,
+    setIsCompareModalOpen,
+    toggleCompare,
+    comparedProductIds
   } = useShop();
 
   const [isSerialCheckerOpen, setIsSerialCheckerOpen] = useState(false);
@@ -487,6 +495,26 @@ export const ProductDetailPage: React.FC = () => {
                 <Zap className="w-4 h-4" />
                 <span>{language === 'en' ? 'Instant Buy' : 'ወዲያውኑ ግዛ'}</span>
               </button>
+
+              {/* Compare Tech Specs Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  toggleCompare(product.id);
+                  setIsCompareModalOpen(true);
+                }}
+                className={`py-3 px-3.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
+                  comparedProductIds.includes(product.id)
+                    ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-400 text-[#0052FF] dark:text-blue-300'
+                    : 'bg-white dark:bg-zinc-850 hover:bg-gray-50 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-200'
+                }`}
+                title={language === 'en' ? 'Side-by-Side Tech Specs Compare' : 'ጎን ለጎን ዝርዝር መግለጫ ማነጻጸሪያ'}
+              >
+                <Scale className="w-4 h-4 text-[#0052FF]" />
+                <span className="hidden sm:inline">
+                  {language === 'en' ? 'Compare Specs' : 'አነጻጽር'}
+                </span>
+              </button>
             </div>
 
             {/* 1-Click "Chat with Seller on Telegram" Button */}
@@ -629,6 +657,19 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ⚖️ Side-by-Side Tech Specs Comparison Tool Section */}
+      <SideBySideSpecComparisonSection
+        currentProduct={product}
+        onOpenFullComparison={(rivalId) => openCompareWith([product.id, rivalId])}
+      />
+
+      {/* ⚖️ Full Side-by-Side Tech Specs Comparison Tool Modal */}
+      <TechSpecsComparisonModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        productAId={product.id}
+      />
 
       {/* Digital Warranty & Serial Modals */}
       <SerialCoverageCheckerModal

@@ -107,15 +107,27 @@ export class Database {
           this.apiLogs = [];
           this.save();
         } else {
-          // Guarantee distinct condition and warranty on all existing products
+          // Guarantee distinct condition, warranty, and tech specs on all existing products
+          const existingIds = new Set(this.products.map(p => p.id));
+          INITIAL_PRODUCTS.forEach(initP => {
+            if (!existingIds.has(initP.id)) {
+              this.products.push({ ...initP });
+            } else {
+              const prod = this.products.find(p => p.id === initP.id);
+              if (prod && initP.specs) {
+                prod.specs = initP.specs;
+              }
+            }
+          });
+
           this.products = this.products.map(p => {
             let condition = p.condition;
             if (!condition || condition === 'BRAND_NEW_SEALED') {
-              condition = (p.category === 'mobiles' || p.category === 'smartwatches' || p.category === 'gaming') ? 'SEALED' : 'BRAND_NEW';
+              condition = (p.category === 'mobiles' || p.category === 'smartwatches' || p.category === 'gaming' || p.category === 'computers') ? 'SEALED' : 'BRAND_NEW';
             }
             const conditionTextEn = condition === 'SEALED' ? 'Factory Sealed' : condition === 'BRAND_NEW' ? 'Brand New' : condition === 'OPEN_BOX' ? 'Open Box' : 'Certified Refurbished';
             const conditionTextAm = condition === 'SEALED' ? 'በፋብሪካው የታሸገ' : condition === 'BRAND_NEW' ? 'አዲስ' : condition === 'OPEN_BOX' ? 'ክፍት ሳጥን' : 'የታደሰ';
-            const warrantyMonths = p.warrantyMonths || (p.category === 'mobiles' || p.category === 'cameras' || p.category === 'smartwatches' ? 24 : 12);
+            const warrantyMonths = p.warrantyMonths || (p.category === 'mobiles' || p.category === 'cameras' || p.category === 'smartwatches' || p.category === 'computers' ? 24 : 12);
             return {
               ...p,
               condition,

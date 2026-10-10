@@ -24,6 +24,22 @@ export interface Product {
   warrantyMonths?: number;
   warrantyTextEn?: string;
   warrantyTextAm?: string;
+  specs?: TechSpecs;
+}
+
+export interface TechSpecs {
+  ram?: string;
+  cpu?: string;
+  gpu?: string;
+  battery?: string;
+  storage?: string;
+  display?: string;
+  os?: string;
+  weight?: string;
+  camera?: string;
+  charging?: string;
+  connectivity?: string;
+  ports?: string;
 }
 
 export interface Review {

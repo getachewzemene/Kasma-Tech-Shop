@@ -70,6 +70,15 @@ interface ShopContextType {
   favorites: string[];
   toggleFavorite: (productId: string) => void;
 
+  // Tech Specs Comparison
+  comparedProductIds: string[];
+  toggleCompare: (productId: string, e?: React.MouseEvent) => void;
+  removeFromCompare: (productId: string) => void;
+  clearCompare: () => void;
+  isCompareModalOpen: boolean;
+  setIsCompareModalOpen: (open: boolean) => void;
+  openCompareWith: (productIds: string[]) => void;
+
   // Promo Codes & Discounts
   promoCodes: PromoCode[];
   appliedPromo: PromoCode | null;
@@ -177,6 +186,23 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return [];
     }
   });
+
+  // Tech Specs Comparison State (Up to 2 devices side-by-side)
+  const [comparedProductIds, setComparedProductIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('kasma_compared_products');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('kasma_compared_products', JSON.stringify(comparedProductIds));
+    } catch {}
+  }, [comparedProductIds]);
 
   // Promo Codes
   const [promoCodes] = useState<PromoCode[]>([
@@ -359,6 +385,51 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return updated;
     });
   }, [language, showToast]);
+
+  // Tech Specs Comparison Handlers (Side-by-Side comparison of 2 devices)
+  const toggleCompare = useCallback((productId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setComparedProductIds(prev => {
+      if (prev.includes(productId)) {
+        const next = prev.filter(id => id !== productId);
+        showToast(language === 'en' ? 'Removed from Comparison' : 'ከማነጻጸሪያው ተወግዷል', 'info');
+        return next;
+      }
+      if (prev.length >= 2) {
+        // Swap 2nd slot to allow effortless replacement
+        const next = [prev[0], productId];
+        showToast(
+          language === 'en'
+            ? 'Side-by-side comparison slot updated'
+            : 'የጎን ለጎን ማነጻጸሪያው ተዘምኗል',
+          'success'
+        );
+        return next;
+      }
+      const next = [...prev, productId];
+      showToast(
+        language === 'en'
+          ? 'Added to Tech Specs Comparison'
+          : 'ወደ ቴክኖሎጂ ዝርዝር ማነጻጸሪያ ታክሏል',
+        'success'
+      );
+      return next;
+    });
+  }, [language, showToast]);
+
+  const removeFromCompare = useCallback((productId: string) => {
+    setComparedProductIds(prev => prev.filter(id => id !== productId));
+  }, []);
+
+  const clearCompare = useCallback(() => {
+    setComparedProductIds([]);
+    showToast(language === 'en' ? 'Comparison cleared' : 'ማነጻጸሪያው ጸድቷል', 'info');
+  }, [language, showToast]);
+
+  const openCompareWith = useCallback((productIds: string[]) => {
+    setComparedProductIds(productIds.slice(0, 2));
+    setIsCompareModalOpen(true);
+  }, []);
 
   // Promo code calculation
   const applyPromoCode = useCallback((codeStr: string): boolean => {
@@ -781,6 +852,14 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         favorites,
         toggleFavorite,
+
+        comparedProductIds,
+        toggleCompare,
+        removeFromCompare,
+        clearCompare,
+        isCompareModalOpen,
+        setIsCompareModalOpen,
+        openCompareWith,
 
         promoCodes,
         appliedPromo,
