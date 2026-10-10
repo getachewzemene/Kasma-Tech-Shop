@@ -60,16 +60,42 @@ interface ShopContextType {
 
   // Cart
   cart: CartItem[];
+  setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
   addToCart: (product: Product, variantSku?: string, qty?: number) => void;
   removeFromCart: (sku: string) => void;
   updateCartQuantity: (sku: string, qty: number) => void;
   clearCart: () => void;
   cartCount: number;
   cartSubtotal: number;
+  isCartOpen: boolean;
+  setIsCartOpen: (open: boolean) => void;
 
   // Favorites / Wishlist
   favorites: string[];
+  setFavorites: React.Dispatch<React.SetStateAction<string[]>>;
   toggleFavorite: (productId: string) => void;
+  isWishlistOpen: boolean;
+  setIsWishlistOpen: (open: boolean) => void;
+
+  // Alerts, Guided Tour & Overlays
+  priceAlerts: PriceAlert[];
+  setPriceAlerts: React.Dispatch<React.SetStateAction<PriceAlert[]>>;
+  isPriceAlertsOpen: boolean;
+  setIsPriceAlertsOpen: (open: boolean) => void;
+  isQrScannerOpen: boolean;
+  setIsQrScannerOpen: (open: boolean) => void;
+  isProductTourOpen: boolean;
+  setIsProductTourOpen: (open: boolean) => void;
+  selectedProduct: Product | null;
+  setSelectedProduct: React.Dispatch<React.SetStateAction<Product | null>>;
+
+  // Sync & Offline State
+  offlineOrders: Order[];
+  setOfflineOrders: React.Dispatch<React.SetStateAction<Order[]>>;
+  isOfflineSimulated: boolean;
+  setIsOfflineSimulated: (sim: boolean) => void;
+  isSyncing: boolean;
+  handleForceSync: () => Promise<void>;
 
   // Tech Specs Comparison
   comparedProductIds: string[];
@@ -198,6 +224,35 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return [];
     }
   });
+
+  // Drawer & Overlay UI states
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [isPriceAlertsOpen, setIsPriceAlertsOpen] = useState(false);
+  const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
+  const [isProductTourOpen, setIsProductTourOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  // Price Alerts with LocalStorage
+  const [priceAlerts, setPriceAlerts] = useState<PriceAlert[]>(() => {
+    try {
+      const saved = localStorage.getItem('kasma_price_alerts');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('kasma_price_alerts', JSON.stringify(priceAlerts));
+    } catch {}
+  }, [priceAlerts]);
+
+  // Offline Simulation & Data Sync
+  const [offlineOrders, setOfflineOrders] = useState<Order[]>([]);
+  const [isOfflineSimulated, setIsOfflineSimulated] = useState<boolean>(false);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
   // Tech Specs Comparison State (Up to 2 devices side-by-side)
   const [comparedProductIds, setComparedProductIds] = useState<string[]>(() => {
@@ -333,6 +388,18 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsInitializing(false);
     }
   }, []);
+
+  const handleForceSync = useCallback(async () => {
+    setIsSyncing(true);
+    try {
+      await refreshState();
+      showToast(language === 'en' ? 'Data synchronized successfully!' : 'ዳታ በተሳካ ሁኔታ ተመሳስሏል!', 'success');
+    } catch (e) {
+      showToast(language === 'en' ? 'Sync failed. Working in offline mode.' : 'ማመሳሰል አልተሳካም።', 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [language, refreshState, showToast]);
 
   useEffect(() => {
     refreshState();
@@ -906,15 +973,39 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setSelectedCategory,
 
         cart,
+        setCart,
         addToCart,
         removeFromCart,
         updateCartQuantity,
         clearCart,
         cartCount,
         cartSubtotal,
+        isCartOpen,
+        setIsCartOpen,
 
         favorites,
+        setFavorites,
         toggleFavorite,
+        isWishlistOpen,
+        setIsWishlistOpen,
+
+        priceAlerts,
+        setPriceAlerts,
+        isPriceAlertsOpen,
+        setIsPriceAlertsOpen,
+        isQrScannerOpen,
+        setIsQrScannerOpen,
+        isProductTourOpen,
+        setIsProductTourOpen,
+        selectedProduct,
+        setSelectedProduct,
+
+        offlineOrders,
+        setOfflineOrders,
+        isOfflineSimulated,
+        setIsOfflineSimulated,
+        isSyncing,
+        handleForceSync,
 
         comparedProductIds,
         toggleCompare,
