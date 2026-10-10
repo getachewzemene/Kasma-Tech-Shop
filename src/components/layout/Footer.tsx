@@ -143,6 +143,12 @@ export const Footer: React.FC = () => {
                   <ExternalLink className="w-3 h-3 text-gray-400" />
                 </Link>
               </li>
+              <li>
+                <Link to="/courier" className="hover:text-[#0052FF] transition-colors flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold">
+                  <span>{language === 'en' ? 'Addis Courier Portal (🛵)' : 'የአዲስ አበባ አሽከርካሪዎች (🛵)'}</span>
+                  <ExternalLink className="w-3 h-3 text-amber-500" />
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

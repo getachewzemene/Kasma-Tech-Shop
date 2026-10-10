@@ -10,6 +10,7 @@ import {
   Truck, 
   Store, 
   ShieldCheck, 
+  Bike,
   User, 
   Heart, 
   Menu, 
@@ -117,6 +118,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile }) => {
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
                 <span>{language === 'en' ? 'Admin' : 'አስተዳዳሪ'}</span>
+              </Link>
+              <Link 
+                to="/courier" 
+                className="px-3 py-1.5 rounded-lg text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-100 hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors flex items-center gap-1.5"
+              >
+                <Bike className="w-3.5 h-3.5 text-amber-500" />
+                <span>{language === 'en' ? 'Courier' : 'አሽከርካሪ'}</span>
               </Link>
             </nav>
 
@@ -226,6 +234,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile }) => {
             >
               <ShieldCheck className="w-4 h-4 text-purple-600" />
               <span>{language === 'en' ? 'Admin Console' : 'አስተዳዳሪ'}</span>
+            </Link>
+            <Link
+              to="/courier"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-xl text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 flex items-center gap-2 font-bold"
+            >
+              <Bike className="w-4 h-4 text-amber-500" />
+              <span>{language === 'en' ? 'Courier Dispatch (/courier)' : 'የአዲስ አበባ አሽከርካሪ (/courier)'}</span>
             </Link>
           </div>
         )}

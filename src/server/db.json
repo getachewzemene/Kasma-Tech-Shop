@@ -1,45 +1,46 @@
 {
   "products": [
     {
-      "id": "p1",
-      "nameEn": "SteelSeries Arctis Nova Pro Wireless Headset",
-      "nameAm": "ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ",
-      "category": "gaming",
-      "price": 19500,
-      "brand": "SteelSeries",
+      "id": "p8",
+      "nameEn": "Sennheiser Momentum True Wireless 4 Earbuds",
+      "nameAm": "ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ",
+      "category": "headphones",
+      "price": 18500,
+      "brand": "Sennheiser",
       "status": "APPROVED",
-      "lowStockThreshold": 5,
+      "lowStockThreshold": 3,
       "merchantId": "m1",
       "merchantName": "Girma Tech Store",
-      "descriptionEn": "Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.",
-      "descriptionAm": "ምርጥ ጥራት ያለው የጌሚንግ ማዳመጫ ከግርግር መከላከያ (Active Noise Cancellation)፣ ሁለት ሲስተም በአንድ ጊዜ የማገናኘት ብቃት እና ተለዋዋጭ ባትሪዎች ያሉት።",
-      "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80",
+      "descriptionEn": "Audiophile-quality wireless earbuds with personalized adaptive noise cancellation and next-generation lossless audio technology.",
+      "descriptionAm": "እጅግ ጥራት ያለው የሙዚቃ ድምፅ የሚሰጥ ብሉቱዝ ማዳመጫ፣ ከራስዎ ፍላጎት ጋር የሚስማማ የድምፅ መከላከያ እና አዲስ ትውልድ የኦዲዮ ቴክኖሎጂ ያለው።",
+      "image": "https://images.unsplash.com/photo-1608156639585-b3a032ef9689?auto=format&fit=crop&w=800&q=80",
       "variants": [
         {
-          "sku": "SS-ANP-BLK",
-          "name": "Charcoal Black",
+          "sku": "SEN-MT4-BLK",
+          "name": "Black Copper",
           "priceOffset": 0,
-          "onHand": 14,
+          "onHand": 4,
           "reserved": 0
         },
         {
-          "sku": "SS-ANP-WHT",
-          "name": "White Edition",
-          "priceOffset": 1200,
-          "onHand": 12,
-          "reserved": 1
+          "sku": "SEN-MT4-SLV",
+          "name": "Metallic Silver",
+          "priceOffset": 0,
+          "onHand": 3,
+          "reserved": 0
         }
       ],
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true,
       "condition": "SEALED",
       "conditionTextEn": "Factory Sealed",
       "conditionTextAm": "በፋብሪካው የታሸገ",
       "warrantyMonths": 12,
       "warrantyTextEn": "12 Months Official Warranty",
-      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና",
+      "reviews": [],
+      "featured": true
     },
     {
       "id": "p2",
@@ -74,13 +75,14 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true,
       "condition": "BRAND_NEW",
       "conditionTextEn": "Brand New",
-      "conditionTextAm": "አዲስ",
+      "conditionTextAm": "አዲስ (ያልተከፈተ)",
       "warrantyMonths": 12,
       "warrantyTextEn": "12 Months Official Warranty",
-      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና",
+      "reviews": [],
+      "featured": true
     },
     {
       "id": "p3",
@@ -108,13 +110,14 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true,
       "condition": "SEALED",
       "conditionTextEn": "Factory Sealed",
       "conditionTextAm": "በፋብሪካው የታሸገ",
       "warrantyMonths": 24,
       "warrantyTextEn": "24 Months Official Warranty",
-      "warrantyTextAm": "የ24 ወራት ኦፊሴላዊ ዋስትና"
+      "warrantyTextAm": "የ24 ወራት ኦፊሴላዊ ዋስትና",
+      "reviews": [],
+      "featured": true
     },
     {
       "id": "p4",
@@ -149,13 +152,14 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true,
       "condition": "BRAND_NEW",
       "conditionTextEn": "Brand New",
       "conditionTextAm": "አዲስ",
       "warrantyMonths": 12,
       "warrantyTextEn": "12 Months Official Warranty",
-      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና",
+      "reviews": [],
+      "featured": true
     },
     {
       "id": "p5",
@@ -183,13 +187,14 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true,
       "condition": "BRAND_NEW",
       "conditionTextEn": "Brand New",
       "conditionTextAm": "አዲስ",
       "warrantyMonths": 24,
       "warrantyTextEn": "24 Months Official Warranty",
-      "warrantyTextAm": "የ24 ወራት ኦፊሴላዊ ዋስትና"
+      "warrantyTextAm": "የ24 ወራት ኦፊሴላዊ ዋስትና",
+      "reviews": [],
+      "featured": true
     },
     {
       "id": "p6",
@@ -224,13 +229,14 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true,
-      "condition": "BRAND_NEW",
-      "conditionTextEn": "Brand New",
-      "conditionTextAm": "አዲስ",
+      "condition": "OPEN_BOX",
+      "conditionTextEn": "Open Box",
+      "conditionTextAm": "ክፍት ሳጥን",
       "warrantyMonths": 12,
       "warrantyTextEn": "12 Months Official Warranty",
-      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና",
+      "reviews": [],
+      "featured": true
     },
     {
       "id": "p7",
@@ -265,54 +271,14 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true,
       "condition": "SEALED",
       "conditionTextEn": "Factory Sealed",
       "conditionTextAm": "በፋብሪካው የታሸገ",
       "warrantyMonths": 24,
       "warrantyTextEn": "24 Months Official Warranty",
-      "warrantyTextAm": "የ24 ወራት ኦፊሴላዊ ዋስትና"
-    },
-    {
-      "id": "p8",
-      "nameEn": "Sennheiser Momentum True Wireless 4 Earbuds",
-      "nameAm": "ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ",
-      "category": "headphones",
-      "price": 18500,
-      "brand": "Sennheiser",
-      "status": "APPROVED",
-      "lowStockThreshold": 3,
-      "merchantId": "m1",
-      "merchantName": "Girma Tech Store",
-      "descriptionEn": "Audiophile-quality wireless earbuds with personalized adaptive noise cancellation and next-generation lossless audio technology.",
-      "descriptionAm": "እጅግ ጥራት ያለው የሙዚቃ ድምፅ የሚሰጥ ብሉቱዝ ማዳመጫ፣ ከራስዎ ፍላጎት ጋር የሚስማማ የድምፅ መከላከያ እና አዲስ ትውልድ የኦዲዮ ቴክኖሎጂ ያለው።",
-      "image": "https://images.unsplash.com/photo-1608156639585-b3a032ef9689?auto=format&fit=crop&w=600&q=80",
-      "variants": [
-        {
-          "sku": "SEN-MT4-BLK",
-          "name": "Black Copper",
-          "priceOffset": 0,
-          "onHand": 4,
-          "reserved": 0
-        },
-        {
-          "sku": "SEN-MT4-SLV",
-          "name": "Metallic Silver",
-          "priceOffset": 0,
-          "onHand": 3,
-          "reserved": 0
-        }
-      ],
-      "specifications": {},
-      "rating": 4.8,
-      "reviewsCount": 0,
-      "featured": true,
-      "condition": "BRAND_NEW",
-      "conditionTextEn": "Brand New",
-      "conditionTextAm": "አዲስ",
-      "warrantyMonths": 12,
-      "warrantyTextEn": "12 Months Official Warranty",
-      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
+      "warrantyTextAm": "የ24 ወራት ኦፊሴላዊ ዋስትና",
+      "reviews": [],
+      "featured": true
     },
     {
       "id": "p9",
@@ -340,23 +306,28 @@
       "specifications": {},
       "rating": 4.8,
       "reviewsCount": 0,
-      "featured": true,
       "condition": "BRAND_NEW",
       "conditionTextEn": "Brand New",
       "conditionTextAm": "አዲስ",
-      "warrantyMonths": 12,
-      "warrantyTextEn": "12 Months Official Warranty",
-      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
+      "warrantyMonths": 18,
+      "warrantyTextEn": "18 Months Official Warranty",
+      "warrantyTextAm": "የ18 ወራት ኦፊሴላዊ ዋስትና",
+      "reviews": [],
+      "featured": true
     },
     {
       "id": "prod-audit-1791536779259",
       "nameEn": "Audit Test Product",
       "nameAm": "የሙከራ እቃ",
+      "category": "accessories",
+      "price": 3200,
+      "brand": "Kasma Test",
+      "status": "APPROVED",
+      "lowStockThreshold": 5,
+      "merchantId": "m1",
+      "merchantName": "Selam Electronics",
       "descriptionEn": "Test item for RBAC",
       "descriptionAm": "የሙከራ እቃ",
-      "price": 3200,
-      "category": "accessories",
-      "brand": "Kasma Test",
       "image": "https://images.unsplash.com/photo-1546868871-7041f2a55e12",
       "variants": [
         {
@@ -367,26 +338,73 @@
           "onHand": 15
         }
       ],
+      "specifications": {},
+      "rating": 4.8,
+      "reviewsCount": 0,
+      "condition": "SEALED",
+      "conditionTextEn": "Factory Sealed",
+      "conditionTextAm": "በፋብሪካው የታሸገ",
+      "warrantyMonths": 12,
+      "warrantyTextEn": "12 Months Official Warranty",
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና",
+      "reviews": [],
+      "featured": true
+    },
+    {
+      "id": "p1",
+      "nameEn": "SteelSeries Arctis Nova Pro Wireless Headset",
+      "nameAm": "ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ",
+      "category": "gaming",
+      "price": 19500,
+      "brand": "SteelSeries",
       "status": "APPROVED",
       "lowStockThreshold": 5,
       "merchantId": "m1",
-      "merchantName": "Selam Electronics",
-      "condition": "BRAND_NEW",
-      "conditionTextEn": "Brand New",
-      "conditionTextAm": "አዲስ",
+      "merchantName": "Girma Tech Store",
+      "descriptionEn": "Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.",
+      "descriptionAm": "ምርጥ ጥራት ያለው የጌሚንግ ማዳመጫ ከግርግር መከላከያ (Active Noise Cancellation)፣ ሁለት ሲስተም በአንድ ጊዜ የማገናኘት ብቃት እና ተለዋዋጭ ባትሪዎች ያሉት።",
+      "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80",
+      "variants": [
+        {
+          "sku": "SS-ANP-BLK",
+          "name": "Charcoal Black",
+          "priceOffset": 0,
+          "onHand": 14,
+          "reserved": 0
+        },
+        {
+          "sku": "SS-ANP-WHT",
+          "name": "White Edition",
+          "priceOffset": 1200,
+          "onHand": 12,
+          "reserved": 1
+        }
+      ],
+      "specifications": {},
+      "rating": 4.8,
+      "reviewsCount": 0,
+      "condition": "SEALED",
+      "conditionTextEn": "Factory Sealed",
+      "conditionTextAm": "በፋብሪካው የታሸገ",
       "warrantyMonths": 12,
       "warrantyTextEn": "12 Months Official Warranty",
-      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና",
+      "reviews": [],
+      "featured": true
     },
     {
       "id": "prod-audit-1791544492191",
       "nameEn": "Audit Test Product",
       "nameAm": "የሙከራ እቃ",
+      "category": "accessories",
+      "price": 3200,
+      "brand": "Kasma Test",
+      "status": "APPROVED",
+      "lowStockThreshold": 5,
+      "merchantId": "m1",
+      "merchantName": "Selam Electronics",
       "descriptionEn": "Test item for RBAC",
       "descriptionAm": "የሙከራ እቃ",
-      "price": 3200,
-      "category": "accessories",
-      "brand": "Kasma Test",
       "image": "https://images.unsplash.com/photo-1546868871-7041f2a55e12",
       "variants": [
         {
@@ -397,31 +415,90 @@
           "onHand": 15
         }
       ],
-      "status": "APPROVED",
-      "lowStockThreshold": 5,
-      "merchantId": "m1",
-      "merchantName": "Selam Electronics",
-      "condition": "BRAND_NEW",
-      "conditionTextEn": "Brand New",
-      "conditionTextAm": "አዲስ",
+      "specifications": {},
+      "rating": 4.8,
+      "reviewsCount": 0,
+      "condition": "SEALED",
+      "conditionTextEn": "Factory Sealed",
+      "conditionTextAm": "በፋብሪካው የታሸገ",
       "warrantyMonths": 12,
       "warrantyTextEn": "12 Months Official Warranty",
-      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና"
+      "warrantyTextAm": "የ12 ወራት ኦፊሴላዊ ዋስትና",
+      "reviews": [],
+      "featured": true
     }
   ],
   "merchants": [
+    {
+      "id": "m2",
+      "storeName": "Abebe Gadget Hub",
+      "ownerName": "Abebe Girmay",
+      "email": "abebe.gadgets@yahoo.com",
+      "phone": "+251912654321",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "kycDocument": "Business_Reg_Abebe.pdf",
+      "telegramUsername": "@abebe_gadgets",
+      "telegramChatId": "89105678",
+      "telegramNotificationsEnabled": true,
+      "balance": 88400,
+      "payouts": []
+    },
+    {
+      "id": "m3",
+      "storeName": "Kasma Authorized Reseller",
+      "ownerName": "Yared Kebede",
+      "email": "yared.kebede@kasmatech.com",
+      "phone": "+251920112233",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "kycDocument": "MOU_Kasma_Authorized.pdf",
+      "telegramUsername": "@yared_kasma",
+      "telegramChatId": "89109012",
+      "telegramNotificationsEnabled": true,
+      "balance": 224300,
+      "payouts": [
+        {
+          "id": "py2",
+          "amount": 80000,
+          "bankName": "Awash Bank",
+          "accountNumber": "0150987654321",
+          "status": "COMPLETED",
+          "createdAt": "2026-06-15T14:30:00Z"
+        },
+        {
+          "id": "py3",
+          "amount": 45000,
+          "bankName": "Awash Bank",
+          "accountNumber": "0150987654321",
+          "status": "PENDING",
+          "createdAt": "2026-06-23T09:00:00Z"
+        }
+      ]
+    },
+    {
+      "id": "m4",
+      "storeName": "Abyssinia Electronics",
+      "ownerName": "Tsion Amare",
+      "email": "tsion.amare@abyssinia-tech.com",
+      "phone": "+251944889900",
+      "status": "PENDING_APPROVAL",
+      "kycStatus": "PENDING_VERIFICATION",
+      "kycDocument": "Tech_License_Abyssinia.pdf",
+      "telegramNotificationsEnabled": true,
+      "balance": 0,
+      "payouts": []
+    },
     {
       "id": "m1",
       "storeName": "Girma Tech Store",
       "ownerName": "Girma Tesfaye",
       "email": "girma.tech@gmail.com",
       "phone": "+251911456789",
-      "telegramUsername": "girma_tech",
-      "telegramChatId": "89101234",
-      "telegramNotificationsEnabled": true,
       "status": "ACTIVE",
       "kycStatus": "APPROVED",
       "kycDocument": "Trade_License_Girma_Tech.pdf",
+      "telegramNotificationsEnabled": true,
       "balance": 208160,
       "payouts": [
         {
@@ -449,74 +526,84 @@
           "createdAt": "2026-06-20T10:12:00Z"
         }
       ]
-    },
-    {
-      "id": "m2",
-      "storeName": "Abebe Gadget Hub",
-      "ownerName": "Abebe Girmay",
-      "email": "abebe.gadgets@yahoo.com",
-      "phone": "+251912654321",
-      "telegramUsername": "abebe_gadgets",
-      "telegramChatId": "89105678",
-      "status": "ACTIVE",
-      "kycStatus": "APPROVED",
-      "kycDocument": "Business_Reg_Abebe.pdf",
-      "balance": 88400,
-      "payouts": []
-    },
-    {
-      "id": "m3",
-      "storeName": "Kasma Authorized Reseller",
-      "ownerName": "Yared Kebede",
-      "email": "yared.kebede@kasmatech.com",
-      "phone": "+251920112233",
-      "telegramUsername": "yared_kasma",
-      "telegramChatId": "89109012",
-      "status": "ACTIVE",
-      "kycStatus": "APPROVED",
-      "kycDocument": "MOU_Kasma_Authorized.pdf",
-      "balance": 224300,
-      "payouts": [
-        {
-          "id": "py2",
-          "amount": 80000,
-          "bankName": "Awash Bank",
-          "accountNumber": "0150987654321",
-          "status": "COMPLETED",
-          "createdAt": "2026-06-15T14:30:00Z"
-        },
-        {
-          "id": "py3",
-          "amount": 45000,
-          "bankName": "Awash Bank",
-          "accountNumber": "0150987654321",
-          "status": "PENDING",
-          "createdAt": "2026-06-23T09:00:00Z"
-        }
-      ]
-    },
-    {
-      "id": "m4",
-      "storeName": "Abyssinia Electronics",
-      "ownerName": "Tsion Amare",
-      "email": "tsion.amare@abyssinia-tech.com",
-      "phone": "+251944889900",
-      "telegramUsername": "abyssinia_tech",
-      "telegramChatId": "89109999",
-      "status": "PENDING_APPROVAL",
-      "kycStatus": "PENDING_VERIFICATION",
-      "kycDocument": "Tech_License_Abyssinia.pdf",
-      "balance": 0,
-      "payouts": []
     }
   ],
   "orders": [
+    {
+      "id": "ORD-ADDIS-101",
+      "customerId": "cust-solomon",
+      "customerName": "Solomon Tesfaye",
+      "customerPhone": "+251912345678",
+      "shippingAddress": "Bole Atlas, Cameroon St, Behind Mafi Mall, Compound 4",
+      "subCity": "Bole",
+      "landmark": "edna_mall",
+      "items": [
+        {
+          "product": {
+            "id": "p1",
+            "nameEn": "SteelSeries Arctis Nova Pro Wireless Headset",
+            "nameAm": "ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ",
+            "descriptionEn": "Premium high-fidelity gaming headset featuring Active Noise Cancellation, dual-system connection, and hot-swappable dual battery system.",
+            "descriptionAm": "ምርጥ ጥራት ያለው የጌሚንግ ማዳመጫ ከግርግር መከላከያ (Active Noise Cancellation)፣ ሁለት ሲስተም በአንድ ጊዜ የማገናኘት ብቃት እና ተለዋዋጭ ባትሪዎች ያሉት።",
+            "price": 19500,
+            "category": "gaming",
+            "brand": "SteelSeries",
+            "image": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80",
+            "lowStockThreshold": 5,
+            "merchantId": "m1",
+            "merchantName": "Girma Tech Store",
+            "status": "APPROVED",
+            "variants": [
+              {
+                "sku": "SS-ANP-BLK",
+                "name": "Charcoal Black",
+                "priceOffset": 0,
+                "onHand": 18,
+                "reserved": 0
+              },
+              {
+                "sku": "SS-ANP-WHT",
+                "name": "White Edition",
+                "priceOffset": 1200,
+                "onHand": 12,
+                "reserved": 1
+              }
+            ],
+            "featured": true,
+            "condition": "SEALED",
+            "conditionTextEn": "Factory Sealed",
+            "conditionTextAm": "በፋብሪካው የታሸገ",
+            "warrantyMonths": 12,
+            "warrantyTextEn": "12 Months Official Warranty",
+            "warrantyTextAm": "የ12 ወራት ዋስትና"
+          },
+          "sku": "SS-ANP-BLK",
+          "variantName": "Charcoal Black",
+          "quantity": 1,
+          "price": 19500
+        }
+      ],
+      "subtotal": 19500,
+      "shippingFee": 150,
+      "total": 19650,
+      "paymentMethod": "COD",
+      "paymentId": "TX-ORD-ADDIS-101",
+      "status": "SHIPPED",
+      "channel": "WEB",
+      "discountAmount": 0,
+      "createdAt": "2026-10-10T11:28:53.576Z",
+      "shippedAt": "2026-10-10T11:37:20.240Z",
+      "courierName": "Ermias Berhanu",
+      "courierPhone": "+251 91 199 8877",
+      "trackingNotes": "ROUTE DELAY: Traffic on Ring Road - Delay ~10 mins"
+    },
     {
       "id": "ORD-COD-1791544490666",
       "customerId": "cust-test-001",
       "customerName": "Solomon Tesfaye",
       "customerPhone": "+251912345678",
-      "customerEmail": "solomon@kasma.et",
+      "shippingAddress": "Bole Atlas, House 402, Addis Ababa",
+      "subCity": "Bole",
       "items": [
         {
           "product": {
@@ -568,24 +655,21 @@
       ],
       "subtotal": 19500,
       "shippingFee": 150,
-      "discountAmount": 0,
       "total": 19650,
-      "status": "PROCESSING",
       "paymentMethod": "COD",
-      "shippingAddress": "Bole Atlas, House 402, Addis Ababa",
-      "subCity": "Bole",
-      "deliveryInstructions": "Ring bell on arrival",
-      "createdAt": "2026-10-09T11:14:49.540Z",
+      "paymentId": "TX-ORD-COD-1791544490666",
+      "status": "PROCESSING",
       "channel": "WEB",
-      "codVerificationPin": "849201",
-      "codPhoneConfirmed": true
+      "discountAmount": 0,
+      "createdAt": "2026-10-09T11:14:59.188Z"
     },
     {
       "id": "ORD-E2E-1791544489540",
       "customerId": "cust-test-001",
       "customerName": "Solomon Tesfaye",
       "customerPhone": "+251912345678",
-      "customerEmail": "solomon@kasma.et",
+      "shippingAddress": "Bole Atlas, House 402, Addis Ababa",
+      "subCity": "Bole",
       "items": [
         {
           "product": {
@@ -637,28 +721,21 @@
       ],
       "subtotal": 19500,
       "shippingFee": 150,
-      "discountAmount": 0,
       "total": 19650,
-      "status": "DELIVERED",
       "paymentMethod": "TELEBIRR",
-      "shippingAddress": "Bole Atlas, House 402, Addis Ababa",
-      "subCity": "Bole",
-      "deliveryInstructions": "Ring bell on arrival",
-      "createdAt": "2026-10-09T11:14:49.540Z",
+      "paymentId": "TX-ORD-E2E-1791544489540",
+      "status": "DELIVERED",
       "channel": "WEB",
-      "packedAt": "2026-10-09T11:14:51.453Z",
-      "shippedAt": "2026-10-09T11:14:51.800Z",
-      "courierName": "Ermias Berhanu",
-      "courierPhone": "+251911998877",
-      "trackingNotes": "Dispatched via Bole express motorbike courier",
-      "deliveredAt": "2026-10-09T11:14:52.103Z"
+      "discountAmount": 0,
+      "createdAt": "2026-10-09T11:14:58.835Z"
     },
     {
       "id": "ORD-COD-1791536779190",
       "customerId": "cust-test-001",
       "customerName": "Solomon Tesfaye",
       "customerPhone": "+251912345678",
-      "customerEmail": "solomon@kasma.et",
+      "shippingAddress": "Bole Atlas, House 402, Addis Ababa",
+      "subCity": "Bole",
       "items": [
         {
           "product": {
@@ -710,24 +787,21 @@
       ],
       "subtotal": 19500,
       "shippingFee": 150,
-      "discountAmount": 0,
       "total": 19650,
-      "status": "PROCESSING",
       "paymentMethod": "COD",
-      "shippingAddress": "Bole Atlas, House 402, Addis Ababa",
-      "subCity": "Bole",
-      "deliveryInstructions": "Ring bell on arrival",
-      "createdAt": "2026-10-09T09:06:19.054Z",
+      "paymentId": "TX-ORD-COD-1791536779190",
+      "status": "PROCESSING",
       "channel": "WEB",
-      "codVerificationPin": "849201",
-      "codPhoneConfirmed": true
+      "discountAmount": 0,
+      "createdAt": "2026-10-09T09:06:23.716Z"
     },
     {
       "id": "ORD-E2E-1791536779054",
       "customerId": "cust-test-001",
       "customerName": "Solomon Tesfaye",
       "customerPhone": "+251912345678",
-      "customerEmail": "solomon@kasma.et",
+      "shippingAddress": "Bole Atlas, House 402, Addis Ababa",
+      "subCity": "Bole",
       "items": [
         {
           "product": {
@@ -779,27 +853,21 @@
       ],
       "subtotal": 19500,
       "shippingFee": 150,
-      "discountAmount": 0,
       "total": 19650,
-      "status": "DELIVERED",
       "paymentMethod": "TELEBIRR",
-      "shippingAddress": "Bole Atlas, House 402, Addis Ababa",
-      "subCity": "Bole",
-      "deliveryInstructions": "Ring bell on arrival",
-      "createdAt": "2026-10-09T09:06:19.054Z",
+      "paymentId": "TX-ORD-E2E-1791536779054",
+      "status": "DELIVERED",
       "channel": "WEB",
-      "packedAt": "2026-10-09T09:06:19.208Z",
-      "shippedAt": "2026-10-09T09:06:19.244Z",
-      "courierName": "Ermias Berhanu",
-      "courierPhone": "+251911998877",
-      "trackingNotes": "Dispatched via Bole express motorbike courier",
-      "deliveredAt": "2026-10-09T09:06:19.251Z"
+      "discountAmount": 0,
+      "createdAt": "2026-10-09T09:06:23.350Z"
     },
     {
       "id": "ORD-1791475361260",
       "customerId": "cust-456",
       "customerName": "Tigist Alemu",
       "customerPhone": "+251911889900",
+      "shippingAddress": "Bole Medhanialem, Addis Ababa",
+      "subCity": "Bole",
       "items": [
         {
           "product": {
@@ -827,24 +895,19 @@
       "subtotal": 185000,
       "shippingFee": 200,
       "total": 185200,
-      "status": "DELIVERED",
       "paymentMethod": "TELEBIRR",
-      "shippingAddress": "Bole Medhanialem, Addis Ababa",
-      "subCity": "Bole",
-      "createdAt": "2026-10-08T16:02:41.260Z",
+      "paymentId": "TX-ORD-1791475361260",
+      "status": "PROCESSING",
       "channel": "WEB",
-      "packedAt": "2026-10-08T16:02:41.263Z",
-      "shippedAt": "2026-10-08T16:02:41.463Z",
-      "courierName": "Kassahun T.",
-      "courierPhone": "+251911554433",
-      "trackingNotes": "Motorcycle dispatch via Bole Ring Road",
-      "deliveredAt": "2026-10-08T16:02:41.474Z"
+      "discountAmount": 0,
+      "createdAt": "2026-10-08T16:02:46.488Z"
     },
     {
       "id": "ord-9831",
       "customerId": "cust-9831",
       "customerName": "Dawit Abera",
       "customerPhone": "+251912345678",
+      "shippingAddress": "Bole Sub City, Addis Ababa",
       "items": [
         {
           "product": {
@@ -877,19 +940,19 @@
       "subtotal": 19500,
       "shippingFee": 150,
       "total": 19650,
-      "status": "DELIVERED",
       "paymentMethod": "TELEBIRR",
       "paymentId": "TX-TB-5829103",
-      "shippingAddress": "Bole Sub City, Addis Ababa",
-      "createdAt": "2026-07-15T10:30:00.000Z",
-      "channel": "WEB"
+      "status": "DELIVERED",
+      "channel": "WEB",
+      "discountAmount": 0,
+      "createdAt": "2026-10-08T14:31:03.178Z"
     }
   ],
   "stockLogs": [
     {
       "id": "sl-1791544490666-578",
       "sku": "SS-ANP-BLK",
-      "productName": "SteelSeries Arctis Nova Pro Wireless Headset",
+      "productName": "p1",
       "previousQty": 15,
       "newQty": 14,
       "difference": -1,
@@ -900,7 +963,7 @@
     {
       "id": "sl-1791544489541-833",
       "sku": "SS-ANP-BLK",
-      "productName": "SteelSeries Arctis Nova Pro Wireless Headset",
+      "productName": "p1",
       "previousQty": 16,
       "newQty": 15,
       "difference": -1,
@@ -911,7 +974,7 @@
     {
       "id": "sl-1791536779190-149",
       "sku": "SS-ANP-BLK",
-      "productName": "SteelSeries Arctis Nova Pro Wireless Headset",
+      "productName": "p1",
       "previousQty": 17,
       "newQty": 16,
       "difference": -1,
@@ -922,7 +985,7 @@
     {
       "id": "sl-1791536779055-457",
       "sku": "SS-ANP-BLK",
-      "productName": "SteelSeries Arctis Nova Pro Wireless Headset",
+      "productName": "p1",
       "previousQty": 18,
       "newQty": 17,
       "difference": -1,
@@ -933,40 +996,119 @@
     {
       "id": "sl1",
       "sku": "SS-ANP-BLK",
-      "productName": "SteelSeries Arctis Nova Pro Wireless Headset",
+      "productName": "p1",
       "previousQty": 10,
       "newQty": 18,
       "difference": 8,
-      "reason": "Restock Event - Air freight shipment arrived",
+      "reason": "Restock Event - Air freight shipment arrived from Dubai",
       "actor": "Girma Tesfaye (Merchant)",
-      "timestamp": "2026-06-24T05:14:00Z"
+      "timestamp": "2026-09-04T02:14:00Z"
     },
     {
       "id": "sl2",
       "sku": "AWU2-49",
-      "productName": "Apple Watch Ultra 2 GPS + Cellular Titanium",
+      "productName": "p1",
       "previousQty": 5,
       "newQty": 1,
       "difference": -4,
-      "reason": "Sales order fulfilment (Auto-decrement)",
+      "reason": "Sales order fulfilment (Auto-decrement #ORD-9820)",
       "actor": "System Integration",
-      "timestamp": "2026-06-24T03:40:00Z"
+      "timestamp": "2026-09-03T21:40:00Z"
     },
     {
       "id": "sl3",
       "sku": "ANK-PM-BLK",
-      "productName": "Anker Prime 20,000mAh Smart Power Bank",
+      "productName": "p1",
       "previousQty": 5,
       "newQty": 0,
       "difference": -5,
-      "reason": "Sales order fulfilment (Auto-decrement)",
+      "reason": "Sales order fulfilment (Auto-decrement #ORD-9815)",
       "actor": "System Integration",
-      "timestamp": "2026-06-23T18:22:15Z"
+      "timestamp": "2026-09-03T18:22:15Z"
+    },
+    {
+      "id": "sl4",
+      "sku": "MBP16-M3M-SLV",
+      "productName": "p1",
+      "previousQty": 12,
+      "newQty": 20,
+      "difference": 8,
+      "reason": "Supplier Batch Delivery - Tikur Anbessa Hub Restock",
+      "actor": "Abebe Tadesse (Store Admin)",
+      "timestamp": "2026-09-02T14:10:00Z"
+    },
+    {
+      "id": "sl5",
+      "sku": "S24U-512-GRY",
+      "productName": "p1",
+      "previousQty": 8,
+      "newQty": 6,
+      "difference": -2,
+      "reason": "Store Demo Unit Allocation & Inspection",
+      "actor": "Abebe Tadesse (Store Admin)",
+      "timestamp": "2026-09-01T11:05:30Z"
+    },
+    {
+      "id": "sl6",
+      "sku": "IP15PM-256-NT",
+      "productName": "p1",
+      "previousQty": 25,
+      "newQty": 20,
+      "difference": -5,
+      "reason": "Sales order fulfilment (Auto-decrement #ORD-9780)",
+      "actor": "System Integration",
+      "timestamp": "2026-08-31T16:45:00Z"
+    },
+    {
+      "id": "sl7",
+      "sku": "DJI-AV2-CBO",
+      "productName": "p1",
+      "previousQty": 3,
+      "newQty": 2,
+      "difference": -1,
+      "reason": "Manual Inventory Audit - Damaged packaging write-off",
+      "actor": "Mulugeta Alemu (Quality Inspector)",
+      "timestamp": "2026-08-30T09:15:20Z"
+    },
+    {
+      "id": "sl8",
+      "sku": "SONY-WH1000XM5-BLK",
+      "productName": "p1",
+      "previousQty": 14,
+      "newQty": 30,
+      "difference": 16,
+      "reason": "Bulk CSV Inventory Import & Reconciliation",
+      "actor": "System Integration",
+      "timestamp": "2026-08-28T13:00:00Z"
     }
   ],
   "auditLogs": [
     {
-      "id": "al-1791544492367-35",
+      "id": "al-1791632255701-76",
+      "actor": "Courier Driver",
+      "action": "COURIER_ROUTE_DELAY_REPORTED",
+      "details": "Reported route delay on Order #ORD-ADDIS-101: \"ROUTE DELAY: Traffic on Ring Road - Delay ~10 mins\" for customer Solomon Tesfaye (+251912345678).",
+      "severity": "WARNING",
+      "timestamp": "2026-10-10T11:37:35.701Z"
+    },
+    {
+      "id": "al-1791632240243-6",
+      "actor": "Courier Driver (Ermias Berhanu)",
+      "action": "ORDER_FULFILLMENT_SHIPPED",
+      "details": "Order #ORD-ADDIS-101 state updated to SHIPPED. Courier: Ermias Berhanu (+251 91 199 8877).",
+      "severity": "INFO",
+      "timestamp": "2026-10-10T11:37:20.243Z"
+    },
+    {
+      "id": "al-1791631729308-884",
+      "actor": "Courier Driver (Ermias Berhanu)",
+      "action": "ORDER_FULFILLMENT_DELIVERED",
+      "details": "Order #ORD-ADDIS-101 state updated to DELIVERED. Courier: Ermias Berhanu (+251911998877).",
+      "severity": "INFO",
+      "timestamp": "2026-10-10T11:28:49.308Z"
+    },
+    {
+      "id": "al-1791544492367-919",
       "actor": "Financial Risk Desk",
       "action": "PAYOUT_COMPLETED",
       "details": "Authorized CBE/Awash wire payout of 5,000 ETB for \"Girma Tech Store\". Balance adjusted to 208,160 ETB.",
@@ -974,7 +1116,7 @@
       "timestamp": "2026-10-09T11:14:52.367Z"
     },
     {
-      "id": "al-1791544492319-1",
+      "id": "al-1791544492319-416",
       "actor": "Merchant: Girma Tech Store",
       "action": "PAYOUT_REQUESTED",
       "details": "Queued CBE/Awash bank transfer payout of 5,000 ETB to account 1000123456789 (Commercial Bank of Ethiopia (CBE)). Awaiting escrow compliance approval.",
@@ -982,7 +1124,7 @@
       "timestamp": "2026-10-09T11:14:52.319Z"
     },
     {
-      "id": "al-1791544492268-31",
+      "id": "al-1791544492268-996",
       "actor": "System Administrator",
       "action": "PRODUCT_APPROVED",
       "details": "Compliance approved product listing: \"Audit Test Product\" submitted by Selam Electronics. Listing went Live.",
@@ -990,7 +1132,7 @@
       "timestamp": "2026-10-09T11:14:52.268Z"
     },
     {
-      "id": "al-1791544492191-15",
+      "id": "al-1791544492191-950",
       "actor": "Merchant: Selam Electronics",
       "action": "CATALOG_PRODUCT_DRAFT_CREATED",
       "details": "Submitted product listing draft: \"Audit Test Product\" / \"የሙከራ እቃ\" awaiting compliance approval.",
@@ -998,7 +1140,7 @@
       "timestamp": "2026-10-09T11:14:52.191Z"
     },
     {
-      "id": "al-1791544492129-62",
+      "id": "al-1791544492129-48",
       "actor": "Ermias Berhanu",
       "action": "ORDER_FULFILLMENT_DELIVERED",
       "details": "Order #ORD-E2E-1791544489540 state updated to DELIVERED. Courier: Ermias Berhanu (+251911998877).",
@@ -1006,7 +1148,7 @@
       "timestamp": "2026-10-09T11:14:52.129Z"
     },
     {
-      "id": "al-1791544492046-92",
+      "id": "al-1791544492046-79",
       "actor": "Merchant Fulfillment Hub",
       "action": "ORDER_FULFILLMENT_SHIPPED",
       "details": "Order #ORD-E2E-1791544489540 state updated to SHIPPED. Courier: Ermias Berhanu (+251911998877).",
@@ -1014,15 +1156,15 @@
       "timestamp": "2026-10-09T11:14:52.046Z"
     },
     {
-      "id": "al-1791544491460-88",
+      "id": "al-1791544491460-354",
       "actor": "Selam Electronics Warehouse",
       "action": "ORDER_FULFILLMENT_PROCESSING",
       "details": "Order #ORD-E2E-1791544489540 state updated to PROCESSING. Courier: In-House Courier (N/A).",
       "severity": "INFO",
-      "timestamp": "2026-10-09T11:14:51.460Z"
+      "timestamp": "2026-10-09T11:14:51.461Z"
     },
     {
-      "id": "al-1791544491214-55",
+      "id": "al-1791544491214-135",
       "actor": "Payment Broker",
       "action": "TRANSACTION_SETTLED",
       "details": "Processed Order #ORD-COD-1791544490666 via channel WEB. Total paid: 19,650 ETB via COD. Broker Ref: undefined",
@@ -1030,7 +1172,7 @@
       "timestamp": "2026-10-09T11:14:51.214Z"
     },
     {
-      "id": "al-1791544491207-36",
+      "id": "al-1791544491207-284",
       "actor": "Telegram Merchant Notifier",
       "action": "AUTOMATIC_MERCHANT_TELEGRAM_DISPATCHED",
       "details": "Dispatched automatic Telegram notification to merchant \"Girma Tech Store\" (@merchant) for 1 product(s) in Order #ORD-COD-1791544490666 totaling 19,500 ETB.",
@@ -1038,7 +1180,7 @@
       "timestamp": "2026-10-09T11:14:51.207Z"
     },
     {
-      "id": "al-1791544490724-97",
+      "id": "al-1791544490724-371",
       "actor": "Escrow Ledger",
       "action": "ESCROW_SETTLEMENT_POSTED",
       "details": "Credited store \"Girma Tech Store\" with 18,915 ETB (97% of 19,500 ETB). Kasma retained 585 ETB commission fees.",
@@ -1046,7 +1188,7 @@
       "timestamp": "2026-10-09T11:14:50.724Z"
     },
     {
-      "id": "al-1791544490666-66",
+      "id": "al-1791544490666-213",
       "actor": "Transactional Engine",
       "action": "INVENTORY_STOCK_CHANGE",
       "details": "Adjusted SKU: SS-ANP-BLK (SteelSeries Arctis Nova Pro Wireless Headset) from 15 to 14. Difference: -1. Reason: Order Checkout #ORD-COD-1791544490666",
@@ -1054,15 +1196,15 @@
       "timestamp": "2026-10-09T11:14:50.666Z"
     },
     {
-      "id": "al-1791544490606-68",
+      "id": "al-1791544490612-379",
       "actor": "Payment Broker",
       "action": "TRANSACTION_SETTLED",
       "details": "Processed Order #ORD-E2E-1791544489540 via channel WEB. Total paid: 19,650 ETB via TELEBIRR. Broker Ref: undefined",
       "severity": "INFO",
-      "timestamp": "2026-10-09T11:14:50.606Z"
+      "timestamp": "2026-10-09T11:14:50.612Z"
     },
     {
-      "id": "al-1791544490056-69",
+      "id": "al-1791544490056-158",
       "actor": "Telegram Merchant Notifier",
       "action": "AUTOMATIC_MERCHANT_TELEGRAM_DISPATCHED",
       "details": "Dispatched automatic Telegram notification to merchant \"Girma Tech Store\" (@merchant) for 1 product(s) in Order #ORD-E2E-1791544489540 totaling 19,500 ETB.",
@@ -1070,7 +1212,7 @@
       "timestamp": "2026-10-09T11:14:50.056Z"
     },
     {
-      "id": "al-1791544490041-77",
+      "id": "al-1791544490041-916",
       "actor": "Escrow Ledger",
       "action": "ESCROW_SETTLEMENT_POSTED",
       "details": "Credited store \"Girma Tech Store\" with 18,915 ETB (97% of 19,500 ETB). Kasma retained 585 ETB commission fees.",
@@ -1078,7 +1220,7 @@
       "timestamp": "2026-10-09T11:14:50.041Z"
     },
     {
-      "id": "al-1791544489542-18",
+      "id": "al-1791544489542-950",
       "actor": "Transactional Engine",
       "action": "INVENTORY_STOCK_CHANGE",
       "details": "Adjusted SKU: SS-ANP-BLK (SteelSeries Arctis Nova Pro Wireless Headset) from 16 to 15. Difference: -1. Reason: Order Checkout #ORD-E2E-1791544489540",
@@ -1086,7 +1228,7 @@
       "timestamp": "2026-10-09T11:14:49.542Z"
     },
     {
-      "id": "al-1791536779282-33",
+      "id": "al-1791536779282-994",
       "actor": "Financial Risk Desk",
       "action": "PAYOUT_COMPLETED",
       "details": "Authorized CBE/Awash wire payout of 5,000 ETB for \"Girma Tech Store\". Balance adjusted to 175,330 ETB.",
@@ -1094,7 +1236,7 @@
       "timestamp": "2026-10-09T09:06:19.282Z"
     },
     {
-      "id": "al-1791536779273-26",
+      "id": "al-1791536779273-929",
       "actor": "Merchant: Girma Tech Store",
       "action": "PAYOUT_REQUESTED",
       "details": "Queued CBE/Awash bank transfer payout of 5,000 ETB to account 1000123456789 (Commercial Bank of Ethiopia (CBE)). Awaiting escrow compliance approval.",
@@ -1102,7 +1244,7 @@
       "timestamp": "2026-10-09T09:06:19.273Z"
     },
     {
-      "id": "al-1791536779265-37",
+      "id": "al-1791536779265-571",
       "actor": "System Administrator",
       "action": "PRODUCT_APPROVED",
       "details": "Compliance approved product listing: \"Audit Test Product\" submitted by Selam Electronics. Listing went Live.",
@@ -1110,15 +1252,15 @@
       "timestamp": "2026-10-09T09:06:19.265Z"
     },
     {
-      "id": "al-1791536779259-8",
+      "id": "al-1791536779259-405",
       "actor": "Merchant: Selam Electronics",
       "action": "CATALOG_PRODUCT_DRAFT_CREATED",
       "details": "Submitted product listing draft: \"Audit Test Product\" / \"የሙከራ እቃ\" awaiting compliance approval.",
       "severity": "INFO",
-      "timestamp": "2026-10-09T09:06:19.259Z"
+      "timestamp": "2026-10-09T09:06:19.260Z"
     },
     {
-      "id": "al-1791536779253-4",
+      "id": "al-1791536779253-662",
       "actor": "Ermias Berhanu",
       "action": "ORDER_FULFILLMENT_DELIVERED",
       "details": "Order #ORD-E2E-1791536779054 state updated to DELIVERED. Courier: Ermias Berhanu (+251911998877).",
@@ -1126,7 +1268,7 @@
       "timestamp": "2026-10-09T09:06:19.253Z"
     },
     {
-      "id": "al-1791536779246-60",
+      "id": "al-1791536779246-588",
       "actor": "Merchant Fulfillment Hub",
       "action": "ORDER_FULFILLMENT_SHIPPED",
       "details": "Order #ORD-E2E-1791536779054 state updated to SHIPPED. Courier: Ermias Berhanu (+251911998877).",
@@ -1134,7 +1276,7 @@
       "timestamp": "2026-10-09T09:06:19.246Z"
     },
     {
-      "id": "al-1791536779213-67",
+      "id": "al-1791536779213-886",
       "actor": "Selam Electronics Warehouse",
       "action": "ORDER_FULFILLMENT_PROCESSING",
       "details": "Order #ORD-E2E-1791536779054 state updated to PROCESSING. Courier: In-House Courier (N/A).",
@@ -1142,7 +1284,7 @@
       "timestamp": "2026-10-09T09:06:19.213Z"
     },
     {
-      "id": "al-1791536779202-81",
+      "id": "al-1791536779202-689",
       "actor": "Payment Broker",
       "action": "TRANSACTION_SETTLED",
       "details": "Processed Order #ORD-COD-1791536779190 via channel WEB. Total paid: 19,650 ETB via COD. Broker Ref: undefined",
@@ -1150,7 +1292,7 @@
       "timestamp": "2026-10-09T09:06:19.202Z"
     },
     {
-      "id": "al-1791536779199-45",
+      "id": "al-1791536779199-266",
       "actor": "Telegram Merchant Notifier",
       "action": "AUTOMATIC_MERCHANT_TELEGRAM_DISPATCHED",
       "details": "Dispatched automatic Telegram notification to merchant \"Girma Tech Store\" (@merchant) for 1 product(s) in Order #ORD-COD-1791536779190 totaling 19,500 ETB.",
@@ -1158,7 +1300,7 @@
       "timestamp": "2026-10-09T09:06:19.199Z"
     },
     {
-      "id": "al-1791536779195-47",
+      "id": "al-1791536779195-896",
       "actor": "Escrow Ledger",
       "action": "ESCROW_SETTLEMENT_POSTED",
       "details": "Credited store \"Girma Tech Store\" with 18,915 ETB (97% of 19,500 ETB). Kasma retained 585 ETB commission fees.",
@@ -1166,7 +1308,7 @@
       "timestamp": "2026-10-09T09:06:19.195Z"
     },
     {
-      "id": "al-1791536779191-37",
+      "id": "al-1791536779191-859",
       "actor": "Transactional Engine",
       "action": "INVENTORY_STOCK_CHANGE",
       "details": "Adjusted SKU: SS-ANP-BLK (SteelSeries Arctis Nova Pro Wireless Headset) from 17 to 16. Difference: -1. Reason: Order Checkout #ORD-COD-1791536779190",
@@ -1174,7 +1316,7 @@
       "timestamp": "2026-10-09T09:06:19.191Z"
     },
     {
-      "id": "al-1791536779185-92",
+      "id": "al-1791536779185-193",
       "actor": "Payment Broker",
       "action": "TRANSACTION_SETTLED",
       "details": "Processed Order #ORD-E2E-1791536779054 via channel WEB. Total paid: 19,650 ETB via TELEBIRR. Broker Ref: undefined",
@@ -1182,15 +1324,15 @@
       "timestamp": "2026-10-09T09:06:19.185Z"
     },
     {
-      "id": "al-1791536779118-58",
+      "id": "al-1791536779119-280",
       "actor": "Telegram Merchant Notifier",
       "action": "AUTOMATIC_MERCHANT_TELEGRAM_DISPATCHED",
       "details": "Dispatched automatic Telegram notification to merchant \"Girma Tech Store\" (@merchant) for 1 product(s) in Order #ORD-E2E-1791536779054 totaling 19,500 ETB.",
       "severity": "INFO",
-      "timestamp": "2026-10-09T09:06:19.118Z"
+      "timestamp": "2026-10-09T09:06:19.119Z"
     },
     {
-      "id": "al-1791536779114-99",
+      "id": "al-1791536779114-57",
       "actor": "Escrow Ledger",
       "action": "ESCROW_SETTLEMENT_POSTED",
       "details": "Credited store \"Girma Tech Store\" with 18,915 ETB (97% of 19,500 ETB). Kasma retained 585 ETB commission fees.",
@@ -1198,7 +1340,7 @@
       "timestamp": "2026-10-09T09:06:19.114Z"
     },
     {
-      "id": "al-1791536779056-49",
+      "id": "al-1791536779056-647",
       "actor": "Transactional Engine",
       "action": "INVENTORY_STOCK_CHANGE",
       "details": "Adjusted SKU: SS-ANP-BLK (SteelSeries Arctis Nova Pro Wireless Headset) from 18 to 17. Difference: -1. Reason: Order Checkout #ORD-E2E-1791536779054",
@@ -1206,7 +1348,7 @@
       "timestamp": "2026-10-09T09:06:19.056Z"
     },
     {
-      "id": "al-1791475361478-23",
+      "id": "al-1791475361478-273",
       "actor": "Selam Electronics",
       "action": "ORDER_FULFILLMENT_DELIVERED",
       "details": "Order #ORD-1791475361260 state updated to DELIVERED. Courier: Kassahun T. (+251911554433).",
@@ -1214,7 +1356,7 @@
       "timestamp": "2026-10-08T16:02:41.478Z"
     },
     {
-      "id": "al-1791475361467-48",
+      "id": "al-1791475361467-76",
       "actor": "Selam Electronics",
       "action": "ORDER_FULFILLMENT_SHIPPED",
       "details": "Order #ORD-1791475361260 state updated to SHIPPED. Courier: Kassahun T. (+251911554433).",
@@ -1222,171 +1364,52 @@
       "timestamp": "2026-10-08T16:02:41.467Z"
     },
     {
-      "id": "al-1791475361284-70",
+      "id": "al-1791475361285-265",
       "actor": "Selam Electronics",
       "action": "ORDER_FULFILLMENT_PROCESSING",
       "details": "Order #ORD-1791475361260 state updated to PROCESSING. Courier: In-House Courier (N/A).",
       "severity": "INFO",
-      "timestamp": "2026-10-08T16:02:41.284Z"
+      "timestamp": "2026-10-08T16:02:41.285Z"
     },
     {
-      "id": "al1",
-      "actor": "System Security Engine",
-      "action": "TELEGRAM_INIT_DATA_VERIFIED",
-      "details": "Validated webhook payload signature from Telegram client user ID 4859302",
-      "severity": "INFO",
-      "timestamp": "2026-06-24T08:45:10-07:00"
-    },
-    {
-      "id": "al2",
-      "actor": "Admin (getchze1221@gmail.com)",
-      "action": "MERCHANT_KYC_APPROVED",
-      "details": "Approved trade license documentation for Kasma Authorized Reseller",
-      "severity": "INFO",
-      "timestamp": "2026-06-24T06:10:00-07:00"
-    },
-    {
-      "id": "al3",
+      "id": "al-1791469857823-946",
       "actor": "System Payment Gateway",
       "action": "CHAPA_WEBHOOK_RECEIVED",
       "details": "Verified Chapa checkout tx_ref ID: ch_tx_904828. Amount: 18500 ETB. Validated hash match.",
       "severity": "INFO",
-      "timestamp": "2026-06-24T01:30:22-07:00"
+      "timestamp": "2026-10-08T14:30:57.823Z"
+    },
+    {
+      "id": "al-1791469857372-318",
+      "actor": "Admin (getchze1221@gmail.com)",
+      "action": "MERCHANT_KYC_APPROVED",
+      "details": "Approved trade license documentation for Kasma Authorized Reseller",
+      "severity": "INFO",
+      "timestamp": "2026-10-08T14:30:57.372Z"
+    },
+    {
+      "id": "al-1791469857015-909",
+      "actor": "System Security Engine",
+      "action": "TELEGRAM_INIT_DATA_VERIFIED",
+      "details": "Validated webhook payload signature from Telegram client user ID 4859302",
+      "severity": "INFO",
+      "timestamp": "2026-10-08T14:30:57.015Z"
     }
   ],
   "alerts": [
     {
-      "id": "ta-1791544492139-630",
-      "type": "ORDER_DELIVERED",
-      "message": "📦 FULFILLMENT UPDATE: Order #ORD-E2E-1791544489540 is now DELIVERED. Handled by: Ermias Berhanu. Courier: Ermias Berhanu (+251911998877).",
-      "timestamp": "2026-10-09T11:14:52.139Z",
-      "read": false
+      "id": "ta-1791632255703-873",
+      "type": "ORDER_DELAYED",
+      "message": "⚠️ COURIER DELAY: Order #ORD-ADDIS-101 encountered route delay. Reason: ROUTE DELAY: Traffic on Ring Road - Delay ~10 mins. Landmark: edna_mall.",
+      "timestamp": "2026-10-10T11:37:35.703Z",
+      "read": false,
+      "orderId": "ORD-ADDIS-101"
     },
     {
-      "id": "ta-1791544492056-983",
+      "id": "ta-1791632240245-397",
       "type": "ORDER_SHIPPED",
-      "message": "📦 FULFILLMENT UPDATE: Order #ORD-E2E-1791544489540 is now SHIPPED. Handled by: Merchant Fulfillment Hub. Courier: Ermias Berhanu (+251911998877).",
-      "timestamp": "2026-10-09T11:14:52.061Z",
-      "read": false
-    },
-    {
-      "id": "ta-1791544491480-965",
-      "type": "ORDER_PACKED",
-      "message": "📦 FULFILLMENT UPDATE: Order #ORD-E2E-1791544489540 is now PROCESSING. Handled by: Selam Electronics Warehouse. Courier: In-House (N/A).",
-      "timestamp": "2026-10-09T11:14:51.480Z",
-      "read": false
-    },
-    {
-      "id": "ta-1791544491252-41",
-      "type": "ORDER_NEW",
-      "message": "🛍️ NEW SALE REGISTERED: Order #ORD-COD-1791544490666 completed via WEB. Total: 19,650 ETB. Payer: Solomon Tesfaye (+251912345678). Shipping Address: Bole Atlas, House 402, Addis Ababa. Dispatch SLA: Active.",
-      "timestamp": "2026-10-09T11:14:51.252Z",
-      "read": false
-    },
-    {
-      "id": "ta-1791544491204-137",
-      "type": "ORDER_NEW",
-      "message": "🛍️ NEW SALE NOTIFICATION FOR STORE: GIRMA TECH STORE\nOrder ID: #ORD-COD-1791544490666 | Channel: WEB\nCustomer: Solomon Tesfaye (📞 +251912345678)\nShipping Address: 📍 Bole Atlas, House 402, Addis Ababa\n\nYOUR STORE'S ORDERED PRODUCTS:\n• SteelSeries Arctis Nova Pro Wireless Headset (Charcoal Black) x1 @ 19,500 ETB = 19,500 ETB\n\nStore Subtotal: 19,500 ETB\nNet Settlement (97%): 💰 18,915 ETB\nPayment Method: COD\nDispatch SLA: Active (24h fulfillment required)",
-      "timestamp": "2026-10-09T11:14:51.204Z",
-      "read": false,
-      "orderId": "ORD-COD-1791544490666",
-      "chatId": "849201948"
-    },
-    {
-      "id": "ta-1791544490632-608",
-      "type": "ORDER_NEW",
-      "message": "🛍️ NEW SALE REGISTERED: Order #ORD-E2E-1791544489540 completed via WEB. Total: 19,650 ETB. Payer: Solomon Tesfaye (+251912345678). Shipping Address: Bole Atlas, House 402, Addis Ababa. Dispatch SLA: Active.",
-      "timestamp": "2026-10-09T11:14:50.632Z",
-      "read": false
-    },
-    {
-      "id": "ta-1791544490048-705",
-      "type": "ORDER_NEW",
-      "message": "🛍️ NEW SALE NOTIFICATION FOR STORE: GIRMA TECH STORE\nOrder ID: #ORD-E2E-1791544489540 | Channel: WEB\nCustomer: Solomon Tesfaye (📞 +251912345678)\nShipping Address: 📍 Bole Atlas, House 402, Addis Ababa\n\nYOUR STORE'S ORDERED PRODUCTS:\n• SteelSeries Arctis Nova Pro Wireless Headset (Charcoal Black) x1 @ 19,500 ETB = 19,500 ETB\n\nStore Subtotal: 19,500 ETB\nNet Settlement (97%): 💰 18,915 ETB\nPayment Method: TELEBIRR\nDispatch SLA: Active (24h fulfillment required)",
-      "timestamp": "2026-10-09T11:14:50.048Z",
-      "read": false,
-      "orderId": "ORD-E2E-1791544489540",
-      "chatId": "849201948"
-    },
-    {
-      "id": "ta-1791536779255-224",
-      "type": "ORDER_DELIVERED",
-      "message": "📦 FULFILLMENT UPDATE: Order #ORD-E2E-1791536779054 is now DELIVERED. Handled by: Ermias Berhanu. Courier: Ermias Berhanu (+251911998877).",
-      "timestamp": "2026-10-09T09:06:19.255Z",
-      "read": false
-    },
-    {
-      "id": "ta-1791536779247-700",
-      "type": "ORDER_SHIPPED",
-      "message": "📦 FULFILLMENT UPDATE: Order #ORD-E2E-1791536779054 is now SHIPPED. Handled by: Merchant Fulfillment Hub. Courier: Ermias Berhanu (+251911998877).",
-      "timestamp": "2026-10-09T09:06:19.247Z",
-      "read": false
-    },
-    {
-      "id": "ta-1791536779215-387",
-      "type": "ORDER_PACKED",
-      "message": "📦 FULFILLMENT UPDATE: Order #ORD-E2E-1791536779054 is now PROCESSING. Handled by: Selam Electronics Warehouse. Courier: In-House (N/A).",
-      "timestamp": "2026-10-09T09:06:19.215Z",
-      "read": false
-    },
-    {
-      "id": "ta-1791536779204-228",
-      "type": "ORDER_NEW",
-      "message": "🛍️ NEW SALE REGISTERED: Order #ORD-COD-1791536779190 completed via WEB. Total: 19,650 ETB. Payer: Solomon Tesfaye (+251912345678). Shipping Address: Bole Atlas, House 402, Addis Ababa. Dispatch SLA: Active.",
-      "timestamp": "2026-10-09T09:06:19.204Z",
-      "read": false
-    },
-    {
-      "id": "ta-1791536779197-141",
-      "type": "ORDER_NEW",
-      "message": "🛍️ NEW SALE NOTIFICATION FOR STORE: GIRMA TECH STORE\nOrder ID: #ORD-COD-1791536779190 | Channel: WEB\nCustomer: Solomon Tesfaye (📞 +251912345678)\nShipping Address: 📍 Bole Atlas, House 402, Addis Ababa\n\nYOUR STORE'S ORDERED PRODUCTS:\n• SteelSeries Arctis Nova Pro Wireless Headset (Charcoal Black) x1 @ 19,500 ETB = 19,500 ETB\n\nStore Subtotal: 19,500 ETB\nNet Settlement (97%): 💰 18,915 ETB\nPayment Method: COD\nDispatch SLA: Active (24h fulfillment required)",
-      "timestamp": "2026-10-09T09:06:19.197Z",
-      "read": false,
-      "orderId": "ORD-COD-1791536779190",
-      "chatId": "849201948"
-    },
-    {
-      "id": "ta-1791536779187-39",
-      "type": "ORDER_NEW",
-      "message": "🛍️ NEW SALE REGISTERED: Order #ORD-E2E-1791536779054 completed via WEB. Total: 19,650 ETB. Payer: Solomon Tesfaye (+251912345678). Shipping Address: Bole Atlas, House 402, Addis Ababa. Dispatch SLA: Active.",
-      "timestamp": "2026-10-09T09:06:19.187Z",
-      "read": false
-    },
-    {
-      "id": "ta-1791536779117-717",
-      "type": "ORDER_NEW",
-      "message": "🛍️ NEW SALE NOTIFICATION FOR STORE: GIRMA TECH STORE\nOrder ID: #ORD-E2E-1791536779054 | Channel: WEB\nCustomer: Solomon Tesfaye (📞 +251912345678)\nShipping Address: 📍 Bole Atlas, House 402, Addis Ababa\n\nYOUR STORE'S ORDERED PRODUCTS:\n• SteelSeries Arctis Nova Pro Wireless Headset (Charcoal Black) x1 @ 19,500 ETB = 19,500 ETB\n\nStore Subtotal: 19,500 ETB\nNet Settlement (97%): 💰 18,915 ETB\nPayment Method: TELEBIRR\nDispatch SLA: Active (24h fulfillment required)",
-      "timestamp": "2026-10-09T09:06:19.117Z",
-      "read": false,
-      "orderId": "ORD-E2E-1791536779054",
-      "chatId": "849201948"
-    },
-    {
-      "id": "ta-1791475361481-62",
-      "type": "ORDER_DELIVERED",
-      "message": "📦 FULFILLMENT UPDATE: Order #ORD-1791475361260 is now DELIVERED. Handled by: Selam Electronics. Courier: Kassahun T. (+251911554433).",
-      "timestamp": "2026-10-08T16:02:41.481Z",
-      "read": false
-    },
-    {
-      "id": "ta-1791475361470-754",
-      "type": "ORDER_SHIPPED",
-      "message": "📦 FULFILLMENT UPDATE: Order #ORD-1791475361260 is now SHIPPED. Handled by: Selam Electronics. Courier: Kassahun T. (+251911554433).",
-      "timestamp": "2026-10-08T16:02:41.470Z",
-      "read": false
-    },
-    {
-      "id": "ta-1791475361288-604",
-      "type": "ORDER_PACKED",
-      "message": "📦 FULFILLMENT UPDATE: Order #ORD-1791475361260 is now PROCESSING. Handled by: Selam Electronics. Courier: In-House (N/A).",
-      "timestamp": "2026-10-08T16:02:41.288Z",
-      "read": false
-    },
-    {
-      "id": "ta1",
-      "type": "OUT_OF_STOCK",
-      "message": "⚠️ OUT OF STOCK: SKU: ANK-PM-BLK (Anker Prime Smart Power Bank) has reached 0 available on-hand stock.",
-      "timestamp": "2026-06-23T18:22:15Z",
+      "message": "📦 FULFILLMENT UPDATE: Order #ORD-ADDIS-101 is now SHIPPED. Handled by: Courier Driver (Ermias Berhanu). Courier: Ermias Berhanu (+251 91 199 8877).",
+      "timestamp": "2026-10-10T11:37:20.245Z",
       "read": false
     },
     {
@@ -1395,9 +1418,45 @@
       "message": "🚨 LOW STOCK ALERT: SKU: AWU2-49 (Apple Watch Ultra 2 GPS + Cellular Titanium) stock level is at 1 (Threshold: 4). Restock immediately to prevent delisting.",
       "timestamp": "2026-06-24T03:40:00Z",
       "read": false
+    },
+    {
+      "id": "ta1",
+      "type": "OUT_OF_STOCK",
+      "message": "⚠️ OUT OF STOCK: SKU: ANK-PM-BLK (Anker Prime Smart Power Bank) has reached 0 available on-hand stock.",
+      "timestamp": "2026-06-23T18:22:15Z",
+      "read": false
     }
   ],
   "apiLogs": [
+    {
+      "id": "log-1791632255705-760",
+      "timestamp": "2026-10-10T11:37:35.705Z",
+      "method": "POST",
+      "url": "/api/api/courier/orders/ORD-ADDIS-101/delay",
+      "statusCode": 200,
+      "latencyMs": 5,
+      "body": "{\"reason\":\"Traffic on Ring Road\",\"extraNote\":\"Delay ~10 mins\"}",
+      "response": "{\"success\":true,\"order\":{\"id\":\"ORD-ADDIS-101\",\"customerId\":\"cust-solomon\",\"customerName\":\"Solomon Tesfaye\",\"customerPhone\":\"+251912345678\",\"shippingAddress\":\"Bole Atlas, Cameroon St, Behind Mafi Mall, Compound 4\",\"subCity\":\"Bole\",\"landmark\":\"edna_mall\",\"items\":[{\"product\":{\"id\":\"p1\",\"nameEn\":\"SteelS"
+    },
+    {
+      "id": "log-1791632240293-168",
+      "timestamp": "2026-10-10T11:37:20.293Z",
+      "method": "PUT",
+      "url": "/api/api/courier/orders/ORD-ADDIS-101/status",
+      "statusCode": 200,
+      "latencyMs": 54,
+      "body": "{\"status\":\"SHIPPED\",\"courierName\":\"Ermias Berhanu\",\"courierPhone\":\"+251 91 199 8877\"}",
+      "response": "{\"success\":true,\"order\":{\"id\":\"ORD-ADDIS-101\",\"customerId\":\"cust-solomon\",\"customerName\":\"Solomon Tesfaye\",\"customerPhone\":\"+251912345678\",\"shippingAddress\":\"Bole Atlas, Cameroon St, Behind Mafi Mall, Compound 4\",\"subCity\":\"Bole\",\"landmark\":\"edna_mall\",\"items\":[{\"product\":{\"id\":\"p1\",\"nameEn\":\"SteelS"
+    },
+    {
+      "id": "log-1791632194869-742",
+      "timestamp": "2026-10-10T11:36:34.869Z",
+      "method": "GET",
+      "url": "/api/api/courier/manifest",
+      "statusCode": 200,
+      "latencyMs": 7,
+      "response": "{\"success\":true,\"orders\":[{\"id\":\"ORD-ADDIS-101\",\"customerId\":\"cust-solomon\",\"customerName\":\"Solomon Tesfaye\",\"customerPhone\":\"+251912345678\",\"shippingAddress\":\"Bole Atlas, Cameroon St, Behind Mafi Mall, Compound 4\",\"subCity\":\"Bole\",\"landmark\":\"edna_mall\",\"items\":[{\"product\":{\"id\":\"p1\",\"nameEn\":\"Stee"
+    },
     {
       "id": "log-1791047832380-277",
       "timestamp": "2026-10-03T17:17:12.380Z",
@@ -2269,33 +2328,6 @@
       "url": "/api/api/state",
       "statusCode": 200,
       "latencyMs": 2,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
-    },
-    {
-      "id": "log-1791047455045-889",
-      "timestamp": "2026-10-03T17:10:55.045Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 1,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
-    },
-    {
-      "id": "log-1791047452048-446",
-      "timestamp": "2026-10-03T17:10:52.048Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 1,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
-    },
-    {
-      "id": "log-1791047449092-65",
-      "timestamp": "2026-10-03T17:10:49.092Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 1,
       "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
     }
   ]

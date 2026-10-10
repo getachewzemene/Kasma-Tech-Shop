@@ -207,7 +207,7 @@ export interface AuditLog {
 
 export interface TelegramAlert {
   id: string;
-  type: 'ORDER_NEW' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'DAILY_SUMMARY' | 'WEEKLY_SUMMARY' | 'PAYMENT_FAILED' | 'ORDER_CONFIRMATION' | 'SHIPPING_UPDATE' | 'PRICE_DROP' | 'ORDER_SHIPPED' | 'ORDER_DELIVERED' | 'ORDER_PACKED' | 'CLAIM_NEW';
+  type: 'ORDER_NEW' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'DAILY_SUMMARY' | 'WEEKLY_SUMMARY' | 'PAYMENT_FAILED' | 'ORDER_CONFIRMATION' | 'SHIPPING_UPDATE' | 'PRICE_DROP' | 'ORDER_SHIPPED' | 'ORDER_DELIVERED' | 'ORDER_PACKED' | 'ORDER_DELAYED' | 'CLAIM_NEW';
   message: string;
   timestamp: string;
   read: boolean;

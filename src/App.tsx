@@ -13,6 +13,7 @@ const OrderConfirmationPage = React.lazy(() => import('./features/checkout/Order
 const OrderTrackingPage = React.lazy(() => import('./features/checkout/OrderTrackingPage').then(m => ({ default: m.OrderTrackingPage })));
 const MerchantPortalPage = React.lazy(() => import('./features/merchant/MerchantPortalPage').then(m => ({ default: m.MerchantPortalPage })));
 const AdminDashboardPage = React.lazy(() => import('./features/admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
+const CourierDispatchPage = React.lazy(() => import('./features/courier/CourierDispatchPage').then(m => ({ default: m.CourierDispatchPage })));
 
 const PageLoadingFallback = () => (
   <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 space-y-3">
@@ -58,6 +59,10 @@ export default function App() {
                   </ProtectedRoute>
                 } 
               />
+
+              {/* Courier Dispatch & Driver Portal */}
+              <Route path="courier" element={<CourierDispatchPage />} />
+              <Route path="courier/:id" element={<CourierDispatchPage />} />
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />

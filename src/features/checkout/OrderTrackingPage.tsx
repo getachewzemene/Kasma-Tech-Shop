@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { Order } from '../../types';
 import { 
@@ -400,13 +400,23 @@ export const OrderTrackingPage: React.FC = () => {
                   <p className="text-[11px] text-gray-500">{activeOrder.courierPhone}</p>
                 </div>
               </div>
-              <a
-                href={`tel:${activeOrder.courierPhone.replace(/\s+/g, '')}`}
-                className="px-4 py-2 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-bold transition-all shadow-xs flex items-center gap-1.5"
-              >
-                <Phone className="w-3.5 h-3.5" />
-                <span>{language === 'en' ? 'Call Courier' : 'ለአሽከርካሪው ይደውሉ'}</span>
-              </a>
+              <div className="flex items-center gap-2">
+                <Link
+                  to={`/courier/${activeOrder.id}`}
+                  className="px-3 py-2 rounded-xl bg-slate-900 dark:bg-zinc-800 hover:bg-slate-800 text-slate-200 font-bold transition-all text-xs flex items-center gap-1.5 border border-slate-700"
+                  title="Driver Route Portal View"
+                >
+                  <Truck className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="hidden sm:inline">{language === 'en' ? 'Driver View' : 'የአሽከርካሪ እይታ'}</span>
+                </Link>
+                <a
+                  href={`tel:${activeOrder.courierPhone.replace(/\s+/g, '')}`}
+                  className="px-4 py-2 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-bold transition-all shadow-xs flex items-center gap-1.5"
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>{language === 'en' ? 'Call Courier' : 'ለአሽከርካሪው ይደውሉ'}</span>
+                </a>
+              </div>
             </div>
           )}
 

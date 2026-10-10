@@ -22,6 +22,7 @@ import {
   INITIAL_CATEGORIES, 
   INITIAL_PRODUCTS, 
   INITIAL_MERCHANTS, 
+  INITIAL_ORDERS,
   INITIAL_STOCK_LOGS, 
   INITIAL_AUDIT_LOGS, 
   INITIAL_TELEGRAM_ALERTS 
@@ -90,6 +91,17 @@ interface ShopContextType {
   addOrder: (order: Order) => void;
   updateProductStock: (productId: string, sku: string, qtyChange: number, reason: string) => void;
   updateOrderStatus: (orderId: string, newStatus: Order['status']) => void;
+  updateCourierOrderStatus: (
+    orderId: string,
+    newStatus: Order['status'],
+    details?: {
+      courierName?: string;
+      courierPhone?: string;
+      trackingNotes?: string;
+      deliveredAt?: string;
+      gateNotes?: string;
+    }
+  ) => Promise<boolean>;
 
   // Toast System
   toasts: ToastNotification[];
@@ -149,7 +161,7 @@ const ShopContext = createContext<ShopContextType | undefined>(undefined);
 export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [merchants, setMerchants] = useState<Merchant[]>(INITIAL_MERCHANTS);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
   const [alerts, setAlerts] = useState<TelegramAlert[]>(INITIAL_TELEGRAM_ALERTS);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -311,7 +323,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const data = await res.json();
         if (data.products && Array.isArray(data.products)) setProducts(data.products);
         if (data.merchants && Array.isArray(data.merchants)) setMerchants(data.merchants);
-        if (data.orders && Array.isArray(data.orders)) setOrders(data.orders);
+        if (data.orders && Array.isArray(data.orders) && data.orders.length > 0) setOrders(data.orders);
         if (data.auditLogs && Array.isArray(data.auditLogs)) setAuditLogs(data.auditLogs);
         if (data.alerts && Array.isArray(data.alerts)) setAlerts(data.alerts);
       }
@@ -516,6 +528,57 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateOrderStatus = useCallback((orderId: string, newStatus: Order['status']) => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
   }, []);
+
+  const updateCourierOrderStatus = useCallback(async (
+    orderId: string,
+    newStatus: Order['status'],
+    details?: {
+      courierName?: string;
+      courierPhone?: string;
+      trackingNotes?: string;
+      deliveredAt?: string;
+      gateNotes?: string;
+    }
+  ): Promise<boolean> => {
+    const now = new Date().toISOString();
+    setOrders(prev => prev.map(o => {
+      if (o.id !== orderId) return o;
+      return {
+        ...o,
+        status: newStatus,
+        courierName: details?.courierName || o.courierName || 'Ermias Berhanu',
+        courierPhone: details?.courierPhone || o.courierPhone || '+251 91 199 8877',
+        trackingNotes: details?.trackingNotes || o.trackingNotes,
+        gateNotes: details?.gateNotes !== undefined ? details.gateNotes : o.gateNotes,
+        shippedAt: newStatus === 'SHIPPED' ? (o.shippedAt || now) : o.shippedAt,
+        deliveredAt: newStatus === 'DELIVERED' ? (details?.deliveredAt || now) : o.deliveredAt
+      };
+    }));
+
+    try {
+      await fetch(`/api/courier/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: newStatus,
+          courierName: details?.courierName || 'Ermias Berhanu',
+          courierPhone: details?.courierPhone || '+251 91 199 8877',
+          trackingNotes: details?.trackingNotes,
+          deliveredAt: details?.deliveredAt || now
+        })
+      });
+    } catch {}
+
+    const statusMessage = 
+      newStatus === 'DELIVERED'
+        ? (language === 'en' ? `Order #${orderId} delivered & confirmed!` : `ትዕዛዝ #${orderId} በተሳካ ሁኔታ ደርሷል!`)
+        : newStatus === 'SHIPPED'
+        ? (language === 'en' ? `Order #${orderId} is out for delivery!` : `ትዕዛዝ #${orderId} በጉዞ ላይ ነው!`)
+        : (language === 'en' ? `Order #${orderId} updated to ${newStatus}` : `ትዕዛዝ #${orderId} ወደ ${newStatus} ተዘምኗል`);
+
+    showToast(statusMessage, 'success');
+    return true;
+  }, [language, showToast]);
 
   // Customer Auth
   const loginCustomer = useCallback((phone: string, name?: string) => {
@@ -870,6 +933,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addOrder,
         updateProductStock,
         updateOrderStatus,
+        updateCourierOrderStatus,
 
         toasts,
         showToast,

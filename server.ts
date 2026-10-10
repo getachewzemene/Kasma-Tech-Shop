@@ -1443,6 +1443,119 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
     }
   });
 
+  // =========================================================================
+  // DEDICATED ADDIS COURIER DISPATCH & DRIVER PORTAL ROUTES (/api/courier)
+  // =========================================================================
+
+  // Get active courier manifest & route stops
+  app.get('/api/courier/manifest', (req, res) => {
+    try {
+      res.json({
+        success: true,
+        orders: db.orders,
+        driver: {
+          id: 'drv-ermias',
+          name: 'Ermias Berhanu',
+          nameAm: 'ኤርሚያስ ብርሃኑ',
+          phone: '+251 91 199 8877',
+          vehiclePlate: 'AA 3-B 98214'
+        }
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || 'Failed to fetch courier manifest.' });
+    }
+  });
+
+  // Courier Driver Status Update (Pickup, Out for Delivery, Delivered)
+  app.put('/api/courier/orders/:id/status', (req, res) => {
+    try {
+      const { status, courierName, courierPhone, trackingNotes, deliveredAt } = req.body || {};
+      if (!status || !['PROCESSING', 'SHIPPED', 'DELIVERED'].includes(status)) {
+        res.status(400).json({ error: 'Valid status (PROCESSING, SHIPPED, DELIVERED) is required.' });
+        return;
+      }
+
+      const result = OrderService.updateFulfillment(
+        req.params.id,
+        status,
+        {
+          courierName: courierName || 'Ermias Berhanu',
+          courierPhone: courierPhone || '+251 91 199 8877',
+          trackingNotes: trackingNotes || `Updated by driver ${courierName || 'Ermias Berhanu'}`,
+          actor: `Courier Driver (${courierName || 'Ermias Berhanu'})`
+        }
+      );
+
+      if (!result.success) {
+        res.status(404).json({ error: result.error || 'Order not found.' });
+        return;
+      }
+
+      // Automated Customer SMS Notification
+      if (result.order && result.order.customerPhone) {
+        if (status === 'SHIPPED') {
+          sendOrderShippedSms(
+            result.order.customerPhone,
+            result.order.id,
+            courierName || 'Ermias Berhanu',
+            courierPhone || '+251 91 199 8877'
+          ).catch(smsErr => console.warn('[COURIER SMS] Shipped SMS dispatch failed:', smsErr.message));
+        } else if (status === 'DELIVERED') {
+          sendOrderDeliveredSms(
+            result.order.customerPhone,
+            result.order.id
+          ).catch(smsErr => console.warn('[COURIER SMS] Delivered SMS dispatch failed:', smsErr.message));
+        }
+      }
+
+      res.json({
+        success: true,
+        order: result.order,
+        orders: db.orders
+      });
+    } catch (err: any) {
+      console.error('Courier status update error:', err);
+      res.status(500).json({ error: err?.message || 'Server error updating courier order status.' });
+    }
+  });
+
+  // Courier Driver Delay Report
+  app.post('/api/courier/orders/:id/delay', (req, res) => {
+    try {
+      const { reason, extraNote, driverName } = req.body || {};
+      const order = db.orders.find(o => o.id === req.params.id);
+      if (!order) {
+        res.status(404).json({ error: 'Order not found.' });
+        return;
+      }
+
+      const delayMessage = `ROUTE DELAY: ${reason || 'Traffic'} - ${extraNote || 'Driver en route'}`;
+      order.trackingNotes = delayMessage;
+      db.save();
+
+      db.logAudit(
+        driverName || 'Courier Driver',
+        'COURIER_ROUTE_DELAY_REPORTED',
+        `Reported route delay on Order #${order.id}: "${delayMessage}" for customer ${order.customerName} (${order.customerPhone}).`,
+        'WARNING'
+      );
+
+      db.logTelegramAlert(
+        'ORDER_DELAYED',
+        `⚠️ COURIER DELAY: Order #${order.id} encountered route delay. Reason: ${delayMessage}. Landmark: ${order.landmark || order.subCity}.`,
+        order.id
+      );
+
+      res.json({
+        success: true,
+        order,
+        delayMessage
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || 'Failed to log courier delay.' });
+    }
+  });
+
   // Public Order Tracking by Phone + Order ID
   app.get('/api/orders/track', (req, res) => {
     try {

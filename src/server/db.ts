@@ -4,6 +4,7 @@ import { Product, Merchant, Order, StockMovementLog, AuditLog, TelegramAlert, Pa
 import { 
   INITIAL_PRODUCTS, 
   INITIAL_MERCHANTS, 
+  INITIAL_ORDERS,
   INITIAL_STOCK_LOGS, 
   INITIAL_AUDIT_LOGS, 
   INITIAL_TELEGRAM_ALERTS 
@@ -138,6 +139,15 @@ export class Database {
               warrantyTextAm: p.warrantyTextAm || `የ${warrantyMonths} ወራት ኦፊሴላዊ ዋስትና`
             };
           });
+          if (!this.orders) {
+            this.orders = [];
+          }
+          const existingOrderIds = new Set(this.orders.map(o => o.id));
+          INITIAL_ORDERS.forEach(initO => {
+            if (!existingOrderIds.has(initO.id)) {
+              this.orders.push({ ...initO });
+            }
+          });
           this.save();
         }
       } else {
@@ -147,7 +157,7 @@ export class Database {
         this.stockLogs = [...INITIAL_STOCK_LOGS];
         this.auditLogs = [...INITIAL_AUDIT_LOGS];
         this.alerts = [...INITIAL_TELEGRAM_ALERTS];
-        this.orders = [];
+        this.orders = [...INITIAL_ORDERS];
         this.apiLogs = [];
         this.save();
       }

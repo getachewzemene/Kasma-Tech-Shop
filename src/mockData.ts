@@ -1,4 +1,4 @@
-import { Product, Merchant, AuditLog, StockMovementLog, TelegramAlert } from './types';
+import { Product, Merchant, Order, AuditLog, StockMovementLog, TelegramAlert } from './types';
 
 export const INITIAL_CATEGORIES = [
   { id: 'computers', nameEn: 'Computer & Laptop', nameAm: 'ኮምፒውተር እና ላፕቶፕ' },
@@ -616,5 +616,184 @@ export const INITIAL_TELEGRAM_ALERTS: TelegramAlert[] = [
     message: '🚨 LOW STOCK ALERT: SKU: AWU2-49 (Apple Watch Ultra 2 GPS + Cellular Titanium) stock level is at 1 (Threshold: 4). Restock immediately to prevent delisting.',
     timestamp: '2026-06-24T03:40:00Z',
     read: false
+  }
+];
+
+export const INITIAL_ORDERS: Order[] = [
+  {
+    id: 'ORD-ADDIS-101',
+    customerId: 'cust-solomon',
+    customerName: 'Solomon Tesfaye',
+    customerPhone: '+251912345678',
+    subCity: 'Bole',
+    landmark: 'edna_mall',
+    shippingAddress: 'Bole Atlas, Cameroon St, Behind Mafi Mall, Compound 4',
+    coordinates: { lat: 8.9972, lng: 38.7877 },
+    gateNotes: 'Blue metal gate #4 opposite Mafi Cinema, buzzer 02, ask guard for Ato Solomon',
+    deliveryInstructions: 'Please call 5 mins before reaching Edna Mall taxi stand',
+    status: 'SHIPPED',
+    paymentMethod: 'COD',
+    codVerificationPin: '4819',
+    codPhoneConfirmed: true,
+    courierName: 'Ermias Berhanu',
+    courierPhone: '+251911998877',
+    trackingNotes: 'Motorbike dispatch out for delivery on Bole-Atlas corridor',
+    shippedAt: '2026-10-10T09:30:00Z',
+    channel: 'WEB',
+    subtotal: 19500,
+    shippingFee: 150,
+    total: 19650,
+    createdAt: '2026-10-10T08:15:00Z',
+    items: [
+      {
+        product: INITIAL_PRODUCTS[1],
+        sku: 'SS-ANP-BLK',
+        variantName: 'Charcoal Black',
+        quantity: 1,
+        price: 19500
+      }
+    ]
+  },
+  {
+    id: 'ORD-ADDIS-102',
+    customerId: 'cust-bethlehem',
+    customerName: 'Bethlehem Haile',
+    customerPhone: '+251911883344',
+    subCity: 'Kirkos',
+    landmark: 'kazanchis_eca',
+    shippingAddress: 'Kazanchis UNECA Staff Housing, Block C, 3rd Floor Apt 302',
+    coordinates: { lat: 9.0182, lng: 38.7663 },
+    gateNotes: 'Opposite Radisson Blu, UN security gate pass required, guard will dial intercom 302',
+    deliveryInstructions: 'Pre-paid via Telebirr. Leave at reception desk if not in office',
+    status: 'PROCESSING',
+    paymentMethod: 'TELEBIRR',
+    paymentId: 'TB-884920194',
+    courierName: 'Ermias Berhanu',
+    courierPhone: '+251911998877',
+    trackingNotes: 'Packed & ready for courier bike loading at Kasma Hub',
+    packedAt: '2026-10-10T10:15:00Z',
+    channel: 'TELEGRAM_MINI_APP',
+    subtotal: 115000,
+    shippingFee: 100,
+    total: 115100,
+    createdAt: '2026-10-10T09:00:00Z',
+    items: [
+      {
+        product: INITIAL_PRODUCTS[4],
+        sku: 'MBA-M3-15-SPG',
+        variantName: 'Space Gray 16GB/512GB',
+        quantity: 1,
+        price: 115000
+      }
+    ]
+  },
+  {
+    id: 'ORD-ADDIS-103',
+    customerId: 'cust-dawit',
+    customerName: 'Dawit Alemayehu',
+    customerPhone: '+251922557799',
+    subCity: 'Lemi Kura',
+    landmark: 'cmc_michael',
+    shippingAddress: 'CMC Michael, Sunshine Real Estate Villa 42, Addis Ababa',
+    coordinates: { lat: 9.0235, lng: 38.8350 },
+    gateNotes: 'Behind St. Michael Church, Sunshine gate 2, gray steel gate with CCTV camera',
+    deliveryInstructions: 'Please inspect original seal box before payment',
+    status: 'PROCESSING',
+    paymentMethod: 'COD',
+    codVerificationPin: '7215',
+    codPhoneConfirmed: true,
+    courierName: 'Ermias Berhanu',
+    courierPhone: '+251911998877',
+    trackingNotes: 'Scheduled for afternoon run 2 to CMC / Ayat corridor',
+    packedAt: '2026-10-10T09:45:00Z',
+    channel: 'WEB',
+    subtotal: 87500,
+    shippingFee: 150,
+    total: 87650,
+    createdAt: '2026-10-10T08:45:00Z',
+    items: [
+      {
+        product: INITIAL_PRODUCTS[3],
+        sku: 'AWU2-49',
+        variantName: '49mm Titanium Case',
+        quantity: 1,
+        price: 68000
+      },
+      {
+        product: INITIAL_PRODUCTS[0],
+        sku: 'SEN-MT4-BLK',
+        variantName: 'Black Copper',
+        quantity: 1,
+        price: 19500
+      }
+    ]
+  },
+  {
+    id: 'ORD-ADDIS-104',
+    customerId: 'cust-selam',
+    customerName: 'Selamawit Tadesse',
+    customerPhone: '+251933441122',
+    subCity: 'Arada',
+    landmark: 'piassa',
+    shippingAddress: 'Piassa Churchill Ave, Next to historic Taitu Hotel, 3rd Floor',
+    coordinates: { lat: 9.0345, lng: 38.7518 },
+    gateNotes: 'Commercial building next to Commercial Bank Piassa branch, elevator available',
+    deliveryInstructions: 'Delivered to front desk reception',
+    status: 'DELIVERED',
+    paymentMethod: 'CBE_BIRR',
+    paymentId: 'CBE-TX-984210',
+    courierName: 'Ermias Berhanu',
+    courierPhone: '+251911998877',
+    trackingNotes: 'Handed to Selamawit Tadesse with confirmed digital receipt',
+    shippedAt: '2026-10-10T08:30:00Z',
+    deliveredAt: '2026-10-10T11:20:00Z',
+    channel: 'WEB',
+    subtotal: 98000,
+    shippingFee: 120,
+    total: 98120,
+    createdAt: '2026-10-10T07:30:00Z',
+    items: [
+      {
+        product: INITIAL_PRODUCTS[5],
+        sku: 'SGS24U-512-TI',
+        variantName: 'Titanium Gray',
+        quantity: 1,
+        price: 98000
+      }
+    ]
+  },
+  {
+    id: 'ORD-ADDIS-105',
+    customerId: 'cust-yohannes',
+    customerName: 'Yohannes Kebede',
+    customerPhone: '+251944882233',
+    subCity: 'Nifas Silk-Lafto',
+    landmark: 'sarbet',
+    shippingAddress: 'Sarbet Karl Square, Opposite ICS International Community School',
+    coordinates: { lat: 9.0018, lng: 38.7360 },
+    gateNotes: 'Residential green gate #18, opposite ICS sports stadium gate',
+    deliveryInstructions: 'Will pay with Telebirr transfer upon courier arrival',
+    status: 'SHIPPED',
+    paymentMethod: 'COD',
+    codVerificationPin: '9140',
+    codPhoneConfirmed: true,
+    courierName: 'Ermias Berhanu',
+    courierPhone: '+251911998877',
+    trackingNotes: 'In transit on Sarbet / Old Airport road',
+    shippedAt: '2026-10-10T11:00:00Z',
+    channel: 'MOBILE',
+    subtotal: 58000,
+    shippingFee: 150,
+    total: 58150,
+    createdAt: '2026-10-10T10:00:00Z',
+    items: [
+      {
+        product: INITIAL_PRODUCTS[6],
+        sku: 'PS5-SLM-DIG',
+        variantName: '1TB Digital Edition',
+        quantity: 1,
+        price: 58000
+      }
+    ]
   }
 ];
