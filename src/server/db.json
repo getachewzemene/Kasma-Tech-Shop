@@ -1410,6 +1410,24 @@
   ],
   "apiLogs": [
     {
+      "id": "log-1791637705883-846",
+      "timestamp": "2026-10-10T13:08:25.883Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791637705865-857",
+      "timestamp": "2026-10-10T13:08:25.865Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
       "id": "log-1791636184740-999",
       "timestamp": "2026-10-10T12:43:04.740Z",
       "method": "GET",
@@ -2287,24 +2305,6 @@
     {
       "id": "log-1791047711318-271",
       "timestamp": "2026-10-03T17:15:11.318Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 1,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
-    },
-    {
-      "id": "log-1791047708403-70",
-      "timestamp": "2026-10-03T17:15:08.403Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 1,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
-    },
-    {
-      "id": "log-1791047705036-830",
-      "timestamp": "2026-10-03T17:15:05.036Z",
       "method": "GET",
       "url": "/api/api/state",
       "statusCode": 200,
