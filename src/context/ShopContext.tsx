@@ -18,6 +18,7 @@ import {
   WarrantyClaim
 } from '../types';
 import { createDigitalWarrantyPass } from '../lib/warrantyService';
+import { fetchWithSWR, getCachedData, CACHE_KEYS, DEFAULT_TTLS } from '../services/dataCache';
 import { 
   INITIAL_CATEGORIES, 
   INITIAL_PRODUCTS, 
@@ -44,7 +45,8 @@ interface ShopContextType {
   auditLogs: AuditLog[];
   alerts: TelegramAlert[];
   isInitializing: boolean;
-  refreshState: () => Promise<void>;
+  refreshState: (isSilentBackground?: boolean) => Promise<void>;
+  lastSyncTime: number | null;
 
   // Localization & Theme
   language: 'en' | 'am';
@@ -185,12 +187,28 @@ interface ShopContextType {
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
 export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const cached = getCachedData<{ products?: Product[] }>(CACHE_KEYS.STATE);
+      if (cached.data?.products && Array.isArray(cached.data.products) && cached.data.products.length > 0) {
+        return cached.data.products;
+      }
+    } catch {}
+    return INITIAL_PRODUCTS;
+  });
   const [merchants, setMerchants] = useState<Merchant[]>(INITIAL_MERCHANTS);
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
   const [alerts, setAlerts] = useState<TelegramAlert[]>(INITIAL_TELEGRAM_ALERTS);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [lastSyncTime, setLastSyncTime] = useState<number | null>(() => {
+    try {
+      const saved = localStorage.getItem(CACHE_KEYS.LAST_SYNC);
+      return saved ? Number(saved) : null;
+    } catch {
+      return null;
+    }
+  });
 
   // Localization & Theme
   const [language, setLanguage] = useState<'en' | 'am'>('en');
@@ -370,29 +388,48 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  // Backend state fetcher
-  const refreshState = useCallback(async () => {
+  // Backend state fetcher with SWR multi-tier cache
+  const refreshState = useCallback(async (isSilentBackground = false) => {
+    if (!isSilentBackground) setIsSyncing(true);
     try {
-      const res = await fetch('/api/state');
-      if (res.ok) {
-        const data = await res.json();
+      const { data } = await fetchWithSWR<{
+        products?: Product[];
+        merchants?: Merchant[];
+        orders?: Order[];
+        auditLogs?: AuditLog[];
+        alerts?: TelegramAlert[];
+      }>('/api/state', CACHE_KEYS.STATE, {
+        ttlMs: DEFAULT_TTLS.STATE,
+        onBackgroundUpdate: (freshData) => {
+          if (freshData.products && Array.isArray(freshData.products)) setProducts(freshData.products);
+          if (freshData.merchants && Array.isArray(freshData.merchants)) setMerchants(freshData.merchants);
+          if (freshData.orders && Array.isArray(freshData.orders) && freshData.orders.length > 0) setOrders(freshData.orders);
+          if (freshData.auditLogs && Array.isArray(freshData.auditLogs)) setAuditLogs(freshData.auditLogs);
+          if (freshData.alerts && Array.isArray(freshData.alerts)) setAlerts(freshData.alerts);
+          setLastSyncTime(Date.now());
+        }
+      });
+
+      if (data) {
         if (data.products && Array.isArray(data.products)) setProducts(data.products);
         if (data.merchants && Array.isArray(data.merchants)) setMerchants(data.merchants);
         if (data.orders && Array.isArray(data.orders) && data.orders.length > 0) setOrders(data.orders);
         if (data.auditLogs && Array.isArray(data.auditLogs)) setAuditLogs(data.auditLogs);
         if (data.alerts && Array.isArray(data.alerts)) setAlerts(data.alerts);
+        setLastSyncTime(Date.now());
       }
     } catch (err) {
       console.warn('API state sync fallback to offline store:', err);
     } finally {
       setIsInitializing(false);
+      if (!isSilentBackground) setIsSyncing(false);
     }
   }, []);
 
   const handleForceSync = useCallback(async () => {
     setIsSyncing(true);
     try {
-      await refreshState();
+      await refreshState(false);
       showToast(language === 'en' ? 'Data synchronized successfully!' : 'ዳታ በተሳካ ሁኔታ ተመሳስሏል!', 'success');
     } catch (e) {
       showToast(language === 'en' ? 'Sync failed. Working in offline mode.' : 'ማመሳሰል አልተሳካም።', 'warning');
@@ -401,9 +438,43 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [language, refreshState, showToast]);
 
+  // Periodic background revalidation & smart visibility/network synchronization
   useEffect(() => {
+    // 1. Initial hydration fetch
     refreshState();
-  }, [refreshState]);
+
+    // 2. Periodic polling interval (every 30 seconds for live freshness)
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === 'visible' && navigator.onLine) {
+        refreshState(true);
+      }
+    }, 30000);
+
+    // 3. Tab visibility / window focus revalidation
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) {
+        refreshState(true);
+      }
+    };
+
+    // 4. Online reconnection revalidation
+    const handleOnline = () => {
+      setIsOfflineSimulated(false);
+      refreshState(false);
+      showToast(language === 'en' ? 'Back online! Re-synced catalog.' : 'መስመር ላይ ተመልሷል! ዳታ ተመሳስሏል።', 'info');
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [refreshState, language, showToast]);
 
   // Cart operations
   const addToCart = useCallback((product: Product, variantSku?: string, qty = 1) => {
@@ -961,6 +1032,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         alerts,
         isInitializing,
         refreshState,
+        lastSyncTime,
 
         language,
         setLanguage,

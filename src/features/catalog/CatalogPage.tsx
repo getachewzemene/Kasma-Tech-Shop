@@ -1,6 +1,7 @@
 import React from 'react';
 import { useShop } from '../../context/ShopContext';
 import CustomerWeb from '../../components/CustomerWeb';
+import { CustomerWebSkeleton } from '../../components/Skeletons';
 import { FloatingCompareDock } from '../../components/catalog/FloatingCompareDock';
 import { TechSpecsComparisonModal } from '../../components/catalog/TechSpecsComparisonModal';
 import { QrCodeScannerOverlay } from '../../components/QrCodeScannerOverlay';
@@ -46,8 +47,13 @@ export const CatalogPage: React.FC = () => {
     toggleCompare,
     isCompareModalOpen,
     setIsCompareModalOpen,
-    openCompareWith
+    openCompareWith,
+    isInitializing
   } = useShop();
+
+  if (isInitializing && products.length === 0) {
+    return <CustomerWebSkeleton />;
+  }
 
   return (
     <div className="w-full relative">

@@ -81,9 +81,10 @@ export const LazyImage: React.FC<LazyImageProps> = ({
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.35 }}
-            className="absolute inset-0 z-10"
+            className="absolute inset-0 z-10 flex items-center justify-center bg-gray-100/50 dark:bg-zinc-800/40"
           >
             <Shimmer className="w-full h-full rounded-none" />
+            <Package className="w-6 h-6 text-gray-300 dark:text-zinc-600 absolute opacity-30 animate-pulse pointer-events-none" />
           </motion.div>
         )}
       </AnimatePresence>
@@ -97,12 +98,17 @@ export const LazyImage: React.FC<LazyImageProps> = ({
           transition={{ duration: 0.4, ease: 'easeOut' }}
           onLoad={handleLoadComplete}
           onError={handleError}
-          className={`${className} ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+          className={`${className} ${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
           referrerPolicy="no-referrer"
           loading="lazy"
+          decoding="async"
           {...props}
         />
       )}
     </div>
   );
 };
+
+// Convenient alias for semantic readability across all components
+export const ShimmerImage = LazyImage;
+

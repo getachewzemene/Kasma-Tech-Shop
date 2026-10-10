@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LazyImage } from '../../components/LazyImage';
 import { Link, useNavigate } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { 
@@ -98,10 +99,11 @@ export const CartPage: React.FC = () => {
               key={item.sku}
               className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 flex items-center gap-4 transition-all"
             >
-              <img
+              <LazyImage
                 src={item.product.image}
                 alt={item.product.nameEn}
-                className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl bg-gray-100 dark:bg-zinc-800 shrink-0"
+                className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl shrink-0"
+                containerClassName="w-20 h-20 sm:w-24 sm:h-24 rounded-xl shrink-0 bg-gray-100 dark:bg-zinc-800"
               />
 
               <div className="flex-1 min-w-0 space-y-1">

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { LazyImage } from '../../components/LazyImage';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { 
@@ -247,10 +248,11 @@ export const ProductDetailPage: React.FC = () => {
         {/* Left Column: Image Viewer */}
         <div className="lg:col-span-6 space-y-4">
           <div className="relative aspect-square rounded-3xl bg-gray-100 dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 overflow-hidden shadow-sm group">
-            <img
+            <LazyImage
               src={product.image}
               alt={product.nameEn}
               className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+              containerClassName="w-full h-full"
             />
             {/* Condition Badge */}
             <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-xl tracking-wider">

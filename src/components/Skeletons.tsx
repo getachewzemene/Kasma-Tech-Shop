@@ -258,3 +258,53 @@ export const AdminDashboardSkeleton: React.FC = () => {
     </div>
   );
 };
+
+// High-fidelity shimmer skeleton for individual product card
+export const ProductCardSkeleton: React.FC<{ className?: string }> = ({ className = '' }) => {
+  return (
+    <div className={`bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-xs flex flex-col justify-between ${className}`}>
+      {/* Image Skeleton */}
+      <div className="aspect-[4/3] w-full relative overflow-hidden bg-gray-100 dark:bg-zinc-850">
+        <Shimmer className="w-full h-full rounded-none" />
+      </div>
+
+      {/* Card Content Skeleton */}
+      <div className="p-3.5 sm:p-4 space-y-2.5 flex-1 flex flex-col justify-between">
+        <div className="space-y-2">
+          {/* Brand/Category Tag */}
+          <div className="flex items-center justify-between">
+            <Shimmer className="h-3 w-16 rounded" />
+            <Shimmer className="h-3 w-10 rounded" />
+          </div>
+          {/* Title Lines */}
+          <Shimmer className="h-4 w-4/5 rounded-md" />
+          <Shimmer className="h-3.5 w-3/5 rounded-md" />
+        </div>
+
+        {/* Price & Action Row */}
+        <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/60 flex items-center justify-between mt-auto">
+          <div className="space-y-1">
+            <Shimmer className="h-2.5 w-10 rounded" />
+            <Shimmer className="h-5 w-20 rounded" />
+          </div>
+          <Shimmer className="h-8 w-8 rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// High-fidelity shimmer grid for catalog batch loading
+export const ProductGridSkeleton: React.FC<{ count?: number; className?: string }> = ({ 
+  count = 8, 
+  className = 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5' 
+}) => {
+  return (
+    <div className={className}>
+      {Array.from({ length: count }).map((_, idx) => (
+        <ProductCardSkeleton key={`skeleton-card-${idx}`} />
+      ))}
+    </div>
+  );
+};
+

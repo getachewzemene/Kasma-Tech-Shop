@@ -1410,6 +1410,78 @@
   ],
   "apiLogs": [
     {
+      "id": "log-1791646330684-659",
+      "timestamp": "2026-10-10T15:32:10.684Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791646270692-437",
+      "timestamp": "2026-10-10T15:31:10.692Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791646210684-841",
+      "timestamp": "2026-10-10T15:30:10.684Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791646150685-647",
+      "timestamp": "2026-10-10T15:29:10.685Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791646101132-943",
+      "timestamp": "2026-10-10T15:28:21.132Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791646060715-576",
+      "timestamp": "2026-10-10T15:27:40.715Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791646029427-661",
+      "timestamp": "2026-10-10T15:27:09.427Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791639280683-346",
+      "timestamp": "2026-10-10T13:34:40.683Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
       "id": "log-1791637705883-846",
       "timestamp": "2026-10-10T13:08:25.883Z",
       "method": "GET",
@@ -2238,78 +2310,6 @@
       "statusCode": 200,
       "latencyMs": 4,
       "response": "[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Premium high-fi"
-    },
-    {
-      "id": "log-1791047785287-79",
-      "timestamp": "2026-10-03T17:16:25.287Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 1,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
-    },
-    {
-      "id": "log-1791047729238-363",
-      "timestamp": "2026-10-03T17:15:29.238Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 1,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
-    },
-    {
-      "id": "log-1791047726150-115",
-      "timestamp": "2026-10-03T17:15:26.150Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 1,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
-    },
-    {
-      "id": "log-1791047723049-708",
-      "timestamp": "2026-10-03T17:15:23.049Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 1,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
-    },
-    {
-      "id": "log-1791047720271-372",
-      "timestamp": "2026-10-03T17:15:20.271Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 2,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
-    },
-    {
-      "id": "log-1791047717395-320",
-      "timestamp": "2026-10-03T17:15:17.395Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 1,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
-    },
-    {
-      "id": "log-1791047714040-866",
-      "timestamp": "2026-10-03T17:15:14.040Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 1,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
-    },
-    {
-      "id": "log-1791047711318-271",
-      "timestamp": "2026-10-03T17:15:11.318Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 1,
-      "response": "{\"products\":[{\"id\":\"p1\",\"nameEn\":\"SteelSeries Arctis Nova Pro Wireless Headset\",\"nameAm\":\"ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ የጌሚንግ ማዳመጫ\",\"category\":\"gaming\",\"price\":19500,\"brand\":\"SteelSeries\",\"status\":\"APPROVED\",\"lowStockThreshold\":5,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Pre"
     }
   ]
 }

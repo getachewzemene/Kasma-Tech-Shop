@@ -8,8 +8,8 @@ import { QRCodeSVG } from 'qrcode.react';
 import { motion, AnimatePresence } from 'motion/react';
 import { OrderCourierMiniMap } from './OrderCourierMiniMap';
 import { OrderTrackingVisualizer } from './OrderTrackingVisualizer';
-import { LazyImage } from './LazyImage';
-import { Shimmer, ShimmerCircle } from './Skeletons';
+import { LazyImage, ShimmerImage } from './LazyImage';
+import { Shimmer, ShimmerCircle, ProductCardSkeleton } from './Skeletons';
 import MyOrdersView from './MyOrdersView';
 import UserProfileView from './UserProfileView';
 import { FlashDealsView } from './FlashDealsView';
@@ -307,6 +307,18 @@ export default function CustomerWeb({
   const [selectedRatingFilter, setSelectedRatingFilter] = useState<number>(0);
   const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState<boolean>(false);
   const [filterSectionFocus, setFilterSectionFocus] = useState<'all' | 'brand' | 'price' | 'rating' | 'availability' | 'features'>('all');
+
+  // Progressive Catalog Pagination & Batch Loading for High Usability
+  const [visibleProductCount, setVisibleProductCount] = useState<number>(12);
+  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+
+  // Trigger smooth shimmer transition when category or search changes
+  useEffect(() => {
+    setIsGridLoading(true);
+    setVisibleProductCount(12);
+    const timer = setTimeout(() => setIsGridLoading(false), 200);
+    return () => clearTimeout(timer);
+  }, [selectedCategory, searchQuery, sortBy, availabilityFilter, minPriceInput, maxPriceInput]);
 
   // Dynamic brand list & price bounds derived from catalog
   const availableBrands = React.useMemo(() => {
@@ -2975,12 +2987,12 @@ export default function CustomerWeb({
             </button>
           </div>
           
-          {/* Speaker image */}
-          <img
+          {/* Speaker image with shimmer */}
+          <LazyImage
             src="https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=600&q=80"
             alt="Marshall Speaker"
-            referrerPolicy="no-referrer"
             className="w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 object-contain filter drop-shadow-2xl group-hover:scale-103 transition-transform duration-500 relative z-10 shrink-0"
+            containerClassName="w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 shrink-0 relative z-10"
           />
         </div>
 
@@ -2995,10 +3007,9 @@ export default function CustomerWeb({
               <button onClick={() => { setSelectedCategory('accessories'); const el = document.getElementById('products-grid-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }} className="text-[8px] xs:text-[9px] font-black text-[#0052FF] uppercase tracking-wider underline block pt-0.5 sm:pt-1 cursor-pointer">{language === 'en' ? 'Discover »' : 'ይጎብኙ »'}</button>
             </div>
             <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden border border-gray-200/80 dark:border-zinc-700/80 shadow-xs shrink-0 group-hover:scale-105 transition-transform duration-300">
-              <img
+              <LazyImage
                 src="https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=300&q=80"
                 alt="Power bank"
-                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -3012,10 +3023,9 @@ export default function CustomerWeb({
               <button onClick={() => { setSelectedCategory('gaming'); const el = document.getElementById('products-grid-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }} className="text-[8px] xs:text-[9px] font-black text-[#0052FF] uppercase tracking-wider underline block pt-0.5 sm:pt-1 cursor-pointer">{language === 'en' ? 'Discover »' : 'ይጎብኙ »'}</button>
             </div>
             <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden border border-gray-200/80 dark:border-zinc-700/80 shadow-xs shrink-0 group-hover:scale-105 transition-transform duration-300">
-              <img
+              <LazyImage
                 src="https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=300&q=80"
                 alt="Nintendo Switch controller"
-                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -3602,32 +3612,96 @@ export default function CustomerWeb({
             <p className="text-gray-400 dark:text-zinc-500 text-xs">{language === 'en' ? 'Try adjusting your search query or filters.' : 'እባክዎን ፍለጋዎን ያስተካክሉ።'}</p>
           </div>
         ) : (
-          <GridContainer cols="auto-fill" gap="normal">
-            {sortedAndFilteredProducts.map((p) => {
-              const isFavorite = favorites.includes(p.id);
-              const isCompared = comparedProductIds.includes(p.id);
+          <>
+            <GridContainer cols="auto-fill" gap="normal">
+              {sortedAndFilteredProducts.slice(0, visibleProductCount).map((p) => {
+                const isFavorite = favorites.includes(p.id);
+                const isCompared = comparedProductIds.includes(p.id);
 
-              return (
-                <ProductCard
-                  key={p.id}
-                  product={p}
-                  language={language}
-                  isFavorite={isFavorite}
-                  onToggleFavorite={handleToggleFavorite}
-                  isCompared={isCompared}
-                  onToggleCompare={handleToggleCompare}
-                  onOpenProduct={handleOpenQuickBuy}
-                  onQuickView={handleOpenQuickBuy}
-                  onAddToCart={addToCart}
-                  onInstantBuy={handleInstantBuy}
-                  showToast={showToast}
-                  badgeColor="indigo"
-                  highlightSearchQuery={searchQuery}
-                  layout="grid"
-                />
-              );
-            })}
-          </GridContainer>
+                return (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    language={language}
+                    isFavorite={isFavorite}
+                    onToggleFavorite={handleToggleFavorite}
+                    isCompared={isCompared}
+                    onToggleCompare={handleToggleCompare}
+                    onOpenProduct={handleOpenQuickBuy}
+                    onQuickView={handleOpenQuickBuy}
+                    onAddToCart={addToCart}
+                    onInstantBuy={handleInstantBuy}
+                    showToast={showToast}
+                    badgeColor="indigo"
+                    highlightSearchQuery={searchQuery}
+                    layout="grid"
+                  />
+                );
+              })}
+              {/* Shimmer skeleton cards when loading subsequent batch */}
+              {isLoadingMore && (
+                <>
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <ProductCardSkeleton key={`loading-more-${i}`} />
+                  ))}
+                </>
+              )}
+            </GridContainer>
+
+            {/* Progressive Loading & Large Dataset Controls */}
+            {visibleProductCount < sortedAndFilteredProducts.length && (
+              <div className="mt-10 mb-6 flex flex-col items-center justify-center space-y-3">
+                <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-400 font-medium">
+                  <span>
+                    {language === 'en' 
+                      ? `Showing ${Math.min(visibleProductCount, sortedAndFilteredProducts.length)} of ${sortedAndFilteredProducts.length} products` 
+                      : `${sortedAndFilteredProducts.length} ውስጥ ${Math.min(visibleProductCount, sortedAndFilteredProducts.length)} ታይቷል`}
+                  </span>
+                  <div className="w-24 bg-gray-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-[#0052FF] h-full rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min(100, Math.round((visibleProductCount / sortedAndFilteredProducts.length) * 100))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={isLoadingMore}
+                    onClick={() => {
+                      setIsLoadingMore(true);
+                      setTimeout(() => {
+                        setVisibleProductCount(prev => prev + 12);
+                        setIsLoadingMore(false);
+                      }, 250);
+                    }}
+                    className="px-6 py-3 bg-[#0052FF] hover:bg-blue-600 active:scale-95 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-md hover:shadow-blue-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isLoadingMore ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>{language === 'en' ? 'Loading Products...' : 'እየጫነ ነው...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>{language === 'en' ? 'Load More Products' : 'ተጨማሪ ምርቶችን አሳይ'}</span>
+                        <ChevronDown className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setVisibleProductCount(sortedAndFilteredProducts.length)}
+                    className="px-4 py-3 bg-white dark:bg-zinc-850 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700/80 rounded-2xl text-xs font-bold transition-all cursor-pointer"
+                  >
+                    {language === 'en' ? `Show All (${sortedAndFilteredProducts.length})` : `ሁሉንም አሳይ (${sortedAndFilteredProducts.length})`}
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -5002,25 +5076,26 @@ export default function CustomerWeb({
         </div>
       )}
 
-      {/* Cart Slider Drawer / Mobile Fullscreen Modal */}
+      {/* Cart Center Modal */}
       {isCartOpen && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex justify-end backdrop-blur-xs transition-opacity duration-300">
-          <div className="bg-white dark:bg-zinc-900 w-full md:max-w-md h-[100dvh] flex flex-col shadow-2xl relative animate-slide-in border-l border-gray-100 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 overflow-hidden">
+        <div 
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-5 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+          onClick={() => setIsCartOpen(false)}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-zinc-900 w-full max-w-xl max-h-[90vh] sm:max-h-[85vh] rounded-3xl flex flex-col shadow-2xl relative animate-in zoom-in-95 duration-200 border border-gray-150 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 overflow-hidden"
+          >
             
             {/* 1. Header (Fixed top) */}
             <div className="p-4 sm:p-5 bg-white dark:bg-zinc-900 text-gray-950 dark:text-white border-b border-gray-150 dark:border-zinc-800 flex justify-between items-center shrink-0">
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setIsCartOpen(false)} 
-                  className="md:hidden text-gray-600 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 p-1.5 rounded-full cursor-pointer mr-0.5"
-                  title="Back"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
+              <div className="flex items-center gap-2.5">
                 <div className="relative">
-                  <ShoppingCart className="w-5 h-5 text-[#0052FF]" />
+                  <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#0052FF] flex items-center justify-center border border-blue-100 dark:border-blue-900/40">
+                    <ShoppingCart className="w-5 h-5" />
+                  </div>
                   {cart.length > 0 && (
-                    <span className="absolute -top-1.5 -right-2 bg-[#0052FF] text-white text-[9px] font-mono font-black w-4 h-4 rounded-full flex items-center justify-center animate-bounce">
+                    <span className="absolute -top-1.5 -right-1.5 bg-[#0052FF] text-white text-[9px] font-mono font-black w-4.5 h-4.5 rounded-full flex items-center justify-center animate-bounce shadow-xs">
                       {cart.reduce((a, b) => a + b.quantity, 0)}
                     </span>
                   )}
@@ -5180,11 +5255,11 @@ export default function CustomerWeb({
                               : 'bg-white dark:bg-zinc-850/80 border-gray-150 dark:border-zinc-800 hover:border-gray-250 dark:hover:border-zinc-700 animate-in fade-in slide-in-from-right-4 duration-250'
                           }`}
                         >
-                          <img 
+                          <LazyImage 
                             src={item.product.image} 
                             alt={item.product.nameEn} 
-                            referrerPolicy="no-referrer"
                             className="w-16 h-16 sm:w-18 sm:h-18 object-cover rounded-xl shrink-0 border border-gray-150 dark:border-zinc-800"
+                            containerClassName="w-16 h-16 sm:w-18 sm:h-18 rounded-xl shrink-0"
                           />
                           <div className="flex-grow min-w-0 pr-6">
                             <p className="text-[9px] text-gray-400 dark:text-zinc-500 font-extrabold uppercase tracking-wider">{item.product.brand}</p>
@@ -5460,18 +5535,39 @@ export default function CustomerWeb({
         </div>
       )}
 
-      {/* Wishlist Slider Drawer */}
+      {/* Wishlist Center Modal */}
       {isWishlistOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex justify-end backdrop-blur-xs">
-          <div className="bg-white dark:bg-zinc-900 w-full max-w-md h-full flex flex-col shadow-2xl relative animate-slide-in border-l border-gray-150 dark:border-zinc-850">
-            <div className="p-5 bg-white dark:bg-zinc-900 text-black dark:text-white border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <Heart className="w-5 h-5 text-rose-500 fill-current" />
-                <h3 className="font-bold text-sm uppercase tracking-wider text-gray-900 dark:text-zinc-100">
-                  {language === 'en' ? 'My Wishlist' : 'የእኔ ምኞት ዝርዝር'}
-                </h3>
+        <div 
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-5 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+          onClick={() => setIsWishlistOpen(false)}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white dark:bg-zinc-900 w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] rounded-3xl flex flex-col shadow-2xl relative animate-in zoom-in-95 duration-200 border border-gray-150 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 overflow-hidden"
+          >
+            <div className="p-4 sm:p-5 bg-white dark:bg-zinc-900 text-black dark:text-white border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-500 flex items-center justify-center shrink-0 border border-rose-100 dark:border-rose-900/40">
+                  <Heart className="w-4.5 h-4.5 fill-current" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                    {language === 'en' ? 'My Wishlist' : 'የእኔ ምኞት ዝርዝር'}
+                  </h3>
+                  <p className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">
+                    {favorites.length === 0
+                      ? (language === 'en' ? '0 saved items' : '0 የተቀመጡ እቃዎች')
+                      : (language === 'en' ? `${favorites.length} saved ${favorites.length === 1 ? 'item' : 'items'}` : `${favorites.length} የተቀመጡ እቃዎች`)}
+                  </p>
+                </div>
               </div>
-              <button onClick={() => setIsWishlistOpen(false)} className="text-gray-400 hover:text-black dark:hover:text-white font-bold text-lg cursor-pointer">✕</button>
+              <button 
+                onClick={() => setIsWishlistOpen(false)} 
+                className="text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full p-1.5 w-8 h-8 flex items-center justify-center transition-all cursor-pointer font-bold text-sm"
+                title={language === 'en' ? 'Close' : 'ዝጋ'}
+              >
+                ✕
+              </button>
             </div>
 
             <div className="flex-grow overflow-y-auto p-5 space-y-4">
@@ -5491,11 +5587,11 @@ export default function CustomerWeb({
                     const isOutOfStock = product.variants.every(v => v.onHand <= 0);
                     return (
                       <div key={product.id} className="bg-white dark:bg-zinc-850 p-4 rounded-2xl border border-gray-150 dark:border-zinc-800 flex gap-3 relative shadow-xs">
-                        <img 
+                        <LazyImage 
                           src={product.image} 
                           alt={product.nameEn} 
-                          referrerPolicy="no-referrer"
                           className="w-16 h-16 object-cover rounded-xl shrink-0 border border-gray-100 dark:border-zinc-800"
+                          containerClassName="w-16 h-16 rounded-xl shrink-0"
                         />
                         <div className="flex-grow min-w-0 flex flex-col justify-between">
                           <div>
@@ -5540,7 +5636,7 @@ export default function CustomerWeb({
             </div>
 
             {favorites.length > 0 && (
-              <div className="p-5 bg-gray-50 dark:bg-zinc-950 border-t border-gray-150 dark:border-zinc-800">
+              <div className="p-4 sm:p-5 bg-gray-50 dark:bg-zinc-950 border-t border-gray-150 dark:border-zinc-800 shrink-0">
                 <button 
                   onClick={() => {
                     // Add all available wishlisted items to cart
@@ -5577,16 +5673,19 @@ export default function CustomerWeb({
         </div>
       )}
 
-      {/* Price Alerts Drawer */}
+      {/* Price Alerts Center Modal */}
       {isPriceAlertsOpen && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex justify-end backdrop-blur-xs transition-opacity duration-300 animate-in fade-in">
-          {/* Backdrop Click */}
-          <div className="absolute inset-0" onClick={() => setIsPriceAlertsOpen(false)} />
-          
-          {/* Drawer Body */}
-          <div className="relative w-full max-w-md bg-white dark:bg-zinc-900 h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300 border-l border-gray-150 dark:border-zinc-800">
+        <div 
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-5 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+          onClick={() => setIsPriceAlertsOpen(false)}
+        >
+          {/* Modal Body */}
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] bg-white dark:bg-zinc-900 rounded-3xl flex flex-col shadow-2xl border border-gray-150 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 overflow-hidden transition-all"
+          >
             {/* Header */}
-            <div className="p-5 border-b border-gray-150 dark:border-zinc-800 flex items-center justify-between bg-amber-500/[0.02]">
+            <div className="p-4 sm:p-5 border-b border-gray-150 dark:border-zinc-800 flex items-center justify-between bg-amber-500/[0.02] shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-amber-500/10 dark:bg-amber-500/5 text-amber-600 dark:text-amber-400 rounded-xl">
                   <Bell className="w-4.5 h-4.5 animate-pulse" />
@@ -5604,7 +5703,8 @@ export default function CustomerWeb({
               </div>
               <button 
                 onClick={() => setIsPriceAlertsOpen(false)} 
-                className="p-2 text-gray-400 hover:text-black dark:hover:text-white rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer"
+                className="text-gray-400 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full p-1.5 w-8 h-8 flex items-center justify-center transition-all cursor-pointer font-bold text-sm"
+                title={language === 'en' ? 'Close' : 'ዝጋ'}
               >
                 ✕
               </button>
@@ -5643,13 +5743,13 @@ export default function CustomerWeb({
                         className="p-4 bg-gray-50/50 dark:bg-zinc-950/30 rounded-2xl border border-gray-150 dark:border-zinc-800/40 relative flex flex-col gap-3 group transition-all"
                       >
                         <div className="flex gap-3">
-                          {/* Product Image */}
+                          {/* Product Image with Shimmer */}
                           <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-800 border border-gray-150 dark:border-zinc-850 shrink-0">
-                            <img 
+                            <LazyImage 
                               src={product.image} 
                               alt={product.nameEn} 
                               className="w-full h-full object-cover" 
-                              referrerPolicy="no-referrer"
+                              containerClassName="w-full h-full"
                             />
                           </div>
 

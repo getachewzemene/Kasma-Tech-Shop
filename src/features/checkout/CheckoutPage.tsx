@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { LazyImage } from '../../components/LazyImage';
 import { useNavigate, Link } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { SUB_CITIES } from '../../constants/locations';
@@ -477,7 +478,7 @@ export const CheckoutPage: React.FC = () => {
               {cart.map(item => (
                 <div key={item.sku} className="flex items-center justify-between text-xs gap-3">
                   <div className="flex items-center gap-2.5 truncate">
-                    <img src={item.product.image} alt="" className="w-9 h-9 rounded-lg object-cover bg-gray-100 shrink-0" />
+                    <LazyImage src={item.product.image} alt="" className="w-9 h-9 rounded-lg object-cover" containerClassName="w-9 h-9 rounded-lg bg-gray-100 shrink-0" />
                     <div className="truncate">
                       <p className="font-bold text-gray-900 dark:text-zinc-100 truncate">{item.product.nameEn}</p>
                       <p className="text-[10px] text-gray-400">Qty: {item.quantity} • {item.variantName}</p>

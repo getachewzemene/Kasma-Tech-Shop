@@ -15,14 +15,10 @@ const MerchantPortalPage = React.lazy(() => import('./features/merchant/Merchant
 const AdminDashboardPage = React.lazy(() => import('./features/admin/AdminDashboardPage').then(m => ({ default: m.AdminDashboardPage })));
 const CourierDispatchPage = React.lazy(() => import('./features/courier/CourierDispatchPage').then(m => ({ default: m.CourierDispatchPage })));
 
-const PageLoadingFallback = () => (
-  <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 space-y-3">
-    <div className="w-10 h-10 border-3 border-gray-200 dark:border-zinc-800 border-t-[#0052FF] rounded-full animate-spin" />
-    <span className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-zinc-500 font-mono">
-      Loading...
-    </span>
-  </div>
-);
+import { CustomerWebSkeleton } from './components/Skeletons';
+
+const PageLoadingFallback = () => <CustomerWebSkeleton />;
+
 
 export default function App() {
   return (
