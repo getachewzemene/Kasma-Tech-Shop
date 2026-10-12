@@ -526,6 +526,21 @@
           "createdAt": "2026-06-20T10:12:00Z"
         }
       ]
+    },
+    {
+      "id": "m-1791805671589",
+      "storeName": "Test Bole Electronics",
+      "ownerName": "Dawit Test",
+      "email": "dawit.bole@gmail.com",
+      "phone": "+251911998877",
+      "password": "securePass123",
+      "status": "ACTIVE",
+      "kycStatus": "APPROVED",
+      "balance": 0,
+      "payouts": [],
+      "telegramNotificationsEnabled": false,
+      "telegramLowStockAlerts": true,
+      "lowStockThreshold": 3
     }
   ],
   "orders": [
@@ -588,17 +603,10 @@
       "total": 19650,
       "paymentMethod": "COD",
       "paymentId": "TX-ORD-ADDIS-101",
-      "status": "DELIVERED",
+      "status": "SHIPPED",
       "channel": "WEB",
       "discountAmount": 0,
-      "createdAt": "2026-10-10T11:28:53.576Z",
-      "deliveredAt": "2026-10-12T08:29:21.360Z",
-      "deviceInspectionConfirmed": true,
-      "escrowStatus": "RELEASED_TO_MERCHANT",
-      "escrowReleasedAt": "2026-10-12T08:29:21.360Z",
-      "courierName": "Ermias Berhanu",
-      "courierPhone": "+251 91 199 8877",
-      "trackingNotes": "Delivered to Solomon Tesfaye. Handover PIN verified on physical inspection. Device seal checked, screen tested at Bole"
+      "createdAt": "2026-10-10T11:28:53.576Z"
     },
     {
       "id": "ORD-COD-1791544490666",
@@ -661,17 +669,10 @@
       "total": 19650,
       "paymentMethod": "COD",
       "paymentId": "TX-ORD-COD-1791544490666",
-      "status": "DELIVERED",
+      "status": "PROCESSING",
       "channel": "WEB",
       "discountAmount": 0,
-      "createdAt": "2026-10-09T11:14:59.188Z",
-      "deliveredAt": "2026-10-12T08:39:18.131Z",
-      "deviceInspectionConfirmed": true,
-      "escrowStatus": "RELEASED_TO_MERCHANT",
-      "escrowReleasedAt": "2026-10-12T08:39:18.131Z",
-      "courierName": "Ermias Berhanu",
-      "courierPhone": "+251 91 199 8877",
-      "trackingNotes": "Delivered to Solomon Tesfaye. Handover PIN verified on physical inspection. Device seal checked, screen tested at Bole"
+      "createdAt": "2026-10-09T11:14:59.188Z"
     },
     {
       "id": "ORD-E2E-1791544489540",
@@ -1094,7 +1095,31 @@
   ],
   "auditLogs": [
     {
-      "id": "al-1791794358133-39",
+      "id": "al-1791805682869-67",
+      "actor": "Merchant: Test Bole Electronics",
+      "action": "MERCHANT_AUTHENTICATED",
+      "details": "Authenticated merchant session for store \"Test Bole Electronics\".",
+      "severity": "INFO",
+      "timestamp": "2026-10-12T11:48:02.869Z"
+    },
+    {
+      "id": "al-1791805671595-85",
+      "actor": "Merchant: Test Bole Electronics",
+      "action": "MERCHANT_REGISTERED",
+      "details": "Registered and authenticated new merchant store \"Test Bole Electronics\".",
+      "severity": "INFO",
+      "timestamp": "2026-10-12T11:47:51.595Z"
+    },
+    {
+      "id": "al-1791805663616-51",
+      "actor": "Merchant: Abebe Gadget Hub",
+      "action": "MERCHANT_AUTHENTICATED",
+      "details": "Authenticated merchant session for store \"Abebe Gadget Hub\".",
+      "severity": "INFO",
+      "timestamp": "2026-10-12T11:47:43.616Z"
+    },
+    {
+      "id": "al-1791794358133-496",
       "actor": "Escrow Ledger",
       "action": "ESCROW_FUNDS_RELEASED",
       "details": "4-Digit Handover PIN verified by courier Ermias Berhanu. Released 19,650 ETB escrow to merchant for Order #ORD-COD-1791544490666.",
@@ -1102,7 +1127,7 @@
       "timestamp": "2026-10-12T08:39:18.133Z"
     },
     {
-      "id": "al-1791793761401-66",
+      "id": "al-1791793761401-384",
       "actor": "Escrow Ledger",
       "action": "ESCROW_FUNDS_RELEASED",
       "details": "4-Digit Handover PIN verified by courier Ermias Berhanu. Released 19,650 ETB escrow to merchant for Order #ORD-ADDIS-101.",
@@ -1424,20 +1449,6 @@
   ],
   "alerts": [
     {
-      "id": "ta-1791794358136-651",
-      "type": "ESCROW_RELEASED",
-      "message": "🔐 ESCROW RELEASED: Order #ORD-COD-1791544490666 handed over to Solomon Tesfaye. Handover PIN verified on device inspection. 19,650 ETB released to merchant.",
-      "timestamp": "2026-10-12T08:39:18.136Z",
-      "read": false
-    },
-    {
-      "id": "ta-1791793761404-517",
-      "type": "ESCROW_RELEASED",
-      "message": "🔐 ESCROW RELEASED: Order #ORD-ADDIS-101 handed over to Solomon Tesfaye. Handover PIN verified on device inspection. 19,650 ETB released to merchant.",
-      "timestamp": "2026-10-12T08:29:21.404Z",
-      "read": false
-    },
-    {
       "id": "ta2",
       "type": "LOW_STOCK",
       "message": "🚨 LOW STOCK ALERT: SKU: AWU2-49 (Apple Watch Ultra 2 GPS + Cellular Titanium) stock level is at 1 (Threshold: 4). Restock immediately to prevent delisting.",
@@ -1453,6 +1464,452 @@
     }
   ],
   "apiLogs": [
+    {
+      "id": "log-1791807492289-884",
+      "timestamp": "2026-10-12T12:18:12.289Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791807431545-264",
+      "timestamp": "2026-10-12T12:17:11.545Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791807397692-354",
+      "timestamp": "2026-10-12T12:16:37.692Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 7,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791807363796-341",
+      "timestamp": "2026-10-12T12:16:03.796Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 5,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791807329617-990",
+      "timestamp": "2026-10-12T12:15:29.617Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791807299135-321",
+      "timestamp": "2026-10-12T12:14:59.135Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791807239142-610",
+      "timestamp": "2026-10-12T12:13:59.142Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791807179181-554",
+      "timestamp": "2026-10-12T12:12:59.181Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791807143281-121",
+      "timestamp": "2026-10-12T12:12:23.281Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791807095409-715",
+      "timestamp": "2026-10-12T12:11:35.409Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 6,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791807059136-219",
+      "timestamp": "2026-10-12T12:10:59.136Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791807017308-585",
+      "timestamp": "2026-10-12T12:10:17.308Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791806969135-226",
+      "timestamp": "2026-10-12T12:09:29.135Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791806935426-2",
+      "timestamp": "2026-10-12T12:08:55.426Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 5,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791805768596-506",
+      "timestamp": "2026-10-12T11:49:28.596Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791805709179-710",
+      "timestamp": "2026-10-12T11:48:29.179Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 5,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791805682873-18",
+      "timestamp": "2026-10-12T11:48:02.873Z",
+      "method": "POST",
+      "url": "/api/api/auth/merchant-login",
+      "statusCode": 200,
+      "latencyMs": 7,
+      "body": "{\"identifier\":\"dawit.bole@gmail.com\",\"password\":\"securePass123\"}",
+      "response": "{\"success\":true,\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im0tMTc5MTgwNTY3MTU4OSIsInVpZCI6Im1lcmNoLW0tMTc5MTgwNTY3MTU4OSIsImVtYWlsIjoiZGF3aXQuYm9sZUBnbWFpbC5jb20iLCJuYW1lIjoiRGF3aXQgVGVzdCIsInBob25lIjoiKzI1MTkxMTk5ODg3NyIsInJvbGUiOiJtZXJjaGFudCIsIm1lcmNoYW50SWQiOiJtLTE3OTE4MDU2NzE1ODkiLC"
+    },
+    {
+      "id": "log-1791805674989-885",
+      "timestamp": "2026-10-12T11:47:54.989Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791805671599-421",
+      "timestamp": "2026-10-12T11:47:51.599Z",
+      "method": "POST",
+      "url": "/api/api/auth/merchant-register",
+      "statusCode": 201,
+      "latencyMs": 10,
+      "body": "{\"storeName\":\"Test Bole Electronics\",\"ownerName\":\"Dawit Test\",\"email\":\"dawit.bole@gmail.com\",\"phone\":\"+251911998877\",\"password\":\"securePass123\"}",
+      "response": "{\"success\":true,\"message\":\"Merchant registered successfully.\",\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im0tMTc5MTgwNTY3MTU4OSIsInVpZCI6Im1lcmNoLW0tMTc5MTgwNTY3MTU4OSIsImVtYWlsIjoiZGF3aXQuYm9sZUBnbWFpbC5jb20iLCJuYW1lIjoiRGF3aXQgVGVzdCIsInBob25lIjoiKzI1MTkxMTk5ODg3NyIsInJvbGUiOiJtZXJjaGFu"
+    },
+    {
+      "id": "log-1791805663619-219",
+      "timestamp": "2026-10-12T11:47:43.619Z",
+      "method": "POST",
+      "url": "/api/api/auth/merchant-login",
+      "statusCode": 200,
+      "latencyMs": 9,
+      "body": "{\"identifier\":\"abebe.gadgets@yahoo.com\",\"password\":\"merchant123\"}",
+      "response": "{\"success\":true,\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Im0yIiwidWlkIjoibWVyY2gtbTIiLCJlbWFpbCI6ImFiZWJlLmdhZGdldHNAeWFob28uY29tIiwibmFtZSI6IkFiZWJlIEdpcm1heSIsInBob25lIjoiKzI1MTkxMjY1NDMyMSIsInJvbGUiOiJtZXJjaGFudCIsIm1lcmNoYW50SWQiOiJtMiIsImlhdCI6MTc5MTgwNTY2MywiZXhwIjoxNzkyNDEwNDYzfQ"
+    },
+    {
+      "id": "log-1791805655548-410",
+      "timestamp": "2026-10-12T11:47:35.548Z",
+      "method": "GET",
+      "url": "/api/api/merchants",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "[{\"id\":\"m2\",\"storeName\":\"Abebe Gadget Hub\",\"ownerName\":\"Abebe Girmay\",\"email\":\"abebe.gadgets@yahoo.com\",\"phone\":\"+251912654321\",\"status\":\"ACTIVE\",\"kycStatus\":\"APPROVED\",\"kycDocument\":\"Business_Reg_Abebe.pdf\",\"telegramUsername\":\"@abebe_gadgets\",\"telegramChatId\":\"89105678\",\"telegramNotificationsEnable"
+    },
+    {
+      "id": "log-1791805644337-534",
+      "timestamp": "2026-10-12T11:47:24.337Z",
+      "method": "POST",
+      "url": "/api/api/auth/merchant-login",
+      "statusCode": 401,
+      "latencyMs": 1,
+      "body": "{\"identifier\":\"selam.electronics@kasma.et\",\"password\":\"merchant123\"}",
+      "response": "{\"error\":\"Merchant store not found with this identifier.\"}"
+    },
+    {
+      "id": "log-1791805632529-708",
+      "timestamp": "2026-10-12T11:47:12.529Z",
+      "method": "POST",
+      "url": "/api/api/auth/merchant-login",
+      "statusCode": 401,
+      "latencyMs": 4,
+      "body": "{\"identifier\":\"selam.electronics@kasma.et\",\"password\":\"merchant123\"}",
+      "response": "{\"error\":\"Merchant store not found with this identifier.\"}"
+    },
+    {
+      "id": "log-1791805373864-327",
+      "timestamp": "2026-10-12T11:42:53.864Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 5,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791805333671-270",
+      "timestamp": "2026-10-12T11:42:13.671Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791805273832-14",
+      "timestamp": "2026-10-12T11:41:13.832Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791805225488-608",
+      "timestamp": "2026-10-12T11:40:25.488Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791805191355-764",
+      "timestamp": "2026-10-12T11:39:51.355Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791805156066-629",
+      "timestamp": "2026-10-12T11:39:16.066Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791805058269-48",
+      "timestamp": "2026-10-12T11:37:38.269Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791805012050-810",
+      "timestamp": "2026-10-12T11:36:52.050Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804951639-874",
+      "timestamp": "2026-10-12T11:35:51.639Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804891320-521",
+      "timestamp": "2026-10-12T11:34:51.320Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804849795-984",
+      "timestamp": "2026-10-12T11:34:09.795Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804806984-409",
+      "timestamp": "2026-10-12T11:33:26.984Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804639225-685",
+      "timestamp": "2026-10-12T11:30:39.225Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804605459-576",
+      "timestamp": "2026-10-12T11:30:05.459Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804554214-33",
+      "timestamp": "2026-10-12T11:29:14.214Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804511500-887",
+      "timestamp": "2026-10-12T11:28:31.500Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 5,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804479076-725",
+      "timestamp": "2026-10-12T11:27:59.076Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804438283-867",
+      "timestamp": "2026-10-12T11:27:18.283Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804391112-677",
+      "timestamp": "2026-10-12T11:26:31.112Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804372241-110",
+      "timestamp": "2026-10-12T11:26:12.241Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804334638-233",
+      "timestamp": "2026-10-12T11:25:34.638Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 2,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804276680-256",
+      "timestamp": "2026-10-12T11:24:36.680Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804244648-23",
+      "timestamp": "2026-10-12T11:24:04.648Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 3,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804184635-442",
+      "timestamp": "2026-10-12T11:23:04.635Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 5,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804167996-939",
+      "timestamp": "2026-10-12T11:22:47.996Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 4,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
+    {
+      "id": "log-1791804107484-373",
+      "timestamp": "2026-10-12T11:21:47.484Z",
+      "method": "GET",
+      "url": "/api/api/state",
+      "statusCode": 200,
+      "latencyMs": 5,
+      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
+    },
     {
       "id": "log-1791795517268-698",
       "timestamp": "2026-10-12T08:58:37.268Z",
@@ -1914,447 +2371,6 @@
       "url": "/api/api/state",
       "statusCode": 200,
       "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632931818-935",
-      "timestamp": "2026-10-10T11:48:51.818Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632931806-934",
-      "timestamp": "2026-10-10T11:48:51.806Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 6,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632695187-727",
-      "timestamp": "2026-10-10T11:44:55.187Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632693894-221",
-      "timestamp": "2026-10-10T11:44:53.894Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632693877-553",
-      "timestamp": "2026-10-10T11:44:53.877Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 5,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632692613-156",
-      "timestamp": "2026-10-10T11:44:52.613Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632692605-936",
-      "timestamp": "2026-10-10T11:44:52.605Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632690788-729",
-      "timestamp": "2026-10-10T11:44:50.789Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632690759-629",
-      "timestamp": "2026-10-10T11:44:50.759Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632688925-292",
-      "timestamp": "2026-10-10T11:44:48.925Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632688917-341",
-      "timestamp": "2026-10-10T11:44:48.917Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 6,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632685696-4",
-      "timestamp": "2026-10-10T11:44:45.696Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632685650-854",
-      "timestamp": "2026-10-10T11:44:45.650Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632684146-907",
-      "timestamp": "2026-10-10T11:44:44.146Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 6,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632684088-693",
-      "timestamp": "2026-10-10T11:44:44.088Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632682673-67",
-      "timestamp": "2026-10-10T11:44:42.673Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632682639-276",
-      "timestamp": "2026-10-10T11:44:42.639Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632681857-407",
-      "timestamp": "2026-10-10T11:44:41.857Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632681845-16",
-      "timestamp": "2026-10-10T11:44:41.845Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632681016-623",
-      "timestamp": "2026-10-10T11:44:41.016Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632680991-979",
-      "timestamp": "2026-10-10T11:44:40.991Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632679192-68",
-      "timestamp": "2026-10-10T11:44:39.192Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632679185-751",
-      "timestamp": "2026-10-10T11:44:39.185Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632677606-4",
-      "timestamp": "2026-10-10T11:44:37.606Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632677284-111",
-      "timestamp": "2026-10-10T11:44:37.284Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632676143-602",
-      "timestamp": "2026-10-10T11:44:36.143Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632676126-783",
-      "timestamp": "2026-10-10T11:44:36.126Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632674704-385",
-      "timestamp": "2026-10-10T11:44:34.704Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632674675-960",
-      "timestamp": "2026-10-10T11:44:34.675Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632673391-281",
-      "timestamp": "2026-10-10T11:44:33.391Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632673329-707",
-      "timestamp": "2026-10-10T11:44:33.329Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632671705-132",
-      "timestamp": "2026-10-10T11:44:31.705Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632671658-265",
-      "timestamp": "2026-10-10T11:44:31.658Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632670033-691",
-      "timestamp": "2026-10-10T11:44:30.033Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 13,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632669906-483",
-      "timestamp": "2026-10-10T11:44:29.906Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632668651-156",
-      "timestamp": "2026-10-10T11:44:28.651Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632668615-595",
-      "timestamp": "2026-10-10T11:44:28.615Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632667589-339",
-      "timestamp": "2026-10-10T11:44:27.589Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632667565-308",
-      "timestamp": "2026-10-10T11:44:27.565Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632666095-826",
-      "timestamp": "2026-10-10T11:44:26.095Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632666087-365",
-      "timestamp": "2026-10-10T11:44:26.087Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632664380-351",
-      "timestamp": "2026-10-10T11:44:24.380Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632664371-26",
-      "timestamp": "2026-10-10T11:44:24.371Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 2,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632662837-136",
-      "timestamp": "2026-10-10T11:44:22.837Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632662826-48",
-      "timestamp": "2026-10-10T11:44:22.826Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632661651-745",
-      "timestamp": "2026-10-10T11:44:21.651Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632661611-315",
-      "timestamp": "2026-10-10T11:44:21.611Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632660274-221",
-      "timestamp": "2026-10-10T11:44:20.274Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 4,
-      "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
-    },
-    {
-      "id": "log-1791632660258-418",
-      "timestamp": "2026-10-10T11:44:20.258Z",
-      "method": "GET",
-      "url": "/api/api/state",
-      "statusCode": 200,
-      "latencyMs": 3,
       "response": "{\"products\":[{\"id\":\"p8\",\"nameEn\":\"Sennheiser Momentum True Wireless 4 Earbuds\",\"nameAm\":\"ሴንሃይዘር ሞመንተም ትሩ ዋየርለስ 4 ብሉቱዝ\",\"category\":\"headphones\",\"price\":18500,\"brand\":\"Sennheiser\",\"status\":\"APPROVED\",\"lowStockThreshold\":3,\"merchantId\":\"m1\",\"merchantName\":\"Girma Tech Store\",\"descriptionEn\":\"Audiophile-"
     }
   ]

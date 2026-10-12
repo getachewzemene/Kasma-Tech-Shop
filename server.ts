@@ -384,6 +384,83 @@ async function startServer() {
     }
   });
 
+  // 4b. Merchant Portal Registration
+  app.post('/api/auth/merchant-register', async (req, res) => {
+    try {
+      const { storeName, ownerName, email, phone, password } = req.body || {};
+      if (!storeName || !email || !password) {
+        res.status(400).json({ error: 'Store name, email, and password are required.' });
+        return;
+      }
+
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanStore = storeName.trim().toLowerCase();
+      const existing = db.merchants.find(m =>
+        m.email.toLowerCase() === cleanEmail ||
+        m.storeName.trim().toLowerCase() === cleanStore
+      );
+
+      if (existing) {
+        res.status(409).json({ error: 'A merchant store with this email or name already exists.' });
+        return;
+      }
+
+      const newMerchant: Merchant = {
+        id: `m-${Date.now()}`,
+        storeName: storeName.trim(),
+        ownerName: (ownerName && ownerName.trim()) || storeName.trim(),
+        email: cleanEmail,
+        phone: (phone && phone.trim()) || '+251911000000',
+        password: password,
+        status: 'ACTIVE',
+        kycStatus: 'APPROVED',
+        balance: 0,
+        payouts: [],
+        telegramNotificationsEnabled: false,
+        telegramLowStockAlerts: true,
+        lowStockThreshold: 3
+      };
+
+      db.merchants.push(newMerchant);
+      db.save();
+
+      const token = generateToken({
+        id: newMerchant.id,
+        uid: `merch-${newMerchant.id}`,
+        email: newMerchant.email,
+        name: newMerchant.ownerName,
+        phone: newMerchant.phone,
+        role: 'merchant',
+        merchantId: newMerchant.id,
+      });
+
+      db.logAudit(
+        `Merchant: ${newMerchant.storeName}`,
+        'MERCHANT_REGISTERED',
+        `Registered and authenticated new merchant store "${newMerchant.storeName}".`,
+        'INFO'
+      );
+
+      res.status(201).json({
+        success: true,
+        message: 'Merchant registered successfully.',
+        token,
+        merchant: newMerchant,
+        user: {
+          id: newMerchant.id,
+          name: newMerchant.ownerName,
+          storeName: newMerchant.storeName,
+          role: 'merchant',
+          merchantId: newMerchant.id,
+          email: newMerchant.email,
+        }
+      });
+    } catch (err: any) {
+      console.error('Merchant registration error:', err);
+      res.status(500).json({ error: 'Failed to register merchant store.' });
+    }
+  });
+
   // 5. Current User Profile Verification
   app.get('/api/auth/me', requireAuth, (req: AuthRequest, res) => {
     res.json({ success: true, user: req.user });

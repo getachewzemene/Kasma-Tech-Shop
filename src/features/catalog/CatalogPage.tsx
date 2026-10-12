@@ -48,7 +48,9 @@ export const CatalogPage: React.FC = () => {
     isCompareModalOpen,
     setIsCompareModalOpen,
     openCompareWith,
-    isInitializing
+    isInitializing,
+    selectedCategory,
+    setSelectedCategory
   } = useShop();
 
   if (isInitializing && products.length === 0) {
@@ -91,6 +93,8 @@ export const CatalogPage: React.FC = () => {
         onOpenQrScanner={() => setIsQrScannerOpen(true)}
         onOpenProductTour={() => setIsProductTourOpen(true)}
         isOnline={navigator.onLine}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
       />
 
       {/* Floating Side-by-Side Specs Comparison Dock */}

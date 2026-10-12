@@ -57,6 +57,8 @@ interface CustomerWebProps {
   onOpenProductTour?: () => void;
   offlineCatalogMeta?: CatalogCacheMeta | null;
   isOnline?: boolean;
+  selectedCategory?: string;
+  setSelectedCategory?: (category: string) => void;
 }
 
 
@@ -211,9 +213,19 @@ export default function CustomerWeb({
   onOpenQrScanner,
   onOpenProductTour,
   offlineCatalogMeta,
-  isOnline = navigator.onLine
+  isOnline = navigator.onLine,
+  selectedCategory: propSelectedCategory,
+  setSelectedCategory: propSetSelectedCategory
 }: CustomerWebProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [internalSelectedCategory, setInternalSelectedCategory] = useState<string>('all');
+  const selectedCategory = propSelectedCategory !== undefined ? propSelectedCategory : internalSelectedCategory;
+  const setSelectedCategory = (cat: string) => {
+    if (propSetSelectedCategory) {
+      propSetSelectedCategory(cat);
+    } else {
+      setInternalSelectedCategory(cat);
+    }
+  };
   const [isCategoriesExpanded, setIsCategoriesExpanded] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<'default' | 'priceAsc' | 'priceDesc' | 'newest'>('default');
   const [isGridLoading, setIsGridLoading] = useState(false);
@@ -2142,203 +2154,7 @@ export default function CustomerWeb({
         </div>
       )}
 
-      {/* 1. SEAMLESS CATEGORY & DEALS NAVIGATION RIBBON */}
-      <div className="bg-white/90 dark:bg-[#0B0F17]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-2xs relative z-30 w-full max-w-full transition-all">
-        <div className="max-w-[1440px] mx-auto w-full px-2 sm:px-4 md:px-8 flex items-center justify-between gap-2 py-1 sm:py-1.5">
-          
-          {/* Left Section: Ultra-Sleek Category & Deals Bar */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 py-0.5">
-            
-            {/* 1. Shop By Category Dropdown Button */}
-            <button
-              type="button"
-              onClick={() => setIsDeptDropdownOpen(!isDeptDropdownOpen)}
-              className="h-8.5 sm:h-9 px-2.5 sm:px-3.5 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-900 dark:text-zinc-100 font-extrabold text-xs sm:text-sm rounded-lg flex items-center gap-1.5 transition-all border border-gray-200/80 dark:border-zinc-700/80 cursor-pointer shrink-0 whitespace-nowrap active:scale-[0.98]"
-            >
-              <Menu className="w-4 h-4 text-[#0052FF] dark:text-blue-400 shrink-0" />
-              <span className="hidden sm:inline">
-                {language === 'en' ? 'ALL CATEGORIES' : 'ሁሉም ምድቦች'}
-              </span>
-              <span className="sm:hidden">
-                {language === 'en' ? 'Categories' : 'ምድቦች'}
-              </span>
-              <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform duration-200 shrink-0 ${isDeptDropdownOpen ? 'rotate-180' : ''}`} />
-            </button>
 
-            {/* 2. Sleek Flash Deals Button */}
-            <button 
-              type="button"
-              onClick={() => { 
-                setSelectedCategory('deals'); 
-                const el = document.getElementById('featured-deals-section'); 
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }); 
-              }} 
-              className={`h-8.5 sm:h-9 px-2.5 sm:px-3.5 rounded-lg font-extrabold text-xs sm:text-sm transition-all border flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap active:scale-[0.98] ${
-                selectedCategory === 'deals'
-                  ? 'bg-rose-600 text-white border-rose-600'
-                  : 'bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-400 border-rose-200/80 dark:border-rose-800/60'
-              }`}
-            >
-              <Flame className="w-4 h-4 text-rose-500 fill-rose-500/20 shrink-0" />
-              <span>{language === 'en' ? 'Deals' : 'ቅናሾች'}</span>
-            </button>
-
-          </div>
-
-          {/* Right Section: Secondary Navigation Items */}
-          <div className="hidden md:flex items-center gap-2.5 lg:gap-3.5 text-xs shrink-0">
-            
-            {/* Track Shipment */}
-            <button 
-              id="tour-live-courier"
-              onClick={() => setIsOrderStatusOpen(true)} 
-              className="h-9 px-3 rounded-xl text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 font-medium transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 shrink-0 text-xs"
-            >
-              <Truck className="w-3.5 h-3.5 text-gray-500 dark:text-zinc-400 shrink-0" />
-              <span>{language === 'en' ? 'Track Shipment' : 'የትዕዛዝ መከታተያ'}</span>
-            </button>
-
-            {/* Promo Center */}
-            <button 
-              onClick={() => showToast(language === 'en' ? 'ADDISFREE applied! Code entered.' : 'ADDISFREE የቅናሽ ኮድ ሰርቷል!', 'success')} 
-              className="h-9 px-3 rounded-xl text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 font-medium transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 shrink-0 text-xs"
-            >
-              <Tag className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              <span>{language === 'en' ? 'Promo Center' : 'የኩፖን ማዕከል'}</span>
-            </button>
-
-            {/* My Orders (If logged in) */}
-            {isLoggedIn && (
-              <button 
-                onClick={() => setIsMyOrdersOpen(true)} 
-                className="h-9 px-3 bg-[#0052FF]/10 hover:bg-[#0052FF]/20 text-[#0052FF] dark:text-blue-400 font-extrabold rounded-xl transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 shrink-0 text-xs"
-              >
-                <Package className="w-3.5 h-3.5 shrink-0" />
-                <span>{language === 'en' ? 'My Orders' : 'የእኔ ትዕዛዞች'}</span>
-                <span className="bg-[#0052FF] text-white text-[9px] font-mono font-black px-1.5 py-0.2 rounded-full">
-                  {allOrders.length}
-                </span>
-              </button>
-            )}
-
-            {/* Sign In / Account Buttons */}
-            {isLoggedIn ? (
-              <button 
-                onClick={() => { setProfileAuthMode('SIGN_IN'); setIsProfileOpen(true); }} 
-                className="h-9 px-3.5 font-bold text-xs rounded-xl transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 border shrink-0 bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30"
-              >
-                <User className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-                <span>{customerName || (language === 'en' ? 'My Account' : 'የእኔ መለያ')}</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              </button>
-            ) : (
-              <div className="inline-flex items-center gap-1.5 shrink-0">
-                <button 
-                  onClick={() => { setProfileAuthMode('SIGN_IN'); setIsProfileOpen(true); }} 
-                  className="h-9 px-3 font-bold text-xs rounded-xl transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 border bg-[#0052FF] hover:bg-blue-600 text-white border-transparent shadow-xs"
-                >
-                  <LogIn className="w-3.5 h-3.5 shrink-0" />
-                  <span>{language === 'en' ? 'Sign In' : 'ይግቡ'}</span>
-                </button>
-                <button 
-                  onClick={() => { setProfileAuthMode('REGISTER'); setIsProfileOpen(true); }} 
-                  className="h-9 px-3 font-bold text-xs rounded-xl transition-all cursor-pointer whitespace-nowrap inline-flex items-center gap-1.5 border bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-800 dark:text-zinc-200 border-gray-200/80 dark:border-zinc-700/80"
-                >
-                  <UserPlus className="w-3.5 h-3.5 text-gray-600 dark:text-zinc-400 shrink-0" />
-                  <span>{language === 'en' ? 'Create Account' : 'መለያ ፍጠር'}</span>
-                </button>
-              </div>
-            )}
-
-            {/* Support Hotline */}
-            <a 
-              href="tel:+251911223344"
-              className="hidden xl:inline-flex items-center gap-1.5 text-[#0052FF] dark:text-blue-400 font-extrabold bg-[#0052FF]/10 hover:bg-[#0052FF]/20 h-9 px-3 rounded-full border border-[#0052FF]/20 shrink-0 transition-all cursor-pointer text-xs"
-            >
-              <Phone className="w-3.5 h-3.5" />
-              <span className="font-mono text-xs">+251 911 223 344</span>
-            </a>
-
-          </div>
-
-        </div>
-
-        {/* Department Dropdown Menu Overlay (Positioned outside overflow-x-auto) */}
-        {isDeptDropdownOpen && (
-          <>
-            <div 
-              className="fixed inset-0 z-40 bg-black/20 dark:bg-black/50 backdrop-blur-[1px]" 
-              onClick={() => setIsDeptDropdownOpen(false)} 
-            />
-            <div className="absolute top-full left-2.5 sm:left-4 md:left-8 mt-1 w-[calc(100vw-20px)] sm:w-72 max-w-xs sm:max-w-sm bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="px-4 py-2 flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 mb-1">
-                <span className="text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-zinc-400 flex items-center gap-1.5">
-                  <Menu className="w-3.5 h-3.5 text-[#0052FF]" />
-                  <span>{language === 'en' ? 'Electronics Catalog' : 'የኤሌክትሮኒክስ ዝርዝር'}</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsDeptDropdownOpen(false)}
-                  className="w-5 h-5 rounded-full bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-500 flex items-center justify-center cursor-pointer text-xs font-bold"
-                >
-                  ✕
-                </button>
-              </div>
-
-              {categories.map(cat => {
-                let CatIcon = Cpu;
-                if (cat.id === 'computers') CatIcon = Laptop;
-                if (cat.id === 'gaming') CatIcon = Gamepad2;
-                if (cat.id === 'smartwatches') CatIcon = Watch;
-                if (cat.id === 'mobiles') CatIcon = Smartphone;
-                if (cat.id === 'headphones') CatIcon = Headphones;
-                const isSelected = selectedCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCategory(cat.id);
-                      setIsDeptDropdownOpen(false);
-                      const el = document.getElementById('products-grid-section');
-                      if (el) el.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className={`w-full px-4 py-2.5 text-left text-xs font-bold flex items-center justify-between transition-colors cursor-pointer ${
-                      isSelected
-                        ? 'bg-blue-50 dark:bg-blue-950/40 text-[#0052FF] dark:text-blue-400'
-                        : 'hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-200 hover:text-[#0052FF]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <CatIcon className={`w-4 h-4 ${isSelected ? 'text-[#0052FF]' : 'text-gray-400'}`} />
-                      <span>{language === 'en' ? cat.nameEn : cat.nameAm}</span>
-                    </div>
-                    {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-[#0052FF]" />}
-                  </button>
-                );
-              })}
-              <hr className="border-gray-100 dark:border-zinc-800 my-1" />
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCategory('all');
-                  setIsDeptDropdownOpen(false);
-                  const el = document.getElementById('products-grid-section');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className={`w-full px-4 py-2.5 text-left text-xs font-black flex items-center gap-3 transition-colors cursor-pointer ${
-                  selectedCategory === 'all'
-                    ? 'bg-blue-50 dark:bg-blue-950/40 text-[#0052FF]'
-                    : 'hover:bg-gray-50 dark:hover:bg-zinc-800 text-[#0052FF]'
-                }`}
-              >
-                <Sparkles className="w-4 h-4 text-kasma-gold" />
-                <span>{language === 'en' ? 'View All Categories' : 'ሁሉንም ምድቦች ይመልከቱ'}</span>
-              </button>
-            </div>
-          </>
-        )}
-      </div>
 
       {/* 2. DYNAMICALLY SCROLLING HERO CAROUSEL */}
       <div className="max-w-[1440px] mx-auto w-full px-2.5 sm:px-4 md:px-8 mt-4 sm:mt-6">
@@ -2551,15 +2367,15 @@ export default function CustomerWeb({
         )}
       </div>
 
-      {/* 3. CATEGORIES SECTION WITH ELEGANT TILES & UNUNCATED LABELS */}
-      <div className="max-w-[1440px] mx-auto w-full px-1.5 sm:px-4 md:px-8 mt-6 sm:mt-10">
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
+      {/* 3. CATEGORIES SECTION WITH ELEGANT TILES & PROMINENT DESKTOP SIZING */}
+      <div className="max-w-[1440px] mx-auto w-full px-2 sm:px-4 md:px-8 mt-6 sm:mt-10 lg:mt-12">
+        <div className="flex items-center justify-between mb-4 sm:mb-6 lg:mb-7">
           <div>
-            <h2 className="text-base sm:text-xl font-extrabold text-gray-900 dark:text-zinc-100 tracking-tight flex items-center gap-2">
-              <Layers className="w-5 h-5 text-[#0052FF]" />
+            <h2 className="text-lg sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-zinc-100 tracking-tight flex items-center gap-2.5">
+              <Layers className="w-6 h-6 lg:w-7 lg:h-7 text-[#0052FF]" />
               <span>{language === 'en' ? 'Browse Categories' : 'በምድብ ይፈልጉ'}</span>
             </h2>
-            <p className="text-xs text-gray-500 dark:text-zinc-400 hidden sm:block mt-0.5">
+            <p className="text-xs sm:text-sm lg:text-base text-gray-500 dark:text-zinc-400 hidden sm:block mt-1 font-medium">
               {language === 'en' ? 'Explore authentic electronics, devices & accessories' : 'ምርጥ የኤሌክትሮኒክስ እቃዎችን ይፈልጉ'}
             </p>
           </div>
@@ -2567,19 +2383,19 @@ export default function CustomerWeb({
             onClick={() => {
               setIsCategoriesExpanded(prev => !prev);
             }}
-            className="text-xs font-bold text-[#0052FF] dark:text-blue-400 hover:underline flex items-center gap-1 cursor-pointer"
+            className="text-xs sm:text-sm lg:text-base font-bold text-[#0052FF] dark:text-blue-400 hover:underline flex items-center gap-1.5 cursor-pointer"
           >
             <span>
               {language === 'en' 
                 ? (isCategoriesExpanded ? 'Show Less' : 'View All') 
                 : (isCategoriesExpanded ? 'ያነሱ' : 'ሁሉንም')}
             </span>
-            <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${isCategoriesExpanded ? 'rotate-90 md:rotate-0' : ''}`} />
+            <ChevronRight className={`w-4 h-4 lg:w-5 lg:h-5 transition-transform duration-200 ${isCategoriesExpanded ? 'rotate-90 md:rotate-0' : ''}`} />
           </button>
         </div>
 
-        {/* Compact 4-Column Grid on Mobile (1 row default, expandable to 2 rows), Full 8-Column Grid on Desktop */}
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-2 sm:gap-3 md:gap-3.5 items-stretch w-full">
+        {/* Compact 4-Column Grid on Mobile, Generous 8-Column Grid on Desktop */}
+        <div className="grid grid-cols-4 md:grid-cols-8 gap-2.5 sm:gap-3.5 lg:gap-4.5 items-stretch w-full">
           {[
             { id: 'computers', nameEn: 'Computers', nameAm: 'ላፕቶፕ', icon: Laptop },
             { id: 'cameras', nameEn: 'Cameras', nameAm: 'ካሜራ', icon: Camera },
@@ -2602,21 +2418,21 @@ export default function CustomerWeb({
                   const el = document.getElementById('products-grid-section');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className={`${isHiddenOnMobile ? 'hidden md:flex' : 'flex'} w-full flex-col items-center justify-center p-2 sm:p-3 rounded-2xl border transition-all duration-300 group cursor-pointer focus:outline-none min-h-[80px] sm:min-h-[88px] ${
+                className={`${isHiddenOnMobile ? 'hidden md:flex' : 'flex'} w-full flex-col items-center justify-center p-3 sm:p-4 lg:p-5 rounded-2xl lg:rounded-3xl border transition-all duration-300 group cursor-pointer focus:outline-none min-h-[92px] sm:min-h-[120px] lg:min-h-[148px] shadow-2xs hover:shadow-lg ${
                   isSelected
-                    ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-md shadow-blue-500/20 scale-[1.02]'
-                    : 'bg-white dark:bg-zinc-900 border-gray-200/80 dark:border-zinc-800/90 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/50 hover:shadow-md hover:shadow-blue-500/10 hover:-translate-y-0.5'
+                    ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-md shadow-blue-500/20 scale-[1.03]'
+                    : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800/90 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/60 hover:shadow-blue-500/10 hover:-translate-y-1'
                 }`}
               >
-                <div className={`w-8 h-8 xs:w-9 xs:h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center mb-1 sm:mb-1.5 transition-transform duration-300 group-hover:scale-110 ${
+                <div className={`w-9 h-9 sm:w-13 sm:h-13 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center mb-1.5 sm:mb-2.5 lg:mb-3 transition-transform duration-300 group-hover:scale-110 shadow-xs ${
                   isSelected
                     ? 'bg-white/20 text-white'
-                    : 'bg-gray-100/80 dark:bg-zinc-800/80 text-[#0052FF] dark:text-blue-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/60'
+                    : 'bg-slate-100/90 dark:bg-zinc-800/90 text-[#0052FF] dark:text-blue-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/60'
                 }`}>
-                  <DeptIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <DeptIcon className="w-5 h-5 sm:w-6.5 sm:h-6.5 lg:w-8 lg:h-8" />
                 </div>
-                <span className={`text-[9.5px] xs:text-[10.5px] sm:text-xs font-bold text-center leading-tight tracking-tight w-full break-keep line-clamp-2 px-0.5 ${
-                  isSelected ? 'text-white font-extrabold' : 'text-gray-900 dark:text-zinc-100 group-hover:text-[#0052FF] dark:group-hover:text-blue-400'
+                <span className={`text-[10px] sm:text-xs md:text-sm lg:text-[14px] font-black text-center leading-snug tracking-tight w-full break-keep line-clamp-2 px-0.5 ${
+                  isSelected ? 'text-white font-black' : 'text-gray-900 dark:text-zinc-100 group-hover:text-[#0052FF] dark:group-hover:text-blue-400'
                 }`}>
                   {language === 'en' ? dept.nameEn : dept.nameAm}
                 </span>
@@ -3036,13 +2852,13 @@ export default function CustomerWeb({
       </div>
 
       {/* Category Pills & Filters Section */}
-      <div id="products-grid-section" className="max-w-[1440px] mx-auto w-full px-2.5 sm:px-4 md:px-8 mt-8 space-y-4">
+      <div id="products-grid-section" className="max-w-[1440px] mx-auto w-full px-2.5 sm:px-4 md:px-8 mt-8 sm:mt-10 lg:mt-12 space-y-4">
         
         {/* Category Header with Track shipment */}
         <div className="flex justify-between items-center pb-1">
-          <div className="flex items-center gap-2">
-            <span className="w-1.5 h-4 bg-[#0052FF] rounded-full" />
-            <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-gray-900 dark:text-zinc-100 font-sans">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-5 lg:w-2.5 lg:h-6 bg-[#0052FF] rounded-full" />
+            <h3 className="text-sm sm:text-base lg:text-lg font-black uppercase tracking-widest text-gray-900 dark:text-zinc-100 font-sans">
               {language === 'en' ? 'Explore' : 'ምድቦች'}
             </h3>
           </div>
@@ -3055,24 +2871,24 @@ export default function CustomerWeb({
                 setTrackOrderId('');
                 setIsOrderStatusOpen(true);
               }}
-              className="flex items-center gap-2 px-3.5 py-1.5 bg-[#0052FF] text-white hover:bg-blue-700 font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-xs cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 sm:px-4.5 sm:py-2.5 bg-[#0052FF] text-white hover:bg-blue-700 font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-xl lg:rounded-2xl transition-all shadow-xs cursor-pointer"
             >
-              <Truck className="w-3.5 h-3.5 shrink-0" />
+              <Truck className="w-4 h-4 shrink-0" />
               <span>{language === 'en' ? 'Track Shipment' : 'ጭነት ይከታተሉ'}</span>
             </button>
           )}
         </div>
 
         {/* Sticky Product Control Bar: Title/Count on Left, [ FILTER ] & [ SORT ] on Right */}
-        <div className="sticky top-[102px] sm:top-[108px] z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md p-3 sm:p-4 rounded-2xl border border-gray-200/80 dark:border-zinc-800/80 shadow-xs transition-all space-y-2.5">
+        <div className="sticky top-[60px] sm:top-[68px] lg:top-[74px] z-30 bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-md p-3.5 sm:p-5 lg:p-6 rounded-2xl lg:rounded-3xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-all space-y-3.5">
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
             
             {/* Left: Category Title & Product Count */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3">
               <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white tracking-tight font-sans leading-tight">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white tracking-tight font-sans leading-tight">
                     {selectedCategory === 'all'
                       ? (language === 'en' ? 'All Products' : 'ሁሉም ምርቶች')
                       : selectedCategory === 'deals'
@@ -3085,15 +2901,15 @@ export default function CustomerWeb({
                     <button
                       type="button"
                       onClick={() => setSelectedCategory('all')}
-                      className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-extrabold text-[#0052FF] dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 px-2.5 py-0.5 rounded-full transition-colors cursor-pointer border border-blue-200/80 dark:border-blue-800/80"
+                      className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-[#0052FF] dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 px-3 py-1 rounded-full transition-colors cursor-pointer border border-blue-200/80 dark:border-blue-800/80"
                       title={language === 'en' ? 'Reset category filter' : 'ሁሉንም ምርቶች አሳይ'}
                     >
                       <span>{language === 'en' ? 'Show All' : 'ሁሉንም አሳይ'}</span>
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>
-                <p className="text-[11px] font-extrabold text-gray-500 dark:text-zinc-400 mt-0.5 font-mono">
+                <p className="text-xs sm:text-sm lg:text-base font-bold text-gray-500 dark:text-zinc-400 mt-1 font-mono">
                   {language === 'en' 
                     ? `${sortedAndFilteredProducts.length} items found` 
                     : `${sortedAndFilteredProducts.length} ምርቶች ተገኝተዋል`}
@@ -3102,7 +2918,7 @@ export default function CustomerWeb({
             </div>
 
             {/* Right: Action Buttons - [ FILTER ] & [ SORT: Popular ] */}
-            <div className="flex items-center gap-2 self-start sm:self-auto">
+            <div className="flex items-center gap-2.5 sm:gap-3 self-start sm:self-auto">
               
               {/* [ FILTER ] Button */}
               <button
@@ -3111,16 +2927,16 @@ export default function CustomerWeb({
                   setFilterSectionFocus('all');
                   setIsAdvancedFilterOpen(true);
                 }}
-                className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer border flex items-center gap-1.5 shadow-2xs ${
+                className={`h-10 sm:h-11 lg:h-12 px-4 sm:px-5 lg:px-6 rounded-xl sm:rounded-2xl text-xs sm:text-sm lg:text-[15px] font-black uppercase tracking-wider transition-all cursor-pointer border flex items-center gap-2 shadow-2xs ${
                   activeFiltersCount > 0
                     ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-[#0052FF]/20'
-                    : 'bg-gray-100/80 dark:bg-zinc-800/80 text-gray-800 dark:text-zinc-200 border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                    : 'bg-gray-100/90 dark:bg-zinc-800/90 text-gray-800 dark:text-zinc-200 border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700'
                 }`}
               >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <SlidersHorizontal className="w-4 h-4 sm:w-4.5 sm:h-4.5 lg:w-5 lg:h-5" />
                 <span>{language === 'en' ? 'Filter' : 'ማጣሪያ'}</span>
                 {activeFiltersCount > 0 && (
-                  <span className="bg-white text-[#0052FF] font-mono text-[10px] px-1.5 py-0.2 rounded-full font-black">
+                  <span className="bg-white text-[#0052FF] font-mono text-xs sm:text-sm px-2 py-0.5 rounded-full font-black">
                     {activeFiltersCount}
                   </span>
                 )}
@@ -3131,14 +2947,14 @@ export default function CustomerWeb({
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="appearance-none bg-gray-100/80 dark:bg-zinc-800/80 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700 rounded-xl px-3 py-2 pr-7 text-xs font-black uppercase tracking-wider cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0052FF]/30 transition-all"
+                  className="h-10 sm:h-11 lg:h-12 appearance-none bg-gray-100/90 dark:bg-zinc-800/90 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700 rounded-xl sm:rounded-2xl px-4 sm:px-5 pr-9 sm:pr-10 lg:pr-11 text-xs sm:text-sm lg:text-[15px] font-black uppercase tracking-wider cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0052FF]/30 transition-all"
                 >
                   <option value="default">{language === 'en' ? 'Sort: Popular' : 'በተወዳጅነት'}</option>
                   <option value="priceAsc">{language === 'en' ? 'Price: Low → High' : 'ዋጋ፡ ዝቅተኛ'}</option>
                   <option value="priceDesc">{language === 'en' ? 'Price: High → Low' : 'ዋጋ፡ ከፍተኛ'}</option>
                   <option value="newest">{language === 'en' ? 'Sort: Newest' : 'አዲስ የገቡ'}</option>
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-gray-500 dark:text-zinc-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-gray-500 dark:text-zinc-400 absolute right-3 sm:right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
 
             </div>
@@ -3146,7 +2962,7 @@ export default function CustomerWeb({
           </div>
 
           {/* Horizontal Filter Chips Row (Brand, Price, Rating, Availability, Features) */}
-          <div className="flex items-center gap-1.5 overflow-x-auto scroll-smooth touch-pan-x py-0.5 no-scrollbar">
+          <div className="flex items-center gap-2 sm:gap-2.5 lg:gap-3 overflow-x-auto scroll-smooth touch-pan-x py-1 no-scrollbar">
             
             {/* Brand Chip */}
             <button
@@ -3155,14 +2971,14 @@ export default function CustomerWeb({
                 setFilterSectionFocus('brand');
                 setIsAdvancedFilterOpen(true);
               }}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1 shrink-0 ${
+              className={`h-9 sm:h-10 lg:h-11 px-3.5 sm:px-4.5 lg:px-5 rounded-full text-xs sm:text-sm lg:text-[14px] font-bold sm:font-extrabold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 ${
                 selectedBrands.length > 0
                   ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 border-blue-200 dark:border-blue-900/60 font-black'
-                  : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border-gray-200 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
+                  : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
               }`}
             >
               <span>{selectedBrands.length > 0 ? `Brand (${selectedBrands.length})` : 'Brand'}</span>
-              <ChevronDown className="w-3 h-3 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
             </button>
 
             {/* Price Chip */}
@@ -3172,10 +2988,10 @@ export default function CustomerWeb({
                 setFilterSectionFocus('price');
                 setIsAdvancedFilterOpen(true);
               }}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1 shrink-0 ${
+              className={`h-9 sm:h-10 lg:h-11 px-3.5 sm:px-4.5 lg:px-5 rounded-full text-xs sm:text-sm lg:text-[14px] font-bold sm:font-extrabold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 ${
                 minPriceInput !== '' || maxPriceInput !== ''
                   ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 border-blue-200 dark:border-blue-900/60 font-black'
-                  : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border-gray-200 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
+                  : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
               }`}
             >
               <span>
@@ -3183,7 +2999,7 @@ export default function CustomerWeb({
                   ? `Price (${minPriceInput || '0'}-${maxPriceInput || '∞'})`
                   : 'Price'}
               </span>
-              <ChevronDown className="w-3 h-3 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
             </button>
 
             {/* Rating Chip */}
@@ -3193,14 +3009,14 @@ export default function CustomerWeb({
                 setFilterSectionFocus('rating');
                 setIsAdvancedFilterOpen(true);
               }}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1 shrink-0 ${
+              className={`h-9 sm:h-10 lg:h-11 px-3.5 sm:px-4.5 lg:px-5 rounded-full text-xs sm:text-sm lg:text-[14px] font-bold sm:font-extrabold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 ${
                 selectedRatingFilter > 0
                   ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/60 font-black'
-                  : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border-gray-200 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
+                  : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
               }`}
             >
               <span>{selectedRatingFilter > 0 ? `Rating (${selectedRatingFilter}★+)` : 'Rating'}</span>
-              <ChevronDown className="w-3 h-3 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
             </button>
 
             {/* Availability Chip */}
@@ -3210,16 +3026,16 @@ export default function CustomerWeb({
                 setFilterSectionFocus('availability');
                 setIsAdvancedFilterOpen(true);
               }}
-              className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1 shrink-0 ${
+              className={`h-9 sm:h-10 lg:h-11 px-3.5 sm:px-4.5 lg:px-5 rounded-full text-xs sm:text-sm lg:text-[14px] font-bold sm:font-extrabold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 ${
                 availabilityFilter !== 'ALL'
                   ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/60 font-black'
-                  : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border-gray-200 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
+                  : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
               }`}
             >
               <span>
                 {availabilityFilter === 'IN_STOCK' ? 'In Stock' : availabilityFilter === 'ON_SALE' ? 'On Sale' : availabilityFilter === 'HIGHLY_RATED' ? '4★+ Rated' : 'Availability'}
               </span>
-              <ChevronDown className="w-3 h-3 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
             </button>
 
             {/* Features Chip */}
@@ -3229,10 +3045,10 @@ export default function CustomerWeb({
                 setFilterSectionFocus('features');
                 setIsAdvancedFilterOpen(true);
               }}
-              className="px-3 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1 shrink-0 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border-gray-200 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800"
+              className="h-9 sm:h-10 lg:h-11 px-3.5 sm:px-4.5 lg:px-5 rounded-full text-xs sm:text-sm lg:text-[14px] font-bold sm:font-extrabold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800"
             >
               <span>Features</span>
-              <ChevronDown className="w-3 h-3 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
             </button>
 
             {/* Reset All Filters Button (Shows when filters are active) */}
@@ -3240,7 +3056,7 @@ export default function CustomerWeb({
               <button
                 type="button"
                 onClick={handleClearAllFilters}
-                className="px-2.5 py-1 rounded-full text-[11px] font-black text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900/60 transition-all whitespace-nowrap cursor-pointer shrink-0"
+                className="h-9 sm:h-10 lg:h-11 px-3.5 sm:px-4.5 py-1 rounded-full text-xs sm:text-sm lg:text-[14px] font-black text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900/60 transition-all whitespace-nowrap cursor-pointer shrink-0"
               >
                 {language === 'en' ? 'Clear All' : 'ሁሉንም አጽዳ'}
               </button>
@@ -3277,10 +3093,10 @@ export default function CustomerWeb({
               <div className="w-12 h-1.5 bg-gray-300 dark:bg-zinc-700 rounded-full mx-auto my-2.5 sm:hidden shrink-0" />
 
               {/* Bottom Sheet Header */}
-              <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-150 dark:border-zinc-800 shrink-0">
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal className="w-4 h-4 text-[#0052FF]" />
-                  <h3 className="text-base font-black uppercase tracking-wider text-gray-900 dark:text-white font-sans">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-150 dark:border-zinc-800 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <SlidersHorizontal className="w-5 h-5 text-[#0052FF]" />
+                  <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-gray-900 dark:text-white font-sans">
                     {language === 'en' ? 'FILTER' : 'ማጣሪያ'}
                   </h3>
                 </div>
@@ -3289,14 +3105,14 @@ export default function CustomerWeb({
                   {activeFiltersCount > 0 && (
                     <button
                       onClick={handleClearAllFilters}
-                      className="text-xs font-extrabold text-red-500 hover:text-red-600 transition-colors cursor-pointer"
+                      className="text-xs sm:text-sm font-extrabold text-red-500 hover:text-red-600 transition-colors cursor-pointer"
                     >
                       {language === 'en' ? 'Clear' : 'አጽዳ'}
                     </button>
                   )}
                   <button
                     onClick={() => setIsAdvancedFilterOpen(false)}
-                    className="p-1 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -3304,18 +3120,18 @@ export default function CustomerWeb({
               </div>
 
               {/* Scrollable Filter Options */}
-              <div className="p-5 overflow-y-auto space-y-6 custom-scrollbar divide-y divide-gray-100 dark:divide-zinc-800">
+              <div className="p-5 sm:p-6 overflow-y-auto space-y-6 custom-scrollbar divide-y divide-gray-100 dark:divide-zinc-800">
 
                 {/* 1. BRAND SECTION */}
                 <div className="space-y-3 pt-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                    <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
                       {language === 'en' ? 'Brand' : 'ብራንድ'}
                     </span>
                     {selectedBrands.length > 0 && (
                       <button
                         onClick={() => setSelectedBrands([])}
-                        className="text-[11px] text-[#0052FF] font-bold hover:underline cursor-pointer"
+                        className="text-xs text-[#0052FF] font-bold hover:underline cursor-pointer"
                       >
                         {language === 'en' ? 'Reset' : 'ቦረሽ'}
                       </button>
@@ -3329,7 +3145,7 @@ export default function CustomerWeb({
                       return (
                         <label
                           key={`sheet-brand-${brand}`}
-                          className={`flex items-center justify-between p-3 rounded-2xl border transition-all cursor-pointer ${
+                          className={`flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
                             isSelected
                               ? 'bg-blue-50/70 dark:bg-blue-950/50 border-[#0052FF] text-gray-900 dark:text-white font-black shadow-xs'
                               : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
@@ -3346,11 +3162,11 @@ export default function CustomerWeb({
                                   setSelectedBrands([...selectedBrands, brand]);
                                 }
                               }}
-                              className="w-4 h-4 rounded text-[#0052FF] focus:ring-[#0052FF] border-gray-300 cursor-pointer"
+                              className="w-4.5 h-4.5 rounded text-[#0052FF] focus:ring-[#0052FF] border-gray-300 cursor-pointer"
                             />
-                            <span className="text-xs font-bold">{brand}</span>
+                            <span className="text-xs sm:text-sm font-bold">{brand}</span>
                           </div>
-                          <span className="text-[10px] font-mono text-gray-400 font-bold">
+                          <span className="text-xs font-mono text-gray-400 font-bold">
                             ({count})
                           </span>
                         </label>
@@ -3362,7 +3178,7 @@ export default function CustomerWeb({
                 {/* 2. PRICE SECTION */}
                 <div className="space-y-3 pt-5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                    <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
                       {language === 'en' ? 'Price' : 'ዋጋ'}
                     </span>
                     {(minPriceInput !== '' || maxPriceInput !== '') && (
@@ -3371,7 +3187,7 @@ export default function CustomerWeb({
                           setMinPriceInput('');
                           setMaxPriceInput('');
                         }}
-                        className="text-[11px] text-[#0052FF] font-bold hover:underline cursor-pointer"
+                        className="text-xs text-[#0052FF] font-bold hover:underline cursor-pointer"
                       >
                         {language === 'en' ? 'Reset' : 'ቦረሽ'}
                       </button>
@@ -3389,7 +3205,7 @@ export default function CustomerWeb({
                       return (
                         <label
                           key={`sheet-price-preset-${idx}`}
-                          className={`flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer ${
+                          className={`flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
                             isSelected
                               ? 'bg-blue-50/70 dark:bg-blue-950/50 border-[#0052FF] text-gray-900 dark:text-white font-black shadow-xs'
                               : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
@@ -3403,9 +3219,9 @@ export default function CustomerWeb({
                               setMinPriceInput(preset.min);
                               setMaxPriceInput(preset.max);
                             }}
-                            className="w-4 h-4 text-[#0052FF] focus:ring-[#0052FF] border-gray-300 cursor-pointer"
+                            className="w-4.5 h-4.5 text-[#0052FF] focus:ring-[#0052FF] border-gray-300 cursor-pointer"
                           />
-                          <span className="text-xs font-bold">{preset.label}</span>
+                          <span className="text-xs sm:text-sm font-bold">{preset.label}</span>
                         </label>
                       );
                     })}
@@ -3414,7 +3230,7 @@ export default function CustomerWeb({
 
                 {/* 3. RATING SECTION */}
                 <div className="space-y-3 pt-5">
-                  <span className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
                     {language === 'en' ? 'Rating' : 'ደረጃ'}
                   </span>
 
@@ -3428,7 +3244,7 @@ export default function CustomerWeb({
                       return (
                         <label
                           key={`sheet-rating-${rOpt.value}`}
-                          className={`flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer ${
+                          className={`flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
                             isSelected
                               ? 'bg-amber-50/70 dark:bg-amber-950/50 border-amber-500 text-gray-900 dark:text-white font-black shadow-xs'
                               : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
@@ -3439,9 +3255,9 @@ export default function CustomerWeb({
                             name="sheet-rating-opt"
                             checked={isSelected}
                             onChange={() => setSelectedRatingFilter(rOpt.value)}
-                            className="w-4 h-4 text-amber-500 focus:ring-amber-500 border-gray-300 cursor-pointer"
+                            className="w-4.5 h-4.5 text-amber-500 focus:ring-amber-500 border-gray-300 cursor-pointer"
                           />
-                          <span className="text-xs font-bold">{rOpt.label}</span>
+                          <span className="text-xs sm:text-sm font-bold">{rOpt.label}</span>
                         </label>
                       );
                     })}
@@ -3450,7 +3266,7 @@ export default function CustomerWeb({
 
                 {/* 4. AVAILABILITY SECTION */}
                 <div className="space-y-3 pt-5">
-                  <span className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                  <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
                     {language === 'en' ? 'Availability' : 'አቅርቦት'}
                   </span>
 
@@ -3464,7 +3280,7 @@ export default function CustomerWeb({
                       return (
                         <label
                           key={`sheet-avail-${aOpt.id}`}
-                          className={`flex items-center gap-3 p-3 rounded-2xl border transition-all cursor-pointer ${
+                          className={`flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
                             isSelected
                               ? 'bg-emerald-50/70 dark:bg-emerald-950/50 border-emerald-500 text-gray-900 dark:text-white font-black shadow-xs'
                               : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
@@ -3475,9 +3291,9 @@ export default function CustomerWeb({
                             name="sheet-avail-opt"
                             checked={isSelected}
                             onChange={() => setAvailabilityFilter(aOpt.id as any)}
-                            className="w-4 h-4 text-emerald-500 focus:ring-emerald-500 border-gray-300 cursor-pointer"
+                            className="w-4.5 h-4.5 text-emerald-500 focus:ring-emerald-500 border-gray-300 cursor-pointer"
                           />
-                          <span className="text-xs font-bold">{aOpt.label}</span>
+                          <span className="text-xs sm:text-sm font-bold">{aOpt.label}</span>
                         </label>
                       );
                     })}
@@ -3487,17 +3303,17 @@ export default function CustomerWeb({
               </div>
 
               {/* Bottom Sheet Footer Controls */}
-              <div className="p-4 bg-gray-50 dark:bg-zinc-950 border-t border-gray-150 dark:border-zinc-800 flex items-center justify-between gap-3 shrink-0">
+              <div className="p-4 sm:p-5 bg-gray-50 dark:bg-zinc-950 border-t border-gray-150 dark:border-zinc-800 flex items-center justify-between gap-3 shrink-0">
                 <button
                   onClick={handleClearAllFilters}
-                  className="px-5 py-3 rounded-2xl text-xs font-extrabold text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/60 dark:hover:bg-zinc-800 transition-all cursor-pointer"
+                  className="px-5 py-3 rounded-2xl text-xs sm:text-sm font-extrabold text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/60 dark:hover:bg-zinc-800 transition-all cursor-pointer"
                 >
                   {language === 'en' ? 'Clear' : 'አጽዳ'}
                 </button>
 
                 <button
                   onClick={() => setIsAdvancedFilterOpen(false)}
-                  className="flex-1 py-3 px-5 bg-[#0052FF] hover:bg-blue-700 text-white text-xs font-black uppercase tracking-wider rounded-2xl transition-all shadow-md shadow-[#0052FF]/20 text-center cursor-pointer"
+                  className="flex-1 py-3.5 px-5 bg-[#0052FF] hover:bg-blue-700 text-white text-xs sm:text-sm font-black uppercase tracking-wider rounded-2xl transition-all shadow-md shadow-[#0052FF]/20 text-center cursor-pointer"
                 >
                   {language === 'en'
                     ? `Show ${sortedAndFilteredProducts.length} products`
@@ -3512,24 +3328,24 @@ export default function CustomerWeb({
 
         {/* Active Filter Badges Ribbon */}
         {activeFiltersCount > 0 && (
-          <div className="flex flex-wrap items-center gap-2 mb-4 bg-white/60 dark:bg-zinc-900/60 p-2.5 rounded-xl border border-gray-150 dark:border-zinc-800">
-            <span className="text-[10px] font-extrabold uppercase text-gray-400 dark:text-zinc-500 tracking-wider">
+          <div className="flex flex-wrap items-center gap-2.5 mb-4 bg-white/80 dark:bg-zinc-900/80 p-3 rounded-2xl border border-gray-150 dark:border-zinc-800 shadow-2xs">
+            <span className="text-xs sm:text-sm font-extrabold uppercase text-gray-500 dark:text-zinc-400 tracking-wider">
               {language === 'en' ? 'Active Filters:' : 'ንቁ ማጣሪያዎች፡'}
             </span>
 
             {/* Category badge */}
             {selectedCategory !== 'all' && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/40">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/40">
                 <span>Category: {categories.find(c => c.id === selectedCategory)?.nameEn || selectedCategory}</span>
                 <button onClick={() => setSelectedCategory('all')} className="hover:text-red-500 cursor-pointer">
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                 </button>
               </span>
             )}
 
             {/* Search query badge */}
             {searchQuery.trim() !== '' && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/40">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/40">
                 <span>"{searchQuery}"</span>
                 <button onClick={() => setSearchQuery('')} className="hover:text-red-500 cursor-pointer">
                   <X className="w-3 h-3" />

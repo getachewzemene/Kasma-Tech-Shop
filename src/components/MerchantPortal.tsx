@@ -102,12 +102,30 @@ export default function MerchantPortal({
   onLogout,
   onOrderUpdated
 }: MerchantPortalProps) {
-  // Simulator State: Select active merchant (Default to Selam Agricultural or stored session)
+  // Active merchant (Default to authenticated session or first merchant)
   const [selectedMerchantId, setSelectedMerchantId] = useState<string>(() => {
-    return sessionStorage.getItem('kasma_merchant_id') || 'm3';
+    return sessionStorage.getItem('kasma_merchant_id') || localStorage.getItem('kasma_merchant_id') || 'm3';
   });
+
+  useEffect(() => {
+    const storedId = sessionStorage.getItem('kasma_merchant_id') || localStorage.getItem('kasma_merchant_id');
+    if (storedId && storedId !== selectedMerchantId) {
+      setSelectedMerchantId(storedId);
+    }
+  }, [merchants, selectedMerchantId]);
+
   const currentMerchant = useMemo(() => {
-    return merchants.find(m => m.id === selectedMerchantId) || merchants[0];
+    return merchants.find(m => m.id === selectedMerchantId) || merchants[0] || {
+      id: 'm-default',
+      storeName: 'Merchant Store',
+      ownerName: 'Merchant',
+      email: 'merchant@kasma.et',
+      phone: '+251911000000',
+      status: 'ACTIVE',
+      kycStatus: 'APPROVED',
+      balance: 0,
+      payouts: []
+    } as Merchant;
   }, [merchants, selectedMerchantId]);
 
   // Main navigation tab & Collapsible Sidebar State

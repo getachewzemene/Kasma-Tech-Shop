@@ -100,26 +100,26 @@ export const SocialFooterSection: React.FC<SocialFooterSectionProps> = ({ langua
   };
 
   return (
-    <div className="space-y-3 text-left w-full">
+    <div className="space-y-3.5 sm:space-y-4 text-left w-full">
       <div className="flex items-center justify-between">
-        <h4 className="font-black text-gray-950 dark:text-white uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-          <Share2 className="w-3.5 h-3.5 text-[#0052FF]" />
+        <h4 className="font-black text-gray-950 dark:text-white uppercase tracking-wider text-xs sm:text-sm lg:text-[15px] flex items-center gap-2">
+          <Share2 className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#0052FF]" />
           <span>{language === 'en' ? 'Social Media' : 'ማህበራዊ ሚዲያ'}</span>
         </h4>
-        <span className="text-[9px] font-mono font-bold text-gray-400 dark:text-zinc-500 bg-gray-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-          <Sparkles className="w-2.5 h-2.5 text-amber-500 animate-pulse" />
+        <span className="text-[11px] sm:text-xs font-mono font-extrabold text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 px-2.5 py-1 rounded-full flex items-center gap-1.5 shrink-0">
+          <Sparkles className="w-3 h-3 text-amber-500 animate-pulse" />
           {SOCIAL_PLATFORMS_CONFIG.length} {language === 'en' ? 'Channels' : 'ቻናሎች'}
         </span>
       </div>
 
-      <p className="text-[11px] text-gray-400 dark:text-zinc-500 leading-normal font-medium">
+      <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 leading-normal font-medium">
         {language === 'en' 
           ? 'Follow our official channels for flash deals & drops:' 
           : 'ለልዩ ቅናሾች እና መረጃዎች ይከተሉን:'}
       </p>
 
       {/* Grid of Horizontal Cards */}
-      <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2.5 pt-1">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5 lg:gap-3 pt-1">
         {SOCIAL_PLATFORMS_CONFIG.map((platform) => {
           const isCopied = copiedId === platform.id;
           const animVariants = getAnimationVariants(platform.animationTrigger);
@@ -142,41 +142,41 @@ export const SocialFooterSection: React.FC<SocialFooterSectionProps> = ({ langua
                 hover: { scale: 1.03, y: -2 },
                 tap: { scale: 0.97 }
               }}
-              className={`group relative flex flex-col sm:flex-row items-center sm:justify-between p-2 sm:p-2.5 rounded-xl bg-gray-50/90 dark:bg-zinc-900/90 border border-gray-200/80 dark:border-zinc-800 hover:border-[#0052FF]/50 transition-all duration-200 cursor-pointer overflow-hidden ${platform.hoverGlow} shadow-2xs hover:shadow-xs min-w-0 text-center sm:text-left`}
+              className={`group relative flex flex-col sm:flex-row items-center sm:justify-between p-2.5 sm:p-3 lg:p-3 rounded-xl lg:rounded-2xl bg-gray-50/90 dark:bg-zinc-900/90 border border-gray-200/80 dark:border-zinc-800 hover:border-[#0052FF]/50 transition-all duration-200 cursor-pointer overflow-hidden ${platform.hoverGlow} shadow-2xs hover:shadow-xs min-w-0 text-center sm:text-left`}
             >
               {/* Left Brand Icon and Info */}
-              <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2.5 min-w-0 w-full sm:flex-1">
+              <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-2.5 min-w-0 w-full sm:flex-1">
                 <motion.div 
-                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg ${getIconBadgeBg(platform)} flex items-center justify-center shrink-0 shadow-2xs border border-white/20`}
+                  className={`w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl ${getIconBadgeBg(platform)} flex items-center justify-center shrink-0 shadow-2xs border border-white/20`}
                   style={platform.brandColor !== 'gradient' && platform.brandColor !== '#000000' ? { backgroundColor: platform.brandColor } : {}}
                   variants={animVariants}
                 >
-                  {renderSocialIcon(platform.iconKey, "w-3.5 h-3.5 sm:w-4 sm:h-4 text-white")}
+                  {renderSocialIcon(platform.iconKey, "w-4 h-4 sm:w-4.5 sm:h-4.5 lg:w-5 lg:h-5 text-white")}
                 </motion.div>
 
                 <div className="min-w-0 w-full flex-1">
-                  <span className="font-extrabold text-gray-900 dark:text-white text-[11px] sm:text-xs leading-tight block group-hover:text-[#0052FF] dark:group-hover:text-blue-400 transition-colors truncate">
+                  <span className="font-extrabold text-gray-900 dark:text-white text-xs sm:text-sm lg:text-[14px] leading-tight block group-hover:text-[#0052FF] dark:group-hover:text-blue-400 transition-colors truncate">
                     {platform.name}
                   </span>
-                  <span className="hidden sm:block text-[10px] text-gray-400 dark:text-zinc-500 font-mono truncate leading-tight mt-0.5">
+                  <span className="hidden sm:block text-[11px] sm:text-xs text-gray-400 dark:text-zinc-500 font-mono font-medium truncate leading-tight mt-0.5">
                     {platform.handle}
                   </span>
                 </div>
               </div>
 
               {/* Followers count badge on right */}
-              <div className="flex items-center justify-center sm:justify-end gap-1 shrink-0 w-full sm:w-auto mt-1 sm:mt-0">
-                <span className={`text-[8px] sm:text-[9px] font-mono font-black uppercase px-1.5 py-0.5 rounded-md ${platform.badgeClass} shadow-2xs`}>
+              <div className="flex items-center justify-center sm:justify-end gap-1.5 shrink-0 w-full sm:w-auto mt-1 sm:mt-0">
+                <span className={`text-[9px] sm:text-[10px] lg:text-[11px] font-mono font-black uppercase px-2 py-0.5 rounded-md ${platform.badgeClass} shadow-2xs`}>
                   {platform.followerCount}
                 </span>
                 
                 <button
                   type="button"
                   onClick={(e) => handleCopyHandle(e, platform)}
-                  className="hidden sm:inline-flex p-1 text-gray-300 dark:text-zinc-600 hover:text-gray-600 dark:hover:text-zinc-300 transition-colors rounded cursor-pointer"
+                  className="hidden sm:inline-flex p-1 text-gray-400 dark:text-zinc-500 hover:text-gray-700 dark:hover:text-zinc-200 transition-colors rounded cursor-pointer"
                   title={`Copy ${platform.handle}`}
                 >
-                  <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </button>
               </div>
 
@@ -187,9 +187,9 @@ export const SocialFooterSection: React.FC<SocialFooterSectionProps> = ({ langua
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="absolute inset-0 bg-emerald-600 text-white text-[10px] font-extrabold flex items-center justify-center gap-1 z-20"
+                    className="absolute inset-0 bg-emerald-600 text-white text-xs font-black flex items-center justify-center gap-1.5 z-20"
                   >
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    <Check className="w-4 h-4 stroke-[3]" />
                     <span>{language === 'en' ? 'Copied!' : 'ተገልበጠ!'}</span>
                   </motion.div>
                 )}
