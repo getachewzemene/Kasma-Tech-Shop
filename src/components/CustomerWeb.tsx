@@ -2120,7 +2120,7 @@ export default function CustomerWeb({
   const slide = activeSlides[currentSlide] || activeSlides[0];
 
   return (
-    <div className="w-full max-w-full bg-[#EFF1F5] dark:bg-zinc-950 min-h-screen pb-3 sm:pb-4 font-sans text-gray-900 dark:text-zinc-100 transition-colors duration-200">
+    <div className="w-full max-w-full bg-slate-50 dark:bg-[#0B0F17] min-h-screen pb-3 sm:pb-4 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-200">
       
       {/* IndexedDB & Cache API Offline Catalog Cache Status Banner */}
       {(!isOnline || isOfflineSimulated) && (
@@ -2142,8 +2142,8 @@ export default function CustomerWeb({
         </div>
       )}
 
-      {/* 1. DIGITAZ SUB-HEADER & NAVIGATION RIBBON */}
-      <div className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-gray-200/80 dark:border-zinc-800 shadow-2xs sticky top-[48px] sm:top-[62px] z-39 w-full max-w-full transition-all relative">
+      {/* 1. SEAMLESS CATEGORY & DEALS NAVIGATION RIBBON */}
+      <div className="bg-white/90 dark:bg-[#0B0F17]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-2xs relative z-30 w-full max-w-full transition-all">
         <div className="max-w-[1440px] mx-auto w-full px-2 sm:px-4 md:px-8 flex items-center justify-between gap-2 py-1 sm:py-1.5">
           
           {/* Left Section: Ultra-Sleek Category & Deals Bar */}

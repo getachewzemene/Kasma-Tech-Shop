@@ -25,7 +25,7 @@ export const ShimmerCircle: React.FC<SkeletonProps> = ({ className = '' }) => {
 // High-fidelity shimmering skeleton for the Customer Web storefront
 export const CustomerWebSkeleton: React.FC = () => {
   return (
-    <div className="w-full bg-[#EFF1F5] dark:bg-[#08090B] min-h-screen pb-16 transition-colors duration-200">
+    <div className="w-full bg-slate-50 dark:bg-[#0B0F17] min-h-screen pb-16 transition-colors duration-200">
       {/* 1. Nav Ribbon Placeholder */}
       <div className="w-full bg-white dark:bg-zinc-900 border-b border-gray-150 dark:border-zinc-800/60 py-4 px-4 md:px-8">
         <div className="w-full px-4 md:px-8 flex items-center justify-between">
@@ -125,7 +125,7 @@ export const CustomerWebSkeleton: React.FC = () => {
 // High-fidelity shimmering skeleton for the Merchant Portal dashboard
 export const MerchantPortalSkeleton: React.FC = () => {
   return (
-    <div className="w-full bg-[#EFF1F5] dark:bg-[#08090B] min-h-screen pb-16 transition-colors duration-200">
+    <div className="w-full bg-slate-50 dark:bg-[#0B0F17] min-h-screen pb-16 transition-colors duration-200">
       {/* Upper Nav */}
       <div className="w-full bg-white dark:bg-zinc-900 border-b border-gray-150 dark:border-zinc-800/60 py-4 px-6 mb-8">
         <div className="w-full px-4 md:px-8 flex items-center justify-between">
@@ -198,7 +198,7 @@ export const MerchantPortalSkeleton: React.FC = () => {
 // High-fidelity shimmering skeleton for the Admin Dashboard
 export const AdminDashboardSkeleton: React.FC = () => {
   return (
-    <div className="w-full bg-[#EFF1F5] dark:bg-[#08090B] min-h-screen pb-16 transition-colors duration-200">
+    <div className="w-full bg-slate-50 dark:bg-[#0B0F17] min-h-screen pb-16 transition-colors duration-200">
       {/* Top Header */}
       <div className="w-full bg-white dark:bg-zinc-900 border-b border-gray-150 dark:border-zinc-800/60 py-4 px-6 mb-8">
         <div className="w-full px-4 md:px-8 flex items-center justify-between">

@@ -471,7 +471,7 @@ export default function MerchantPortal({
   const activeAlertsCount = activeAlerts.filter(a => !a.dismissed).length;
 
   return (
-    <div className="min-h-screen bg-[#EFF1F5] dark:bg-[#08090B] text-gray-900 dark:text-zinc-100 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 flex flex-col lg:flex-row">
       
       {/* Desktop Sidebar Command Console */}
       <aside className={`hidden lg:flex lg:flex-col ${isSidebarCollapsed ? 'lg:w-20' : 'lg:w-72'} bg-white dark:bg-zinc-950 border-r border-gray-150 dark:border-zinc-900 shrink-0 transition-all duration-300 ease-in-out`}>
