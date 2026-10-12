@@ -9,13 +9,18 @@ import {
   Layers, 
   RefreshCw,
   Zap,
-  Bike
+  Bike,
+  Phone,
+  Clock,
+  DollarSign
 } from 'lucide-react';
 import { 
   CourierDriver, 
   DeliveryStop, 
   KASMA_CENTRAL_HUB, 
-  projectAddisCoords 
+  projectAddisCoords,
+  generateCustomerCallUrl,
+  generateGoogleMapsDirUrl
 } from './courierTypes';
 
 interface CourierRouteMapProps {
@@ -58,6 +63,9 @@ export const CourierRouteMap: React.FC<CourierRouteMapProps> = ({
 
   // Driver SVG coordinates
   const driverPoint = projectAddisCoords(driver.currentLocation.lat, driver.currentLocation.lng, mapWidth, mapHeight);
+
+  // Active Stop (if selected)
+  const activeStop = stops.find(s => s.order.id === activeStopId);
 
   // Generate continuous route polyline through stops
   const routePoints = [hubPoint, ...stops.map(s => s.mapPoint)];
@@ -361,6 +369,60 @@ export const CourierRouteMap: React.FC<CourierRouteMapProps> = ({
           </g>
         </svg>
       </div>
+
+      {/* Floating Active Stop Mini HUD */}
+      {activeStop && (
+        <div className="absolute bottom-12 inset-x-2 sm:inset-x-4 z-20 bg-slate-900/95 backdrop-blur-md p-2.5 sm:p-3 rounded-2xl border border-amber-500/50 shadow-2xl flex items-center justify-between gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-xs shrink-0 shadow-md ${
+              activeStop.status === 'DELIVERED'
+                ? 'bg-emerald-600 text-white'
+                : activeStop.status === 'IN_TRANSIT'
+                ? 'bg-amber-500 text-black'
+                : 'bg-blue-600 text-white'
+            }`}>
+              #{activeStop.stopNumber}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-black text-white truncate max-w-[130px] sm:max-w-[200px]">
+                  {activeStop.order.customerName}
+                </span>
+                {activeStop.isCod && (
+                  <span className="text-[9px] font-black bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/30 shrink-0">
+                    COD {activeStop.codAmount.toLocaleString()} ETB
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] text-slate-300 truncate mt-0.5">
+                📍 <span className="font-semibold">{language === 'en' ? activeStop.landmark.nameEn : activeStop.landmark.nameAm}</span>
+                <span className="text-slate-400"> • {activeStop.distanceKm} km (~{activeStop.estimatedMins}m)</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <a
+              href={generateCustomerCallUrl(activeStop.order.customerPhone)}
+              className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs flex items-center gap-1.5 shadow-md shadow-emerald-950 transition-all cursor-pointer"
+              title="1-Tap Call Customer"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{language === 'en' ? 'Call' : 'ደውል'}</span>
+            </a>
+            <a
+              href={generateGoogleMapsDirUrl(activeStop.coordinates.lat, activeStop.coordinates.lng)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-black text-xs flex items-center gap-1.5 shadow-md shadow-blue-950 transition-all cursor-pointer"
+              title="Open Google Maps Turn-by-Turn GPS"
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{language === 'en' ? 'GPS Nav' : 'አቅጣጫ'}</span>
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Map Legend Bar */}
       <div className="absolute bottom-2 inset-x-2 z-20 bg-slate-950/90 backdrop-blur-md px-3 py-2 rounded-2xl border border-slate-800 flex items-center justify-between text-[10px] sm:text-xs">

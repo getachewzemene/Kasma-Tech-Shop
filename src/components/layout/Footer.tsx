@@ -53,7 +53,7 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="bg-white dark:bg-zinc-950 border-t border-gray-150 dark:border-zinc-900 py-8 sm:py-12 px-3.5 sm:px-6 md:px-8 shrink-0 text-gray-500 dark:text-zinc-400 transition-colors">
+    <footer className="bg-white dark:bg-[#0B0F17] border-t border-slate-200/80 dark:border-slate-850 py-8 sm:py-12 px-3.5 sm:px-6 md:px-8 shrink-0 text-slate-500 dark:text-slate-400 transition-colors">
       <div className="max-w-[1440px] mx-auto w-full">
         
         {/* 1. TRUST INDICATORS GUARANTEE RIBBON */}

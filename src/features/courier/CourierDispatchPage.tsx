@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { 
   Bike, 
@@ -22,15 +22,23 @@ import {
   Package,
   AlertTriangle,
   ChevronRight,
+  ChevronLeft,
   Maximize2,
   Minimize2,
-  Sparkles
+  Sparkles,
+  ArrowLeft,
+  Map,
+  ListOrdered,
+  LayoutGrid,
+  PhoneCall
 } from 'lucide-react';
 import { 
   CourierDriver, 
   DEFAULT_COURIER_DRIVER, 
   DeliveryStop, 
-  buildCourierStops 
+  buildCourierStops,
+  generateCustomerCallUrl,
+  generateGoogleMapsDirUrl
 } from './courierTypes';
 import { CourierRouteMap } from './CourierRouteMap';
 import { CourierStopCard } from './CourierStopCard';
@@ -60,19 +68,51 @@ export const CourierDispatchPage: React.FC = () => {
     return buildCourierStops(orders, driver.currentLocation);
   }, [orders, driver.currentLocation]);
 
-  // Set target stop if specified in URL params
+  // Set target stop if specified in URL params or default to first actionable stop
   useEffect(() => {
     if (targetOrderId) {
       setSelectedStopId(targetOrderId);
-      // Auto-scroll to card
       setTimeout(() => {
         const el = document.getElementById(`stop-card-${targetOrderId}`);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }, 300);
+    } else if (!selectedStopId && allStops.length > 0) {
+      const actionable = allStops.find(s => s.status === 'IN_TRANSIT') || allStops.find(s => s.status === 'PENDING_PICKUP') || allStops[0];
+      if (actionable) {
+        setSelectedStopId(actionable.order.id);
+      }
     }
-  }, [targetOrderId]);
+  }, [targetOrderId, allStops, selectedStopId]);
+
+  // Active Stop resolution & single-thumb stop navigation
+  const activeStop = useMemo(() => {
+    return allStops.find(s => s.order.id === selectedStopId) || (allStops.length > 0 ? allStops[0] : null);
+  }, [allStops, selectedStopId]);
+
+  const activeStopIndex = useMemo(() => {
+    if (!activeStop) return -1;
+    return allStops.findIndex(s => s.order.id === activeStop.order.id);
+  }, [allStops, activeStop]);
+
+  const handlePrevStop = () => {
+    if (activeStopIndex > 0) {
+      const prev = allStops[activeStopIndex - 1];
+      setSelectedStopId(prev.order.id);
+      const el = document.getElementById(`stop-card-${prev.order.id}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  const handleNextStop = () => {
+    if (activeStopIndex < allStops.length - 1) {
+      const next = allStops[activeStopIndex + 1];
+      setSelectedStopId(next.order.id);
+      const el = document.getElementById(`stop-card-${next.order.id}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
 
   // Filtered stops
   const filteredStops = useMemo(() => {
@@ -124,13 +164,23 @@ export const CourierDispatchPage: React.FC = () => {
     });
   };
 
-  const handleConfirmDelivery = async (details: { recipientName: string; codCollected: boolean; notes: string }) => {
+  const handleConfirmDelivery = async (details: { 
+    recipientName: string; 
+    codCollected: boolean; 
+    notes: string;
+    handoverPin?: string;
+    deviceInspectionConfirmed?: boolean;
+  }) => {
     if (!completionModalStop) return;
     await updateCourierOrderStatus(completionModalStop.order.id, 'DELIVERED', {
       courierName: driver.name,
       courierPhone: driver.phone,
-      trackingNotes: `Delivered to ${details.recipientName}. ${details.notes}`,
-      deliveredAt: new Date().toISOString()
+      trackingNotes: `Delivered to ${details.recipientName}. Handover PIN verified. Escrow funds released to merchant. ${details.notes}`,
+      deliveredAt: new Date().toISOString(),
+      handoverPin: details.handoverPin,
+      deviceInspectionConfirmed: details.deviceInspectionConfirmed,
+      escrowStatus: 'RELEASED_TO_MERCHANT',
+      escrowReleasedAt: new Date().toISOString()
     });
   };
 
@@ -153,13 +203,22 @@ export const CourierDispatchPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 pb-16 font-sans">
+    <div className="min-h-screen bg-slate-950 text-slate-100 pb-28 sm:pb-16 font-sans">
       {/* Top Driver Command Bar */}
       <header className="sticky top-0 z-30 bg-slate-950/95 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-5xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             {/* Driver Identity & Vehicle Info */}
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+              <Link
+                to="/"
+                className="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer shadow-sm"
+                title={language === 'en' ? 'Back to Kasma Tech Shop' : 'ወደ ካስማ ቴክ ሾፕ ተመለስ'}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="hidden sm:inline text-xs font-bold">{language === 'en' ? 'Shop' : 'ሱቅ'}</span>
+              </Link>
+
               <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black flex items-center justify-center shrink-0 shadow-lg shadow-blue-950 text-sm">
                 <Bike className="w-5 h-5" />
               </div>
@@ -293,6 +352,53 @@ export const CourierDispatchPage: React.FC = () => {
 
         {/* View Mode Switcher & Filter Controls */}
         <div className="space-y-2.5">
+          {/* View Mode Segmented Switch (Mobile-first responsive switcher) */}
+          <div className="flex items-center justify-between gap-2 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider pl-2 hidden sm:inline">
+              {language === 'en' ? 'Display View' : 'የእይታ ሁነታ'}
+            </span>
+            <div className="grid grid-cols-3 gap-1 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={() => setViewMode('SPLIT')}
+                className={`py-1.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'SPLIT'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>{language === 'en' ? 'Split View' : 'ጥምር'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('MAP_FOCUS')}
+                className={`py-1.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'MAP_FOCUS'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Map className="w-3.5 h-3.5" />
+                <span>{language === 'en' ? 'Map Focus' : 'ካርታ'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setViewMode('CARDS_ONLY')}
+                className={`py-1.5 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'CARDS_ONLY'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <ListOrdered className="w-3.5 h-3.5" />
+                <span>{language === 'en' ? 'Stop Cards' : 'ማድረሻዎች'}</span>
+              </button>
+            </div>
+          </div>
+
           {/* Search Box */}
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -370,32 +476,76 @@ export const CourierDispatchPage: React.FC = () => {
         </div>
 
         {/* Interactive Addis Ababa Vector Route Map */}
-        <section className="space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Navigation className="w-4 h-4 text-blue-400" />
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-300">
-                {language === 'en' ? 'Interactive Addis Ababa Route Map' : 'የአዲስ አበባ የቀጥታ የካርታ መስመር'}
-              </h2>
+        {viewMode !== 'CARDS_ONLY' && (
+          <section className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Navigation className="w-4 h-4 text-blue-400" />
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-300">
+                  {language === 'en' ? 'Interactive Addis Ababa Route Map' : 'የአዲስ አበባ የቀጥታ የካርታ መስመር'}
+                </h2>
+              </div>
+              <span className="text-[11px] text-slate-400">
+                {driver.currentLocation.labelEn}
+              </span>
             </div>
-            <span className="text-[11px] text-slate-400">
-              {driver.currentLocation.labelEn}
-            </span>
-          </div>
 
-          <CourierRouteMap
-            driver={driver}
-            stops={allStops}
-            activeStopId={selectedStopId}
-            onSelectStop={handleSelectStop}
-            language={language}
-            isExpanded={isMapExpanded}
-            onToggleExpand={() => setIsMapExpanded(!isMapExpanded)}
-          />
-        </section>
+            <CourierRouteMap
+              driver={driver}
+              stops={allStops}
+              activeStopId={selectedStopId}
+              onSelectStop={handleSelectStop}
+              language={language}
+              isExpanded={viewMode === 'MAP_FOCUS' || isMapExpanded}
+              onToggleExpand={() => setIsMapExpanded(!isMapExpanded)}
+            />
+
+            {/* Quick Stop Swiper when in MAP_FOCUS */}
+            {viewMode === 'MAP_FOCUS' && (
+              <div className="pt-2">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1.5">
+                  {language === 'en' ? 'Tap stop to focus on map' : 'በካርታው ላይ ለመመልከት ማድረሻ ይምረጡ'}
+                </p>
+                <div className="overflow-x-auto pb-1 scrollbar-none flex items-center gap-2">
+                  {filteredStops.map(s => {
+                    const isSelected = s.order.id === selectedStopId;
+                    return (
+                      <button
+                        key={s.order.id}
+                        onClick={() => setSelectedStopId(s.order.id)}
+                        className={`shrink-0 px-3 py-2 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
+                          isSelected
+                            ? 'bg-amber-500/20 border-amber-500/70 text-white shadow-lg'
+                            : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'
+                        }`}
+                      >
+                        <span className={`w-6 h-6 rounded-lg text-[10px] font-black flex items-center justify-center shrink-0 ${
+                          s.status === 'DELIVERED'
+                            ? 'bg-emerald-500 text-white'
+                            : s.status === 'IN_TRANSIT'
+                            ? 'bg-amber-400 text-black'
+                            : 'bg-blue-500 text-white'
+                        }`}>
+                          #{s.stopNumber}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold truncate max-w-[120px]">{s.order.customerName}</p>
+                          <p className="text-[10px] text-slate-400 truncate max-w-[120px]">
+                            {language === 'en' ? s.landmark.nameEn.split('/')[0] : s.landmark.nameAm.split('/')[0]}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Delivery Stops Manifest List */}
-        <section className="space-y-3 pt-2">
+        {viewMode !== 'MAP_FOCUS' && (
+          <section className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Package className="w-4 h-4 text-emerald-400" />
@@ -440,7 +590,117 @@ export const CourierDispatchPage: React.FC = () => {
             </div>
           )}
         </section>
+        )}
       </main>
+
+      {/* Mobile Sticky Driver Dock (Single-Thumb Driver Controls) */}
+      {activeStop && (
+        <aside className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800 p-3 shadow-2xl">
+          {/* Active Stop Summary & Stop Cycler */}
+          <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-800/80">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className={`px-2 py-0.5 rounded-lg text-xs font-black shrink-0 ${
+                activeStop.status === 'DELIVERED'
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  : activeStop.status === 'IN_TRANSIT'
+                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                  : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+              }`}>
+                #{activeStop.stopNumber}
+              </span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-black text-white truncate">
+                    {activeStop.order.customerName}
+                  </p>
+                  {activeStop.isCod && (
+                    <span className="text-[9px] font-black bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/30 shrink-0">
+                      COD {activeStop.codAmount.toLocaleString()} ETB
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10px] text-slate-400 truncate">
+                  📍 {language === 'en' ? activeStop.landmark.nameEn : activeStop.landmark.nameAm}
+                </p>
+              </div>
+            </div>
+
+            {/* Stop Cycler Buttons */}
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={handlePrevStop}
+                disabled={activeStopIndex <= 0}
+                className="p-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 disabled:opacity-30 disabled:pointer-events-none active:scale-95 cursor-pointer"
+                title="Previous Stop"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-[10px] font-mono text-slate-400 px-0.5">
+                {activeStopIndex + 1}/{allStops.length}
+              </span>
+              <button
+                type="button"
+                onClick={handleNextStop}
+                disabled={activeStopIndex >= allStops.length - 1}
+                className="p-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 disabled:opacity-30 disabled:pointer-events-none active:scale-95 cursor-pointer"
+                title="Next Stop"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Quick 1-Tap Driver Action Grid */}
+          <div className="grid grid-cols-3 gap-2 pt-2.5">
+            {/* 1-Tap Phone Call */}
+            <a
+              href={generateCustomerCallUrl(activeStop.order.customerPhone)}
+              className="py-2.5 px-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950 transition-all cursor-pointer"
+            >
+              <Phone className="w-4 h-4 shrink-0" />
+              <span className="truncate">{language === 'en' ? 'Call' : 'ደውል'}</span>
+            </a>
+
+            {/* 1-Tap GPS Navigation */}
+            <a
+              href={generateGoogleMapsDirUrl(activeStop.coordinates.lat, activeStop.coordinates.lng)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="py-2.5 px-2 rounded-2xl bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-blue-950 transition-all cursor-pointer"
+            >
+              <Navigation className="w-4 h-4 shrink-0" />
+              <span className="truncate">{language === 'en' ? 'GPS Nav' : 'አቅጣጫ'}</span>
+            </a>
+
+            {/* Handover / Status Action */}
+            {activeStop.status === 'PENDING_PICKUP' ? (
+              <button
+                type="button"
+                onClick={() => handleConfirmPickup(activeStop.order.id)}
+                className="py-2.5 px-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-indigo-950 transition-all cursor-pointer"
+              >
+                <Package className="w-4 h-4 shrink-0" />
+                <span className="truncate">{language === 'en' ? 'Pickup' : 'ተረከብ'}</span>
+              </button>
+            ) : activeStop.status === 'IN_TRANSIT' ? (
+              <button
+                type="button"
+                onClick={() => setCompletionModalStop(activeStop)}
+                className="py-2.5 px-2 rounded-2xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-amber-950 transition-all cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span className="truncate">{language === 'en' ? 'Deliver' : 'አስረክብ'}</span>
+              </button>
+            ) : (
+              <div className="py-2.5 px-2 rounded-2xl bg-slate-900 border border-emerald-500/30 text-emerald-400 font-black text-xs flex items-center justify-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                <span className="truncate">{language === 'en' ? 'Delivered' : 'ደርሷል'}</span>
+              </div>
+            )}
+          </div>
+        </aside>
+      )}
 
       {/* Delivery Handover Confirmation Modal */}
       {completionModalStop && (

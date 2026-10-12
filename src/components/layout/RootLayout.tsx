@@ -26,7 +26,7 @@ export const RootLayout: React.FC = () => {
   } = useShop();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#EFF1F5] dark:bg-[#08090B] text-gray-900 dark:text-zinc-100 transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-[#0052FF]/20 selection:text-[#0052FF] dark:selection:bg-[#0052FF]/30 dark:selection:text-blue-200 transition-colors duration-200">
       <Navbar onOpenProfile={() => setIsProfileOpen(true)} />
 
       <main className="flex-1 w-full">

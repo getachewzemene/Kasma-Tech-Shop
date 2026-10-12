@@ -240,3 +240,15 @@ export function generateGoogleMapsDirUrl(lat: number, lng: number): string {
 export function generateWazeDirUrl(lat: number, lng: number): string {
   return `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
 }
+
+// Escrow Handover PIN Resolver
+export function getOrderHandoverPin(order: Order): string {
+  if (order.handoverPin) return order.handoverPin;
+  if (order.codVerificationPin) return order.codVerificationPin;
+  // Fallback deterministic 4-digit PIN based on order ID
+  let hash = 0;
+  for (let i = 0; i < order.id.length; i++) {
+    hash = (hash * 31 + order.id.charCodeAt(i)) & 0xffffffff;
+  }
+  return String(Math.abs(hash) % 9000 + 1000);
+}

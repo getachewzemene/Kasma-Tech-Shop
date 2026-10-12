@@ -128,6 +128,10 @@ interface ShopContextType {
       trackingNotes?: string;
       deliveredAt?: string;
       gateNotes?: string;
+      handoverPin?: string;
+      deviceInspectionConfirmed?: boolean;
+      escrowStatus?: Order['escrowStatus'];
+      escrowReleasedAt?: string;
     }
   ) => Promise<boolean>;
 
@@ -621,8 +625,13 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ? order.warranties
       : order.items.map(item => createDigitalWarrantyPass(order, item));
 
+    const handoverPin = order.handoverPin || String(Math.floor(1000 + Math.random() * 9000));
+    const escrowStatus = order.escrowStatus || 'HELD_IN_ESCROW';
+
     const enrichedOrder: Order = {
       ...order,
+      handoverPin,
+      escrowStatus,
       warranties
     };
 
@@ -676,9 +685,15 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       trackingNotes?: string;
       deliveredAt?: string;
       gateNotes?: string;
+      handoverPin?: string;
+      deviceInspectionConfirmed?: boolean;
+      escrowStatus?: Order['escrowStatus'];
+      escrowReleasedAt?: string;
     }
   ): Promise<boolean> => {
     const now = new Date().toISOString();
+    const isDelivered = newStatus === 'DELIVERED';
+
     setOrders(prev => prev.map(o => {
       if (o.id !== orderId) return o;
       return {
@@ -689,7 +704,11 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         trackingNotes: details?.trackingNotes || o.trackingNotes,
         gateNotes: details?.gateNotes !== undefined ? details.gateNotes : o.gateNotes,
         shippedAt: newStatus === 'SHIPPED' ? (o.shippedAt || now) : o.shippedAt,
-        deliveredAt: newStatus === 'DELIVERED' ? (details?.deliveredAt || now) : o.deliveredAt
+        deliveredAt: isDelivered ? (details?.deliveredAt || now) : o.deliveredAt,
+        handoverPin: details?.handoverPin || o.handoverPin,
+        deviceInspectionConfirmed: details?.deviceInspectionConfirmed ?? (isDelivered ? true : o.deviceInspectionConfirmed),
+        escrowStatus: isDelivered ? (details?.escrowStatus || 'RELEASED_TO_MERCHANT') : (o.escrowStatus || 'HELD_IN_ESCROW'),
+        escrowReleasedAt: isDelivered ? (details?.escrowReleasedAt || now) : o.escrowReleasedAt
       };
     }));
 
@@ -702,14 +721,20 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           courierName: details?.courierName || 'Ermias Berhanu',
           courierPhone: details?.courierPhone || '+251 91 199 8877',
           trackingNotes: details?.trackingNotes,
-          deliveredAt: details?.deliveredAt || now
+          deliveredAt: details?.deliveredAt || now,
+          handoverPin: details?.handoverPin,
+          deviceInspectionConfirmed: details?.deviceInspectionConfirmed,
+          escrowStatus: details?.escrowStatus || (isDelivered ? 'RELEASED_TO_MERCHANT' : undefined),
+          escrowReleasedAt: details?.escrowReleasedAt || (isDelivered ? now : undefined)
         })
       });
     } catch {}
 
     const statusMessage = 
       newStatus === 'DELIVERED'
-        ? (language === 'en' ? `Order #${orderId} delivered & confirmed!` : `ትዕዛዝ #${orderId} በተሳካ ሁኔታ ደርሷል!`)
+        ? (language === 'en' 
+            ? `Order #${orderId} delivered! PIN verified & escrow funds released to merchant.` 
+            : `ትዕዛዝ #${orderId} ደርሷል! ሚስጥር ቁጥር ተረጋግጦ ክፍያው ለነጋዴው ተለቋል።`)
         : newStatus === 'SHIPPED'
         ? (language === 'en' ? `Order #${orderId} is out for delivery!` : `ትዕዛዝ #${orderId} በጉዞ ላይ ነው!`)
         : (language === 'en' ? `Order #${orderId} updated to ${newStatus}` : `ትዕዛዝ #${orderId} ወደ ${newStatus} ተዘምኗል`);

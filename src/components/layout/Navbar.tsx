@@ -71,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile }) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-b border-gray-150 dark:border-zinc-800 px-3 sm:px-4 md:px-8 py-2 sm:py-2.5 transition-colors shadow-xs">
+    <header className="sticky top-0 z-40 bg-white/90 dark:bg-[#0B0F17]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 px-3 sm:px-4 md:px-8 py-2 sm:py-2.5 transition-colors shadow-xs">
       <div className="max-w-[1440px] mx-auto w-full flex items-center justify-between gap-2 md:gap-4">
         
         {/* Logo & Brand Identity */}

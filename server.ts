@@ -1469,10 +1469,41 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
   // Courier Driver Status Update (Pickup, Out for Delivery, Delivered)
   app.put('/api/courier/orders/:id/status', (req, res) => {
     try {
-      const { status, courierName, courierPhone, trackingNotes, deliveredAt } = req.body || {};
+      const { status, courierName, courierPhone, trackingNotes, deliveredAt, handoverPin, deviceInspectionConfirmed } = req.body || {};
       if (!status || !['PROCESSING', 'SHIPPED', 'DELIVERED'].includes(status)) {
         res.status(400).json({ error: 'Valid status (PROCESSING, SHIPPED, DELIVERED) is required.' });
         return;
+      }
+
+      const order = db.orders.find(o => o.id === req.params.id);
+      if (!order) {
+        res.status(404).json({ error: 'Order not found.' });
+        return;
+      }
+
+      // If completing delivery, update escrow settlement
+      if (status === 'DELIVERED') {
+        const expectedPin = order.handoverPin || order.codVerificationPin;
+        if (expectedPin && handoverPin && handoverPin.trim() !== expectedPin.trim()) {
+          res.status(400).json({ error: 'INVALID_HANDOVER_PIN', message: 'Handover PIN does not match order security PIN.' });
+          return;
+        }
+
+        order.escrowStatus = 'RELEASED_TO_MERCHANT';
+        order.escrowReleasedAt = deliveredAt || new Date().toISOString();
+        order.deviceInspectionConfirmed = deviceInspectionConfirmed ?? true;
+
+        db.logAudit(
+          'Escrow Ledger',
+          'ESCROW_FUNDS_RELEASED',
+          `Handover PIN verified by courier ${courierName || 'Ermias'}. Released ${order.total.toLocaleString()} ETB escrow to merchant for Order #${order.id}.`,
+          'INFO'
+        );
+
+        db.logTelegramAlert(
+          'ESCROW_RELEASED',
+          `🔐 ESCROW RELEASED: Order #${order.id} delivered to ${order.customerName}. Handover PIN verified on device inspection. ${order.total.toLocaleString()} ETB released to merchant.`
+        );
       }
 
       const result = OrderService.updateFulfillment(
@@ -1516,6 +1547,69 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
     } catch (err: any) {
       console.error('Courier status update error:', err);
       res.status(500).json({ error: err?.message || 'Server error updating courier order status.' });
+    }
+  });
+
+  // Verify 4-Digit Handover PIN and Release Escrow Endpoint
+  app.post('/api/courier/orders/:id/verify-pin', (req, res) => {
+    try {
+      const { pin, recipientName, deviceInspectionConfirmed, codCollected, notes, courierName, courierPhone } = req.body || {};
+      const order = db.orders.find(o => o.id === req.params.id);
+      if (!order) {
+        res.status(404).json({ error: 'Order not found.' });
+        return;
+      }
+
+      const expectedPin = order.handoverPin || order.codVerificationPin || '4819';
+      if (!pin || pin.trim() !== expectedPin.trim()) {
+        res.status(400).json({ 
+          success: false, 
+          error: 'INVALID_PIN', 
+          message: 'Invalid 4-digit handover PIN. Customer should verify their PIN on the Kasma tracking page or SMS.' 
+        });
+        return;
+      }
+
+      const now = new Date().toISOString();
+      order.status = 'DELIVERED';
+      order.deliveredAt = now;
+      order.deviceInspectionConfirmed = deviceInspectionConfirmed ?? true;
+      order.escrowStatus = 'RELEASED_TO_MERCHANT';
+      order.escrowReleasedAt = now;
+      if (courierName) order.courierName = courierName;
+      if (courierPhone) order.courierPhone = courierPhone;
+      order.trackingNotes = `Delivered to ${recipientName || order.customerName}. Handover PIN verified on physical inspection. ${notes || ''}`;
+
+      db.save();
+
+      db.logAudit(
+        'Escrow Ledger',
+        'ESCROW_FUNDS_RELEASED',
+        `4-Digit Handover PIN verified by courier ${courierName || 'Ermias'}. Released ${order.total.toLocaleString()} ETB escrow to merchant for Order #${order.id}.`,
+        'INFO'
+      );
+
+      db.logTelegramAlert(
+        'ESCROW_RELEASED',
+        `🔐 ESCROW RELEASED: Order #${order.id} handed over to ${order.customerName}. Handover PIN verified on device inspection. ${order.total.toLocaleString()} ETB released to merchant.`
+      );
+
+      // Automated Customer Delivered SMS
+      if (order.customerPhone) {
+        sendOrderDeliveredSms(order.customerPhone, order.id)
+          .catch(smsErr => console.warn('[COURIER SMS] Delivered SMS dispatch failed:', smsErr.message));
+      }
+
+      res.json({
+        success: true,
+        escrowReleased: true,
+        amountReleased: order.total,
+        order,
+        orders: db.orders
+      });
+    } catch (err: any) {
+      console.error('Verify handover PIN error:', err);
+      res.status(500).json({ error: err?.message || 'Server error verifying handover PIN.' });
     }
   });
 

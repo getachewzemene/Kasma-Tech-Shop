@@ -17,7 +17,12 @@ import {
   Building,
   Key,
   Compass,
-  CornerDownRight
+  CornerDownRight,
+  Check,
+  Copy,
+  MessageCircle,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import { 
   CourierDriver, 
@@ -52,6 +57,15 @@ export const CourierStopCard: React.FC<CourierStopCardProps> = ({
   onOpenDelayModal
 }) => {
   const [isExpanded, setIsExpanded] = useState(isActive);
+  const [copiedLandmark, setCopiedLandmark] = useState(false);
+
+  const handleCopyLandmark = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const textToCopy = `${language === 'en' ? stop.landmark.nameEn : stop.landmark.nameAm}. ${language === 'en' ? stop.landmarkHintEn : stop.landmarkHintAm}. ${stop.gateNotes || ''}`;
+    navigator.clipboard?.writeText(textToCopy);
+    setCopiedLandmark(true);
+    setTimeout(() => setCopiedLandmark(false), 2000);
+  };
 
   // Status badge styling
   const getStatusBadge = () => {
@@ -107,13 +121,24 @@ export const CourierStopCard: React.FC<CourierStopCardProps> = ({
             </div>
 
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="font-mono text-xs font-black text-white">
                   {stop.order.id}
                 </span>
                 <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${statusBadge.bg}`}>
                   {language === 'en' ? statusBadge.textEn : statusBadge.textAm}
                 </span>
+                {stop.order.escrowStatus === 'RELEASED_TO_MERCHANT' ? (
+                  <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-0.5">
+                    <ShieldCheck className="w-2.5 h-2.5" />
+                    <span>{language === 'en' ? 'Escrow Released' : 'ክፍያ ተለቋል'}</span>
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-0.5">
+                    <Lock className="w-2.5 h-2.5" />
+                    <span>{language === 'en' ? 'Handover PIN' : 'ፒን'}</span>
+                  </span>
+                )}
               </div>
               <h3 className="text-sm font-black text-slate-100 mt-0.5 truncate max-w-[200px] sm:max-w-xs">
                 {stop.order.customerName}
@@ -135,19 +160,49 @@ export const CourierStopCard: React.FC<CourierStopCardProps> = ({
 
         {/* Prominent Landmark Directions Box */}
         <div className="mt-3.5 p-3.5 rounded-2xl bg-slate-950 border border-slate-800/90 space-y-2">
-          {/* Landmark Name */}
-          <div className="flex items-start gap-2">
-            <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-            <div className="min-w-0">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
-                {language === 'en' ? 'Key Addis Landmark' : 'ዋና መለያ ምልክት'}
-              </span>
-              <p className="text-xs sm:text-sm font-black text-white leading-tight">
-                {language === 'en' ? stop.landmark.nameEn : stop.landmark.nameAm}
-              </p>
-              <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                {language === 'en' ? stop.landmarkHintEn : stop.landmarkHintAm}
-              </p>
+          {/* Landmark Name & Copy Control */}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2 min-w-0">
+              <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">
+                  {language === 'en' ? 'Key Addis Landmark' : 'ዋና መለያ ምልክት'}
+                </span>
+                <p className="text-xs sm:text-sm font-black text-white leading-tight">
+                  {language === 'en' ? stop.landmark.nameEn : stop.landmark.nameAm}
+                </p>
+                <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                  {language === 'en' ? stop.landmarkHintEn : stop.landmarkHintAm}
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Actions for Landmark (Copy & GPS Navigation) */}
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={handleCopyLandmark}
+                className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 text-[10px] transition-colors cursor-pointer"
+                title={language === 'en' ? 'Copy Landmark Instructions' : 'መመሪያ ቅዳ'}
+              >
+                {copiedLandmark ? (
+                  <span className="flex items-center gap-1 text-emerald-400 font-bold text-[10px]">
+                    <Check className="w-3 h-3" />
+                  </span>
+                ) : (
+                  <Copy className="w-3 h-3" />
+                )}
+              </button>
+              <a
+                href={generateGoogleMapsDirUrl(stop.coordinates.lat, stop.coordinates.lng)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="p-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-[10px] transition-colors cursor-pointer"
+                title="GPS Route"
+              >
+                <Navigation className="w-3 h-3" />
+              </a>
             </div>
           </div>
 
@@ -173,39 +228,68 @@ export const CourierStopCard: React.FC<CourierStopCardProps> = ({
           </p>
         </div>
 
-        {/* 1-Tap Customer Calling & Quick Messaging Bar */}
-        <div className="mt-3 grid grid-cols-4 gap-2">
-          {/* 1-Tap Phone Call */}
+        {/* 1-Tap Customer Calling & Quick Multichannel Messaging */}
+        <div className="mt-3 space-y-2">
+          {/* Primary 1-Tap Direct Phone Call Button */}
           <a
             href={generateCustomerCallUrl(stop.order.customerPhone)}
-            className="col-span-2 py-2.5 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950 transition-all cursor-pointer"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full py-2.5 sm:py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-black text-xs sm:text-sm flex items-center justify-between shadow-lg shadow-emerald-950/60 transition-all cursor-pointer border border-emerald-500/50"
             title="Call Customer Directly"
           >
-            <Phone className="w-4 h-4 fill-white" />
-            <span>{language === 'en' ? 'Call Customer' : 'ደውል'}</span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <Phone className="w-4 h-4 fill-white text-white" />
+              </div>
+              <div className="text-left leading-tight">
+                <span className="block font-black">{language === 'en' ? 'Call Customer (1-Tap)' : 'ለደንበኛ ደውል (1-ንክኪ)'}</span>
+                <span className="text-[10px] text-emerald-100 font-mono font-bold opacity-90">{stop.order.customerPhone}</span>
+              </div>
+            </div>
+            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full uppercase font-mono tracking-wider font-extrabold shrink-0">
+              {language === 'en' ? 'Direct Tel' : 'ስልክ'}
+            </span>
           </a>
 
-          {/* Telegram Chat */}
-          <a
-            href={generateTelegramDriverChatUrl(stop.order, driver, language)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="py-2.5 px-2 rounded-2xl bg-[#229ED9]/20 hover:bg-[#229ED9]/30 border border-[#229ED9]/40 active:scale-95 text-[#229ED9] font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            title="Open Telegram Chat"
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span className="text-[11px]">Telegram</span>
-          </a>
+          {/* Multichannel Quick Messaging: Telegram, WhatsApp, SMS */}
+          <div className="grid grid-cols-3 gap-2">
+            {/* Telegram Chat */}
+            <a
+              href={generateTelegramDriverChatUrl(stop.order, driver, language)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="py-2 px-2 rounded-xl bg-[#229ED9]/15 hover:bg-[#229ED9]/25 border border-[#229ED9]/30 active:scale-95 text-[#229ED9] font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              title="Open Telegram Chat"
+            >
+              <Send className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[10px] font-bold truncate">Telegram</span>
+            </a>
 
-          {/* ETA SMS Alert */}
-          <a
-            href={generateSmsEtaUrl(stop.order, driver, stop.estimatedMins, language)}
-            className="py-2.5 px-2 rounded-2xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 active:scale-95 text-blue-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-            title="Send ETA SMS Alert"
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span className="text-[11px]">SMS ETA</span>
-          </a>
+            {/* WhatsApp Chat */}
+            <a
+              href={generateWhatsAppDriverChatUrl(stop.order, driver, language)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="py-2 px-2 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/30 active:scale-95 text-[#25D366] font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              title="Open WhatsApp Chat"
+            >
+              <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[10px] font-bold truncate">WhatsApp</span>
+            </a>
+
+            {/* ETA SMS Alert */}
+            <a
+              href={generateSmsEtaUrl(stop.order, driver, stop.estimatedMins, language)}
+              onClick={(e) => e.stopPropagation()}
+              className="py-2 px-2 rounded-xl bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 active:scale-95 text-blue-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              title="Send ETA SMS Alert"
+            >
+              <MessageSquare className="w-3.5 h-3.5 shrink-0" />
+              <span className="text-[10px] font-bold truncate">SMS ETA</span>
+            </a>
+          </div>
         </div>
 
         {/* COD Cash Collection or Pre-Paid Banner */}
@@ -377,17 +461,17 @@ export const CourierStopCard: React.FC<CourierStopCardProps> = ({
                   }}
                   className="flex-2 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs tracking-wide shadow-lg shadow-emerald-950 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>{language === 'en' ? 'Mark Delivered (ደርሷል)' : 'ደርሷል አረጋግጥ'}</span>
+                  <Unlock className="w-4 h-4" />
+                  <span>{language === 'en' ? 'Verify PIN & Release Escrow' : 'ፒን አረጋግጥ & አስረክብ'}</span>
                 </button>
               </>
             )}
 
             {stop.status === 'DELIVERED' && (
               <div className="w-full py-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center gap-2 text-xs font-black text-emerald-300">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 <span>
-                  {language === 'en' ? 'Delivery Completed & Confirmed' : 'ማድረሱ በተሳካ ሁኔታ ተጠናቋል'}
+                  {language === 'en' ? 'Delivered • Escrow Released to Merchant' : 'ደርሷል • ክፍያው ለነጋዴው ተለቋል'}
                 </span>
               </div>
             )}

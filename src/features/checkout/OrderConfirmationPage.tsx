@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { 
@@ -12,7 +12,11 @@ import {
   Download,
   Share2,
   Package,
-  ExternalLink
+  ExternalLink,
+  Copy,
+  Check,
+  Lock,
+  KeyRound
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { generateCustomerReceiptPDF } from '../../lib/pdfGenerator';
@@ -23,8 +27,16 @@ export const OrderConfirmationPage: React.FC = () => {
   const checkoutUrl = searchParams.get('checkoutUrl');
   const { orders, language } = useShop();
 
+  const [copiedPin, setCopiedPin] = useState(false);
+
   const order = orders.find(o => o.id === id) || orders[0];
-  const verificationPin = order?.codVerificationPin || (order ? order.id.slice(-4) : '8492');
+  const handoverPin = order?.handoverPin || order?.codVerificationPin || (order ? order.id.slice(-4) : '8492');
+
+  const handleCopyPin = () => {
+    navigator.clipboard?.writeText(handoverPin);
+    setCopiedPin(true);
+    setTimeout(() => setCopiedPin(false), 2000);
+  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
@@ -43,6 +55,55 @@ export const OrderConfirmationPage: React.FC = () => {
             ? 'Your purchase has been routed to the merchant. An Addis Ababa express courier has been assigned for fulfillment.'
             : 'ትዕዛዝዎ ወደ ነጋዴው ተልኳል። ፈጣን የማድረሻ መልዕክተኛ ተመድቦ ወደ እርስዎ ይላካል።'}
         </p>
+      </div>
+
+      {/* 4-Digit Handover PIN & Escrow Protection Hero Card */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-[#0F172A] border border-amber-500/30 shadow-xl space-y-4 text-white">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0 shadow-sm">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-amber-300">
+                  {language === 'en' ? '🔐 4-Digit Delivery Handover PIN' : '🔐 ባለ 4-አሃዝ የእቃ ማስረከቢያ ሚስጥር ቁጥር'}
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  {language === 'en' ? 'Escrow Protected' : 'በእምነት ዋስትና የተጠበቀ'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
+                {language === 'en'
+                  ? 'Your payment is locked safely in CBE/Telebirr escrow. Only provide this 4-digit PIN to the courier AFTER you inspect the physical box, check the serial number, and verify power-on condition upon arrival in Addis Ababa.'
+                  : 'ክፍያዎ በባንክ ወይም በቴሌብር እግድ (Escrow) ደህንነቱ ተጠብቆ ይቆያል። እቃው አዲስ አበባ አድራሻዎ ሲደርስ ሳጥኑን፣ መለያ ቁጥሩንና መስራቱን በአካል ፈትሸው ካረጋገጡ በኋላ ብቻ ይህንን 4-አሃዝ ቁጥር ለመልዕክተኛው ይስጡ።'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Big Digit PIN Display & 1-Tap Copy */}
+        <div className="p-4 rounded-2xl bg-[#090D16] border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            {handoverPin.split('').map((digit, i) => (
+              <span
+                key={i}
+                className="w-12 h-14 rounded-2xl bg-[#141C2E] border border-amber-400/40 flex items-center justify-center text-2xl font-black font-mono text-amber-300 shadow-inner"
+              >
+                {digit}
+              </span>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={handleCopyPin}
+            className="w-full sm:w-auto px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+          >
+            {copiedPin ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            <span>{copiedPin ? (language === 'en' ? 'Copied PIN!' : 'ተቀድቷል!') : (language === 'en' ? 'Copy Handover PIN' : 'ሚስጥር ቁጥሩን ቅዳ')}</span>
+          </button>
+        </div>
       </div>
 
       {/* Chapa Hosted Payment Callout (if digital payment link exists) */}
@@ -83,9 +144,9 @@ export const OrderConfirmationPage: React.FC = () => {
           </div>
           <div className="flex items-center gap-3">
             {/* Courier Verification PIN */}
-            <div className="p-2.5 px-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-center">
-              <span className="text-[10px] font-black uppercase text-[#0052FF] tracking-wider block">Courier PIN</span>
-              <span className="text-sm font-black font-mono text-gray-900 dark:text-zinc-100">{verificationPin}</span>
+            <div className="p-2.5 px-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-center">
+              <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider block">Handover PIN</span>
+              <span className="text-sm font-black font-mono text-gray-900 dark:text-zinc-100">{handoverPin}</span>
             </div>
             <div className="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800">
               <QRCodeSVG value={`https://kasma.et/tracking/${order ? order.id : id}`} size={44} />

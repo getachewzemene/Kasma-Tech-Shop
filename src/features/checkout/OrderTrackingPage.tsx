@@ -20,7 +20,11 @@ import {
   Download,
   Star,
   FileBadge,
-  Wrench
+  Wrench,
+  Check,
+  Lock,
+  Unlock,
+  KeyRound
 } from 'lucide-react';
 import { DigitalWarrantyPass, WarrantyClaim } from '../../types';
 import { generateCustomerReceiptPDF } from '../../lib/pdfGenerator';
@@ -28,6 +32,7 @@ import { PostDeliveryReviewModal } from '../../components/orders/PostDeliveryRev
 import { DigitalWarrantyPassModal } from '../../components/warranty/DigitalWarrantyPassModal';
 import { WarrantyClaimModal } from '../../components/warranty/WarrantyClaimModal';
 import { createDigitalWarrantyPass } from '../../lib/warrantyService';
+import { getOrderHandoverPin } from '../courier/courierTypes';
 
 export const OrderTrackingPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
@@ -44,6 +49,14 @@ export const OrderTrackingPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [copiedId, setCopiedId] = useState(false);
+  const [copiedPin, setCopiedPin] = useState(false);
+
+  const trackingPin = activeOrder ? getOrderHandoverPin(activeOrder) : '4819';
+  const copyTrackingPin = () => {
+    navigator.clipboard?.writeText(trackingPin);
+    setCopiedPin(true);
+    setTimeout(() => setCopiedPin(false), 2000);
+  };
 
   // Perform search by Order ID and/or Phone
   const performLookup = useCallback(async (searchOrderId?: string, searchPhone?: string) => {
@@ -291,6 +304,91 @@ export const OrderTrackingPage: React.FC = () => {
             </div>
           </div>
 
+          {/* 4-Digit Handover PIN & Escrow Protection Alert */}
+          {(() => {
+            const isEscrowReleased = activeOrder.escrowStatus === 'RELEASED_TO_MERCHANT' || activeOrder.status === 'DELIVERED';
+            return (
+              <div className={`p-5 sm:p-6 rounded-3xl border transition-all ${
+                isEscrowReleased
+                  ? 'bg-[#091A14] border-emerald-500/30 text-white'
+                  : 'bg-[#0F172A] border-amber-500/30 text-white shadow-md'
+              }`}>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm ${
+                      isEscrowReleased
+                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                        : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                    }`}>
+                      {isEscrowReleased ? <Unlock className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-xs sm:text-sm font-bold uppercase tracking-wider ${
+                          isEscrowReleased ? 'text-emerald-300' : 'text-amber-300'
+                        }`}>
+                          {isEscrowReleased
+                            ? (language === 'en' ? '✓ Handover Complete & Escrow Released' : '✓ እቃው ተረክቧል & ክፍያ ተለቋል')
+                            : (language === 'en' ? '🔐 4-Digit Handover PIN & Escrow Protection' : '🔐 ባለ 4-አሃዝ የእቃ ማስረከቢያ ፒን')}
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                          isEscrowReleased
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                            : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                        }`}>
+                          {isEscrowReleased
+                            ? (language === 'en' ? 'Escrow Released to Merchant' : 'ክፍያ ለነጋዴው ተለቋል')
+                            : (language === 'en' ? 'Escrow Protected in Addis Ababa' : 'በእምነት ሂሳብ የተጠበቀ')}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-1 max-w-xl leading-relaxed">
+                        {isEscrowReleased
+                          ? (language === 'en'
+                              ? `Physical device inspection confirmed. Handover PIN was verified, and funds of ${activeOrder.total.toLocaleString()} ETB were securely released to merchant.`
+                              : `የእቃ ፍተሻ ተረጋግጧል። ባለ 4-አሃዝ ፒኑ ተረጋግጦ ${activeOrder.total.toLocaleString()} ብር ለነጋዴው ተላልፏል።`)
+                          : (language === 'en'
+                              ? 'Your payment is locked safely in CBE/Telebirr escrow. Only provide this 4-digit PIN to the courier AFTER you inspect the physical box seal, verify serial number, and test power-on upon arrival.'
+                              : 'ክፍያዎ በባንክ ወይም በቴሌብር እግድ (Escrow) ደህንነቱ ተጠብቆ ይቆያል። እቃው አዲስ አበባ አድራሻዎ ሲደርስ ማሸጊያውን፣ መለያ ቁጥሩንና መስራቱን በአካል ፈትሸው ካረጋገጡ በኋላ ብቻ ይህንን 4-አሃዝ ቁጥር ለመልዕክተኛው ይስጡ።')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Digit Display & Copy action */}
+                  <div className="flex items-center gap-3 self-stretch md:self-auto justify-between md:justify-end">
+                    <div className="flex items-center gap-2">
+                      {trackingPin.split('').map((digit, i) => (
+                        <span
+                          key={i}
+                          className={`w-11 h-13 sm:w-12 sm:h-14 rounded-2xl flex items-center justify-center text-xl sm:text-2xl font-black font-mono shadow-inner border ${
+                            isEscrowReleased
+                              ? 'bg-[#0B2319] border-emerald-500/40 text-emerald-300'
+                              : 'bg-[#141C2E] border-amber-400/40 text-amber-300'
+                          }`}
+                        >
+                          {digit}
+                        </span>
+                      ))}
+                    </div>
+
+                    {!isEscrowReleased && (
+                      <button
+                        type="button"
+                        onClick={copyTrackingPin}
+                        className="px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-sm cursor-pointer shrink-0"
+                        title="Copy PIN"
+                      >
+                        {copiedPin ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        <span className="hidden sm:inline">
+                          {copiedPin ? (language === 'en' ? 'Copied' : 'ተቀድቷል') : (language === 'en' ? 'Copy PIN' : 'ፒን ቅዳ')}
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Stepper Timeline */}
           <div className="space-y-6">
             <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
@@ -374,14 +472,29 @@ export const OrderTrackingPage: React.FC = () => {
                 }`}>
                   {getStepStatus(3, activeOrder.status) === 'completed' ? '✓' : '4'}
                 </div>
-                <div>
-                  <h3 className="text-xs font-bold text-gray-900 dark:text-zinc-100">
-                    {language === 'en' ? 'Delivery Handover & Escrow Released' : 'እቃው ተረክቧል & ክፍያው ተጠናቋል'}
-                  </h3>
-                  <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-0.5">
-                    {activeOrder.deliveredAt
-                      ? (language === 'en' ? `Delivered successfully on ${new Date(activeOrder.deliveredAt).toLocaleDateString()}. Warranty is active!` : `በስኬት ደርሷል! ኦፊሴላዊ ዋስትና ነቅቷል።`)
-                      : (language === 'en' ? 'Customer PIN confirmation upon signature. Warranty takes effect.' : 'የማረጋገጫ ፒን ተቀብሎ እቃው ይረከባል።')}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-xs font-bold text-gray-900 dark:text-zinc-100">
+                      {language === 'en' ? 'Physical Inspection & Escrow Release' : 'የእቃ ፍተሻ & የእምነት ሂሳብ መልቀቂያ'}
+                    </h3>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      (activeOrder.escrowStatus === 'RELEASED_TO_MERCHANT' || activeOrder.status === 'DELIVERED')
+                        ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                        : 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
+                    }`}>
+                      {(activeOrder.escrowStatus === 'RELEASED_TO_MERCHANT' || activeOrder.status === 'DELIVERED')
+                        ? (language === 'en' ? '✓ Escrow Released to Merchant' : '✓ ክፍያ ለነጋዴው ተለቋል')
+                        : (language === 'en' ? '🔒 Held in Escrow (PIN Protected)' : '🔒 ክፍያ በእግድ ተይዟል (በፒን የተጠበቀ)')}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 dark:text-zinc-400">
+                    {activeOrder.deliveredAt || activeOrder.escrowStatus === 'RELEASED_TO_MERCHANT'
+                      ? (language === 'en' 
+                          ? `Device inspection confirmed and 4-digit PIN verified. Warranty and serial protection active!` 
+                          : `የመሳሪያው ምርመራ ተረጋግጦ በ4-አሃዝ ፒን እቃው ተረክቧል። ኦፊሴላዊ ዋስትና ነቅቷል!`)
+                      : (language === 'en' 
+                          ? `Driver inspects seal & power-on test. Provide your 4-digit PIN (${trackingPin}) only upon physical satisfaction to release escrow funds.` 
+                          : `መልዕክተኛው ማሸጊያውንና መስራቱን ያረጋግጣል። እቃው ትክክለኛ መሆኑን ሲያረጋግጡ ክፍያውን ለመልቀቅ ባለ 4-አሃዝ ፒንዎን (${trackingPin}) ይስጡ።`)}
                   </p>
                 </div>
               </div>
