@@ -79,6 +79,16 @@ export function isIosDevice(): boolean {
 }
 
 /**
+ * Detects if user is running inside an in-app browser WebView (Telegram, Instagram, Facebook, Messenger)
+ * where Safari/Chrome's native "Add to Home Screen" is blocked until opened in real Safari.
+ */
+export function isInAppBrowser(): boolean {
+  if (typeof window === 'undefined') return false;
+  const ua = window.navigator.userAgent || '';
+  return /FBAN|FBAV|Instagram|Telegram|Line|Twitter|MicroMessenger/i.test(ua);
+}
+
+/**
  * Triggers the native browser PWA Install prompt
  */
 export async function triggerPwaInstall(): Promise<{ outcome: 'accepted' | 'dismissed' | 'unsupported' }> {
