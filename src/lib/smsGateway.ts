@@ -92,38 +92,65 @@ export async function sendSms(to: string, message: string): Promise<SmsDispatchR
 
   const afroApiKey = process.env.AFROMESSAGE_API_KEY;
   const afroSender = process.env.AFROMESSAGE_SENDER_NAME || 'KASMA';
+  const afroIdentifierId = process.env.AFROMESSAGE_IDENTIFIER_ID;
 
   // 1. Try AfroMessage Gateway if configured
-  if (afroApiKey) {
+  if (afroApiKey && afroApiKey.trim() !== '') {
     try {
+      // Recipient phone: AfroMessage supports 09.../07... or +251...
+      const recipientPhone = norm.valid ? norm.domestic : targetPhone;
+
+      const payload: Record<string, any> = {
+        to: recipientPhone,
+        message,
+        from: afroSender,
+        sender: afroSender,
+      };
+
+      if (afroIdentifierId && afroIdentifierId.trim() !== '') {
+        payload.identifier_id = afroIdentifierId.trim();
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 7000); // 7s network timeout
+
       const response = await fetch('https://api.afromessage.com/api/send', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${afroApiKey}`,
+          'Authorization': `Bearer ${afroApiKey.trim()}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          to: norm.valid ? norm.domestic : targetPhone,
-          message,
-          from: afroSender,
-        }),
+        signal: controller.signal,
+        body: JSON.stringify(payload),
       });
 
+      clearTimeout(timeoutId);
+
       const data = await response.json().catch(() => ({}));
-      if (response.ok && (data.acknowledge === 'success' || data.status === 'success' || data.response?.status === 'success')) {
-        console.log(`[AFROMESSAGE] Sent SMS to ${targetPhone}: "${message.slice(0, 60)}..."`);
+
+      const isSuccess = response.ok && (
+        data.acknowledge === 'success' || 
+        data.status === 'success' || 
+        data.response?.status === 'success' ||
+        data.response?.status === 'sent'
+      );
+
+      if (isSuccess) {
+        const liveId = data.response?.id || data.response?.message_id || data.message_id || messageId;
+        console.log(`[AFROMESSAGE LIVE DISPATCH] Successfully delivered SMS to ${targetPhone} (${norm.carrier}) via AfroMessage Gateway (ID: ${liveId})`);
         return {
           success: true,
-          messageId: data.response?.id || messageId,
+          messageId: String(liveId),
           provider: 'AFROMESSAGE',
           phone: targetPhone,
           deliveredAt: timestamp,
         };
       } else {
-        console.warn(`[AFROMESSAGE] Gateway response failed, using backup delivery:`, data);
+        const errorDetail = data.response?.errors?.[0] || data.error || data.message || `HTTP ${response.status}`;
+        console.warn(`[AFROMESSAGE GATEWAY REJECTION] ${errorDetail}. Falling back to backup simulator.`);
       }
     } catch (err: any) {
-      console.error('[AFROMESSAGE] HTTP Dispatch Error:', err.message);
+      console.error('[AFROMESSAGE NETWORK EXCEPTION]', err.message);
     }
   }
 

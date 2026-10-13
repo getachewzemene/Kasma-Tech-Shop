@@ -1,7 +1,19 @@
 {
-  "short_name": "Kasma",
+  "id": "/",
   "name": "Kasma Original Tech Store",
-  "description": "Enterprise e-Commerce ecosystem for Ethiopia featuring multi-channel retail, merchant portal, and Telebirr / Chapa payment integration.",
+  "short_name": "Kasma Shop",
+  "description": "Ethiopian premier e-commerce ecosystem for genuine laptops, smartphones, audio & tech gear with express Addis Ababa delivery.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#0B0F17",
+  "theme_color": "#0052FF",
+  "categories": ["shopping", "electronics", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/favicon.ico",
@@ -11,16 +23,42 @@
     {
       "src": "/icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "180x180"
     }
   ],
-  "start_url": "/",
-  "background_color": "#0B0F17",
-  "theme_color": "#0052FF",
-  "display": "standalone"
+  "shortcuts": [
+    {
+      "name": "Flash Deals & Discounts",
+      "short_name": "Deals",
+      "description": "Browse today's exclusive discounts in Addis Ababa",
+      "url": "/?category=deals&source=pwa_shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Track Active Order",
+      "short_name": "Track",
+      "description": "Real-time GPS courier delivery tracking",
+      "url": "/tracking?source=pwa_shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Shopping Cart",
+      "short_name": "Cart",
+      "description": "View reserved items and proceed to checkout",
+      "url": "/cart?source=pwa_shortcut",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }

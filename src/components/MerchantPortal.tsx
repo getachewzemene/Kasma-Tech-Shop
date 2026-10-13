@@ -58,6 +58,7 @@ import KycTab from './merchant/KycTab';
 import ForecastTab from './merchant/ForecastTab';
 import PerformanceTab from './merchant/PerformanceTab';
 import StockActivityTab from './merchant/StockActivityTab';
+import { SyncStatusButton } from './common/SyncStatusButton';
 
 interface MerchantPortalProps {
   products: Product[];
@@ -760,6 +761,7 @@ export default function MerchantPortal({
           </div>
           
           <div className="flex items-center gap-2 shrink-0">
+            <SyncStatusButton showText={false} />
             <span className={`text-[8.5px] font-black uppercase px-2 py-0.5 rounded-full ${
               currentMerchant.kycStatus === 'APPROVED' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-amber-50 text-amber-600'
             }`}>
@@ -893,7 +895,8 @@ export default function MerchantPortal({
           </div>
 
           {/* Action buttons on the right */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <SyncStatusButton />
             
             {/* Download summary button */}
             <button

@@ -38,7 +38,9 @@ import {
   Building,
   Check,
   HelpCircle,
-  Info
+  Info,
+  Download,
+  FileBadge
 } from 'lucide-react';
 import { 
   DeliveryAddress, 
@@ -49,6 +51,8 @@ import {
 } from '../types';
 import { TelegramIntegrationModule } from './TelegramIntegrationModule';
 import { OrderTrackingVisualizer } from './OrderTrackingVisualizer';
+import { generateCustomerReceiptPDF } from '../lib/pdfGenerator';
+import { createDigitalWarrantyPass, downloadDigitalWarrantyCertificatePDF } from '../lib/warrantyService';
 
 export interface UserProfileViewProps {
   isOpen: boolean;
@@ -1909,6 +1913,51 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                           </div>
                         ))}
                       </div>
+                    </div>
+
+                    {/* Order Action Buttons: PDF Receipt, Warranty Pass, Open Orders Hub */}
+                    <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => generateCustomerReceiptPDF(selectedOrder, { language })}
+                          className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#0052FF] dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-900 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                          title="Download Tax Receipt & Warranty PDF"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>{language === 'en' ? 'Download Tax Invoice (PDF)' : 'የግብር ደረሰኝ አውርድ (PDF)'}</span>
+                        </button>
+
+                        {selectedOrder.items && selectedOrder.items.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const item = selectedOrder.items[0];
+                              const warranty = (selectedOrder.warranties && selectedOrder.warranties[0]) || createDigitalWarrantyPass(selectedOrder, item);
+                              downloadDigitalWarrantyCertificatePDF(warranty, { language });
+                            }}
+                            className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-900 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                            title="Download Digital Warranty Certificate PDF"
+                          >
+                            <FileBadge className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                            <span>{language === 'en' ? 'Warranty Certificate (PDF)' : 'የዋስትና ሰነድ (PDF)'}</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {onOpenMyOrders && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onClose();
+                            onOpenMyOrders();
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800/60 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                        >
+                          <Package className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <span>{language === 'en' ? 'View All Orders & Warranties' : 'ሁሉንም ትዕዛዞች እና ዋስትና እይ'} →</span>
+                        </button>
+                      )}
                     </div>
 
                   </div>

@@ -19,7 +19,8 @@ import {
   Building, 
   Sparkles, 
   Smartphone,
-  Navigation
+  Navigation,
+  CheckCircle2
 } from 'lucide-react';
 
 export const CheckoutPage: React.FC = () => {
@@ -33,6 +34,7 @@ export const CheckoutPage: React.FC = () => {
     customerName, 
     customerPhone, 
     customerEmail, 
+    isCustomerLoggedIn,
     addOrder, 
     showToast 
   } = useShop();
@@ -47,6 +49,75 @@ export const CheckoutPage: React.FC = () => {
   const [specificAddress, setSpecificAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'TELEBIRR' | 'CBE_BIRR' | 'CHAPA' | 'COD'>('TELEBIRR');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Cash on Delivery SMS Phone Verification State
+  const [isPhoneVerified, setIsPhoneVerified] = useState<boolean>(() => Boolean(isCustomerLoggedIn));
+  const [isSendingCodOtp, setIsSendingCodOtp] = useState<boolean>(false);
+  const [isVerifyingCodOtp, setIsVerifyingCodOtp] = useState<boolean>(false);
+  const [codOtpSent, setCodOtpSent] = useState<boolean>(false);
+  const [codOtpInput, setCodOtpInput] = useState<string>('');
+
+  const handleSendCodOtp = async () => {
+    const cleanPhone = phone.trim().replace(/\s+/g, '');
+    const isEthPhone = /^(\+2519|\+2517|09|07)\d{8}$/.test(cleanPhone);
+    if (!isEthPhone) {
+      showToast(
+        language === 'en'
+          ? 'Please enter a valid Ethiopian mobile number (09... or 07...) first.'
+          : 'እባክዎን መጀመሪያ ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ።',
+        'warning'
+      );
+      return;
+    }
+    setIsSendingCodOtp(true);
+    try {
+      const res = await fetch('/api/sms/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to dispatch SMS code');
+      setCodOtpSent(true);
+      showToast(
+        language === 'en'
+          ? `Verification code dispatched via SMS to ${cleanPhone}${data.devOtp ? ` (Sandbox Code: ${data.devOtp})` : ''}`
+          : `የማረጋገጫ ኮድ ወደ ${cleanPhone} በኤስኤምኤስ ተልኳል`,
+        'info'
+      );
+    } catch (err: any) {
+      showToast(err.message || 'SMS dispatch failed', 'error');
+    } finally {
+      setIsSendingCodOtp(false);
+    }
+  };
+
+  const handleVerifyCodOtp = async () => {
+    if (!codOtpInput || codOtpInput.trim().length < 4) {
+      showToast(language === 'en' ? 'Please enter the code received via SMS.' : 'እባክዎን ኮዱን ያስገቡ።', 'warning');
+      return;
+    }
+    setIsVerifyingCodOtp(true);
+    try {
+      const res = await fetch('/api/sms/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone.trim().replace(/\s+/g, ''), otp: codOtpInput.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Invalid code');
+      setIsPhoneVerified(true);
+      setCodOtpSent(false);
+      showToast(
+        language === 'en' ? '✅ Phone verified! Order authorized for Cash on Delivery.' : '✅ ስልክዎ ተረጋግጧል!',
+        'success'
+      );
+    } catch (err: any) {
+      showToast(err.message || 'Verification failed', 'error');
+    } finally {
+      setIsVerifyingCodOtp(false);
+    }
+  };
 
   const selectedSubCity = SUB_CITIES.find(s => s.id === selectedSubCityId) || SUB_CITIES[0];
   const shippingFee = selectedSubCity.fee;
@@ -179,7 +250,7 @@ export const CheckoutPage: React.FC = () => {
         discountCode: appliedPromo?.code,
         discountAmount,
         codVerificationPin: verificationPin,
-        codPhoneConfirmed: false,
+        codPhoneConfirmed: isPhoneVerified,
       };
 
       // Record order via backend API
@@ -449,18 +520,86 @@ export const CheckoutPage: React.FC = () => {
             </div>
 
             {paymentMethod === 'COD' && (
-              <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
-                <Smartphone className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-                <div>
-                  <p className="font-bold">
-                    {language === 'en' ? 'Instant SMS OTP Confirmation' : 'ቅጽበታዊ የኤስኤምኤስ ማረጋገጫ'}
-                  </p>
-                  <p className="text-[11px] opacity-90 mt-0.5">
-                    {language === 'en'
-                      ? 'Upon clicking "Complete Order", a 6-digit confirmation PIN will be dispatched via SMS to your phone. Present this PIN to your dispatcher upon delivery.'
-                      : 'ትዕዛዙን እንዳጠናቀቁ ባለ 6-አሃዝ የማረጋገጫ ኮድ በኤስኤምኤስ ይላክልዎታል። እቃው ሲደርስ ለአሽከርካሪው ያሳውቁ።'}
-                  </p>
+              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 space-y-3">
+                <div className="flex items-start gap-2.5">
+                  <Smartphone className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                  <div>
+                    <p className="font-bold">
+                      {language === 'en' ? 'Cash on Delivery Phone Verification' : 'የስልክ ቁጥር ማረጋገጫ'}
+                    </p>
+                    <p className="text-[11px] opacity-90 mt-0.5">
+                      {language === 'en'
+                        ? 'To protect against fake orders, verify your Ethiopian mobile number via SMS OTP. A 6-digit handover PIN will be issued for delivery.'
+                        : 'የውሸት ትዕዛዞችን ለመከላከል ስልክዎን በኤስኤምኤስ ያረጋግጡ። ርክክብ ሲፈጸም የሚያሳውቁት ባለ 6-አሃዝ ፒን ይላክልዎታል።'}
+                    </p>
+                  </div>
                 </div>
+
+                {/* Inline OTP Verification Widget */}
+                {isPhoneVerified ? (
+                  <div className="p-2.5 rounded-xl bg-emerald-100/70 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-bold flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <span>{language === 'en' ? `Phone Verified: ${phone}` : `ስልክ ተረጋግጧል: ${phone}`}</span>
+                    </div>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100">
+                      AUTHENTICATED
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-xl bg-white dark:bg-zinc-900 border border-amber-200 dark:border-amber-900/60 space-y-2">
+                    {!codOtpSent ? (
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-gray-600 dark:text-zinc-400 font-medium">
+                          {language === 'en' ? 'Click below to receive a 6-digit SMS code:' : 'ባለ 6-አሃዝ ኮድ በኤስኤምኤስ ለመቀበል ይጫኑ:'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleSendCodOtp}
+                          disabled={isSendingCodOtp}
+                          className="px-3 py-1.5 bg-[#0052FF] hover:bg-blue-600 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50 shrink-0"
+                        >
+                          <Smartphone className="w-3.5 h-3.5" />
+                          <span>{isSendingCodOtp ? (language === 'en' ? 'Sending...' : 'በመላክ ላይ...') : (language === 'en' ? 'Send SMS Code' : 'ኮድ ላክ')}</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-gray-700 dark:text-zinc-300">
+                            {language === 'en' ? 'Enter 6-digit code sent to your phone:' : 'የተላከውን ባለ 6-አሃዝ ኮድ ያስገቡ:'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={handleSendCodOtp}
+                            disabled={isSendingCodOtp}
+                            className="text-[10px] font-bold text-[#0052FF] hover:underline cursor-pointer"
+                          >
+                            {language === 'en' ? 'Resend SMS' : 'እንደገና ላክ'}
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            maxLength={6}
+                            placeholder="• • • • • •"
+                            value={codOtpInput}
+                            onChange={(e) => setCodOtpInput(e.target.value)}
+                            className="flex-1 px-3 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-xl text-xs font-mono font-bold tracking-widest text-center text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0052FF]"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleVerifyCodOtp}
+                            disabled={isVerifyingCodOtp}
+                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs cursor-pointer shadow-xs disabled:opacity-50"
+                          >
+                            {isVerifyingCodOtp ? '...' : (language === 'en' ? 'Verify PIN' : 'አረጋግጥ')}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

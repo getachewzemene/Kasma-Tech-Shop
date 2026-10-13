@@ -92,6 +92,7 @@ export async function sendTelegramMessage(params: SendTelegramMessageParams): Pr
 
 /**
  * Dispatches an order alert to Merchant and Admin upon new purchase
+ * with instant inline action buttons: Accept Order, View Customer Location, Call Customer, View Tracking.
  */
 export async function sendOrderAlertToTelegram(
   order: Order,
@@ -100,14 +101,17 @@ export async function sendOrderAlertToTelegram(
   appUrl: string = process.env.APP_URL || 'http://localhost:3000'
 ): Promise<TelegramDispatchResult> {
   const isCOD = order.paymentMethod === 'COD';
-  const paymentBadge = isCOD ? '💵 Cash on Delivery (COD)' : `💳 ${order.paymentMethod} (Verified)`;
+  const paymentBadge = isCOD ? '💵 Cash on Delivery (COD)' : `💳 ${order.paymentMethod} (Prepaid Verified ✅)`;
   
   const itemsText = order.items
     .map(i => `  • <b>${i.product.nameEn}</b> (${i.variantName || 'Standard'}) x${i.quantity} — <code>${(i.price * i.quantity).toLocaleString()} ETB</code>`)
     .join('\n');
 
   const trackingLink = `${appUrl}/tracking/${order.id}`;
-  const merchantPortalLink = `${appUrl}/merchant`;
+  const merchantPortalLink = `${appUrl}/merchant?orderId=${order.id}&tab=ORDERS`;
+  const courierPortalLink = `${appUrl}/courier/${order.id}`;
+  const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.shippingAddress}, Addis Ababa, Ethiopia`)}`;
+  const cleanPhone = order.customerPhone.replace(/[\s\-\(\)]/g, '');
 
   const text = 
     `🛍️ <b>NEW ORDER ALERT — ${merchantStoreName.toUpperCase()}</b>\n\n` +
@@ -120,17 +124,81 @@ export async function sendOrderAlertToTelegram(
     `<b>Subtotal:</b> ${order.subtotal.toLocaleString()} ETB\n` +
     `<b>Delivery Fee:</b> ${order.shippingFee.toLocaleString()} ETB\n` +
     `<b>Total:</b> <b>${order.total.toLocaleString()} ETB</b>\n\n` +
-    `⚡ <i>Fulfillment SLA: Requires packing within 24 hours.</i>`;
+    `⚡ <i>Fulfillment SLA: Requires packing within 24 hours. Click "Accept Order" below to confirm.</i>`;
 
   const buttons: TelegramInlineButton[][] = [
     [
-      { text: '📦 View Order Tracking', url: trackingLink },
-      { text: '🏪 Merchant Portal', url: merchantPortalLink }
+      { text: '⚡ Accept Order', url: merchantPortalLink },
+      { text: '📍 View Customer Location', url: mapsLink }
+    ],
+    [
+      { text: '🛵 Courier Dispatch', url: courierPortalLink },
+      { text: `📞 Call (${cleanPhone})`, url: `tel:${cleanPhone}` }
+    ],
+    [
+      { text: '📦 View Order Tracking', url: trackingLink }
     ]
   ];
 
   return await sendTelegramMessage({
     chatId: merchantChatId,
+    text,
+    parseMode: 'HTML',
+    buttons
+  });
+}
+
+/**
+ * Dispatches an automated Fleet / Dispatch Group Alert to Telegram
+ * Alerting motorcycle & van couriers in Addis Ababa for fast delivery pickup.
+ */
+export async function sendDispatchGroupAlertToTelegram(
+  order: Order,
+  merchantStoreName: string = 'Kasma Partner Merchant',
+  dispatchChatId?: string,
+  appUrl: string = process.env.APP_URL || 'http://localhost:3000'
+): Promise<TelegramDispatchResult> {
+  const isCOD = order.paymentMethod === 'COD';
+  const paymentBadge = isCOD 
+    ? `💵 Cash on Delivery (Collect: <b>${order.total.toLocaleString()} ETB</b>)`
+    : `💳 Prepaid via ${order.paymentMethod} (✅ Do NOT collect cash)`;
+
+  const itemsSummary = order.items
+    .map(i => `  • ${i.product.nameEn} (x${i.quantity})`)
+    .join('\n');
+
+  const courierPortalLink = `${appUrl}/courier/${order.id}`;
+  const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.shippingAddress}, Addis Ababa, Ethiopia`)}`;
+  const cleanPhone = order.customerPhone.replace(/[\s\-\(\)]/g, '');
+  const trackingLink = `${appUrl}/tracking/${order.id}`;
+
+  const text =
+    `🛵 <b>NEW DISPATCH RUN — ADDIS ABABA FLEET</b>\n\n` +
+    `<b>Order ID:</b> <code>#${order.id}</code>\n` +
+    `<b>Pickup Hub:</b> 🏪 ${merchantStoreName}\n` +
+    `<b>Dropoff:</b> 📍 ${order.shippingAddress}${order.subCity ? ` (${order.subCity})` : ''}\n` +
+    (order.landmark ? `<b>Landmark:</b> 🏛️ ${order.landmark}\n` : '') +
+    `<b>Customer:</b> ${order.customerName} (📞 <code>${order.customerPhone}</code>)\n` +
+    `<b>Payment Mode:</b> ${paymentBadge}\n` +
+    `<b>Courier Payout:</b> 🛵 <b>${(order.shippingFee || 150).toLocaleString()} ETB</b>\n\n` +
+    `<b>Package Contents:</b>\n${itemsSummary}\n\n` +
+    `⚡ <i>Target Delivery Window: 1 - 3 Hours express SLA across Addis Ababa.</i>`;
+
+  const buttons: TelegramInlineButton[][] = [
+    [
+      { text: '⚡ Accept & Claim Delivery', url: courierPortalLink },
+      { text: '📍 View Customer Location', url: mapsLink }
+    ],
+    [
+      { text: `📞 Call Customer (${cleanPhone})`, url: `tel:${cleanPhone}` },
+      { text: '🔍 Order Details', url: trackingLink }
+    ]
+  ];
+
+  const targetGroupChatId = dispatchChatId || process.env.TELEGRAM_DISPATCH_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
+
+  return await sendTelegramMessage({
+    chatId: targetGroupChatId,
     text,
     parseMode: 'HTML',
     buttons

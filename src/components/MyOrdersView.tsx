@@ -41,6 +41,7 @@ import { PostDeliveryReviewModal } from './orders/PostDeliveryReviewModal';
 import { DigitalWarrantyPassModal } from './warranty/DigitalWarrantyPassModal';
 import { WarrantyClaimModal } from './warranty/WarrantyClaimModal';
 import { createDigitalWarrantyPass, getWarrantyCoverageStatus, downloadDigitalWarrantyCertificatePDF } from '../lib/warrantyService';
+import { generateCustomerReceiptPDF } from '../lib/pdfGenerator';
 
 export interface MyOrdersViewProps {
   orders: Order[];
@@ -639,13 +640,26 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
                           <span>{language === 'en' ? 'Warranty & Serials' : 'ዋስትና እና መለያ'}</span>
                         </button>
 
-                        <button
-                          onClick={() => setSelectedReceiptOrder(ord)}
-                          className="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 flex items-center gap-1.5 transition-all cursor-pointer ml-auto"
-                        >
-                          <Printer className="w-3.5 h-3.5 text-gray-500" />
-                          <span>{language === 'en' ? 'Print Receipt' : 'ደረሰኝ አትም'}</span>
-                        </button>
+                        <div className="flex items-center gap-2 ml-auto">
+                          <button
+                            type="button"
+                            onClick={() => generateCustomerReceiptPDF(ord, { language })}
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider bg-blue-50 dark:bg-blue-950/40 text-[#0052FF] dark:text-blue-400 border border-blue-200 dark:border-blue-900 hover:bg-blue-100 flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                            title="Download PDF Tax Invoice"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>{language === 'en' ? 'PDF Invoice' : 'ደረሰኝ (PDF)'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setSelectedReceiptOrder(ord)}
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-800 hover:border-gray-300 dark:hover:border-zinc-700 flex items-center gap-1.5 transition-all cursor-pointer"
+                          >
+                            <Printer className="w-3.5 h-3.5 text-gray-500" />
+                            <span>{language === 'en' ? 'Print' : 'አትም'}</span>
+                          </button>
+                        </div>
                       </div>
 
                       {/* SUB TAB 1: ITEMS BREAKDOWN */}
@@ -1287,20 +1301,30 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
               </div>
             </div>
 
-            {/* Print Action Buttons */}
-            <div className="no-print-action flex gap-2 pt-2">
+            {/* Print & PDF Download Action Buttons */}
+            <div className="no-print-action flex flex-wrap gap-2 pt-2">
               <button
-                onClick={() => window.print()}
-                className="flex-grow py-3 bg-[#0052FF] hover:bg-[#003ecf] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                type="button"
+                onClick={() => generateCustomerReceiptPDF(selectedReceiptOrder, { language })}
+                className="flex-grow py-3 px-4 bg-[#0052FF] hover:bg-[#003ecf] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Printer className="w-4 h-4" />
-                <span>Print Official Receipt</span>
+                <Download className="w-4 h-4" />
+                <span>{language === 'en' ? 'Download Official PDF Invoice' : 'ይፋዊ የPDF ደረሰኝ አውርድ'}</span>
               </button>
               <button
-                onClick={() => setSelectedReceiptOrder(null)}
-                className="px-5 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                type="button"
+                onClick={() => window.print()}
+                className="py-3 px-4 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-800 dark:text-zinc-200 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                Close
+                <Printer className="w-4 h-4" />
+                <span>{language === 'en' ? 'Print' : 'አትም'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedReceiptOrder(null)}
+                className="px-5 py-3 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 text-gray-800 dark:text-zinc-200 font-bold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+              >
+                {language === 'en' ? 'Close' : 'ዝጋ'}
               </button>
             </div>
 

@@ -10,7 +10,7 @@ import {
   INITIAL_TELEGRAM_ALERTS 
 } from '../mockData';
 import { CloudSqlProductService } from '../db/products.ts';
-import { sendOrderAlertToTelegram, sendFulfillmentTelegramUpdate, sendLowStockAlertToTelegram } from '../lib/telegram.ts';
+import { sendOrderAlertToTelegram, sendDispatchGroupAlertToTelegram, sendFulfillmentTelegramUpdate, sendLowStockAlertToTelegram } from '../lib/telegram.ts';
 
 // API Traffic Log entry interface for the Live Traffic Console
 export interface ApiTrafficLog {
@@ -617,6 +617,11 @@ export class OrderService {
       'ORDER_NEW',
       `🛍️ NEW SALE REGISTERED: Order #${order.id} completed via ${order.channel}. Total: ${order.total.toLocaleString()} ETB. Payer: ${order.customerName} (${order.customerPhone}). Shipping Address: ${order.shippingAddress}. Dispatch SLA: Active.`
     );
+
+    // 6. Send Live Telegram Dispatch Fleet Notification with One-Click Accept & Location
+    const primaryMerchantName = db.merchants.find(m => m.id === (order.items[0]?.product?.merchantId))?.storeName || 'Kasma Electronics Hub';
+    sendDispatchGroupAlertToTelegram(order, primaryMerchantName)
+      .catch(err => console.warn('[DISPATCH TELEGRAM ALERT ERROR]:', err));
 
     db.save();
     return order;

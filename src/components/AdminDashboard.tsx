@@ -77,8 +77,11 @@ import {
   Bot,
   ArrowRight,
   LogOut,
-  ChevronLeft
+  ChevronLeft,
+  Bike
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { SyncStatusButton } from './common/SyncStatusButton';
 import { dispatchWhatsAppLowStockAlert } from '../utils/whatsappNotifications';
 
 export interface ProductSeoScore {
@@ -1023,6 +1026,7 @@ export default function AdminDashboard({
             { id: 'PRODUCTS', label: 'Listing Approvals', am: 'የምርት ማረጋገጫ', icon: Layers, badge: pendingProducts.length },
             { id: 'MERCHANTS', label: 'Merchant Auditing', am: 'ነጋዴዎች ኦዲት', icon: Building2, badge: pendingKycMerchants.length + pendingPayoutsCount },
             { id: 'ORDERS', label: 'Customer Orders', am: 'የደንበኞች ትዕዛዞች', icon: Receipt, badge: orders.length },
+            { id: 'COURIER', label: 'Courier Dispatch', am: 'የአሽከርካሪ ስምሪት', icon: Bike, badge: 'Live', href: '/courier' },
             { id: 'CRM', label: 'Customer CRM', am: 'የደንበኞች ግንኙነት (CRM)', icon: UserCheck, badge: crmCustomers.length },
             { id: 'PROMOTIONS', label: 'Platform Coupons', am: 'የቅናሽ ኩፖኖች', icon: Tag, badge: promoCodes.length },
             { id: 'SEO_GEO', label: 'SEO & GEO Engine', am: 'ኤስ.ኢ.ኦ (SEO) እና AI Engine', icon: Globe, badge: '98%' },
@@ -1032,13 +1036,20 @@ export default function AdminDashboard({
             const isActive = adminTab === item.id;
             const badgeValue = item.badge;
             const hasBadge = badgeValue !== null && (typeof badgeValue === 'string' || badgeValue > 0);
+            const handleItemClick = () => {
+              if ((item as any).href) {
+                window.open((item as any).href, '_blank');
+              } else {
+                setAdminTab(item.id as any);
+              }
+            };
 
             if (isSidebarCollapsed) {
               return (
                 <div key={item.id} className="relative group flex justify-center">
                   <button
                     type="button"
-                    onClick={() => setAdminTab(item.id as any)}
+                    onClick={handleItemClick}
                     className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer relative ${
                       isActive
                         ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-bold scale-105'
@@ -1074,7 +1085,7 @@ export default function AdminDashboard({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setAdminTab(item.id as any)}
+                onClick={handleItemClick}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 font-sans cursor-pointer group ${
                   isActive 
                     ? 'bg-indigo-600 text-white font-semibold shadow-xs border-l-2 border-indigo-300' 
@@ -1153,6 +1164,21 @@ export default function AdminDashboard({
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Courier Dispatch Link */}
+            <Link
+              to="/courier"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-300/80 dark:border-amber-800/80 font-bold text-xs rounded-xl shadow-2xs transition-all duration-200 cursor-pointer"
+              title="Open Addis Courier Dispatch Control Engine"
+            >
+              <Bike className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span className="hidden sm:inline">Courier Dispatch</span>
+            </Link>
+
+            {/* Offline & Sync Telemetry Button */}
+            <SyncStatusButton />
+
             {/* SLA Badge Indicator */}
             <div className="hidden sm:flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/80 px-3 py-1.5 rounded-xl text-[11px] font-mono text-emerald-800 dark:text-emerald-300">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />

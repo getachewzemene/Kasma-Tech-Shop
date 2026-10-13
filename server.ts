@@ -27,8 +27,10 @@ import {
   sendCodConfirmationSms, 
   sendOrderShippedSms, 
   sendOrderDeliveredSms,
-  normalizeEthiopianPhone
+  normalizeEthiopianPhone,
+  sendSms
 } from './src/lib/smsGateway.ts';
+import { sendDispatchGroupAlertToTelegram, sendOrderAlertToTelegram } from './src/lib/telegram.ts';
 
 async function startServer() {
   const app = express();
@@ -495,7 +497,39 @@ async function startServer() {
     }
   });
 
-  // 7. Ethiopian SMS Gateway: Verify OTP & Sign In Customer
+  // 7. Ethiopian SMS Gateway Diagnostics & Live Carrier Test
+  app.post('/api/sms/test', async (req, res) => {
+    try {
+      const { phone = '+251911223344', message } = req.body || {};
+      const norm = normalizeEthiopianPhone(phone);
+      if (!norm.valid) {
+        res.status(400).json({ 
+          error: 'Invalid Ethiopian phone number format.',
+          hint: 'Accepted formats: 0911223344, 0711223344, +251911223344'
+        });
+        return;
+      }
+
+      const testMsg = message || `Kasma Tech Shop SMS Gateway Test. Carrier detected: ${norm.carrier}. Timestamp: ${new Date().toLocaleTimeString()}`;
+      const dispatch = await sendSms(norm.e164, testMsg);
+
+      res.json({
+        success: dispatch.success,
+        provider: dispatch.provider,
+        carrier: norm.carrier,
+        phone: norm.formatted,
+        e164: norm.e164,
+        domestic: norm.domestic,
+        messageId: dispatch.messageId,
+        isLiveAfroMessage: dispatch.provider === 'AFROMESSAGE',
+        afroKeyConfigured: Boolean(process.env.AFROMESSAGE_API_KEY && process.env.AFROMESSAGE_API_KEY.trim() !== '')
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'SMS test dispatch failed' });
+    }
+  });
+
+  // 8. Ethiopian SMS Gateway: Verify OTP & Sign In Customer
   app.post('/api/sms/verify-otp', async (req, res) => {
     try {
       const { phone, otp, name } = req.body || {};
@@ -1334,27 +1368,131 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
       'INFO'
     );
 
+    // Create a mock order structure for test dispatch
+    const mockTestOrder: Order = {
+      id: `ORD-TEST-${Math.floor(1000 + Math.random() * 9000)}`,
+      customerId: 'cust-test',
+      customerName: 'Abebe Kebede',
+      customerPhone: '+251 91 122 3344',
+      shippingAddress: 'Bole Subcity, Woreda 03, House #14, Addis Ababa',
+      subCity: 'Bole',
+      landmark: 'Near Edna Mall & Medhanialem Church',
+      items: [
+        {
+          product: {
+            id: 'prod-test-1',
+            nameEn: sampleProduct.nameEn,
+            nameAm: 'ስማርትፎን',
+            price: sampleProduct.price,
+            category: 'mobiles',
+            brand: 'Kasma Electronics',
+            image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=600&q=80',
+            descriptionEn: 'High-speed flagship mobile',
+            descriptionAm: 'ዘመናዊ ስልክ',
+            variants: [],
+            status: 'APPROVED',
+            lowStockThreshold: 3,
+            merchantId: merchant.id,
+            merchantName: merchant.storeName
+          },
+          sku: 'KAS-TEST-01',
+          variantName: 'Standard Titanium',
+          quantity: 1,
+          price: sampleProduct.price
+        }
+      ],
+      subtotal: sampleProduct.price,
+      shippingFee: 150,
+      total: sampleProduct.price + 150,
+      status: 'PROCESSING',
+      paymentMethod: 'TELEBIRR',
+      paymentId: 'TLB-TEST-849201',
+      createdAt: new Date().toISOString(),
+      channel: 'WEB'
+    };
+
+    // Live send with inline buttons (Accept Order, View Customer Location, Call Customer)
+    let liveSendResult: any = { simulated: true };
     if (process.env.TELEGRAM_BOT_TOKEN && merchant.telegramChatId) {
-      try {
-        await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: merchant.telegramChatId,
-            text: testMsg
-          })
-        });
-      } catch (err) {
-        console.error('Test Telegram API dispatch failed:', err);
-      }
+      liveSendResult = await sendOrderAlertToTelegram(mockTestOrder, merchant.storeName, merchant.telegramChatId);
     }
 
     res.json({
       success: true,
-      message: `Test order notification dispatched for ${merchant.storeName}!`,
+      message: `Test order notification with inline action buttons dispatched for ${merchant.storeName}!`,
       alert: testMsg,
+      liveSendResult,
       alerts: db.alerts
     });
+  });
+
+  // Test automatic dispatch group alert for Addis Ababa delivery fleet
+  app.post('/api/courier/test-telegram-dispatch', async (req, res) => {
+    try {
+      const mockDispatchOrder: Order = {
+        id: `DSP-ADDIS-${Math.floor(1000 + Math.random() * 9000)}`,
+        customerId: 'cust-demo',
+        customerName: 'Rahel Tadesse',
+        customerPhone: '+251 91 199 8877',
+        shippingAddress: 'Kazanchis, Guinea Conakry St, Near UNECA, Addis Ababa',
+        subCity: 'Kirkos',
+        landmark: 'Inter Luxury Hotel / UNECA Gate 2',
+        items: [
+          {
+            product: {
+              id: 'prod-disp-1',
+              nameEn: 'SteelSeries Arctis Nova Pro Wireless',
+              nameAm: 'የጨዋታ ማዳመጫ',
+              price: 18500,
+              category: 'audio',
+              brand: 'SteelSeries',
+              image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80',
+              descriptionEn: 'Wireless Gaming Headset',
+              descriptionAm: 'ገመድ አልባ የጨዋታ ማዳመጫ',
+              variants: [],
+              status: 'APPROVED',
+              lowStockThreshold: 2,
+              merchantId: 'm1',
+              merchantName: 'Kasma Bole Megnagna Hub'
+            },
+            sku: 'SS-NOVA-PRO',
+            variantName: 'Black Wireless',
+            quantity: 1,
+            price: 18500
+          }
+        ],
+        subtotal: 18500,
+        shippingFee: 200,
+        total: 18700,
+        status: 'PROCESSING',
+        paymentMethod: 'COD',
+        paymentId: 'COD-PENDING',
+        createdAt: new Date().toISOString(),
+        channel: 'WEB'
+      };
+
+      const dispatchResult = await sendDispatchGroupAlertToTelegram(
+        mockDispatchOrder,
+        'Kasma Bole Megnagna Hub',
+        req.body?.chatId
+      );
+
+      db.logTelegramAlert(
+        'ORDER_NEW',
+        `🛵 DISPATCH FLEET TEST: Sent interactive dispatch test for Order #${mockDispatchOrder.id} with Accept & Google Maps navigation buttons.`,
+        mockDispatchOrder.id,
+        req.body?.chatId || process.env.TELEGRAM_DISPATCH_CHAT_ID || '849201948'
+      );
+
+      res.json({
+        success: true,
+        message: 'Live dispatch fleet alert triggered with Accept Order & Customer Location buttons!',
+        result: dispatchResult,
+        order: mockDispatchOrder
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Dispatch alert test failed' });
+    }
   });
 
   // Test automatic low-stock Telegram alert for merchant
@@ -2314,10 +2452,17 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
           (order as any).paymentConfirmedAt = new Date().toISOString();
           (order as any).webhookVerified = true;
           db.save();
+
+          // Dispatch live fleet and merchant notifications upon confirmed electronic settlement
+          const merchant = db.merchants.find(m => m.id === (order.items[0]?.product?.merchantId));
+          const storeName = merchant?.storeName || 'Kasma Merchant';
+          sendDispatchGroupAlertToTelegram(order, storeName)
+            .catch(err => console.warn('[CHAPA WEBHOOK TELEGRAM ALERT ERROR]:', err));
+
           db.logAudit(
             'Chapa Webhook Engine',
             'WEBHOOK_IPN_CONFIRMED',
-            `HMAC-verified webhook confirmed payment settlement of ${amount || order.total} ETB for order #${order.id} (Ref: ${refCode}).`,
+            `HMAC-verified webhook confirmed payment settlement of ${amount || order.total} ETB for order #${order.id} (Ref: ${refCode}). Dispatched fleet notification.`,
             'INFO'
           );
         }
@@ -2702,16 +2847,23 @@ Your requirements:
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    // 1. Serve hashed production assets with 1-year immutable caching for CDN speed
+    // 1. PWA Service Worker: strictly no-cache so mobile/tablet clients check for updates immediately
+    app.get('/sw.js', (_req, res) => {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Content-Type', 'application/javascript');
+      res.sendFile(path.join(distPath, 'sw.js'));
+    });
+
+    // 2. Serve hashed production assets with 1-year immutable caching for CDN speed
     app.use('/assets', express.static(path.join(distPath, 'assets'), {
       maxAge: '1y',
       immutable: true
     }));
-    // 2. Serve public root assets (favicon, manifest, robots.txt) with 1-hour cache
+    // 3. Serve public root assets (favicon, manifest, robots.txt) with 1-hour cache
     app.use(express.static(distPath, {
       maxAge: '1h'
     }));
-    // 3. SPA fallback: index.html served with no-cache so newly deployed releases load immediately
+    // 4. SPA fallback: index.html served with no-cache so newly deployed releases load immediately
     app.get('*', (_req, res) => {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.sendFile(path.join(distPath, 'index.html'));

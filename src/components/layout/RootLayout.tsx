@@ -3,10 +3,13 @@ import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { UserProfileView } from '../UserProfileView';
+import { MyOrdersView } from '../MyOrdersView';
+import { PwaInstallPrompt } from '../pwa/PwaInstallPrompt';
 import { useShop } from '../../context/ShopContext';
 
 export const RootLayout: React.FC = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isOrdersOpen, setIsOrdersOpen] = useState(false);
   const { 
     language, 
     customerName, 
@@ -27,7 +30,10 @@ export const RootLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#0B0F17] text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-[#0052FF]/20 selection:text-[#0052FF] dark:selection:bg-[#0052FF]/30 dark:selection:text-blue-200 transition-colors duration-200">
-      <Navbar onOpenProfile={() => setIsProfileOpen(true)} />
+      <Navbar 
+        onOpenProfile={() => setIsProfileOpen(true)} 
+        onOpenMyOrders={() => setIsOrdersOpen(true)}
+      />
 
       <main className="flex-1 w-full">
         <Outlet />
@@ -64,9 +70,26 @@ export const RootLayout: React.FC = () => {
         onAddPoints={() => {}}
         pointsLogs={[]}
         onRedeemReward={() => {}}
+        onOpenMyOrders={() => {
+          setIsProfileOpen(false);
+          setIsOrdersOpen(true);
+        }}
         orders={orders}
         showToast={showToast}
       />
+
+      {/* Global Customer Orders & Warranty Certificate Modal */}
+      <MyOrdersView
+        isOpen={isOrdersOpen}
+        onClose={() => setIsOrdersOpen(false)}
+        orders={orders}
+        language={language}
+        customerPhone={customerPhone}
+        showToast={showToast}
+      />
+
+      {/* Mobile & Tablet Progressive Web App (PWA) Install Banner */}
+      <PwaInstallPrompt language={language} />
     </div>
   );
 };
