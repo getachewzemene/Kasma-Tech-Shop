@@ -6,9 +6,10 @@ import {
   db, 
   ProductService, 
   OrderService, 
-  MerchantService 
+  MerchantService,
+  FlashDealService 
 } from './src/server/db';
-import { Product, Order, Merchant, DigitalWarrantyPass, WarrantyClaim } from './src/types';
+import { Product, Order, Merchant, DigitalWarrantyPass, WarrantyClaim, FlashDealNomination } from './src/types';
 import { createDigitalWarrantyPass, generateTamperProofHash } from './src/lib/warrantyService.ts';
 import { requireAuth, requireAdmin, requireMerchant, AuthRequest } from './src/middleware/auth.ts';
 import { generateToken, hashPassword, comparePassword } from './src/lib/jwt.ts';
@@ -732,7 +733,8 @@ async function startServer() {
       stockLogs: db.stockLogs,
       auditLogs: db.auditLogs,
       alerts: db.alerts,
-      apiLogs: db.apiLogs
+      apiLogs: db.apiLogs,
+      flashDeals: db.flashDeals
     });
   });
 
@@ -1325,17 +1327,82 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
   });
 
   app.post('/api/merchants/:id/payout', requireMerchant, (req: AuthRequest, res) => {
-    const { amount, bank, account } = req.body;
+    const { amount, bank, account, accountHolderName, saveProfile } = req.body;
     if (!amount || !bank || !account) {
       res.status(400).json({ error: 'Missing remittance bank payout details.' });
       return;
     }
-    const success = MerchantService.requestPayout(req.params.id, parseFloat(amount), bank, account);
+    const success = MerchantService.requestPayout(
+      req.params.id, 
+      parseFloat(amount), 
+      bank, 
+      account, 
+      { accountHolderName, saveProfile: Boolean(saveProfile) }
+    );
     if (!success) {
       res.status(400).json({ error: 'Payout reject: Insufficient seller balance or wrong ID.' });
       return;
     }
     res.json({ success: true, merchants: db.merchants });
+  });
+
+  // Saved Bank Account Profiles Endpoints
+  app.get('/api/merchants/:id/bank-accounts', requireMerchant, (req: AuthRequest, res) => {
+    const accounts = MerchantService.getSavedBankAccounts(req.params.id);
+    res.json({ success: true, accounts });
+  });
+
+  app.post('/api/merchants/:id/bank-accounts', requireMerchant, (req: AuthRequest, res) => {
+    const { bankName, accountNumber, accountHolderName, isDefault } = req.body || {};
+    if (!bankName || !accountNumber) {
+      res.status(400).json({ error: 'Bank name and account number are required.' });
+      return;
+    }
+
+    const result = MerchantService.addSavedBankAccount(req.params.id, {
+      bankName,
+      accountNumber,
+      accountHolderName: accountHolderName || '',
+      isDefault: Boolean(isDefault)
+    });
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error || 'Failed to save bank account.' });
+      return;
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Bank account profile saved successfully.', 
+      account: result.account, 
+      merchants: db.merchants 
+    });
+  });
+
+  app.put('/api/merchants/:id/bank-accounts/:accountId/default', requireMerchant, (req: AuthRequest, res) => {
+    const result = MerchantService.setDefaultBankAccount(req.params.id, req.params.accountId);
+    if (!result.success) {
+      res.status(404).json({ error: result.error || 'Failed to set default account.' });
+      return;
+    }
+    res.json({ 
+      success: true, 
+      message: 'Default bank account updated.', 
+      merchants: db.merchants 
+    });
+  });
+
+  app.delete('/api/merchants/:id/bank-accounts/:accountId', requireMerchant, (req: AuthRequest, res) => {
+    const result = MerchantService.deleteSavedBankAccount(req.params.id, req.params.accountId);
+    if (!result.success) {
+      res.status(404).json({ error: result.error || 'Failed to delete bank account.' });
+      return;
+    }
+    res.json({ 
+      success: true, 
+      message: 'Bank account profile deleted.', 
+      merchants: db.merchants 
+    });
   });
 
   app.put('/api/merchants/:id/payout/:payoutId/approve', requireAdmin, (req: AuthRequest, res) => {
@@ -1382,6 +1449,68 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
       return;
     }
     res.json({ success: true, merchants: db.merchants });
+  });
+
+  // =========================================================================
+  // FLASH DEALS MERCHANT NOMINATIONS ENDPOINTS
+  // =========================================================================
+  app.get('/api/flash-deals', (req, res) => {
+    const onlyActive = req.query.active !== 'false';
+    const deals = FlashDealService.getFlashDeals(onlyActive);
+    res.json({ success: true, flashDeals: deals });
+  });
+
+  app.get('/api/merchants/:id/flash-deals', requireMerchant, (req: AuthRequest, res) => {
+    const deals = FlashDealService.getMerchantFlashDeals(req.params.id);
+    res.json({ success: true, flashDeals: deals });
+  });
+
+  app.post('/api/merchants/:id/flash-deals', requireMerchant, (req: AuthRequest, res) => {
+    const { productId, discountPct, dealStock, durationHours, bannerTag, campaignTitle, notes } = req.body || {};
+    if (!productId || discountPct === undefined || dealStock === undefined) {
+      res.status(400).json({ error: 'Product ID, discount percentage (e.g. 15%), and deal stock quantity are required.' });
+      return;
+    }
+
+    const result = FlashDealService.nominateFlashDeal(req.params.id, {
+      productId,
+      discountPct: Number(discountPct),
+      dealStock: Number(dealStock),
+      durationHours: durationHours ? Number(durationHours) : 48,
+      bannerTag,
+      campaignTitle,
+      notes
+    });
+
+    if (!result.success) {
+      res.status(400).json({ error: result.error || 'Failed to submit flash deal nomination.' });
+      return;
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Flash Deal nominated successfully and activated on Kasma homepage banner!',
+      flashDeal: result.flashDeal,
+      flashDeals: db.flashDeals
+    });
+  });
+
+  app.put('/api/merchants/:id/flash-deals/:dealId/cancel', requireMerchant, (req: AuthRequest, res) => {
+    const result = FlashDealService.cancelFlashDeal(req.params.id, req.params.dealId);
+    if (!result.success) {
+      res.status(404).json({ error: result.error || 'Failed to cancel flash deal.' });
+      return;
+    }
+    res.json({ success: true, message: 'Flash Deal cancelled.', flashDeals: db.flashDeals });
+  });
+
+  app.put('/api/flash-deals/:dealId/approve', requireAdmin, (req: AuthRequest, res) => {
+    const result = FlashDealService.approveFlashDeal(req.params.dealId);
+    if (!result.success) {
+      res.status(404).json({ error: result.error || 'Deal not found.' });
+      return;
+    }
+    res.json({ success: true, message: 'Flash Deal approved.', flashDeals: db.flashDeals });
   });
 
   // Merchant Telegram Settings & Integration

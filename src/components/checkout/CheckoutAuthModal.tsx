@@ -331,6 +331,42 @@ export const CheckoutAuthModal: React.FC<CheckoutAuthModalProps> = ({
         {/* Modal Body */}
         <div className="p-6 space-y-6">
 
+          {/* Quick Demo Buyer Shortcut: Abebe Kebede (No-Click Barrier) */}
+          <button
+            type="button"
+            id="demo-abebe-buyer-login"
+            onClick={() => {
+              loginCustomer('+251911223344', 'Abebe Kebede', 'abebe@gmail.com');
+              showToast(
+                language === 'en' ? 'Welcome Abebe! Fast-tracked to checkout.' : 'እንኳን ደህና መጡ አበበ! ወደ ክፍያ ገጽ በመሸጋገር ላይ።',
+                'success'
+              );
+              onSuccess?.();
+              onClose();
+            }}
+            className="w-full py-3 px-3.5 rounded-2xl bg-gradient-to-r from-blue-600/10 via-[#0052FF]/10 to-indigo-600/15 hover:from-blue-600/20 hover:to-indigo-600/25 border border-blue-500/30 text-gray-900 dark:text-zinc-100 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-xs active:scale-[0.99] group"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-xl bg-[#0052FF] text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                <Sparkles className="w-4 h-4 text-amber-300" />
+              </span>
+              <div className="text-left">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-black text-xs text-[#0052FF] dark:text-blue-400">
+                    {language === 'en' ? '⚡ 1-Tap Fast Sign In as Abebe' : '⚡ በ1-ጠቅታ እንደ አበበ (ገዢ) ይግቡ'}
+                  </span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold uppercase">
+                    Buyer
+                  </span>
+                </div>
+                <span className="block text-[10px] text-gray-500 dark:text-zinc-400 font-medium">
+                  Abebe Kebede • +251 91 122 3344 • abebe@gmail.com
+                </span>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-[#0052FF] shrink-0 group-hover:translate-x-0.5 transition-transform" />
+          </button>
+
           {/* Social Sign In Options: Google & Facebook */}
           <div className="space-y-2.5">
             <button

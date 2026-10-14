@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Product, Merchant, StockMovementLog, Order } from '../types';
+import { Product, Merchant, StockMovementLog, Order, FlashDealNomination } from '../types';
 import { jsPDF } from 'jspdf';
 import { 
   Store, 
@@ -41,7 +41,9 @@ import {
   Menu,
   MessageCircle,
   MapPin,
-  ShieldCheck
+  ShieldCheck,
+  Flame,
+  Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -62,6 +64,7 @@ import PerformanceTab from './merchant/PerformanceTab';
 import StockActivityTab from './merchant/StockActivityTab';
 import StoreProfileTab from './merchant/StoreProfileTab';
 import WarrantyDeskTab from './merchant/WarrantyDeskTab';
+import FlashDealsTab from './merchant/FlashDealsTab';
 import { SyncStatusButton } from './common/SyncStatusButton';
 
 interface MerchantPortalProps {
@@ -84,10 +87,21 @@ interface MerchantPortalProps {
   onUpdateProductThreshold?: (productId: string, threshold: number) => void;
   onAddAuditLog: (actor: string, action: string, details: string, severity: 'INFO' | 'WARNING' | 'CRITICAL') => void;
   onUpdateMerchantKyc: (merchantId: string, status: 'NOT_SUBMITTED' | 'PENDING_VERIFICATION' | 'APPROVED', docName?: string) => void;
-  onRequestPayout: (merchantId: string, amount: number, bank: string, account: string) => void;
+  onRequestPayout: (merchantId: string, amount: number, bank: string, account: string, accountHolderName?: string, saveProfile?: boolean) => void;
   language: 'en' | 'am';
   onLogout?: () => void;
   onOrderUpdated?: (order: Order) => void;
+  flashDeals?: FlashDealNomination[];
+  onNominateFlashDeal?: (merchantId: string, data: {
+    productId: string;
+    discountPct: number;
+    dealStock: number;
+    durationHours?: number;
+    bannerTag?: string;
+    campaignTitle?: string;
+    notes?: string;
+  }) => Promise<{ success: boolean; flashDeal?: FlashDealNomination; error?: string }>;
+  onCancelFlashDeal?: (merchantId: string, dealId: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export default function MerchantPortal({
@@ -105,7 +119,10 @@ export default function MerchantPortal({
   onRequestPayout,
   language,
   onLogout,
-  onOrderUpdated
+  onOrderUpdated,
+  flashDeals,
+  onNominateFlashDeal,
+  onCancelFlashDeal
 }: MerchantPortalProps) {
   // Active merchant (Default to authenticated session or first merchant)
   const [selectedMerchantId, setSelectedMerchantId] = useState<string>(() => {
@@ -134,7 +151,7 @@ export default function MerchantPortal({
   }, [merchants, selectedMerchantId]);
 
   // Main navigation tab & Collapsible Sidebar State
-  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'ORDERS' | 'CATALOG' | 'STOCK' | 'STOCK_ACTIVITY' | 'FORECAST' | 'PERFORMANCE' | 'PAYOUT' | 'KYC' | 'STORE_PROFILE' | 'WARRANTY'>('DASHBOARD');
+  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'ORDERS' | 'CATALOG' | 'FLASH_DEALS' | 'STOCK' | 'STOCK_ACTIVITY' | 'FORECAST' | 'PERFORMANCE' | 'PAYOUT' | 'KYC' | 'STORE_PROFILE' | 'WARRANTY'>('DASHBOARD');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Low stock background alarm system
@@ -603,6 +620,26 @@ export default function MerchantPortal({
           </button>
 
           <button
+            onClick={() => setActiveTab('FLASH_DEALS')}
+            title={language === 'en' ? 'Flash Deal Nominations' : 'የፈጣን ቅናሽ መረጣ'}
+            className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-3'} rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'FLASH_DEALS'
+                ? 'bg-black text-white dark:bg-white dark:text-zinc-900 shadow-xs'
+                : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900'
+            }`}
+          >
+            <span className="flex items-center gap-2.5">
+              <Flame className="w-4.5 h-4.5 shrink-0 text-orange-500 fill-orange-500/20" />
+              {!isSidebarCollapsed && <span>{language === 'en' ? 'Flash Deals' : 'ፈጣን ቅናሾች'}</span>}
+            </span>
+            {!isSidebarCollapsed && (
+              <span className="bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[8px] px-1.5 py-0.5 rounded font-black uppercase">
+                15% OFF
+              </span>
+            )}
+          </button>
+
+          <button
             onClick={() => setActiveTab('STORE_PROFILE')}
             title={language === 'en' ? 'Store Profile & Physical Pickup' : 'የመደብር አድራሻ እና መውሰጃ'}
             className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-3'} rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -859,6 +896,18 @@ export default function MerchantPortal({
           >
             <PlusCircle className="w-3.5 h-3.5" />
             <span>{language === 'en' ? 'Catalog' : 'ካታሎግ'}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('FLASH_DEALS')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'FLASH_DEALS'
+                ? 'bg-orange-600 text-white shadow-xs'
+                : 'text-gray-600 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-900'
+            }`}
+          >
+            <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500/30" />
+            <span>{language === 'en' ? 'Flash Deals' : 'ፈጣን ቅናሽ'}</span>
           </button>
 
           <button
@@ -1158,6 +1207,19 @@ export default function MerchantPortal({
                   onAddAuditLog={onAddAuditLog}
                   language={language}
                   onNavigateToTab={setActiveTab}
+                />
+              )}
+
+              {activeTab === 'FLASH_DEALS' && (
+                <FlashDealsTab
+                  products={products}
+                  currentMerchant={currentMerchant}
+                  flashDeals={flashDeals || []}
+                  language={language}
+                  onNominateFlashDeal={onNominateFlashDeal || (async () => ({ success: false, error: 'Not implemented' }))}
+                  onCancelFlashDeal={onCancelFlashDeal || (async () => ({ success: false, error: 'Not implemented' }))}
+                  showToast={showToast}
+                  onNavigateToCatalog={() => setActiveTab('CATALOG')}
                 />
               )}
 

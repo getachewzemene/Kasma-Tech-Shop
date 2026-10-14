@@ -25,6 +25,7 @@ export interface Product {
   warrantyTextEn?: string;
   warrantyTextAm?: string;
   specs?: TechSpecs;
+  flashDeal?: FlashDealNomination;
 }
 
 export interface TechSpecs {
@@ -129,7 +130,7 @@ export interface Order {
   shippingFee: number;
   total: number;
   status: 'PENDING_PAYMENT' | 'PAID' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
-  paymentMethod: 'TELEBIRR' | 'CHAPA' | 'COD' | 'CBE_BIRR';
+  paymentMethod: 'TELEBIRR' | 'CHAPA' | 'COD' | 'CBE_BIRR' | 'BANK_TRANSFER' | 'BANK';
   paymentId?: string;
   shippingAddress: string;
   subCity?: string;
@@ -164,6 +165,15 @@ export interface Order {
   dispatchRequestedAt?: string;
   dispatchPickupCoordinates?: { lat: number; lng: number };
   dispatchPickupAddress?: string;
+  paymentScreenshot?: string;
+  bankName?: string;
+  merchantTelegramConfirmed?: boolean;
+  deliveryPersonnel?: {
+    name: string;
+    phone: string;
+    vehicle: string;
+    eta: string;
+  };
 }
 
 export interface StockMovementLog {
@@ -176,6 +186,39 @@ export interface StockMovementLog {
   reason: string;
   actor: string;
   timestamp: string;
+}
+
+export interface SavedBankAccount {
+  id: string;
+  bankName: string; // e.g. 'Commercial Bank of Ethiopia (CBE)', 'Telebirr Merchant Wallet', 'Awash International Bank', 'Dashen Bank', 'Cooperative Bank of Oromia (Coop)'
+  accountNumber: string; // 13-digit for CBE or 10-digit phone for Telebirr
+  accountHolderName: string;
+  isDefault?: boolean;
+  createdAt?: string;
+}
+
+export interface FlashDealNomination {
+  id: string;
+  productId: string;
+  merchantId: string;
+  merchantName: string;
+  productNameEn: string;
+  productNameAm: string;
+  productImage: string;
+  category: string;
+  originalPrice: number;
+  discountPct: number; // e.g. 15 for 15% off
+  flashPrice: number; // calculated originalPrice * (1 - discountPct / 100)
+  dealStock: number; // allocated deal stock units
+  claimedStock: number; // units claimed so far
+  durationHours: number; // e.g. 24, 48, 72
+  startDate: string;
+  endDate: string;
+  status: 'ACTIVE' | 'PENDING_REVIEW' | 'EXPIRED' | 'CANCELLED';
+  bannerTag?: string; // e.g. '15% OFF FLASH', 'MEGA DEAL', 'LIMITED DROP'
+  campaignTitle?: string;
+  notes?: string;
+  createdAt: string;
 }
 
 export interface Merchant {
@@ -195,6 +238,8 @@ export interface Merchant {
   kycDocument?: string;
   balance: number;
   payouts: Payout[];
+  savedBankAccounts?: SavedBankAccount[];
+  flashDealNominations?: FlashDealNomination[];
   // Physical Store & Addis Ababa Pickup Location Profile
   locationAddress?: string;
   subCity?: string;

@@ -50,7 +50,8 @@ export const CatalogPage: React.FC = () => {
     openCompareWith,
     isInitializing,
     selectedCategory,
-    setSelectedCategory
+    setSelectedCategory,
+    flashDeals
   } = useShop();
 
   if (isInitializing && products.length === 0) {
@@ -95,6 +96,7 @@ export const CatalogPage: React.FC = () => {
         isOnline={navigator.onLine}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
+        flashDeals={flashDeals}
       />
 
       {/* Floating Side-by-Side Specs Comparison Dock */}

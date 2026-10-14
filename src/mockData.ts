@@ -1,4 +1,4 @@
-import { Product, Merchant, Order, AuditLog, StockMovementLog, TelegramAlert } from './types';
+import { Product, Merchant, Order, AuditLog, StockMovementLog, TelegramAlert, FlashDealNomination } from './types';
 
 export const INITIAL_CATEGORIES = [
   { id: 'computers', nameEn: 'Computer & Laptop', nameAm: 'ኮምፒውተር እና ላፕቶፕ' },
@@ -430,6 +430,24 @@ export const INITIAL_MERCHANTS: Merchant[] = [
     kycStatus: 'APPROVED',
     kycDocument: 'Trade_License_Girma_Tech.pdf',
     balance: 142500,
+    savedBankAccounts: [
+      {
+        id: 'ba-m1-1',
+        bankName: 'Commercial Bank of Ethiopia (CBE)',
+        accountNumber: '1000123456789',
+        accountHolderName: 'Girma Tesfaye / Girma Tech',
+        isDefault: true,
+        createdAt: '2026-01-10T08:00:00Z'
+      },
+      {
+        id: 'ba-m1-2',
+        bankName: 'Telebirr Merchant Wallet',
+        accountNumber: '0911456789',
+        accountHolderName: 'Girma Tesfaye',
+        isDefault: false,
+        createdAt: '2026-02-15T09:30:00Z'
+      }
+    ],
     payouts: [
       { id: 'py1', amount: 35000, bankName: 'Commercial Bank of Ethiopia (CBE)', accountNumber: '1000123456789', status: 'COMPLETED', createdAt: '2026-06-20T10:12:00Z' }
     ]
@@ -447,6 +465,24 @@ export const INITIAL_MERCHANTS: Merchant[] = [
     kycStatus: 'APPROVED',
     kycDocument: 'Business_Reg_Abebe.pdf',
     balance: 88400,
+    savedBankAccounts: [
+      {
+        id: 'ba-m2-1',
+        bankName: 'Commercial Bank of Ethiopia (CBE)',
+        accountNumber: '1000987654321',
+        accountHolderName: 'Abebe Girmay Gadgets',
+        isDefault: true,
+        createdAt: '2026-01-15T11:00:00Z'
+      },
+      {
+        id: 'ba-m2-2',
+        bankName: 'Bank of Abyssinia (BoA)',
+        accountNumber: '892019482',
+        accountHolderName: 'Abebe Girmay Gadget Hub',
+        isDefault: false,
+        createdAt: '2026-02-10T14:00:00Z'
+      }
+    ],
     payouts: []
   },
   {
@@ -462,6 +498,24 @@ export const INITIAL_MERCHANTS: Merchant[] = [
     kycStatus: 'APPROVED',
     kycDocument: 'MOU_Kasma_Authorized.pdf',
     balance: 224300,
+    savedBankAccounts: [
+      {
+        id: 'ba-m3-1',
+        bankName: 'Commercial Bank of Ethiopia (CBE)',
+        accountNumber: '1000554433221',
+        accountHolderName: 'Kasma Authorized Reseller PLC',
+        isDefault: true,
+        createdAt: '2026-01-05T07:20:00Z'
+      },
+      {
+        id: 'ba-m3-2',
+        bankName: 'Awash International Bank',
+        accountNumber: '0150987654321',
+        accountHolderName: 'Yared Kebede',
+        isDefault: false,
+        createdAt: '2026-03-01T14:00:00Z'
+      }
+    ],
     payouts: [
       { id: 'py2', amount: 80000, bankName: 'Awash Bank', accountNumber: '0150987654321', status: 'COMPLETED', createdAt: '2026-06-15T14:30:00Z' },
       { id: 'py3', amount: 45000, bankName: 'Awash Bank', accountNumber: '0150987654321', status: 'PENDING', createdAt: '2026-06-23T09:00:00Z' }
@@ -480,6 +534,24 @@ export const INITIAL_MERCHANTS: Merchant[] = [
     kycStatus: 'PENDING_VERIFICATION',
     kycDocument: 'Tech_License_Abyssinia.pdf',
     balance: 0,
+    savedBankAccounts: [
+      {
+        id: 'ba-m4-1',
+        bankName: 'Telebirr Merchant Wallet',
+        accountNumber: '0944889900',
+        accountHolderName: 'Tsion Amare',
+        isDefault: true,
+        createdAt: '2026-02-20T10:00:00Z'
+      },
+      {
+        id: 'ba-m4-2',
+        bankName: 'Bank of Abyssinia (BoA)',
+        accountNumber: '582910481',
+        accountHolderName: 'Tsion Amare Abyssinia Tech',
+        isDefault: false,
+        createdAt: '2026-03-01T10:00:00Z'
+      }
+    ],
     payouts: []
   }
 ];
@@ -807,3 +879,76 @@ export const INITIAL_ORDERS: Order[] = [
     ]
   }
 ];
+
+export const INITIAL_FLASH_DEALS: FlashDealNomination[] = [
+  {
+    id: 'fd-nom-01',
+    productId: 'p10',
+    merchantId: 'm3',
+    merchantName: 'Kasma Authorized Reseller',
+    productNameEn: 'Apple iPhone 15 Pro Max 256GB Titanium',
+    productNameAm: 'አፕል አይፎን 15 ፕሮ ማክስ 256ጂቢ ታይታኒየም',
+    productImage: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80',
+    category: 'mobiles',
+    originalPrice: 135000,
+    discountPct: 15,
+    flashPrice: 114750,
+    dealStock: 5,
+    claimedStock: 3,
+    durationHours: 48,
+    startDate: '2026-10-14T06:00:00Z',
+    endDate: '2026-10-16T06:00:00Z',
+    status: 'ACTIVE',
+    bannerTag: '15% OFF FLASH',
+    campaignTitle: 'Kasma Authorized Official 15% Flagship Deal',
+    notes: 'Nominated by merchant Yared Kebede for Addis Ababa flagship weekend showcase.',
+    createdAt: '2026-10-14T05:30:00Z'
+  },
+  {
+    id: 'fd-nom-02',
+    productId: 'p4',
+    merchantId: 'm2',
+    merchantName: 'Abebe Gadget Hub',
+    productNameEn: 'Marshall Stanmore III Bluetooth Speaker',
+    productNameAm: 'ማርሻል ስታንሞር III ብሉቱዝ ስፒከር',
+    productImage: 'https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=600&q=80',
+    category: 'headphones',
+    originalPrice: 31500,
+    discountPct: 15,
+    flashPrice: 26775,
+    dealStock: 6,
+    claimedStock: 4,
+    durationHours: 24,
+    startDate: '2026-10-14T00:00:00Z',
+    endDate: '2026-10-15T00:00:00Z',
+    status: 'ACTIVE',
+    bannerTag: '15% OFF FLASH',
+    campaignTitle: 'Audiophile Weekend Drop',
+    notes: 'Vintage Brown & Black Gold allocation for high-demand music enthusiasts.',
+    createdAt: '2026-10-13T22:00:00Z'
+  },
+  {
+    id: 'fd-nom-03',
+    productId: 'p9',
+    merchantId: 'm4',
+    merchantName: 'Abyssinia Electronics',
+    productNameEn: 'Anker Prime 20,000mAh Smart Power Bank',
+    productNameAm: 'አንከር ፕራይም 20,000mAh ስማርት ፓወርባንክ',
+    productImage: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=600&q=80',
+    category: 'accessories',
+    originalPrice: 5400,
+    discountPct: 20,
+    flashPrice: 4320,
+    dealStock: 8,
+    claimedStock: 5,
+    durationHours: 72,
+    startDate: '2026-10-13T12:00:00Z',
+    endDate: '2026-10-16T12:00:00Z',
+    status: 'ACTIVE',
+    bannerTag: 'MEGA DEAL 20%',
+    campaignTitle: 'Urban Tech Power Readiness Flash Sale',
+    notes: 'Abyssinia Electronics nominated for quick backup power promotion.',
+    createdAt: '2026-10-13T11:45:00Z'
+  }
+];
+

@@ -22,7 +22,7 @@ import {
   Check,
   Package
 } from 'lucide-react';
-import { Product, Variant } from '../types';
+import { Product, Variant, FlashDealNomination } from '../types';
 import { ProductCard } from './ProductCard';
 import { GridContainer } from './GridContainer';
 
@@ -40,6 +40,7 @@ interface FlashDealsViewProps {
   onOpenProduct: (product: Product) => void;
   onAddToCart: (product: Product, variant: Variant, quantity?: number) => void;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  flashDeals?: FlashDealNomination[];
 }
 
 export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
@@ -55,7 +56,8 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
   onToggleCompare,
   onOpenProduct,
   onAddToCart,
-  showToast
+  showToast,
+  flashDeals = []
 }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'lightning' | 'weekly' | 'upcoming'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -66,17 +68,35 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
 
   // Generate enriched flash sale items with calculated prices and discounts
   const flashSaleItems = products.map((p, idx) => {
-    // Determine discount rate based on item index or category
-    let discountPct = 30;
-    if (idx % 3 === 0) discountPct = 40;
-    if (idx % 5 === 0) discountPct = 50;
-    if (idx % 2 === 0 && idx % 3 !== 0) discountPct = 35;
+    const nominatedDeal = flashDeals.find(d => d.productId === p.id && d.status === 'ACTIVE');
 
-    const flashPrice = Math.round(p.price * (1 - discountPct / 100));
-    const claimedPct = simulatedClaimedQty[p.id] || (45 + (idx * 8) % 50);
+    // If product has a merchant nomination, use merchant's nominated discount & price
+    let discountPct = 30;
+    let flashPrice = Math.round(p.price * 0.7);
+    let tag = 'FLASH SALE';
+    let isMerchantNominated = false;
+
+    if (nominatedDeal) {
+      discountPct = nominatedDeal.discountPct;
+      flashPrice = nominatedDeal.flashPrice;
+      tag = nominatedDeal.bannerTag || `${nominatedDeal.discountPct}% OFF`;
+      isMerchantNominated = true;
+    } else {
+      if (idx % 3 === 0) discountPct = 40;
+      if (idx % 5 === 0) discountPct = 50;
+      if (idx % 2 === 0 && idx % 3 !== 0) discountPct = 35;
+      flashPrice = Math.round(p.price * (1 - discountPct / 100));
+      tag = discountPct >= 40 ? 'MEGA DEAL' : 'FLASH SALE';
+    }
+
+    const claimedPct = nominatedDeal && nominatedDeal.dealStock > 0 
+      ? Math.min(95, Math.round((nominatedDeal.claimedStock / nominatedDeal.dealStock) * 100))
+      : (simulatedClaimedQty[p.id] || (45 + (idx * 8) % 50));
     const totalStock = p.variants.reduce((acc, v) => acc + v.onHand, 0);
-    const remainingQty = Math.max(1, Math.round(totalStock * (1 - claimedPct / 100)));
-    const isUpcoming = idx >= 6 && idx % 2 === 1;
+    const remainingQty = nominatedDeal 
+      ? Math.max(1, nominatedDeal.dealStock - nominatedDeal.claimedStock)
+      : Math.max(1, Math.round(totalStock * (1 - claimedPct / 100)));
+    const isUpcoming = !nominatedDeal && idx >= 6 && idx % 2 === 1;
 
     return {
       product: p,
@@ -86,8 +106,14 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
       claimedPct,
       remainingQty,
       isUpcoming,
-      tag: discountPct >= 40 ? 'MEGA DEAL' : 'FLASH SALE'
+      tag,
+      isMerchantNominated
     };
+  }).sort((a, b) => {
+    // Priority: merchant nominated deals first
+    if (a.isMerchantNominated && !b.isMerchantNominated) return -1;
+    if (!a.isMerchantNominated && b.isMerchantNominated) return 1;
+    return b.discountPct - a.discountPct;
   });
 
   // Filter items based on active tab & category
@@ -348,7 +374,7 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
               </div>
             ) : (
               <GridContainer gap="spacious">
-                {filteredItems.map(({ product: p, discountPct, flashPrice, claimedPct, remainingQty, isUpcoming, tag }) => {
+                {filteredItems.map(({ product: p, discountPct, flashPrice, claimedPct, remainingQty, isUpcoming, tag, isMerchantNominated }) => {
                   const isFavorite = favorites.includes(p.id);
                   const isCompared = comparedProductIds.includes(p.id);
 
@@ -371,7 +397,7 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
                       remainingQty={isUpcoming ? undefined : remainingQty}
                       isUpcoming={isUpcoming}
                       badgeText={isUpcoming ? (language === 'en' ? 'STARTS IN 2H' : 'በ 2 ሰዓት ይጀምራል') : tag}
-                      badgeColor={isUpcoming ? 'purple' : 'amber'}
+                      badgeColor={isMerchantNominated ? 'amber' : (isUpcoming ? 'purple' : 'amber')}
                       layout="grid"
                     />
                   );

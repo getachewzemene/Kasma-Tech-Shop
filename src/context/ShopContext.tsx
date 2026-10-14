@@ -15,7 +15,8 @@ import {
   KasmaPointsLog,
   KasmaPointsReward,
   DigitalWarrantyPass,
-  WarrantyClaim
+  WarrantyClaim,
+  FlashDealNomination
 } from '../types';
 import { createDigitalWarrantyPass } from '../lib/warrantyService';
 import { fetchWithSWR, getCachedData, CACHE_KEYS, DEFAULT_TTLS } from '../services/dataCache';
@@ -26,7 +27,8 @@ import {
   INITIAL_ORDERS,
   INITIAL_STOCK_LOGS, 
   INITIAL_AUDIT_LOGS, 
-  INITIAL_TELEGRAM_ALERTS 
+  INITIAL_TELEGRAM_ALERTS,
+  INITIAL_FLASH_DEALS
 } from '../mockData';
 import { initTelegramMiniApp } from '../utils/telegramWebApp';
 
@@ -44,6 +46,7 @@ interface ShopContextType {
   orders: Order[];
   auditLogs: AuditLog[];
   alerts: TelegramAlert[];
+  flashDeals: FlashDealNomination[];
   isInitializing: boolean;
   refreshState: (isSilentBackground?: boolean) => Promise<void>;
   lastSyncTime: number | null;
@@ -189,6 +192,16 @@ interface ShopContextType {
     serviceMethod: WarrantyClaim['serviceMethod'];
   }) => Promise<WarrantyClaim>;
   getOrderWarranties: (order: Order) => DigitalWarrantyPass[];
+  nominateFlashDeal: (merchantId: string, nominationData: {
+    productId: string;
+    discountPct: number;
+    dealStock: number;
+    durationHours?: number;
+    bannerTag?: string;
+    campaignTitle?: string;
+    notes?: string;
+  }) => Promise<{ success: boolean; flashDeal?: FlashDealNomination; error?: string }>;
+  cancelFlashDeal: (merchantId: string, dealId: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -207,6 +220,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(INITIAL_AUDIT_LOGS);
   const [alerts, setAlerts] = useState<TelegramAlert[]>(INITIAL_TELEGRAM_ALERTS);
+  const [flashDeals, setFlashDeals] = useState<FlashDealNomination[]>(INITIAL_FLASH_DEALS);
   const [isInitializing, setIsInitializing] = useState(true);
   const [lastSyncTime, setLastSyncTime] = useState<number | null>(() => {
     try {
@@ -408,6 +422,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         orders?: Order[];
         auditLogs?: AuditLog[];
         alerts?: TelegramAlert[];
+        flashDeals?: FlashDealNomination[];
       }>('/api/state', CACHE_KEYS.STATE, {
         ttlMs: DEFAULT_TTLS.STATE,
         onBackgroundUpdate: (freshData) => {
@@ -416,6 +431,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (freshData.orders && Array.isArray(freshData.orders) && freshData.orders.length > 0) setOrders(freshData.orders);
           if (freshData.auditLogs && Array.isArray(freshData.auditLogs)) setAuditLogs(freshData.auditLogs);
           if (freshData.alerts && Array.isArray(freshData.alerts)) setAlerts(freshData.alerts);
+          if (freshData.flashDeals && Array.isArray(freshData.flashDeals)) setFlashDeals(freshData.flashDeals);
           setLastSyncTime(Date.now());
         }
       });
@@ -426,6 +442,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (data.orders && Array.isArray(data.orders) && data.orders.length > 0) setOrders(data.orders);
         if (data.auditLogs && Array.isArray(data.auditLogs)) setAuditLogs(data.auditLogs);
         if (data.alerts && Array.isArray(data.alerts)) setAlerts(data.alerts);
+        if (data.flashDeals && Array.isArray(data.flashDeals)) setFlashDeals(data.flashDeals);
         setLastSyncTime(Date.now());
       }
     } catch (err) {
@@ -1128,6 +1145,77 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return newClaim;
   }, [language, showToast]);
 
+  const nominateFlashDeal = useCallback(async (merchantId: string, nominationData: {
+    productId: string;
+    discountPct: number;
+    dealStock: number;
+    durationHours?: number;
+    bannerTag?: string;
+    campaignTitle?: string;
+    notes?: string;
+  }) => {
+    try {
+      const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_auth_token');
+      const res = await fetch(`/api/merchants/${merchantId}/flash-deals`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(nominationData)
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to submit flash deal nomination');
+      }
+      if (data.flashDeals && Array.isArray(data.flashDeals)) {
+        setFlashDeals(data.flashDeals);
+      } else if (data.flashDeal) {
+        setFlashDeals(prev => [data.flashDeal, ...prev.filter(d => d.id !== data.flashDeal.id)]);
+      }
+      await refreshState(true);
+      showToast(
+        language === 'en'
+          ? `🔥 Product successfully nominated for Kasma Flash Deals (${nominationData.discountPct}% OFF)!`
+          : `🔥 ምርቱ በተሳካ ሁኔታ ለካስማ ፈጣን ቅናሽ (${nominationData.discountPct}% ቅናሽ) ተመርጧል!`,
+        'success'
+      );
+      return { success: true, flashDeal: data.flashDeal };
+    } catch (err: any) {
+      console.error('nominateFlashDeal error:', err);
+      showToast(err.message || 'Error submitting flash deal nomination', 'error');
+      return { success: false, error: err.message || 'Error submitting flash deal' };
+    }
+  }, [language, refreshState, showToast]);
+
+  const cancelFlashDeal = useCallback(async (merchantId: string, dealId: string) => {
+    try {
+      const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_auth_token');
+      const res = await fetch(`/api/merchants/${merchantId}/flash-deals/${dealId}/cancel`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        }
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to cancel flash deal');
+      }
+      setFlashDeals(prev => prev.map(d => d.id === dealId ? { ...d, status: 'CANCELLED' } : d));
+      await refreshState(true);
+      showToast(
+        language === 'en' ? 'Flash Deal nomination cancelled' : 'የፈጣን ቅናሽ ዘመቻ ተሰርዟል',
+        'info'
+      );
+      return { success: true };
+    } catch (err: any) {
+      console.error('cancelFlashDeal error:', err);
+      showToast(err.message || 'Error cancelling flash deal', 'error');
+      return { success: false, error: err.message || 'Error cancelling flash deal' };
+    }
+  }, [language, refreshState, showToast]);
+
   return (
     <ShopContext.Provider
       value={{
@@ -1230,7 +1318,10 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         addProductReview,
         submitWarrantyClaim,
-        getOrderWarranties
+        getOrderWarranties,
+        flashDeals,
+        nominateFlashDeal,
+        cancelFlashDeal
       }}
     >
       {children}

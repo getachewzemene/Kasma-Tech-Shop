@@ -33,7 +33,9 @@ import {
   CheckCircle2,
   Settings,
   RefreshCw,
-  Star
+  Star,
+  Flame,
+  Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import CsvProductImportModal from './CsvProductImportModal';
@@ -53,7 +55,7 @@ interface CatalogTabProps {
   }[]) => Promise<{ success: boolean; error?: string }>;
   onAddAuditLog: (actor: string, action: string, details: string, severity: 'INFO' | 'WARNING' | 'CRITICAL') => void;
   language: 'en' | 'am';
-  onNavigateToTab: (tab: 'DASHBOARD' | 'CATALOG' | 'STOCK' | 'PAYOUT' | 'KYC') => void;
+  onNavigateToTab: (tab: 'DASHBOARD' | 'CATALOG' | 'FLASH_DEALS' | 'STOCK' | 'PAYOUT' | 'KYC') => void;
 }
 
 export default function CatalogTab({
@@ -657,6 +659,15 @@ export default function CatalogTab({
                         </td>
                         <td className="px-5 py-4 text-right">
                           <div className="flex justify-end gap-1.5">
+                            <button
+                              onClick={() => {
+                                onNavigateToTab('FLASH_DEALS');
+                              }}
+                              title={language === 'en' ? 'Nominate for Homepage Flash Deals (e.g. 15% OFF)' : 'ለፈጣን ቅናሽ ባነር ምረጥ (ለምሳሌ 15% ቅናሽ)'}
+                              className="p-1.5 rounded-lg border border-orange-200 dark:border-orange-900/60 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950/20 cursor-pointer"
+                            >
+                              <Flame className="w-3.5 h-3.5 fill-orange-500/20" />
+                            </button>
                             <button
                               onClick={() => setSelectedQrProduct(p)}
                               title={language === 'en' ? 'Generate QR Label' : 'የQR መለያ ፍጠር'}

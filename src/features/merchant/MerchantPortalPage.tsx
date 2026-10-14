@@ -14,7 +14,10 @@ export const MerchantPortalPage: React.FC = () => {
     language, 
     updateProductStock, 
     showToast,
-    refreshState 
+    refreshState,
+    flashDeals,
+    nominateFlashDeal,
+    cancelFlashDeal
   } = useShop();
 
   const [stockLogs, setStockLogs] = useState<any[]>([]);
@@ -189,7 +192,14 @@ export const MerchantPortalPage: React.FC = () => {
     }
   };
 
-  const handleRequestPayout = async (merchantId: string, amount: number, bank: string, account: string) => {
+  const handleRequestPayout = async (
+    merchantId: string, 
+    amount: number, 
+    bank: string, 
+    account: string,
+    accountHolderName?: string,
+    saveProfile?: boolean
+  ) => {
     try {
       const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -198,7 +208,7 @@ export const MerchantPortalPage: React.FC = () => {
       const res = await fetch(`/api/merchants/${merchantId}/payout`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ amount, bank, account })
+        body: JSON.stringify({ amount, bank, account, accountHolderName, saveProfile })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to submit payout request');
@@ -471,6 +481,9 @@ export const MerchantPortalPage: React.FC = () => {
         language={language}
         onLogout={handleLogout}
         onOrderUpdated={async () => { await refreshState(); }}
+        flashDeals={flashDeals}
+        onNominateFlashDeal={nominateFlashDeal}
+        onCancelFlashDeal={cancelFlashDeal}
       />
     </div>
   );

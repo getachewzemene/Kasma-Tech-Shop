@@ -1,13 +1,14 @@
 import fs from 'fs';
 import path from 'path';
-import { Product, Merchant, Order, StockMovementLog, AuditLog, TelegramAlert, Payout, DigitalWarrantyPass, WarrantyClaim } from '../types';
+import { Product, Merchant, Order, StockMovementLog, AuditLog, TelegramAlert, Payout, DigitalWarrantyPass, WarrantyClaim, SavedBankAccount, FlashDealNomination } from '../types';
 import { 
   INITIAL_PRODUCTS, 
   INITIAL_MERCHANTS, 
   INITIAL_ORDERS,
   INITIAL_STOCK_LOGS, 
   INITIAL_AUDIT_LOGS, 
-  INITIAL_TELEGRAM_ALERTS 
+  INITIAL_TELEGRAM_ALERTS,
+  INITIAL_FLASH_DEALS
 } from '../mockData';
 import { CloudSqlProductService } from '../db/products.ts';
 import { sendOrderAlertToTelegram, sendDispatchGroupAlertToTelegram, sendFulfillmentTelegramUpdate, sendLowStockAlertToTelegram } from '../lib/telegram.ts';
@@ -33,6 +34,7 @@ export class Database {
   public auditLogs: AuditLog[] = [];
   public alerts: TelegramAlert[] = [];
   public apiLogs: ApiTrafficLog[] = [];
+  public flashDeals: FlashDealNomination[] = [];
 
   private dbPath: string;
 
@@ -92,6 +94,7 @@ export class Database {
         this.auditLogs = data.auditLogs || [];
         this.alerts = data.alerts || [];
         this.apiLogs = data.apiLogs || [];
+        this.flashDeals = data.flashDeals && data.flashDeals.length > 0 ? data.flashDeals : [...INITIAL_FLASH_DEALS];
 
         // Dynamic compliance auto-migration to enforce only electronic tech products
         const hasLegacy = this.products.some(p => 
@@ -104,6 +107,7 @@ export class Database {
           this.stockLogs = [...INITIAL_STOCK_LOGS];
           this.auditLogs = [...INITIAL_AUDIT_LOGS];
           this.alerts = [...INITIAL_TELEGRAM_ALERTS];
+          this.flashDeals = [...INITIAL_FLASH_DEALS];
           this.orders = [];
           this.apiLogs = [];
           this.save();
@@ -168,6 +172,7 @@ export class Database {
       this.stockLogs = [...INITIAL_STOCK_LOGS];
       this.auditLogs = [...INITIAL_AUDIT_LOGS];
       this.alerts = [...INITIAL_TELEGRAM_ALERTS];
+      this.flashDeals = [...INITIAL_FLASH_DEALS];
     }
   }
 
@@ -180,7 +185,8 @@ export class Database {
         stockLogs: this.stockLogs,
         auditLogs: this.auditLogs,
         alerts: this.alerts,
-        apiLogs: this.apiLogs
+        apiLogs: this.apiLogs,
+        flashDeals: this.flashDeals
       };
       fs.writeFileSync(this.dbPath, JSON.stringify(payload, null, 2), 'utf8');
     } catch (error) {
@@ -967,18 +973,44 @@ export class MerchantService {
     return db.merchants;
   }
 
-  public static requestPayout(merchantId: string, amount: number, bankName: string, accountNumber: string): boolean {
+  public static requestPayout(
+    merchantId: string, 
+    amount: number, 
+    bankName: string, 
+    accountNumber: string, 
+    options?: { accountHolderName?: string; saveProfile?: boolean }
+  ): boolean {
     const merchant = db.merchants.find(m => m.id === merchantId);
     if (!merchant) return false;
 
     if (merchant.balance < amount || amount <= 0) return false;
+
+    const cleanAccount = accountNumber.trim().replace(/\s+/g, '');
+
+    // Optionally auto-save bank profile for 1-click withdrawals
+    if (options?.saveProfile) {
+      if (!merchant.savedBankAccounts) merchant.savedBankAccounts = [];
+      const alreadySaved = merchant.savedBankAccounts.some(
+        ba => ba.accountNumber.replace(/\s+/g, '') === cleanAccount && ba.bankName.toLowerCase() === bankName.toLowerCase()
+      );
+      if (!alreadySaved) {
+        merchant.savedBankAccounts.push({
+          id: `ba-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          bankName,
+          accountNumber: cleanAccount,
+          accountHolderName: options.accountHolderName?.trim() || merchant.ownerName || merchant.storeName,
+          isDefault: merchant.savedBankAccounts.length === 0,
+          createdAt: new Date().toISOString()
+        });
+      }
+    }
 
     // Append payout
     const newPayout: Payout = {
       id: `py-${Date.now()}-${Math.floor(Math.random() * 100)}`,
       amount,
       bankName,
-      accountNumber,
+      accountNumber: cleanAccount,
       status: 'PENDING',
       createdAt: new Date().toISOString()
     };
@@ -987,13 +1019,136 @@ export class MerchantService {
     db.logAudit(
       `Merchant: ${merchant.storeName}`,
       'PAYOUT_REQUESTED',
-      `Queued CBE/Awash bank transfer payout of ${amount.toLocaleString()} ETB to account ${accountNumber} (${bankName}). Awaiting escrow compliance approval.`,
+      `Queued CBE/Awash bank transfer payout of ${amount.toLocaleString()} ETB to account ${cleanAccount} (${bankName}). Awaiting escrow compliance approval.`,
       'INFO'
     );
 
     db.save();
     CloudSqlProductService.saveMerchant(merchant).catch(() => {});
     return true;
+  }
+
+  public static getSavedBankAccounts(merchantId: string): SavedBankAccount[] {
+    const merchant = db.merchants.find(m => m.id === merchantId);
+    return merchant?.savedBankAccounts || [];
+  }
+
+  public static addSavedBankAccount(
+    merchantId: string, 
+    accountData: { bankName: string; accountNumber: string; accountHolderName: string; isDefault?: boolean }
+  ): { success: boolean; account?: SavedBankAccount; error?: string } {
+    const merchant = db.merchants.find(m => m.id === merchantId);
+    if (!merchant) return { success: false, error: 'Merchant not found' };
+
+    const cleanAccount = accountData.accountNumber.trim().replace(/\s+/g, '');
+    const cleanHolder = accountData.accountHolderName.trim() || merchant.ownerName || merchant.storeName;
+
+    if (!cleanAccount) {
+      return { success: false, error: 'Account number or mobile phone is required.' };
+    }
+
+    // 13-digit CBE validation
+    if (accountData.bankName.includes('CBE') || accountData.bankName.includes('Commercial Bank')) {
+      if (!/^\d{13}$/.test(cleanAccount)) {
+        return { success: false, error: 'Commercial Bank of Ethiopia (CBE) account numbers must be exactly 13 digits (e.g. 1000123456789).' };
+      }
+    }
+
+    // Telebirr validation
+    if (accountData.bankName.includes('Telebirr')) {
+      const isEthPhone = /^(\+2519|\+2517|09|07)\d{8}$/.test(cleanAccount);
+      if (!isEthPhone) {
+        return { success: false, error: 'Telebirr merchant wallet must be a valid Ethiopian phone number (+2519..., 09..., or 07...).' };
+      }
+    }
+
+    if (!merchant.savedBankAccounts) {
+      merchant.savedBankAccounts = [];
+    }
+
+    // If marked default or first account, clear other defaults
+    const shouldBeDefault = accountData.isDefault || merchant.savedBankAccounts.length === 0;
+    if (shouldBeDefault) {
+      merchant.savedBankAccounts.forEach(acc => acc.isDefault = false);
+    }
+
+    const newAccount: SavedBankAccount = {
+      id: `ba-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+      bankName: accountData.bankName.trim(),
+      accountNumber: cleanAccount,
+      accountHolderName: cleanHolder,
+      isDefault: shouldBeDefault,
+      createdAt: new Date().toISOString()
+    };
+
+    merchant.savedBankAccounts.unshift(newAccount);
+
+    db.logAudit(
+      `Merchant: ${merchant.storeName}`,
+      'BANK_PROFILE_SAVED',
+      `Saved ${newAccount.bankName} profile (A/C: ${newAccount.accountNumber}) for ${newAccount.accountHolderName}. Default: ${newAccount.isDefault ? 'YES' : 'NO'}.`,
+      'INFO'
+    );
+
+    db.save();
+    CloudSqlProductService.saveMerchant(merchant).catch(() => {});
+    return { success: true, account: newAccount };
+  }
+
+  public static setDefaultBankAccount(merchantId: string, accountId: string): { success: boolean; error?: string } {
+    const merchant = db.merchants.find(m => m.id === merchantId);
+    if (!merchant || !merchant.savedBankAccounts) return { success: false, error: 'Merchant or bank accounts not found' };
+
+    let found = false;
+    merchant.savedBankAccounts.forEach(acc => {
+      if (acc.id === accountId) {
+        acc.isDefault = true;
+        found = true;
+      } else {
+        acc.isDefault = false;
+      }
+    });
+
+    if (!found) return { success: false, error: 'Bank account profile not found' };
+
+    db.logAudit(
+      `Merchant: ${merchant.storeName}`,
+      'DEFAULT_BANK_PROFILE_UPDATED',
+      `Updated default payout bank account to ${accountId}.`,
+      'INFO'
+    );
+
+    db.save();
+    CloudSqlProductService.saveMerchant(merchant).catch(() => {});
+    return { success: true };
+  }
+
+  public static deleteSavedBankAccount(merchantId: string, accountId: string): { success: boolean; error?: string } {
+    const merchant = db.merchants.find(m => m.id === merchantId);
+    if (!merchant || !merchant.savedBankAccounts) return { success: false, error: 'Merchant not found' };
+
+    const initialLength = merchant.savedBankAccounts.length;
+    merchant.savedBankAccounts = merchant.savedBankAccounts.filter(acc => acc.id !== accountId);
+
+    if (merchant.savedBankAccounts.length === initialLength) {
+      return { success: false, error: 'Bank account not found' };
+    }
+
+    // If deleted account was default and accounts remain, set the first as default
+    if (merchant.savedBankAccounts.length > 0 && !merchant.savedBankAccounts.some(acc => acc.isDefault)) {
+      merchant.savedBankAccounts[0].isDefault = true;
+    }
+
+    db.logAudit(
+      `Merchant: ${merchant.storeName}`,
+      'BANK_PROFILE_DELETED',
+      `Removed saved bank account profile ${accountId}.`,
+      'INFO'
+    );
+
+    db.save();
+    CloudSqlProductService.saveMerchant(merchant).catch(() => {});
+    return { success: true };
   }
 
   public static approvePayout(merchantId: string, payoutId: string): boolean {
@@ -1110,3 +1265,142 @@ export class MerchantService {
     return { success: true, merchant };
   }
 }
+
+// Service handling Merchant Flash Deals Nominations for Kasma Homepage Banner
+export class FlashDealService {
+  public static getFlashDeals(onlyActive = false): FlashDealNomination[] {
+    if (onlyActive) {
+      const now = new Date().toISOString();
+      return db.flashDeals.filter(d => d.status === 'ACTIVE' && (!d.endDate || d.endDate >= now));
+    }
+    return db.flashDeals;
+  }
+
+  public static getMerchantFlashDeals(merchantId: string): FlashDealNomination[] {
+    return db.flashDeals.filter(d => d.merchantId === merchantId);
+  }
+
+  public static nominateFlashDeal(merchantId: string, data: {
+    productId: string;
+    discountPct: number;
+    dealStock: number;
+    durationHours?: number;
+    bannerTag?: string;
+    campaignTitle?: string;
+    notes?: string;
+  }): { success: boolean; flashDeal?: FlashDealNomination; error?: string } {
+    const merchant = db.merchants.find(m => m.id === merchantId);
+    if (!merchant) return { success: false, error: 'Merchant not found' };
+
+    const product = db.products.find(p => p.id === data.productId && p.merchantId === merchantId);
+    if (!product) return { success: false, error: 'Product not found in merchant catalog' };
+
+    const discountPct = Number(data.discountPct);
+    if (isNaN(discountPct) || discountPct < 5 || discountPct > 75) {
+      return { success: false, error: 'Discount percentage must be between 5% and 75%' };
+    }
+
+    const dealStock = Number(data.dealStock);
+    const totalOnHand = product.variants.reduce((sum, v) => sum + (v.onHand || 0), 0);
+    if (isNaN(dealStock) || dealStock < 1) {
+      return { success: false, error: 'Deal allocation quantity must be at least 1 unit' };
+    }
+    if (dealStock > totalOnHand) {
+      return { success: false, error: `Deal allocation (${dealStock}) exceeds total available inventory (${totalOnHand})` };
+    }
+
+    const durationHours = Number(data.durationHours) || 48;
+    const now = new Date();
+    const startDate = now.toISOString();
+    const endDate = new Date(now.getTime() + durationHours * 60 * 60 * 1000).toISOString();
+
+    const flashPrice = Math.round(product.price * (1 - discountPct / 100));
+
+    // Cancel any previous active flash deal for the same product to prevent duplication
+    db.flashDeals.forEach(d => {
+      if (d.productId === product.id && d.status === 'ACTIVE') {
+        d.status = 'EXPIRED';
+      }
+    });
+
+    const newDeal: FlashDealNomination = {
+      id: `fd-nom-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      productId: product.id,
+      merchantId: merchant.id,
+      merchantName: merchant.storeName,
+      productNameEn: product.nameEn,
+      productNameAm: product.nameAm,
+      productImage: product.image,
+      category: product.category,
+      originalPrice: product.price,
+      discountPct,
+      flashPrice,
+      dealStock,
+      claimedStock: 0,
+      durationHours,
+      startDate,
+      endDate,
+      status: 'ACTIVE', // Automatically activated on Kasma's homepage Flash Deals banner
+      bannerTag: data.bannerTag || `${discountPct}% OFF FLASH`,
+      campaignTitle: data.campaignTitle || `${discountPct}% Off Flash Deal Nomination`,
+      notes: data.notes || '',
+      createdAt: startDate
+    };
+
+    db.flashDeals.unshift(newDeal);
+    product.flashDeal = newDeal;
+
+    if (!merchant.flashDealNominations) {
+      merchant.flashDealNominations = [];
+    }
+    merchant.flashDealNominations.unshift(newDeal);
+
+    db.logAudit(
+      `Merchant: ${merchant.storeName}`,
+      'FLASH_DEAL_NOMINATION_SUBMITTED',
+      `Submitted ${discountPct}% off Flash Deal for "${product.nameEn}". Flash Price: ${flashPrice.toLocaleString()} ETB (Regular: ${product.price.toLocaleString()} ETB). Deal Stock: ${dealStock} units. Featured live on Kasma homepage Flash Deals banner.`,
+      'INFO'
+    );
+
+    db.save();
+    return { success: true, flashDeal: newDeal };
+  }
+
+  public static cancelFlashDeal(merchantId: string, dealId: string): { success: boolean; error?: string } {
+    const deal = db.flashDeals.find(d => d.id === dealId && d.merchantId === merchantId);
+    if (!deal) return { success: false, error: 'Flash deal nomination not found' };
+
+    deal.status = 'CANCELLED';
+
+    const product = db.products.find(p => p.id === deal.productId);
+    if (product && product.flashDeal?.id === deal.id) {
+      delete product.flashDeal;
+    }
+
+    db.logAudit(
+      `Merchant: ${deal.merchantName}`,
+      'FLASH_DEAL_NOMINATION_CANCELLED',
+      `Cancelled flash deal nomination ${dealId} for product "${deal.productNameEn}".`,
+      'INFO'
+    );
+
+    db.save();
+    return { success: true };
+  }
+
+  public static approveFlashDeal(dealId: string): { success: boolean; error?: string } {
+    const deal = db.flashDeals.find(d => d.id === dealId);
+    if (!deal) return { success: false, error: 'Deal not found' };
+
+    deal.status = 'ACTIVE';
+    db.logAudit(
+      'Kasma Marketing Desk',
+      'FLASH_DEAL_APPROVED',
+      `Approved flash deal nomination ${dealId} for "${deal.productNameEn}" (${deal.discountPct}% OFF). Active on Homepage banner.`,
+      'INFO'
+    );
+    db.save();
+    return { success: true };
+  }
+}
+

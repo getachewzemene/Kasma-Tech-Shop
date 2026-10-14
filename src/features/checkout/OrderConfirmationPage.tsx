@@ -25,7 +25,7 @@ export const OrderConfirmationPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const checkoutUrl = searchParams.get('checkoutUrl');
-  const { orders, language } = useShop();
+  const { orders, language, customerEmail, customerPhone } = useShop();
 
   const [copiedPin, setCopiedPin] = useState(false);
 
@@ -191,11 +191,65 @@ export const OrderConfirmationPage: React.FC = () => {
               <span>{language === 'en' ? 'Estimated Delivery' : 'የሚደርስበት ግምት'}</span>
             </span>
             <p className="font-bold text-gray-900 dark:text-zinc-100 mt-1">
-              2 - 4 Hours (Express Courier)
+              {order?.deliveryPersonnel?.eta || '35-45 Minutes (Express Courier)'}
             </p>
             <p className="text-[11px] text-gray-400">
               Payment Rail: <span className="font-semibold text-gray-700 dark:text-zinc-300">{order?.paymentMethod || 'TELEBIRR'}</span>
             </p>
+          </div>
+        </div>
+
+        {/* Assigned Express Courier Personnel Card */}
+        <div id="confirmation-courier-card" className="p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border border-emerald-500/30 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs">
+                <Truck className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <span className="text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-400 tracking-wider block">
+                  {language === 'en' ? 'Assigned Express Courier' : 'የተመደበ ፈጣን መልዕክተኛ'}
+                </span>
+                <h4 className="font-black text-sm text-gray-900 dark:text-white">
+                  {order?.deliveryPersonnel?.name || 'Dawit Bekele'}
+                </h4>
+              </div>
+            </div>
+            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+              {language === 'en' ? '⚡ DISPATCH EN ROUTE' : '⚡ በመንገድ ላይ'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div className="p-2.5 rounded-xl bg-white/80 dark:bg-zinc-900/80 border border-emerald-200/60 dark:border-emerald-900/40 space-y-0.5">
+              <span className="text-[9px] text-gray-400 uppercase font-bold block">{language === 'en' ? 'Courier Mobile' : 'የመልዕክተኛ ስልክ'}</span>
+              <a href={`tel:${order?.deliveryPersonnel?.phone || '+251911998877'}`} className="font-mono font-bold text-[#0052FF] hover:underline flex items-center gap-1">
+                <Phone className="w-3 h-3" />
+                <span>{order?.deliveryPersonnel?.phone || '+251 91 199 8877'}</span>
+              </a>
+            </div>
+            <div className="p-2.5 rounded-xl bg-white/80 dark:bg-zinc-900/80 border border-emerald-200/60 dark:border-emerald-900/40 space-y-0.5">
+              <span className="text-[9px] text-gray-400 uppercase font-bold block">{language === 'en' ? 'Vehicle & Plate' : 'ተሽከርካሪ እና ታርጋ'}</span>
+              <span className="font-semibold text-gray-800 dark:text-zinc-200 truncate block">
+                {order?.deliveryPersonnel?.vehicle || 'TVS Apache Electric Scooter (AA-3-48192)'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Multi-Channel Notification Badges */}
+        <div id="dispatch-notifications-status-card" className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+          <div className="p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/40 space-y-0.5">
+            <span className="text-[10px] font-bold text-blue-700 dark:text-blue-300 uppercase block">📧 Email Dispatched</span>
+            <p className="text-[11px] text-gray-600 dark:text-zinc-400 truncate">{customerEmail || 'abebe@gmail.com'}</p>
+          </div>
+          <div className="p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/40 space-y-0.5">
+            <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase block">📱 SMS Dispatched</span>
+            <p className="text-[11px] text-gray-600 dark:text-zinc-400 truncate">{order?.customerPhone || customerPhone || '+251 91 122 3344'}</p>
+          </div>
+          <div className="p-3 rounded-xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200/60 dark:border-sky-900/40 space-y-0.5">
+            <span className="text-[10px] font-bold text-sky-700 dark:text-sky-300 uppercase block">✈️ Telegram Alert</span>
+            <p className="text-[11px] text-gray-600 dark:text-zinc-400 truncate">@KasmaShopBot Sent</p>
           </div>
         </div>
 

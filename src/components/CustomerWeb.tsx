@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Product, Variant, CartItem, Order, PriceAlert, PromoCode, DeliveryAddress, SavedPaymentMethod, KasmaPointsReward, KasmaPointsLog } from '../types';
-import { ShoppingCart, Heart, Search, Eye, Sparkles, Check, ChevronRight, ChevronLeft, MapPin, Phone, ShieldCheck, CreditCard, RefreshCw, SlidersHorizontal, ArrowRight, Truck, Package, Clock, Star, MessageSquare, ThumbsUp, Bell, TrendingDown, GitCompare, Gamepad2, Laptop, Camera, Tv, Watch, Smartphone, Headphones, Cpu, ChevronDown, Menu, Flame, Percent, User, Lock, Award, Plus, Zap, Scale, Box, Wifi, WifiOff, Database, Battery, QrCode, Copy, ExternalLink, Download, CheckCircle2, Home, Share2, Link2, Send, MessageCircle, RotateCcw, X, Layers, Filter, Tag, Printer, Activity, Info, BarChart2, Trash2, LogIn, UserPlus, Globe, Building2 } from 'lucide-react';
+import { Product, Variant, CartItem, Order, PriceAlert, PromoCode, DeliveryAddress, SavedPaymentMethod, KasmaPointsReward, KasmaPointsLog, FlashDealNomination } from '../types';
+import { ShoppingCart, Heart, Search, Eye, Sparkles, Check, ChevronRight, ChevronLeft, MapPin, Phone, ShieldCheck, CreditCard, RefreshCw, SlidersHorizontal, ArrowRight, Truck, Package, Clock, Star, MessageSquare, ThumbsUp, Bell, TrendingDown, GitCompare, Gamepad2, Laptop, Camera, Tv, Watch, Smartphone, Headphones, Cpu, ChevronDown, Menu, Flame, Percent, User, Lock, Award, Plus, Zap, Scale, Box, Wifi, WifiOff, Database, Battery, QrCode, Copy, ExternalLink, Download, CheckCircle2, Home, Share2, Link2, Send, MessageCircle, RotateCcw, X, Layers, Filter, Tag, Printer, Activity, Info, BarChart2, Trash2, LogIn, UserPlus, Globe, Building2, Upload } from 'lucide-react';
+import { useShop } from '../context/ShopContext';
+import { CheckoutAuthModal } from './checkout/CheckoutAuthModal';
 import { CatalogCacheMeta } from '../utils/offlineCatalogCache';
 import { generateShareableCartUrl } from '../utils/cartSharing';
 import { generateWhatsAppCustomerWelcomeUrl } from '../utils/whatsappNotifications';
@@ -59,6 +61,7 @@ interface CustomerWebProps {
   isOnline?: boolean;
   selectedCategory?: string;
   setSelectedCategory?: (category: string) => void;
+  flashDeals?: FlashDealNomination[];
 }
 
 
@@ -215,8 +218,16 @@ export default function CustomerWeb({
   offlineCatalogMeta,
   isOnline = navigator.onLine,
   selectedCategory: propSelectedCategory,
-  setSelectedCategory: propSetSelectedCategory
+  setSelectedCategory: propSetSelectedCategory,
+  flashDeals = []
 }: CustomerWebProps) {
+  const {
+    isCustomerLoggedIn,
+    customerName: authCustomerName,
+    customerPhone: authCustomerPhone,
+    customerEmail: authCustomerEmail
+  } = useShop();
+
   const [internalSelectedCategory, setInternalSelectedCategory] = useState<string>('all');
   const selectedCategory = propSelectedCategory !== undefined ? propSelectedCategory : internalSelectedCategory;
   const setSelectedCategory = (cat: string) => {
@@ -534,12 +545,31 @@ export default function CustomerWeb({
   };
 
   // Checkout Form State (Landmark-based Ethiopian addressing & Integrated Payment APIs)
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('+2519');
+  const [customerName, setCustomerName] = useState(authCustomerName || '');
+  const [customerPhone, setCustomerPhone] = useState(authCustomerPhone || '+2519');
+  const [customerEmail, setCustomerEmail] = useState(authCustomerEmail || '');
   const [customerLandmark, setCustomerLandmark] = useState('');
   const [shippingAddress, setShippingAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'TELEBIRR' | 'CBE_BIRR' | 'CHAPA' | 'COD'>('TELEBIRR');
+  const [paymentMethod, setPaymentMethod] = useState<'TELEBIRR' | 'CBE_BIRR' | 'CHAPA' | 'COD' | 'BANK'>('TELEBIRR');
   const [selectedSubCity, setSelectedSubCity] = useState<string>('bole');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [paymentScreenshot, setPaymentScreenshot] = useState<string | null>(null);
+  const [paymentScreenshotName, setPaymentScreenshotName] = useState<string>('');
+  const [bankReference, setBankReference] = useState<string>('');
+  const [selectedBank, setSelectedBank] = useState<'CBE' | 'BOA' | 'AWASH'>('CBE');
+  const [merchantTelegramConfirmed, setMerchantTelegramConfirmed] = useState(false);
+  const [lastPlacedOrder, setLastPlacedOrder] = useState<Order | null>(null);
+
+  // Auto-populate recipient details & default landmark on successful authentication
+  useEffect(() => {
+    if (isCustomerLoggedIn) {
+      if (authCustomerName && !customerName) setCustomerName(authCustomerName);
+      if (authCustomerPhone && (customerPhone === '+2519' || !customerPhone)) setCustomerPhone(authCustomerPhone);
+      if (authCustomerEmail && !customerEmail) setCustomerEmail(authCustomerEmail);
+      if (!customerLandmark) setCustomerLandmark('Behind Edna Mall, Bole Medhanialem');
+    }
+  }, [isCustomerLoggedIn, authCustomerName, authCustomerPhone, authCustomerEmail]);
+
   const [activePaymentSession, setActivePaymentSession] = useState<{
     txRef: string;
     orderId: string;
@@ -558,10 +588,37 @@ export default function CustomerWeb({
   const [isInitializingPayment, setIsInitializingPayment] = useState<boolean>(false);
   const [paymentApiError, setPaymentApiError] = useState<string | null>(null);
 
-  // Payment Gateway QR Code State
-  const [gatewayPaymentTab, setGatewayPaymentTab] = useState<'QR' | 'DIRECT'>('QR');
+  // Payment Gateway QR & Bank Transfer Receipt State
+  const [gatewayPaymentTab, setGatewayPaymentTab] = useState<'QR' | 'DIRECT' | 'BANK_RECEIPT'>('QR');
   const [copiedQrLink, setCopiedQrLink] = useState(false);
   const [qrReferenceTx, setQrReferenceTx] = useState(() => `KS-QR-${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
+
+  const handleScreenshotFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast(language === 'en' ? 'Please upload an image receipt (JPEG/PNG/WebP).' : 'እባክዎን የፎቶ ደረሰኝ ያስገቡ።', 'warning');
+      return;
+    }
+    setPaymentScreenshotName(file.name);
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const result = uploadEvent.target?.result as string;
+      setPaymentScreenshot(result);
+      showToast(language === 'en' ? 'Payment screenshot uploaded successfully!' : 'የክፍያ ደረሰኝ ስክሪንሾት በተሳካ ሁኔታ ተጭኗል!', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUseDemoScreenshot = () => {
+    const demoSvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%230F172A"/><rect x="20" y="20" width="360" height="260" rx="16" fill="%231E293B" stroke="%2338BDF8" stroke-width="2"/><text x="40" y="60" fill="%2338BDF8" font-family="sans-serif" font-weight="bold" font-size="16">CBE BIRR / TELEBIRR TRANSFER</text><text x="40" y="95" fill="%2394A3B8" font-family="sans-serif" font-size="12">Payer: Abebe Kebede (0911223344)</text><text x="40" y="125" fill="%2394A3B8" font-family="sans-serif" font-size="12">Recipient: Kasma Tech Shop Enterprise</text><text x="40" y="155" fill="%2334D399" font-family="sans-serif" font-weight="bold" font-size="15">Amount: ${cartTotal.toLocaleString()} ETB</text><text x="40" y="185" fill="%23E2E8F0" font-family="monospace" font-size="13">Ref: TX-CBE-${Date.now().toString().slice(-6)}</text><text x="40" y="215" fill="%23A855F7" font-family="sans-serif" font-size="11">Status: SUCCESSFUL / VERIFIED</text><circle cx="340" cy="60" r="16" fill="%2310B981"/><path d="M333 60l5 5 10-10" stroke="white" stroke-width="3" fill="none"/></svg>`;
+    setPaymentScreenshot(demoSvg);
+    setPaymentScreenshotName('cbe_receipt_abebe.png');
+    if (!bankReference) {
+      setBankReference(`FT${Date.now().toString().slice(-8)}`);
+    }
+    showToast(language === 'en' ? 'Demo payment screenshot attached!' : 'የናሙና ክፍያ ደረሰኝ ተያይዟል!', 'info');
+  };
 
   // Promo code states
   const [promoCodeInput, setPromoCodeInput] = useState('');
@@ -637,7 +694,6 @@ export default function CustomerWeb({
 
   // User Profile & Vault State
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [customerEmail, setCustomerEmail] = useState('abebe.bikila@kasma.et');
   const [addresses, setAddresses] = useState<DeliveryAddress[]>([
     {
       id: 'addr-1',
@@ -1576,7 +1632,11 @@ export default function CustomerWeb({
     setPaymentStep('FORM');
     setIsCartOpen(false);
     setSelectedProduct(null);
-    setIsCheckoutOpen(true);
+    if (!isCustomerLoggedIn) {
+      setIsAuthModalOpen(true);
+    } else {
+      setIsCheckoutOpen(true);
+    }
     showToast(
       language === 'en' 
         ? '⚡ Instant checkout initiated! Complete your order details below.' 
@@ -1758,12 +1818,24 @@ export default function CustomerWeb({
       }
       setQrReferenceTx(data.txRef);
 
+      if (paymentMethod === 'BANK') {
+        setGatewayPaymentTab('BANK_RECEIPT');
+        setPaymentStep('GATEWAY');
+        showToast(
+          language === 'en'
+            ? 'Please transfer to the CBE/Abyssinia account and attach your screenshot receipt below.'
+            : 'እባክዎ ወደ ባንክ ሂሳቡ አስገብተው የደረሰኙን ስክሪንሾት ከታች ይጫኑ።',
+          'info'
+        );
+        return;
+      }
+
       if (paymentMethod === 'COD') {
-        completeOrder('PENDING_PAYMENT', data.txRef);
+        completeOrder('PROCESSING', data.txRef);
         showToast(
           language === 'en' 
-            ? `Cash on Delivery order registered! Courier Verification PIN: ${data.verificationPin || '8492'}` 
-            : `የሲኦዲ ትዕዛዝ በማረጋገጫ ፒን ተመዝግቧል፡ ${data.verificationPin || '8492'}`, 
+            ? `Cash on Delivery order confirmed! Courier fleet dispatched (PIN: ${data.verificationPin || '8492'})` 
+            : `የእጅ በእጅ ክፍያ ትዕዛዝ ተረጋግጧል! መልዕክተኛ ተመድቧል (ፒን፡ ${data.verificationPin || '8492'})`, 
           'success'
         );
         return;
@@ -1913,7 +1985,11 @@ export default function CustomerWeb({
           text: language === 'en' ? `CHECKOUT • ${cartTotal.toLocaleString()} ETB` : `ወደ መክፈያ • ${cartTotal.toLocaleString()} ብር`,
           onClick: () => {
             setIsCartOpen(false);
-            setIsCheckoutOpen(true);
+            if (!isCustomerLoggedIn) {
+              setIsAuthModalOpen(true);
+            } else {
+              setIsCheckoutOpen(true);
+            }
           },
           color: '#0052FF'
         });
@@ -1978,6 +2054,8 @@ export default function CustomerWeb({
     const resolvedTxRef = verifiedPaymentId || activePaymentSession?.txRef || (
       paymentMethod === 'TELEBIRR' 
         ? `tb_tx_${Math.random().toString(36).substring(7)}` 
+        : paymentMethod === 'BANK'
+        ? `bank_tx_${bankReference || Math.random().toString(36).substring(7)}`
         : paymentMethod === 'CBE_BIRR'
         ? `cbe_tx_${Math.random().toString(36).substring(7)}`
         : paymentMethod === 'CHAPA'
@@ -1994,7 +2072,7 @@ export default function CustomerWeb({
       subtotal: cartSubtotal,
       shippingFee,
       total: cartTotal,
-      status: overrideStatus || (paymentMethod === 'COD' ? 'PENDING_PAYMENT' : 'PAID'),
+      status: overrideStatus || (paymentMethod === 'COD' ? 'PROCESSING' : 'PAID'),
       paymentMethod,
       paymentId: resolvedTxRef,
       subCity: selectedSubCity,
@@ -2003,7 +2081,17 @@ export default function CustomerWeb({
       createdAt: new Date().toISOString(),
       channel: 'WEB',
       discountCode: appliedPromo ? appliedPromo.code : undefined,
-      discountAmount: activeDiscount > 0 ? activeDiscount : undefined
+      discountAmount: activeDiscount > 0 ? activeDiscount : undefined,
+      paymentScreenshot: paymentScreenshot || undefined,
+      bankName: paymentMethod === 'BANK' ? selectedBank : undefined,
+      merchantTelegramConfirmed: paymentMethod === 'COD' ? true : undefined,
+      deliveryPersonnel: {
+        name: 'Dawit Bekele',
+        phone: '+251 91 199 8877',
+        vehicle: 'TVS Apache Electric Scooter (Plate: AA-3-48192)',
+        eta: '35-45 Minutes to Addis Ababa'
+      },
+      handoverPin: activePaymentSession?.verificationPin || '8492'
     };
 
     // Decrement the physical stock on hand
@@ -2018,6 +2106,7 @@ export default function CustomerWeb({
 
     onAddOrder(newOrder);
     setLastPlacedOrderId(newOrder.id);
+    setLastPlacedOrder(newOrder);
     
     // Dispatch automated Telegram order confirmation receipt to customer
     sendTelegramOrderConfirmation(newOrder, language).catch(err => {
@@ -2076,10 +2165,15 @@ export default function CustomerWeb({
   const closeCheckoutFlow = () => {
     setIsCheckoutOpen(false);
     setPaymentStep('FORM');
-    setCustomerName('');
-    setCustomerPhone('+2519');
-    setCustomerLandmark('');
-    setShippingAddress('');
+    if (!isCustomerLoggedIn) {
+      setCustomerName('');
+      setCustomerPhone('+2519');
+      setCustomerLandmark('');
+    }
+    setPaymentScreenshot(null);
+    setPaymentScreenshotName('');
+    setBankReference('');
+    setMerchantTelegramConfirmed(false);
     setTelebirrOtp('');
     setActivePaymentSession(null);
     setPaymentApiError(null);
@@ -2512,40 +2606,94 @@ export default function CustomerWeb({
 
             {/* Flash Deals: 4-Column Responsive Grid on Desktop (no horizontal overflow/truncation), Scrollable Carousel on Mobile */}
             <div className="flex lg:grid overflow-x-auto lg:overflow-visible lg:grid-cols-4 gap-1.5 sm:gap-4 xl:gap-5 pb-0.5 pt-0.5 no-scrollbar scrollbar-none snap-x snap-mandatory w-full min-w-0 relative z-10">
-              {approvedProducts.slice(0, 4).map((p, idx) => {
-                const originalPrice = p.price;
-                const flashDiscountPct = 30;
-                const flashPrice = Math.round(originalPrice * (1 - flashDiscountPct / 100));
-                
-                // Get simulated claimed percentage
-                const claimedPct = simulatedClaimedQty[p.id] || (55 + (idx * 11));
-                const totalStock = p.variants.reduce((acc, v) => acc + v.onHand, 0);
-                const remainingQty = Math.max(1, Math.round(totalStock * (1 - claimedPct / 100)));
-                const isFavorite = favorites.includes(p.id);
-                const isCompared = comparedProductIds.includes(p.id);
+              {(() => {
+                // Priority-merge merchant nominated flash deals
+                const activeMerchantDeals = flashDeals.filter(d => d.status === 'ACTIVE');
+                const items: Array<{
+                  product: Product;
+                  flashDiscountPct: number;
+                  flashPrice: number;
+                  claimedPct: number;
+                  remainingQty: number;
+                  badgeText?: string;
+                  isMerchantNominated: boolean;
+                }> = [];
 
-                return (
-                  <ProductCard
-                    key={`flash-${p.id}`}
-                    product={p}
-                    language={language}
-                    isFavorite={isFavorite}
-                    onToggleFavorite={handleToggleFavorite}
-                    isCompared={isCompared}
-                    onToggleCompare={handleToggleCompare}
-                    onOpenProduct={handleOpenProduct}
-                    onQuickView={handleOpenQuickBuy}
-                    onAddToCart={addToCart}
-                    onInstantBuy={handleInstantBuy}
-                    showToast={showToast}
-                    flashDiscountPct={flashDiscountPct}
-                    flashPrice={flashPrice}
-                    claimedPct={claimedPct}
-                    remainingQty={remainingQty}
-                    layout="flash"
-                  />
-                );
-              })}
+                // 1. Add merchant nominated deals first
+                activeMerchantDeals.forEach(deal => {
+                  const prod = approvedProducts.find(p => p.id === deal.productId);
+                  if (prod) {
+                    const claimedPct = deal.dealStock > 0 ? Math.min(95, Math.round((deal.claimedStock / deal.dealStock) * 100)) : 50;
+                    const remainingQty = Math.max(1, deal.dealStock - deal.claimedStock);
+
+                    items.push({
+                      product: prod,
+                      flashDiscountPct: deal.discountPct,
+                      flashPrice: deal.flashPrice,
+                      claimedPct: Math.max(25, claimedPct),
+                      remainingQty,
+                      badgeText: deal.bannerTag || `${deal.discountPct}% OFF`,
+                      isMerchantNominated: true
+                    });
+                  }
+                });
+
+                // 2. Backfill with standard approved products if fewer than 4
+                if (items.length < 4) {
+                  const existingProductIds = new Set(items.map(it => it.product.id));
+                  approvedProducts.forEach((p, idx) => {
+                    if (items.length >= 4) return;
+                    if (!existingProductIds.has(p.id)) {
+                      const originalPrice = p.price;
+                      const flashDiscountPct = 30;
+                      const flashPrice = Math.round(originalPrice * (1 - flashDiscountPct / 100));
+                      const claimedPct = simulatedClaimedQty[p.id] || (55 + (idx * 11));
+                      const totalStock = p.variants.reduce((acc, v) => acc + v.onHand, 0);
+                      const remainingQty = Math.max(1, Math.round(totalStock * (1 - claimedPct / 100)));
+
+                      items.push({
+                        product: p,
+                        flashDiscountPct,
+                        flashPrice,
+                        claimedPct,
+                        remainingQty,
+                        badgeText: undefined,
+                        isMerchantNominated: false
+                      });
+                    }
+                  });
+                }
+
+                return items.slice(0, 4).map((item, idx) => {
+                  const p = item.product;
+                  const isFavorite = favorites.includes(p.id);
+                  const isCompared = comparedProductIds.includes(p.id);
+
+                  return (
+                    <ProductCard
+                      key={`flash-${p.id}`}
+                      product={p}
+                      language={language}
+                      isFavorite={isFavorite}
+                      onToggleFavorite={handleToggleFavorite}
+                      isCompared={isCompared}
+                      onToggleCompare={handleToggleCompare}
+                      onOpenProduct={handleOpenProduct}
+                      onQuickView={handleOpenQuickBuy}
+                      onAddToCart={addToCart}
+                      onInstantBuy={handleInstantBuy}
+                      showToast={showToast}
+                      flashDiscountPct={item.flashDiscountPct}
+                      flashPrice={item.flashPrice}
+                      claimedPct={item.claimedPct}
+                      remainingQty={item.remainingQty}
+                      badgeText={item.badgeText}
+                      badgeColor={item.isMerchantNominated ? 'amber' : 'indigo'}
+                      layout="flash"
+                    />
+                  );
+                });
+              })()}
 
               {/* End Card on Mobile: View All Flash Deals */}
               <div 
@@ -5326,9 +5474,14 @@ export default function CustomerWeb({
                 </div>
 
                 <button 
+                  id="cart-drawer-checkout-btn"
                   onClick={() => {
                     setIsCartOpen(false);
-                    setIsCheckoutOpen(true);
+                    if (!isCustomerLoggedIn) {
+                      setIsAuthModalOpen(true);
+                    } else {
+                      setIsCheckoutOpen(true);
+                    }
                   }}
                   className="w-full bg-[#0052FF] hover:bg-blue-600 active:scale-[0.99] text-white py-3 sm:py-3.5 px-3.5 sm:px-5 rounded-2xl transition-all shadow-md hover:shadow-blue-500/25 flex items-center justify-between cursor-pointer"
                 >
@@ -5835,6 +5988,7 @@ export default function CustomerWeb({
                     {/* Telebirr */}
                     <button
                       type="button"
+                      id="payment-method-telebirr"
                       onClick={() => setPaymentMethod('TELEBIRR')}
                       className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                         paymentMethod === 'TELEBIRR' 
@@ -5850,9 +6004,46 @@ export default function CustomerWeb({
                       <span className="text-[8.5px] text-gray-400 dark:text-zinc-400 font-medium">*127# Push</span>
                     </button>
 
+                    {/* Bank Transfer (CBE / BoA / Awash) */}
+                    <button
+                      type="button"
+                      id="payment-method-bank"
+                      onClick={() => setPaymentMethod('BANK')}
+                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
+                        paymentMethod === 'BANK' 
+                          ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/40 ring-2 ring-indigo-600/30 shadow-xs' 
+                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-900 via-blue-900 to-indigo-950 text-white font-mono font-black text-xs flex items-center justify-center shadow-xs border border-white/20">
+                        <Building2 className="w-4 h-4 text-amber-300" />
+                      </div>
+                      <span className="font-extrabold text-[11px] text-gray-900 dark:text-white truncate">Bank Transfer</span>
+                      <span className="text-[8.5px] text-indigo-700 dark:text-indigo-300 font-medium">CBE / BoA / Slip</span>
+                    </button>
+
+                    {/* Cash on Delivery (COD) */}
+                    <button
+                      type="button"
+                      id="payment-method-cod"
+                      onClick={() => setPaymentMethod('COD')}
+                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
+                        paymentMethod === 'COD' 
+                          ? 'border-[#229ED9] bg-[#229ED9]/10 dark:bg-[#229ED9]/25 ring-2 ring-[#229ED9]/30 shadow-xs' 
+                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#229ED9] via-sky-600 to-blue-700 text-white font-black text-xs flex items-center justify-center shadow-xs border border-white/30">
+                        <Truck className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="font-extrabold text-[11px] text-gray-900 dark:text-white truncate">Cash / CoD</span>
+                      <span className="text-[8.5px] text-gray-400 dark:text-zinc-400 font-medium">Telegram Deal</span>
+                    </button>
+
                     {/* CBE Birr */}
                     <button
                       type="button"
+                      id="payment-method-cbe"
                       onClick={() => setPaymentMethod('CBE_BIRR')}
                       className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                         paymentMethod === 'CBE_BIRR' 
@@ -5870,6 +6061,7 @@ export default function CustomerWeb({
                     {/* Chapa Gateway */}
                     <button
                       type="button"
+                      id="payment-method-chapa"
                       onClick={() => setPaymentMethod('CHAPA')}
                       className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
                         paymentMethod === 'CHAPA' 
@@ -5883,24 +6075,78 @@ export default function CustomerWeb({
                       <span className="font-extrabold text-[11px] text-gray-900 dark:text-white truncate">Chapa (ጫፓ)</span>
                       <span className="text-[8.5px] text-gray-400 dark:text-zinc-400 font-medium">Cards & Banks</span>
                     </button>
-
-                    {/* COD */}
-                    <button
-                      type="button"
-                      onClick={() => setPaymentMethod('COD')}
-                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
-                        paymentMethod === 'COD' 
-                          ? 'border-[#229ED9] bg-[#229ED9]/10 dark:bg-[#229ED9]/25 ring-2 ring-[#229ED9]/30 shadow-xs' 
-                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
-                      }`}
-                    >
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#229ED9] via-sky-600 to-blue-700 text-white font-black text-xs flex items-center justify-center shadow-xs border border-white/30">
-                        <Truck className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="font-extrabold text-[11px] text-gray-900 dark:text-white truncate">Cash / CoD</span>
-                      <span className="text-[8.5px] text-gray-400 dark:text-zinc-400 font-medium">Courier PIN</span>
-                    </button>
                   </div>
+
+                  {/* COD Merchant Deal Callout Banner */}
+                  {paymentMethod === 'COD' && (
+                    <div className="p-4 rounded-2xl bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/70 space-y-3 text-left animate-fade-in">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="p-1.5 rounded-xl bg-sky-500 text-white">
+                            <Send className="w-4 h-4" />
+                          </span>
+                          <div>
+                            <h5 className="font-black text-xs text-sky-950 dark:text-sky-200">
+                              {language === 'en' ? 'Direct Merchant Deal & Instant Approval' : 'የነጋዴ ቀጥታ ስምምነት እና ማረጋገጫ'}
+                            </h5>
+                            <p className="text-[10px] text-sky-800/80 dark:text-sky-300/80">
+                              {language === 'en'
+                                ? `Connect directly with ${cart[0]?.product?.merchantName || 'Kasma Electronics Hub'} on Telegram or WhatsApp to agree on COD delivery.`
+                                : `የእጅ በእጅ ክፍያ ዝርዝር ከነጋዴው ጋር በቴሌግራም ወይም በዋትስአፕ በቀጥታ ይስማሙ።`}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-700 dark:text-sky-300 border border-sky-500/30 shrink-0">
+                          3-Click Fast Deal
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        <a
+                          id="cod-telegram-deal-btn"
+                          href={`https://t.me/kasma_admin?text=${encodeURIComponent(
+                            `Hello! I am ${customerName || 'Abebe Kebede'}. I would like to confirm my Cash on Delivery order for ${cart[0]?.product?.nameEn || 'Tech Product'} (${cartTotal.toLocaleString()} ETB) to ${selectedSubCity}, Landmark: ${customerLandmark || 'Near Medhanialem'}. Phone: ${customerPhone}. Please approve dispatch!`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setMerchantTelegramConfirmed(true)}
+                          className="py-2.5 px-3 rounded-xl bg-[#229ED9] hover:bg-[#1d8ebd] text-white font-extrabold text-[11px] flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>{language === 'en' ? '💬 Deal on Telegram' : '💬 በቴሌግራም ስምምነት አድርግ'}</span>
+                        </a>
+
+                        <a
+                          id="cod-whatsapp-deal-btn"
+                          href={`https://wa.me/251911223344?text=${encodeURIComponent(
+                            `Hello! I am ${customerName || 'Abebe Kebede'}. I would like to confirm my Cash on Delivery order for ${cart[0]?.product?.nameEn || 'Tech Product'} (${cartTotal.toLocaleString()} ETB) to ${selectedSubCity}, Landmark: ${customerLandmark || 'Near Medhanialem'}. Phone: ${customerPhone}. Please approve dispatch!`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setMerchantTelegramConfirmed(true)}
+                          className="py-2.5 px-3 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold text-[11px] flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>{language === 'en' ? '💬 Deal on WhatsApp' : '💬 በዋትስአፕ ስምምነት አድርግ'}</span>
+                        </a>
+                      </div>
+
+                      <label className="flex items-center gap-2 text-[11px] font-bold text-sky-950 dark:text-sky-200 cursor-pointer pt-1">
+                        <input
+                          type="checkbox"
+                          id="cod-merchant-approved-check"
+                          checked={merchantTelegramConfirmed}
+                          onChange={(e) => setMerchantTelegramConfirmed(e.target.checked)}
+                          className="rounded text-[#0052FF] focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                        />
+                        <span>
+                          {language === 'en'
+                            ? '✅ Merchant Deal Approved (Immediate Dispatch with Assigned Courier)'
+                            : '✅ ከነጋዴው ጋር ስምምነት ተደርጓል (መልዕክተኛ ተመድቦ ወዲያው ይላክ)'}
+                        </span>
+                      </label>
+                    </div>
+                  )}
 
                   <div className="pt-3 border-t border-gray-100 dark:border-zinc-800 space-y-1.5 text-xs">
                     <div className="flex justify-between text-gray-500 dark:text-zinc-400 font-medium">
@@ -5951,32 +6197,47 @@ export default function CustomerWeb({
               {paymentStep === 'GATEWAY' && (
                 <div className="py-2 space-y-5 text-left">
                   <div className="space-y-4">
-                      {/* Mode Selector Tabs: QR Code vs Direct Push / USSD */}
+                      {/* Mode Selector Tabs: QR Code vs Direct Push / USSD vs Bank Transfer Slip */}
                       <div className="flex bg-gray-100 dark:bg-zinc-800 p-1 rounded-2xl border border-gray-200/70 dark:border-zinc-700">
                         <button
                           type="button"
+                          id="tab-qr-code"
                           onClick={() => setGatewayPaymentTab('QR')}
-                          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                          className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                             gatewayPaymentTab === 'QR'
                               ? 'bg-white dark:bg-zinc-900 text-gray-950 dark:text-white shadow-xs border border-gray-200/80 dark:border-zinc-700 font-black'
                               : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
                           }`}
                         >
-                          <QrCode className="w-4 h-4 text-[#0052FF]" />
-                          <span>{language === 'en' ? 'Scan QR Code' : 'የQR ኮድ ስካን'}</span>
-                          <span className="bg-amber-100 text-amber-800 text-[9px] px-1.5 py-0.5 rounded-full font-bold">Instant</span>
+                          <QrCode className="w-3.5 h-3.5 text-[#0052FF]" />
+                          <span>{language === 'en' ? 'Scan QR' : 'የQR ኮድ'}</span>
                         </button>
                         <button
                           type="button"
+                          id="tab-direct-mobile"
                           onClick={() => setGatewayPaymentTab('DIRECT')}
-                          className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                          className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                             gatewayPaymentTab === 'DIRECT'
                               ? 'bg-white dark:bg-zinc-900 text-gray-950 dark:text-white shadow-xs border border-gray-200/80 dark:border-zinc-700 font-black'
                               : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
                           }`}
                         >
-                          <Smartphone className="w-4 h-4 text-emerald-600" />
-                          <span>{language === 'en' ? 'Direct Mobile / USSD' : 'የስልክ / USSD ክፍያ'}</span>
+                          <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>{language === 'en' ? 'Direct Mobile' : 'የስልክ ክፍያ'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          id="tab-bank-slip-upload"
+                          onClick={() => setGatewayPaymentTab('BANK_RECEIPT')}
+                          className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                            gatewayPaymentTab === 'BANK_RECEIPT'
+                              ? 'bg-white dark:bg-zinc-900 text-gray-950 dark:text-white shadow-xs border border-gray-200/80 dark:border-zinc-700 font-black'
+                              : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
+                          }`}
+                        >
+                          <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>{language === 'en' ? 'Bank & Receipt' : 'ባንክ እና ደረሰኝ'}</span>
+                          <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 text-[8.5px] px-1 py-0.2 rounded-full font-bold">Upload</span>
                         </button>
                       </div>
 
@@ -6329,6 +6590,213 @@ export default function CustomerWeb({
                           )}
                         </div>
                       )}
+
+                      {/* BANK RECEIPT & SCREENSHOT UPLOAD TAB */}
+                      {gatewayPaymentTab === 'BANK_RECEIPT' && (
+                        <div className="space-y-4 text-left animate-fade-in">
+                          {/* Bank Accounts Header */}
+                          <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-900 via-blue-900 to-slate-900 text-white shadow-xs space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="p-1.5 rounded-xl bg-white/15">
+                                  <Building2 className="w-4 h-4 text-amber-300" />
+                                </span>
+                                <div>
+                                  <h4 className="font-black text-sm text-white">
+                                    {language === 'en' ? 'Direct Ethiopian Bank Transfer' : 'የኢትዮጵያ የባንክ ሂሳቦች'}
+                                  </h4>
+                                  <p className="text-[10px] text-blue-200">
+                                    {language === 'en' ? 'Transfer via CBE Mobile, CBE Birr, BoA, or Telebirr' : 'በባንክ አፕ ወይም በቴሌብር በቀጥታ ይክፈሉ'}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right font-mono">
+                                <span className="text-[9px] text-blue-200 block uppercase font-bold">{language === 'en' ? 'Total Payable' : 'ጠቅላላ ክፍያ'}</span>
+                                <span className="text-base font-black text-white">{cartTotal.toLocaleString()} ETB</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Bank Selector Cards */}
+                          <div className="grid grid-cols-3 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedBank('CBE')}
+                              className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                                selectedBank === 'CBE'
+                                  ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/50 ring-2 ring-purple-500/30'
+                                  : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
+                              }`}
+                            >
+                              <span className="font-black text-xs text-purple-900 dark:text-purple-300 block">CBE</span>
+                              <span className="text-[9px] text-gray-500 dark:text-zinc-400">Commercial Bank</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedBank('BOA')}
+                              className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                                selectedBank === 'BOA'
+                                  ? 'border-amber-600 bg-amber-50 dark:bg-amber-950/50 ring-2 ring-amber-500/30'
+                                  : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
+                              }`}
+                            >
+                              <span className="font-black text-xs text-amber-900 dark:text-amber-300 block">Abyssinia</span>
+                              <span className="text-[9px] text-gray-500 dark:text-zinc-400">Bank of Abyssinia</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedBank('AWASH')}
+                              className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                                selectedBank === 'AWASH'
+                                  ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/50 ring-2 ring-blue-500/30'
+                                  : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
+                              }`}
+                            >
+                              <span className="font-black text-xs text-blue-900 dark:text-blue-300 block">Awash</span>
+                              <span className="text-[9px] text-gray-500 dark:text-zinc-400">Awash Bank</span>
+                            </button>
+                          </div>
+
+                          {/* Account Detail Box */}
+                          <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-800/60 border border-gray-200/80 dark:border-zinc-700 space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <div>
+                                <span className="text-[9px] font-bold uppercase text-gray-400 block">
+                                  {selectedBank === 'CBE' ? 'Commercial Bank of Ethiopia (CBE)' : selectedBank === 'BOA' ? 'Bank of Abyssinia' : 'Awash International Bank'}
+                                </span>
+                                <span className="font-mono font-black text-sm text-gray-900 dark:text-white">
+                                  {selectedBank === 'CBE' ? '1000123456789' : selectedBank === 'BOA' ? '88392019' : '01320495820100'}
+                                </span>
+                                <span className="text-[10px] text-gray-500 dark:text-zinc-400 block">
+                                  Account Holder: <strong className="text-gray-800 dark:text-zinc-200">Kasma Tech Shop Enterprise</strong>
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const acc = selectedBank === 'CBE' ? '1000123456789' : selectedBank === 'BOA' ? '88392019' : '01320495820100';
+                                  navigator.clipboard.writeText(acc);
+                                  showToast(language === 'en' ? `Account #${acc} copied to clipboard!` : `የሂሳብ ቁጥር ${acc} ተቀድቷል!`, 'success');
+                                }}
+                                className="px-3 py-1.5 rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-200 hover:bg-gray-100 text-[10px] font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
+                              >
+                                <Copy className="w-3.5 h-3.5 text-gray-500" />
+                                <span>{language === 'en' ? 'Copy Account #' : 'ቁጥሩን ቅዳ'}</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Screenshot Upload Widget */}
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest flex items-center justify-between">
+                              <span className="flex items-center gap-1.5">
+                                <Upload className="w-3.5 h-3.5 text-blue-600" />
+                                <span>{language === 'en' ? 'Upload Payment Screenshot / Transfer Slip *' : 'የክፍያ ደረሰኝ ስክሪንሾት ይጫኑ *'}</span>
+                              </span>
+                              {paymentScreenshot && (
+                                <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  <span>Receipt Attached</span>
+                                </span>
+                              )}
+                            </label>
+
+                            <input
+                              type="file"
+                              id="payment-screenshot-file-input"
+                              accept="image/*"
+                              onChange={handleScreenshotFileChange}
+                              className="hidden"
+                            />
+
+                            {paymentScreenshot ? (
+                              <div className="p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800 flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <img
+                                    src={paymentScreenshot}
+                                    alt="Payment Screenshot Preview"
+                                    className="w-14 h-14 object-cover rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-2xs shrink-0 bg-white"
+                                  />
+                                  <div className="min-w-0">
+                                    <p className="font-bold text-xs text-emerald-950 dark:text-emerald-200 truncate">
+                                      {paymentScreenshotName || 'payment_receipt.png'}
+                                    </p>
+                                    <p className="text-[10px] text-emerald-700 dark:text-emerald-400">
+                                      {language === 'en' ? 'Screenshot verified & ready for review' : 'ደረሰኙ ለፍተሻ ተዘጋጅቷል'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => document.getElementById('payment-screenshot-file-input')?.click()}
+                                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-emerald-300 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 cursor-pointer"
+                                  >
+                                    {language === 'en' ? 'Change' : 'ቀይር'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setPaymentScreenshot(null);
+                                      setPaymentScreenshotName('');
+                                    }}
+                                    className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
+                                    title="Remove"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div
+                                onClick={() => document.getElementById('payment-screenshot-file-input')?.click()}
+                                className="border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-[#0052FF] p-4 rounded-2xl text-center space-y-2 cursor-pointer bg-gray-50/50 dark:bg-zinc-900/50 transition-all hover:bg-blue-50/20"
+                              >
+                                <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] flex items-center justify-center mx-auto">
+                                  <Upload className="w-5 h-5" />
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-gray-800 dark:text-zinc-200">
+                                    {language === 'en' ? 'Click to upload payment screenshot (JPEG/PNG)' : 'የደረሰኝ ስክሪንሾት ለመጫን እዚህ ይጫኑ'}
+                                  </p>
+                                  <p className="text-[10px] text-gray-400">
+                                    {language === 'en' ? 'Take a screenshot of your CBE / Telebirr confirmation SMS or app' : 'ከስልክዎ ወይም ከአፕሊኬሽኑ የተገኘውን ማረጋገጫ ያያይዙ'}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Demo screenshot shortcut for rapid test */}
+                            <div className="flex items-center justify-between pt-1">
+                              <button
+                                type="button"
+                                id="demo-attach-screenshot-btn"
+                                onClick={handleUseDemoScreenshot}
+                                className="text-[10px] font-bold text-[#0052FF] hover:underline flex items-center gap-1 cursor-pointer"
+                              >
+                                <Sparkles className="w-3 h-3 text-amber-500" />
+                                <span>{language === 'en' ? '⚡ 1-Click Attach Sample Receipt (Demo)' : '⚡ የናሙና ደረሰኝ በ1-ጠቅታ አያይዝ'}</span>
+                              </button>
+                              <span className="text-[9px] text-gray-400">Min. 300x300px image</span>
+                            </div>
+                          </div>
+
+                          {/* Reference Number input */}
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest">
+                              {language === 'en' ? 'Bank Transfer Reference / Transaction ID' : 'የባንክ መለያ ቁጥር (Transaction Ref)'}
+                            </label>
+                            <input
+                              type="text"
+                              id="bank-reference-input"
+                              placeholder="e.g. FT2610294820 or CBE-984210"
+                              value={bankReference}
+                              onChange={(e) => setBankReference(e.target.value)}
+                              className="w-full border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded-xl px-3 py-2 text-xs font-mono font-bold text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                   {/* Shared Gateway Action Footer Buttons */}
@@ -6340,24 +6808,47 @@ export default function CustomerWeb({
                     >
                       {language === 'en' ? 'Back to Address' : 'ወደ አድራሻ ተመለስ'}
                     </button>
-                    <button
-                      type="button"
-                      disabled={isProcessingPayment}
-                      onClick={handleVerifyPaymentApi}
-                      className="px-6 py-2.5 bg-[#0052FF] hover:bg-blue-600 text-white rounded-full text-xs font-black flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md disabled:opacity-60"
-                    >
-                      {isProcessingPayment ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                          <span>{language === 'en' ? 'Verifying with Payment API...' : 'ከክፍያ ጌትዌይ ጋር በማረጋገጥ ላይ...'}</span>
-                        </>
-                      ) : (
-                        <>
-                          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                          <span>{language === 'en' ? 'Verify with Payment Gateway API ✔' : 'በክፍያ ጌትዌይ አረጋግጥ ✔'}</span>
-                        </>
-                      )}
-                    </button>
+                    {gatewayPaymentTab === 'BANK_RECEIPT' ? (
+                      <button
+                        type="button"
+                        id="submit-bank-payment-btn"
+                        onClick={() => {
+                          if (!paymentScreenshot) {
+                            handleUseDemoScreenshot();
+                          }
+                          completeOrder('PAID', bankReference || `bank_ref_${Date.now().toString(36)}`);
+                          showToast(
+                            language === 'en'
+                              ? 'Payment screenshot submitted! Order is confirmed and courier assigned.'
+                              : 'የክፍያ ደረሰኝ ተልኳል! ትዕዛዝዎ ተረጋግጦ መልዕክተኛ ተመድቧል።',
+                            'success'
+                          );
+                        }}
+                        className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 hover:from-indigo-500 hover:to-blue-500 text-white rounded-full text-xs font-black flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md active:scale-95"
+                      >
+                        <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                        <span>{language === 'en' ? 'Submit Screenshot & Confirm Order 🔒' : 'ደረሰኝ አረጋግጥ እና ትዕዛዝ አጠናቅቅ 🔒'}</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={isProcessingPayment}
+                        onClick={handleVerifyPaymentApi}
+                        className="px-6 py-2.5 bg-[#0052FF] hover:bg-blue-600 text-white rounded-full text-xs font-black flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md disabled:opacity-60"
+                      >
+                        {isProcessingPayment ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                            <span>{language === 'en' ? 'Verifying with Payment API...' : 'ከክፍያ ጌትዌይ ጋር በማረጋገጥ ላይ...'}</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                            <span>{language === 'en' ? 'Verify with Payment Gateway API ✔' : 'በክፍያ ጌትዌይ አረጋግጥ ✔'}</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -6462,6 +6953,116 @@ export default function CustomerWeb({
                       </div>
                     </div>
                   )}
+
+                  {/* Assigned Delivery Personnel Card */}
+                  <div id="assigned-delivery-personnel-card" className="no-print-action text-left p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-blue-500/10 border border-emerald-500/30 dark:border-emerald-500/40 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-bold shadow-sm">
+                          <Truck className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-black uppercase text-emerald-700 dark:text-emerald-400 tracking-wider block">
+                            {language === 'en' ? 'Assigned Express Courier' : 'የተመደበ ፈጣን መልዕክተኛ'}
+                          </span>
+                          <h4 className="font-black text-sm text-gray-900 dark:text-white">
+                            {lastPlacedOrder?.deliveryPersonnel?.name || 'Dawit Bekele'}
+                          </h4>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                        {language === 'en' ? '⚡ DISPATCH EN ROUTE' : '⚡ በመንገድ ላይ'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+                      <div className="p-2.5 rounded-xl bg-white/80 dark:bg-zinc-900/80 border border-emerald-200/60 dark:border-emerald-900/40 space-y-0.5">
+                        <span className="text-[9px] text-gray-400 uppercase font-bold block">{language === 'en' ? 'Courier Mobile' : 'የመልዕክተኛ ስልክ'}</span>
+                        <a href={`tel:${lastPlacedOrder?.deliveryPersonnel?.phone || '+251911998877'}`} className="font-mono font-bold text-[#0052FF] hover:underline flex items-center gap-1">
+                          <Phone className="w-3 h-3" />
+                          <span>{lastPlacedOrder?.deliveryPersonnel?.phone || '+251 91 199 8877'}</span>
+                        </a>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-white/80 dark:bg-zinc-900/80 border border-emerald-200/60 dark:border-emerald-900/40 space-y-0.5">
+                        <span className="text-[9px] text-gray-400 uppercase font-bold block">{language === 'en' ? 'Vehicle & Plate' : 'ተሽከርካሪ እና ታርጋ'}</span>
+                        <span className="font-semibold text-gray-800 dark:text-zinc-200 truncate block">
+                          {lastPlacedOrder?.deliveryPersonnel?.vehicle || 'TVS Apache Electric Scooter (AA-3-48192)'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-emerald-500/20">
+                      <span className="text-gray-600 dark:text-zinc-300 font-medium">
+                        {language === 'en' ? 'Estimated Arrival in Addis Ababa:' : 'የሚደርስበት ግምት፡'}
+                      </span>
+                      <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">
+                        {lastPlacedOrder?.deliveryPersonnel?.eta || '35-45 Minutes'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Purchased Item Details Summary */}
+                  <div id="purchased-items-summary-card" className="text-left p-4 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-gray-200/80 dark:border-zinc-800 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs font-black uppercase text-gray-400 tracking-wider">
+                      <span>{language === 'en' ? 'Purchased Items Summary' : 'የተገዙ እቃዎች ዝርዝር'}</span>
+                      <span className="font-mono text-gray-900 dark:text-white">{lastPlacedOrder ? lastPlacedOrder.total.toLocaleString() : cartTotal.toLocaleString()} ETB</span>
+                    </div>
+
+                    <div className="divide-y divide-gray-150 dark:divide-zinc-800/80 max-h-40 overflow-y-auto pr-1">
+                      {(lastPlacedOrder?.items || cart).map((item, idx) => (
+                        <div key={idx} className="py-2 flex items-center justify-between text-xs gap-2">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <img src={item.product?.image} alt="" className="w-8 h-8 rounded-lg object-cover bg-white shrink-0 border border-gray-200 dark:border-zinc-800" />
+                            <div className="min-w-0">
+                              <p className="font-bold text-gray-900 dark:text-white truncate text-[11px]">{item.product?.nameEn}</p>
+                              <p className="text-[10px] text-gray-400">Qty: {item.quantity} • {item.variantName}</p>
+                            </div>
+                          </div>
+                          <span className="font-mono font-bold text-gray-900 dark:text-zinc-200 text-xs shrink-0">
+                            {(item.price * item.quantity).toLocaleString()} ETB
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-2 border-t border-gray-200 dark:border-zinc-800 flex justify-between items-center text-xs">
+                      <span className="text-gray-500 font-medium">{language === 'en' ? 'Payment Method:' : 'የክፍያ መንገድ፡'}</span>
+                      <span className="font-black text-gray-900 dark:text-white uppercase font-mono">{lastPlacedOrder?.paymentMethod || paymentMethod}</span>
+                    </div>
+                  </div>
+
+                  {/* Delivery Dispatched Multi-Channel Status Badges */}
+                  <div id="dispatch-notifications-status-card" className="no-print-action grid grid-cols-1 sm:grid-cols-3 gap-2 text-left">
+                    <div className="p-3 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/40 space-y-1">
+                      <div className="flex items-center gap-1.5 text-blue-700 dark:text-blue-300 font-bold text-[10px] uppercase">
+                        <span>📧</span>
+                        <span>{language === 'en' ? 'Email Dispatched' : 'ኢሜይል ተልኳል'}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-600 dark:text-zinc-400 truncate">
+                        {customerEmail || 'abebe@gmail.com'}
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-900/40 space-y-1">
+                      <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300 font-bold text-[10px] uppercase">
+                        <span>📱</span>
+                        <span>{language === 'en' ? 'SMS Dispatched' : 'ኤስኤምኤስ ተልኳል'}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-600 dark:text-zinc-400 truncate">
+                        {customerPhone || '+251 91 122 3344'}
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200/60 dark:border-sky-900/40 space-y-1">
+                      <div className="flex items-center gap-1.5 text-sky-700 dark:text-sky-300 font-bold text-[10px] uppercase">
+                        <span>✈️</span>
+                        <span>{language === 'en' ? 'Telegram / WhatsApp' : 'ቴሌግራም/ዋትስአፕ'}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-600 dark:text-zinc-400 truncate">
+                        @KasmaShopBot Alert
+                      </p>
+                    </div>
+                  </div>
 
                   {/* Approximate Courier Location Mini-Map for Addis Ababa Orders */}
                   <div className="no-print-action text-left">
@@ -7553,6 +8154,7 @@ export default function CustomerWeb({
         onOpenProduct={handleOpenProduct}
         onAddToCart={addToCart}
         showToast={showToast}
+        flashDeals={flashDeals}
       />
 
       {/* MOBILE BOTTOM NAVIGATION TAB BAR */}
@@ -7990,6 +8592,16 @@ export default function CustomerWeb({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Checkout Authentication Barrier Modal */}
+      <CheckoutAuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={() => {
+          setIsAuthModalOpen(false);
+          setIsCheckoutOpen(true);
+        }}
+      />
 
     </div>
   );
