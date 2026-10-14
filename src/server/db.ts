@@ -862,4 +862,36 @@ export class MerchantService {
     db.save();
     return true;
   }
+
+  public static updateStoreProfile(merchantId: string, profileData: Partial<Merchant>): { success: boolean; merchant?: Merchant; error?: string } {
+    const merchant = db.merchants.find(m => m.id === merchantId);
+    if (!merchant) return { success: false, error: 'Merchant not found' };
+
+    if (profileData.storeName !== undefined) merchant.storeName = profileData.storeName.trim();
+    if (profileData.ownerName !== undefined) merchant.ownerName = profileData.ownerName.trim();
+    if (profileData.phone !== undefined) merchant.phone = profileData.phone.trim();
+    if (profileData.email !== undefined) merchant.email = profileData.email.trim();
+    if (profileData.locationAddress !== undefined) merchant.locationAddress = profileData.locationAddress;
+    if (profileData.subCity !== undefined) merchant.subCity = profileData.subCity;
+    if (profileData.woreda !== undefined) merchant.woreda = profileData.woreda;
+    if (profileData.building !== undefined) merchant.building = profileData.building;
+    if (profileData.shopNumber !== undefined) merchant.shopNumber = profileData.shopNumber;
+    if (profileData.landmark !== undefined) merchant.landmark = profileData.landmark;
+    if (profileData.openingHours !== undefined) merchant.openingHours = profileData.openingHours;
+    if (profileData.pickupInstructions !== undefined) merchant.pickupInstructions = profileData.pickupInstructions;
+    if (profileData.allowCustomerPickup !== undefined) merchant.allowCustomerPickup = Boolean(profileData.allowCustomerPickup);
+    if (profileData.latitude !== undefined) merchant.latitude = profileData.latitude;
+    if (profileData.longitude !== undefined) merchant.longitude = profileData.longitude;
+
+    db.logAudit(
+      `Merchant: ${merchant.storeName}`,
+      'STORE_PROFILE_UPDATED',
+      `Updated physical pickup location: ${merchant.subCity || 'Addis Ababa'}, Building: ${merchant.building || 'N/A'}, Shop: ${merchant.shopNumber || 'N/A'}. In-Store Pickup: ${merchant.allowCustomerPickup ? 'ENABLED' : 'DISABLED'}.`,
+      'INFO'
+    );
+
+    db.save();
+    CloudSqlProductService.saveMerchant(merchant).catch(() => {});
+    return { success: true, merchant };
+  }
 }

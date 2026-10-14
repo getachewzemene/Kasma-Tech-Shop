@@ -189,6 +189,18 @@ export interface Merchant {
   kycDocument?: string;
   balance: number;
   payouts: Payout[];
+  // Physical Store & Addis Ababa Pickup Location Profile
+  locationAddress?: string;
+  subCity?: string;
+  woreda?: string;
+  building?: string;
+  shopNumber?: string;
+  landmark?: string;
+  openingHours?: string;
+  pickupInstructions?: string;
+  allowCustomerPickup?: boolean;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface Payout {

@@ -39,7 +39,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Menu,
-  MessageCircle
+  MessageCircle,
+  MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -58,6 +59,7 @@ import KycTab from './merchant/KycTab';
 import ForecastTab from './merchant/ForecastTab';
 import PerformanceTab from './merchant/PerformanceTab';
 import StockActivityTab from './merchant/StockActivityTab';
+import StoreProfileTab from './merchant/StoreProfileTab';
 import { SyncStatusButton } from './common/SyncStatusButton';
 
 interface MerchantPortalProps {
@@ -130,7 +132,7 @@ export default function MerchantPortal({
   }, [merchants, selectedMerchantId]);
 
   // Main navigation tab & Collapsible Sidebar State
-  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'ORDERS' | 'CATALOG' | 'STOCK' | 'STOCK_ACTIVITY' | 'FORECAST' | 'PERFORMANCE' | 'PAYOUT' | 'KYC'>('DASHBOARD');
+  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'ORDERS' | 'CATALOG' | 'STOCK' | 'STOCK_ACTIVITY' | 'FORECAST' | 'PERFORMANCE' | 'PAYOUT' | 'KYC' | 'STORE_PROFILE'>('DASHBOARD');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Low stock background alarm system
@@ -599,6 +601,26 @@ export default function MerchantPortal({
           </button>
 
           <button
+            onClick={() => setActiveTab('STORE_PROFILE')}
+            title={language === 'en' ? 'Store Profile & Physical Pickup' : 'የመደብር አድራሻ እና መውሰጃ'}
+            className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-3'} rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'STORE_PROFILE'
+                ? 'bg-black text-white dark:bg-white dark:text-zinc-900 shadow-xs'
+                : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900'
+            }`}
+          >
+            <span className="flex items-center gap-2.5">
+              <MapPin className="w-4.5 h-4.5 shrink-0 text-[#0052FF]" />
+              {!isSidebarCollapsed && <span>{language === 'en' ? 'Store & Pickup Location' : 'የመደብር አድራሻ'}</span>}
+            </span>
+            {!isSidebarCollapsed && (
+              <span className="bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[8px] px-1.5 py-0.5 rounded font-black uppercase">
+                ADDIS
+              </span>
+            )}
+          </button>
+
+          <button
             onClick={() => setActiveTab('STOCK')}
             title={language === 'en' ? 'Stock & SKU Audit' : 'የክምችት ኦዲት'}
             className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3 relative' : 'justify-between px-3.5 py-3'} rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -815,6 +837,18 @@ export default function MerchantPortal({
           >
             <PlusCircle className="w-3.5 h-3.5" />
             <span>{language === 'en' ? 'Catalog' : 'ካታሎግ'}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('STORE_PROFILE')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'STORE_PROFILE'
+                ? 'bg-black text-white dark:bg-white dark:text-zinc-900 shadow-xs'
+                : 'text-gray-600 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-900'
+            }`}
+          >
+            <MapPin className="w-3.5 h-3.5 text-[#0052FF]" />
+            <span>{language === 'en' ? 'Store & Pickup' : 'መደብር አድራሻ'}</span>
           </button>
 
           <button
@@ -1152,6 +1186,17 @@ export default function MerchantPortal({
                   currentMerchant={currentMerchant}
                   onUpdateMerchantKyc={onUpdateMerchantKyc}
                   language={language}
+                />
+              )}
+
+              {activeTab === 'STORE_PROFILE' && (
+                <StoreProfileTab
+                  currentMerchant={currentMerchant}
+                  onProfileUpdated={async () => {
+                    await onOrderUpdated?.({} as any);
+                  }}
+                  language={language}
+                  showToast={showToast}
                 />
               )}
             </motion.div>

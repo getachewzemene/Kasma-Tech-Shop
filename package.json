@@ -9,6 +9,8 @@
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
+    "test:responsive": "tsx scripts/test-responsive.ts",
+    "test": "tsx scripts/test-responsive.ts",
     "db:push": "drizzle-kit push --config=src/db/drizzle.config.ts",
     "db:seed": "tsx src/db/seed.ts",
     "db:studio": "drizzle-kit studio --config=src/db/drizzle.config.ts"

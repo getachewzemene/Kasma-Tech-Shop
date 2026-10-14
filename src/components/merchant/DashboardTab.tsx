@@ -16,7 +16,10 @@ import {
   Activity, 
   Users, 
   ExternalLink,
-  MessageCircle
+  MessageCircle,
+  MapPin,
+  Building,
+  Clock
 } from 'lucide-react';
 import { dispatchBulkWhatsAppLowStockAlert } from '../../utils/whatsappNotifications';
 import {
@@ -41,7 +44,7 @@ interface DashboardTabProps {
   stockLogs: StockMovementLog[];
   orders: Order[];
   language: 'en' | 'am';
-  onNavigateToTab: (tab: 'DASHBOARD' | 'CATALOG' | 'STOCK' | 'FORECAST' | 'PERFORMANCE' | 'PAYOUT' | 'KYC') => void;
+  onNavigateToTab: (tab: 'DASHBOARD' | 'CATALOG' | 'STOCK' | 'FORECAST' | 'PERFORMANCE' | 'PAYOUT' | 'KYC' | 'STORE_PROFILE') => void;
 }
 
 export default function DashboardTab({
@@ -522,6 +525,50 @@ export default function DashboardTab({
         orders={orders}
         language={language}
       />
+
+      {/* Addis Ababa Physical Storefront & Pickup Hub Widget */}
+      <div className="bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-emerald-50/40 dark:from-blue-950/20 dark:via-zinc-900 dark:to-emerald-950/20 border border-blue-200/70 dark:border-blue-900/40 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5 min-w-0">
+          <div className="w-11 h-11 rounded-xl bg-[#0052FF] text-white flex items-center justify-center shrink-0 shadow-sm">
+            <MapPin className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-extrabold text-xs uppercase tracking-wider text-gray-900 dark:text-white">
+                {language === 'en' ? 'Physical Storefront & Pickup Hub' : 'የአዲስ አበባ ሱቅ እና እቃ መውሰጃ ማዕከል'}
+              </h3>
+              <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
+                currentMerchant.allowCustomerPickup !== false 
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300' 
+                  : 'bg-amber-100 text-amber-700 dark:bg-amber-950/80 dark:text-amber-300'
+              }`}>
+                {currentMerchant.allowCustomerPickup !== false
+                  ? (language === 'en' ? 'Pickup Active' : 'መውሰድ ክፍት ነው')
+                  : (language === 'en' ? 'Delivery Only' : 'ማድረስ ብቻ')}
+              </span>
+            </div>
+            <p className="text-xs font-bold text-gray-800 dark:text-zinc-200 mt-1 truncate">
+              {currentMerchant.building || 'Edna Mall / Medhanialem Center'}, {currentMerchant.shopNumber || 'Shop #204'}, {currentMerchant.subCity || 'Bole'} ({currentMerchant.woreda || 'Woreda 03'})
+            </p>
+            <p className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5 flex items-center gap-2 flex-wrap">
+              <span className="flex items-center gap-1">
+                <Clock className="w-3 h-3 text-blue-500" />
+                <span>{currentMerchant.openingHours || 'Mon - Sat: 9:00 AM - 8:00 PM'}</span>
+              </span>
+              <span>•</span>
+              <span>📞 {currentMerchant.phone || '+251 91 100 0000'}</span>
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => onNavigateToTab('STORE_PROFILE')}
+          className="px-4 py-2.5 rounded-xl bg-white dark:bg-zinc-800 hover:bg-[#0052FF] hover:text-white text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs shrink-0 self-stretch md:self-auto"
+        >
+          <Building className="w-4 h-4 text-[#0052FF] group-hover:text-white" />
+          <span>{language === 'en' ? 'Edit Store & Pickup Location' : 'የሱቅ አድራሻ አዘምን'} →</span>
+        </button>
+      </div>
 
       {/* Merchant Insights Widget - Daily Sales Volume & Top-Performing SKUs */}
       <MerchantInsightsWidget

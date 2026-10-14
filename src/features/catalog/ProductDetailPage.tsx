@@ -22,7 +22,8 @@ import {
   Send,
   FileBadge,
   QrCode,
-  Scale
+  Scale,
+  MapPin
 } from 'lucide-react';
 import { DigitalWarrantyPass } from '../../types';
 import { DigitalWarrantyPassModal } from '../../components/warranty/DigitalWarrantyPassModal';
@@ -636,6 +637,19 @@ export const ProductDetailPage: React.FC = () => {
                 <p className="text-[11px] text-gray-500 dark:text-zinc-400">
                   {merchant?.ownerName ? `${merchant.ownerName} • ` : ''}Verified Ethiopian Seller • Kasma Escrow Protected
                 </p>
+                {(merchant?.subCity || merchant?.building) && (
+                  <div className="flex items-center gap-1.5 text-[10.5px] text-gray-700 dark:text-zinc-300 font-medium mt-1 flex-wrap">
+                    <MapPin className="w-3.5 h-3.5 text-[#0052FF] shrink-0" />
+                    <span>
+                      {[merchant.building, merchant.shopNumber, merchant.subCity ? `${merchant.subCity}, Addis Ababa` : 'Addis Ababa'].filter(Boolean).join(', ')}
+                    </span>
+                    {merchant.allowCustomerPickup !== false && (
+                      <span className="bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-[9px] font-black px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                        {language === 'en' ? 'Store Pickup' : 'በአካል መውሰድ'}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 

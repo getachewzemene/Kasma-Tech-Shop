@@ -1242,6 +1242,16 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
     res.json(MerchantService.getMerchants());
   });
 
+  // Update Merchant Physical Store Profile & Pickup Location
+  app.put('/api/merchants/:id/profile', requireMerchant, (req: AuthRequest, res) => {
+    const result = MerchantService.updateStoreProfile(req.params.id, req.body || {});
+    if (!result.success) {
+      res.status(404).json({ error: result.error || 'Merchant store not found.' });
+      return;
+    }
+    res.json({ success: true, merchant: result.merchant, merchants: db.merchants });
+  });
+
   app.post('/api/merchants/:id/payout', requireMerchant, (req: AuthRequest, res) => {
     const { amount, bank, account } = req.body;
     if (!amount || !bank || !account) {

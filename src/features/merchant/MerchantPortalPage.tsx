@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useShop } from '../../context/ShopContext';
 import MerchantPortal from '../../components/MerchantPortal';
 import { MerchantTelegramQrLogin } from '../../components/merchant/MerchantTelegramQrLogin';
@@ -16,6 +16,24 @@ export const MerchantPortalPage: React.FC = () => {
     showToast,
     refreshState 
   } = useShop();
+
+  const [stockLogs, setStockLogs] = useState<any[]>([]);
+
+  // Fetch real stock movement logs for merchant audit
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const res = await fetch('/api/stock-logs');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) setStockLogs(data);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch stock logs:', err);
+      }
+    };
+    fetchLogs();
+  }, []);
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     const isMerch = localStorage.getItem('kasma_merchant_auth') === 'true' && !!localStorage.getItem('kasma_merchant_token');
@@ -168,6 +186,56 @@ export const MerchantPortalPage: React.FC = () => {
       showToast('Product draft submitted for admin approval', 'success');
     } catch (err: any) {
       showToast(err.message || 'Failed to save product draft', 'error');
+    }
+  };
+
+  const handleRequestPayout = async (merchantId: string, amount: number, bank: string, account: string) => {
+    try {
+      const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/merchants/${merchantId}/payout`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ amount, bank, account })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to submit payout request');
+      await refreshState();
+      showToast(
+        language === 'en'
+          ? `Payout request for ${amount.toLocaleString()} ETB submitted successfully!`
+          : `የ ${amount.toLocaleString()} ETB ክፍያ ጥያቄ በተሳካ ሁኔታ ቀርቧል!`,
+        'success'
+      );
+    } catch (err: any) {
+      showToast(err.message || 'Payout request failed', 'error');
+    }
+  };
+
+  const handleUpdateMerchantKyc = async (merchantId: string, _status: string, docName?: string) => {
+    try {
+      const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/merchants/${merchantId}/kyc`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ docUrl: docName || 'Trade_License_2026.pdf' })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to submit KYC documents');
+      await refreshState();
+      showToast(
+        language === 'en'
+          ? 'Corporate KYC compliance documents dispatched to legal team!'
+          : 'የKYC ማረጋገጫ ሰነዶች ለህግ ቡድን በተሳካ ሁኔታ ተልከዋል!',
+        'success'
+      );
+    } catch (err: any) {
+      showToast(err.message || 'KYC submission failed', 'error');
     }
   };
 
@@ -393,13 +461,13 @@ export const MerchantPortalPage: React.FC = () => {
       <MerchantPortal
         products={products}
         merchants={merchants}
-        stockLogs={[]}
+        stockLogs={stockLogs}
         orders={orders}
         onAddProduct={handleAddProduct}
         onUpdateProductStock={updateProductStock}
         onAddAuditLog={() => {}}
-        onUpdateMerchantKyc={() => {}}
-        onRequestPayout={() => {}}
+        onUpdateMerchantKyc={handleUpdateMerchantKyc}
+        onRequestPayout={handleRequestPayout}
         language={language}
         onLogout={handleLogout}
         onOrderUpdated={async () => { await refreshState(); }}
