@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Product, Merchant, Order, StockMovementLog, AuditLog, TelegramAlert, Payout } from '../types';
+import { Product, Merchant, Order, StockMovementLog, AuditLog, TelegramAlert, Payout, DigitalWarrantyPass, WarrantyClaim } from '../types';
 import { 
   INITIAL_PRODUCTS, 
   INITIAL_MERCHANTS, 
@@ -681,6 +681,221 @@ export class OrderService {
     ).catch(err => console.warn('Telegram fulfillment notification dispatch warning:', err));
 
     return { success: true, order };
+  }
+
+  // One-Click Platform Courier Dispatch Fleet Request
+  public static requestDispatchFleet(
+    orderId: string,
+    merchantId: string,
+    pickupInfo?: {
+      storeName?: string;
+      phone?: string;
+      locationAddress?: string;
+      subCity?: string;
+      woreda?: string;
+      building?: string;
+      shopNumber?: string;
+      landmark?: string;
+      pickupInstructions?: string;
+      coordinates?: { lat: number; lng: number };
+    }
+  ): { success: boolean; order?: Order; error?: string } {
+    const order = db.orders.find(o => o.id === orderId);
+    if (!order) {
+      return { success: false, error: 'Order not found.' };
+    }
+
+    const merchant = db.merchants.find(m => m.id === merchantId);
+    const storeName = pickupInfo?.storeName || merchant?.storeName || 'Kasma Partner Merchant';
+    const now = new Date().toISOString();
+
+    order.dispatchRequested = true;
+    order.dispatchRequestedAt = now;
+
+    // Auto-advance to PROCESSING (Packed & ready for fleet collection) if in PENDING state
+    if (order.status === 'PENDING_PAYMENT' || order.status === 'PAID') {
+      order.status = 'PROCESSING';
+      order.packedAt = now;
+    }
+
+    if (pickupInfo?.coordinates) {
+      order.dispatchPickupCoordinates = pickupInfo.coordinates;
+    } else if (merchant?.latitude && merchant?.longitude) {
+      order.dispatchPickupCoordinates = { lat: merchant.latitude, lng: merchant.longitude };
+    }
+
+    if (pickupInfo?.locationAddress) {
+      order.dispatchPickupAddress = pickupInfo.locationAddress;
+    } else if (merchant?.locationAddress) {
+      order.dispatchPickupAddress = merchant.locationAddress;
+    }
+
+    db.save();
+    CloudSqlProductService.saveOrder(order).catch(() => {});
+
+    const coordsStr = order.dispatchPickupCoordinates 
+      ? `GPS: ${order.dispatchPickupCoordinates.lat.toFixed(4)}, ${order.dispatchPickupCoordinates.lng.toFixed(4)}`
+      : 'Bole Hub GPS';
+
+    db.logAudit(
+      storeName,
+      'KASMA_FLEET_DISPATCH_REQUESTED',
+      `Merchant requested Kasma Express Motorcycle & Van Fleet for Order #${order.id}. Store Pickup: ${order.dispatchPickupAddress || storeName} (${coordsStr}). Payout to Courier: ${(order.shippingFee || 150).toLocaleString()} ETB.`,
+      'INFO'
+    );
+
+    db.logTelegramAlert(
+      'DISPATCH_REQUESTED',
+      `🛵 KASMA DISPATCH FLEET PING: Order #${order.id} pickup requested by ${storeName} at ${order.dispatchPickupAddress || 'Addis Ababa'}. ${coordsStr}.`,
+      order.id
+    );
+
+    return { success: true, order };
+  }
+
+  // Digital Warranty Repair & Replacement Logging Action
+  public static processWarrantyServiceAction(params: {
+    serialNumber: string;
+    action: 'APPROVED_REPAIR' | 'APPROVED_REPLACEMENT' | 'UNDER_REVIEW' | 'REJECTED';
+    issueType: 'SCREEN_DISPLAY' | 'BATTERY_CHARGING' | 'MOTHERBOARD_POWER' | 'AUDIO_SPEAKER' | 'ACCESSORY_DEFECT' | 'OTHER';
+    resolutionNotes: string;
+    technicianName: string;
+    replacementSerial?: string;
+    claimId?: string;
+    orderId?: string;
+    warrantyId?: string;
+    merchantStoreName?: string;
+  }): { success: boolean; claim: WarrantyClaim; warranty?: DigitalWarrantyPass; error?: string } {
+    const q = params.serialNumber.trim().toUpperCase();
+    const now = new Date().toISOString();
+
+    // Find matching order containing this serial number or orderId
+    let order = db.orders.find(o => 
+      (params.orderId && o.id === params.orderId) ||
+      o.items.some(i => i.serialNumber?.toUpperCase() === q || i.imei === q) ||
+      (o.warranties && o.warranties.some(w => w.serialNumber.toUpperCase() === q || w.id === params.warrantyId))
+    );
+
+    let warranty: DigitalWarrantyPass | undefined;
+
+    if (order) {
+      if (order.warranties) {
+        warranty = order.warranties.find(w => w.serialNumber.toUpperCase() === q || w.id === params.warrantyId);
+      }
+      if (!warranty) {
+        const item = order.items.find(i => i.serialNumber?.toUpperCase() === q || i.imei === q) || order.items[0];
+        if (item) {
+          warranty = {
+            id: `KASMA-WAR-${order.id.slice(-5)}-${Math.floor(100 + Math.random() * 900)}`,
+            orderId: order.id,
+            productId: item.product.id,
+            productNameEn: item.product.nameEn,
+            productNameAm: item.product.nameAm,
+            brand: item.product.brand || 'Kasma Certified',
+            sku: item.sku,
+            variantName: item.variantName || 'Standard',
+            serialNumber: params.serialNumber,
+            customerName: order.customerName,
+            customerPhone: order.customerPhone,
+            merchantName: params.merchantStoreName || item.product.merchantName || 'Kasma Partner',
+            issueDate: order.createdAt,
+            expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            warrantyMonths: 12,
+            status: 'ACTIVE',
+            coverageType: 'FULL_HARDWARE_REPLACEMENT',
+            qrVerificationUrl: `https://kasma.et/verify-warranty?serial=${encodeURIComponent(params.serialNumber)}`,
+            tamperProofHash: `ET-WAR-${Math.floor(100000 + Math.random() * 900000)}`
+          };
+          if (!order.warranties) order.warranties = [];
+          order.warranties.push(warranty);
+        }
+      }
+    }
+
+    // Update warranty status based on action
+    if (warranty) {
+      if (params.action === 'APPROVED_REPAIR') {
+        warranty.status = 'ACTIVE';
+      } else if (params.action === 'APPROVED_REPLACEMENT') {
+        warranty.status = 'REPLACED';
+        if (params.replacementSerial) {
+          warranty.serialNumber = `${warranty.serialNumber} (Replaced with: ${params.replacementSerial})`;
+        }
+      } else if (params.action === 'REJECTED') {
+        warranty.status = 'VOIDED';
+      } else if (params.action === 'UNDER_REVIEW') {
+        warranty.status = 'CLAIM_PENDING';
+      }
+    }
+
+    // Find or create claim
+    const claimId = params.claimId || `CLM-ET-${Date.now().toString().slice(-6)}`;
+    let claim: WarrantyClaim | undefined;
+
+    if (order && order.warrantyClaims) {
+      claim = order.warrantyClaims.find(c => c.id === params.claimId || c.serialNumber.toUpperCase() === q);
+    }
+
+    if (claim) {
+      claim.status = params.action;
+      claim.issueType = params.issueType;
+      claim.resolutionNotes = params.resolutionNotes;
+      claim.technicianName = params.technicianName;
+      claim.replacementSerial = params.replacementSerial;
+      claim.updatedAt = now;
+    } else {
+      claim = {
+        id: claimId,
+        warrantyId: warranty?.id || params.warrantyId || `WAR-${Date.now()}`,
+        orderId: order?.id || params.orderId || 'ORD-IN-STORE',
+        productId: warranty?.productId || 'p-gen',
+        productName: warranty?.productNameEn || 'Hardware Device',
+        serialNumber: params.serialNumber,
+        customerName: warranty?.customerName || order?.customerName || 'In-Store Customer',
+        customerPhone: warranty?.customerPhone || order?.customerPhone || '+251 91 100 0000',
+        issueType: params.issueType,
+        description: `Service Desk Diagnostic: ${params.resolutionNotes}`,
+        serviceMethod: 'SERVICE_CENTER_WALKIN',
+        status: params.action,
+        createdAt: now,
+        updatedAt: now,
+        resolutionNotes: params.resolutionNotes,
+        technicianName: params.technicianName,
+        replacementSerial: params.replacementSerial
+      };
+
+      if (order) {
+        if (!order.warrantyClaims) order.warrantyClaims = [];
+        order.warrantyClaims.unshift(claim);
+      }
+    }
+
+    db.save();
+    if (order) {
+      CloudSqlProductService.saveOrder(order).catch(() => {});
+    }
+
+    const actionText = params.action === 'APPROVED_REPAIR'
+      ? 'REPAIR COMPLETED'
+      : params.action === 'APPROVED_REPLACEMENT'
+      ? `DEVICE REPLACED (New S/N: ${params.replacementSerial || 'Assigned'})`
+      : params.action === 'REJECTED'
+      ? 'CLAIM REJECTED / VOIDED'
+      : 'DIAGNOSTIC BENCH REVIEW';
+
+    db.logAudit(
+      params.technicianName || 'Warranty Service Specialist',
+      'WARRANTY_SERVICE_ACTION_LOGGED',
+      `Device S/N: ${params.serialNumber}. Status: ${actionText}. Category: ${params.issueType}. Notes: ${params.resolutionNotes}.`,
+      params.action === 'REJECTED' ? 'WARNING' : 'INFO'
+    );
+
+    db.logTelegramAlert(
+      'CLAIM_NEW',
+      `🛡️ WARRANTY SERVICE DESK: S/N ${params.serialNumber} — ${actionText}. Technician: ${params.technicianName}. Notes: "${params.resolutionNotes}".`
+    );
+
+    return { success: true, claim, warranty };
   }
 
   // Batch SQLite Sync for Offline-first checkout client (WatermelonDB model reconciliation)

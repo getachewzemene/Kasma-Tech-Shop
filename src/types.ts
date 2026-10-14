@@ -104,6 +104,8 @@ export interface WarrantyClaim {
   createdAt: string;
   updatedAt: string;
   resolutionNotes?: string;
+  technicianName?: string;
+  replacementSerial?: string;
 }
 
 export interface CartItem {
@@ -158,6 +160,10 @@ export interface Order {
   escrowStatus?: 'HELD_IN_ESCROW' | 'RELEASED_TO_MERCHANT' | 'REFUNDED_TO_BUYER';
   escrowReleasedAt?: string;
   deviceInspectionConfirmed?: boolean;
+  dispatchRequested?: boolean;
+  dispatchRequestedAt?: string;
+  dispatchPickupCoordinates?: { lat: number; lng: number };
+  dispatchPickupAddress?: string;
 }
 
 export interface StockMovementLog {
@@ -223,7 +229,7 @@ export interface AuditLog {
 
 export interface TelegramAlert {
   id: string;
-  type: 'ORDER_NEW' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'DAILY_SUMMARY' | 'WEEKLY_SUMMARY' | 'PAYMENT_FAILED' | 'ORDER_CONFIRMATION' | 'SHIPPING_UPDATE' | 'PRICE_DROP' | 'ORDER_SHIPPED' | 'ORDER_DELIVERED' | 'ORDER_PACKED' | 'ORDER_DELAYED' | 'CLAIM_NEW' | 'ESCROW_RELEASED';
+  type: 'ORDER_NEW' | 'LOW_STOCK' | 'OUT_OF_STOCK' | 'DAILY_SUMMARY' | 'WEEKLY_SUMMARY' | 'PAYMENT_FAILED' | 'ORDER_CONFIRMATION' | 'SHIPPING_UPDATE' | 'PRICE_DROP' | 'ORDER_SHIPPED' | 'ORDER_DELIVERED' | 'ORDER_PACKED' | 'ORDER_DELAYED' | 'CLAIM_NEW' | 'ESCROW_RELEASED' | 'DISPATCH_REQUESTED';
   message: string;
   timestamp: string;
   read: boolean;

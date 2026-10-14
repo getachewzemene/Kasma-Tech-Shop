@@ -31,6 +31,7 @@ import {
   sendSms
 } from './src/lib/smsGateway.ts';
 import { sendDispatchGroupAlertToTelegram, sendOrderAlertToTelegram } from './src/lib/telegram.ts';
+import { SUB_CITIES } from './src/constants/locations.ts';
 
 async function startServer() {
   const app = express();
@@ -1668,6 +1669,87 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
     }
   });
 
+  // One-Click Platform Courier Dispatch Fleet Request
+  app.post('/api/merchants/orders/:id/dispatch-request', requireMerchant, async (req: AuthRequest, res) => {
+    try {
+      const order = db.orders.find(o => o.id === req.params.id);
+      if (!order) {
+        res.status(404).json({ error: 'Order not found.' });
+        return;
+      }
+
+      // Determine merchant from session, body or order items
+      const merchantId = req.user?.merchantId || req.body?.merchantId || order.items[0]?.product?.merchantId || 'm1';
+      const merchant = db.merchants.find(m => m.id === merchantId) || db.merchants[0];
+
+      // Resolve store pickup GPS coordinates
+      let lat = merchant?.latitude;
+      let lng = merchant?.longitude;
+
+      if (!lat || !lng) {
+        // Fallback to sub-city coordinates from constants
+        const subCityMatch = SUB_CITIES.find(s => 
+          s.nameEn.toLowerCase() === (merchant?.subCity || 'Bole').toLowerCase() ||
+          s.id.toLowerCase() === (merchant?.subCity || 'Bole').toLowerCase()
+        ) || SUB_CITIES[0];
+        lat = subCityMatch.center[0];
+        lng = subCityMatch.center[1];
+      }
+
+      const storeAddressParts = [
+        merchant?.building || 'Edna Mall / Medhanialem Center',
+        merchant?.shopNumber || 'Shop #204 (2nd Floor)',
+        merchant?.subCity || 'Bole',
+        merchant?.woreda || 'Woreda 03'
+      ].filter(Boolean);
+
+      const pickupInfo = {
+        storeName: merchant?.storeName || 'Kasma Merchant Partner',
+        phone: merchant?.phone || '+251 91 100 0000',
+        locationAddress: merchant?.locationAddress || storeAddressParts.join(', '),
+        subCity: merchant?.subCity || 'Bole',
+        woreda: merchant?.woreda || 'Woreda 03',
+        building: merchant?.building || 'Edna Mall / Medhanialem Center',
+        shopNumber: merchant?.shopNumber || 'Shop #204 (2nd Floor)',
+        landmark: merchant?.landmark || 'Opposite Medhanialem Cathedral, Gate 2',
+        pickupInstructions: merchant?.pickupInstructions || 'Call on arrival. Device testing bench at counter #2.',
+        coordinates: { lat, lng }
+      };
+
+      const result = OrderService.requestDispatchFleet(order.id, merchant?.id || 'm1', pickupInfo);
+      if (!result.success) {
+        res.status(400).json({ error: result.error || 'Failed to request dispatch fleet.' });
+        return;
+      }
+
+      // Live Telegram dispatch alert to Addis Ababa delivery fleet group
+      let liveDispatchResult: any = { simulated: true };
+      try {
+        liveDispatchResult = await sendDispatchGroupAlertToTelegram(
+          result.order!,
+          merchant?.storeName,
+          req.body?.chatId || process.env.TELEGRAM_DISPATCH_CHAT_ID,
+          undefined,
+          pickupInfo
+        );
+      } catch (tgErr: any) {
+        console.warn('Telegram fleet dispatch alert exception:', tgErr.message);
+      }
+
+      res.json({
+        success: true,
+        message: `Kasma Dispatch Fleet alerted on Telegram with ${merchant?.storeName || 'Store'} GPS pickup coordinates!`,
+        order: result.order,
+        pickupInfo,
+        liveDispatchResult,
+        orders: db.orders
+      });
+    } catch (err: any) {
+      console.error('Dispatch fleet request crashed:', err);
+      res.status(500).json({ error: err?.message || 'Server error requesting dispatch fleet.' });
+    }
+  });
+
   // =========================================================================
   // DEDICATED ADDIS COURIER DISPATCH & DRIVER PORTAL ROUTES (/api/courier)
   // =========================================================================
@@ -2037,6 +2119,10 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
         verified: true,
         warranty: matchedWarranty,
         orderId: matchedOrder?.id,
+        claims: matchedOrder?.warrantyClaims?.filter(c => 
+          c.serialNumber?.toUpperCase() === q || 
+          c.warrantyId === matchedWarranty?.id
+        ) || [],
         tamperProofHash: matchedWarranty.tamperProofHash,
         verifiedAt: new Date().toISOString(),
         serviceCenter: 'Kasma Tech Bole Medhanealem Hub, Addis Ababa'
@@ -2125,6 +2211,59 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
       });
     } catch (err: any) {
       res.status(500).json({ error: err?.message || 'Failed to submit warranty claim.' });
+    }
+  });
+
+  // 3. Merchant Warranty Repair & Replacement Logging Action
+  app.post('/api/merchants/warranties/service-action', requireMerchant, (req: AuthRequest, res) => {
+    try {
+      const {
+        serialNumber,
+        action,
+        issueType,
+        resolutionNotes,
+        technicianName,
+        replacementSerial,
+        claimId,
+        orderId,
+        warrantyId
+      } = req.body || {};
+
+      if (!serialNumber || !action || !resolutionNotes) {
+        res.status(400).json({ error: 'Serial number, service action, and resolution notes are required.' });
+        return;
+      }
+
+      const merchant = db.merchants.find(m => m.id === (req.user?.merchantId || req.body?.merchantId || 'm1'));
+
+      const result = OrderService.processWarrantyServiceAction({
+        serialNumber,
+        action,
+        issueType: issueType || 'OTHER',
+        resolutionNotes,
+        technicianName: technicianName || req.user?.name || 'Kasma Senior Hardware Specialist',
+        replacementSerial,
+        claimId,
+        orderId,
+        warrantyId,
+        merchantStoreName: merchant?.storeName
+      });
+
+      if (!result.success) {
+        res.status(400).json({ error: result.error || 'Failed to record warranty service action.' });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: `Warranty service action successfully recorded for S/N ${serialNumber}.`,
+        claim: result.claim,
+        warranty: result.warranty,
+        orders: db.orders
+      });
+    } catch (err: any) {
+      console.error('Warranty service action crashed:', err);
+      res.status(500).json({ error: err?.message || 'Server error processing warranty service.' });
     }
   });
 

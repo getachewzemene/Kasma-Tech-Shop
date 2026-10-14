@@ -148,15 +148,30 @@ export async function sendOrderAlertToTelegram(
   });
 }
 
+export interface MerchantPickupLocationInfo {
+  storeName?: string;
+  phone?: string;
+  subCity?: string;
+  woreda?: string;
+  building?: string;
+  shopNumber?: string;
+  landmark?: string;
+  locationAddress?: string;
+  pickupInstructions?: string;
+  coordinates?: { lat: number; lng: number };
+}
+
 /**
  * Dispatches an automated Fleet / Dispatch Group Alert to Telegram
- * Alerting motorcycle & van couriers in Addis Ababa for fast delivery pickup.
+ * Alerting motorcycle & van couriers in Addis Ababa for fast delivery pickup
+ * with the merchant's physical storefront GPS coordinates and navigation links.
  */
 export async function sendDispatchGroupAlertToTelegram(
   order: Order,
   merchantStoreName: string = 'Kasma Partner Merchant',
   dispatchChatId?: string,
-  appUrl: string = process.env.APP_URL || 'http://localhost:3000'
+  appUrl: string = process.env.APP_URL || 'http://localhost:3000',
+  pickupLocation?: MerchantPickupLocationInfo
 ): Promise<TelegramDispatchResult> {
   const isCOD = order.paymentMethod === 'COD';
   const paymentBadge = isCOD 
@@ -168,30 +183,62 @@ export async function sendDispatchGroupAlertToTelegram(
     .join('\n');
 
   const courierPortalLink = `${appUrl}/courier/${order.id}`;
-  const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.shippingAddress}, Addis Ababa, Ethiopia`)}`;
-  const cleanPhone = order.customerPhone.replace(/[\s\-\(\)]/g, '');
+  const cleanCustomerPhone = order.customerPhone.replace(/[\s\-\(\)]/g, '');
   const trackingLink = `${appUrl}/tracking/${order.id}`;
 
+  const storeName = pickupLocation?.storeName || merchantStoreName;
+  const storePhone = pickupLocation?.phone || '';
+  const cleanStorePhone = storePhone.replace(/[\s\-\(\)]/g, '');
+
+  const storeAddressParts = [
+    pickupLocation?.building,
+    pickupLocation?.shopNumber,
+    pickupLocation?.subCity,
+    pickupLocation?.woreda
+  ].filter(Boolean);
+  const storeAddress = storeAddressParts.length > 0
+    ? storeAddressParts.join(', ')
+    : (pickupLocation?.locationAddress || 'Bole, Addis Ababa');
+
+  const storeGps = pickupLocation?.coordinates || order.dispatchPickupCoordinates || { lat: 8.9953, lng: 38.7885 };
+  const storeGpsLink = `https://www.google.com/maps/dir/?api=1&destination=${storeGps.lat},${storeGps.lng}`;
+  const customerMapsLink = order.coordinates 
+    ? `https://www.google.com/maps/dir/?api=1&destination=${order.coordinates.lat},${order.coordinates.lng}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${order.shippingAddress}, Addis Ababa, Ethiopia`)}`;
+
   const text =
-    `🛵 <b>NEW DISPATCH RUN — ADDIS ABABA FLEET</b>\n\n` +
+    `🛵 <b>⚡ KASMA FLEET DISPATCH PING — ADDIS ABABA</b>\n\n` +
     `<b>Order ID:</b> <code>#${order.id}</code>\n` +
-    `<b>Pickup Hub:</b> 🏪 ${merchantStoreName}\n` +
-    `<b>Dropoff:</b> 📍 ${order.shippingAddress}${order.subCity ? ` (${order.subCity})` : ''}\n` +
-    (order.landmark ? `<b>Landmark:</b> 🏛️ ${order.landmark}\n` : '') +
-    `<b>Customer:</b> ${order.customerName} (📞 <code>${order.customerPhone}</code>)\n` +
-    `<b>Payment Mode:</b> ${paymentBadge}\n` +
-    `<b>Courier Payout:</b> 🛵 <b>${(order.shippingFee || 150).toLocaleString()} ETB</b>\n\n` +
-    `<b>Package Contents:</b>\n${itemsSummary}\n\n` +
-    `⚡ <i>Target Delivery Window: 1 - 3 Hours express SLA across Addis Ababa.</i>`;
+    `━━━━━━━━━━━━━━━━━━━━\n` +
+    `🏪 <b>STORE PICKUP STATION:</b>\n` +
+    `• <b>Store:</b> 🏬 ${storeName}\n` +
+    `• <b>Address:</b> 📍 ${storeAddress}\n` +
+    (pickupLocation?.landmark ? `• <b>Store Landmark:</b> 🏛️ ${pickupLocation.landmark}\n` : '') +
+    (storePhone ? `• <b>Store Phone:</b> 📞 <code>${storePhone}</code>\n` : '') +
+    `• <b>Pickup GPS:</b> 🧭 <code>${storeGps.lat.toFixed(5)}° N, ${storeGps.lng.toFixed(5)}° E</code>\n` +
+    (pickupLocation?.pickupInstructions ? `• <b>Pickup Note:</b> 📝 <i>${pickupLocation.pickupInstructions}</i>\n` : '') +
+    `━━━━━━━━━━━━━━━━━━━━\n` +
+    `📍 <b>CUSTOMER DROPOFF DESTINATION:</b>\n` +
+    `• <b>Dropoff:</b> ${order.shippingAddress}${order.subCity ? ` (${order.subCity})` : ''}\n` +
+    (order.landmark ? `• <b>Customer Landmark:</b> 🏛️ ${order.landmark}\n` : '') +
+    `• <b>Customer:</b> ${order.customerName} (📞 <code>${order.customerPhone}</code>)\n` +
+    `• <b>Payment Mode:</b> ${paymentBadge}\n` +
+    `• <b>Courier Payout:</b> 🛵 <b>${(order.shippingFee || 150).toLocaleString()} ETB</b>\n\n` +
+    `📦 <b>Package Items:</b>\n${itemsSummary}\n\n` +
+    `⚡ <i>Target SLA: Collect from shop & deliver in 1 - 2 hours across Addis Ababa.</i>`;
 
   const buttons: TelegramInlineButton[][] = [
     [
-      { text: '⚡ Accept & Claim Delivery', url: courierPortalLink },
-      { text: '📍 View Customer Location', url: mapsLink }
+      { text: '⚡ Accept Delivery Run', url: courierPortalLink },
+      { text: '🗺️ Store Pickup GPS (ወደ ሱቁ)', url: storeGpsLink }
     ],
     [
-      { text: `📞 Call Customer (${cleanPhone})`, url: `tel:${cleanPhone}` },
-      { text: '🔍 Order Details', url: trackingLink }
+      { text: '📍 Customer Dropoff (ወደ ደንበኛ)', url: customerMapsLink },
+      ...(cleanStorePhone ? [{ text: `📞 Call Shop (${cleanStorePhone})`, url: `tel:${cleanStorePhone}` }] : [])
+    ],
+    [
+      { text: `📞 Call Customer (${cleanCustomerPhone})`, url: `tel:${cleanCustomerPhone}` },
+      { text: '🔍 Live Tracking', url: trackingLink }
     ]
   ];
 

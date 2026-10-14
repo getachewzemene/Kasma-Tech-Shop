@@ -17,7 +17,8 @@ import {
   ChevronRight,
   Filter,
   Printer,
-  FileText
+  FileText,
+  Navigation
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { generateCourierWaybillPDF, generateCustomerReceiptPDF } from '../../lib/pdfGenerator';
@@ -46,6 +47,10 @@ export default function OrdersTab({
   const [courierPhone, setCourierPhone] = useState('+251911002233');
   const [trackingNotes, setTrackingNotes] = useState('Dispatched via express motorcycle courier.');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // One-Click Kasma Fleet Dispatch Modal State
+  const [selectedOrderForDispatch, setSelectedOrderForDispatch] = useState<Order | null>(null);
+  const [isDispatchingFleet, setIsDispatchingFleet] = useState(false);
 
   // Filter orders relevant to this merchant
   const merchantOrders = useMemo(() => {
@@ -138,6 +143,54 @@ export default function OrdersTab({
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // One-Click Kasma Fleet Dispatch Request via Telegram
+  const handleRequestDispatchFleet = async (order: Order) => {
+    setIsDispatchingFleet(true);
+    try {
+      const token = localStorage.getItem('kasma_merchant_token') || 
+                    localStorage.getItem('kasma_auth_token') || 
+                    localStorage.getItem('kasma_admin_token');
+
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/merchants/orders/${order.id}/dispatch-request`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          merchantId: currentMerchant.id
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to dispatch Kasma fleet request.');
+      }
+
+      if (onOrderUpdated && data.order) {
+        onOrderUpdated(data.order);
+      }
+
+      if (showToast) {
+        showToast(
+          language === 'en'
+            ? `🛵 Kasma Dispatch Fleet alerted! Nearby couriers received Order #${order.id} with ${currentMerchant.storeName} GPS pickup coordinates.`
+            : `🛵 የካስማ መልዕክተኞች ተጠርተዋል! የአካባቢው አሽከርካሪዎች የ ${currentMerchant.storeName} ጂፒኤስ አድራሻ ተቀብለዋል።`,
+          'success'
+        );
+      }
+
+      setSelectedOrderForDispatch(null);
+    } catch (err: any) {
+      console.error('Dispatch fleet error:', err);
+      if (showToast) {
+        showToast(err.message || 'Failed to request courier dispatch.', 'warning');
+      }
+    } finally {
+      setIsDispatchingFleet(false);
     }
   };
 
@@ -255,6 +308,12 @@ export default function OrdersTab({
                     }`}>
                       {order.status}
                     </span>
+                    {order.dispatchRequested && (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-100 dark:bg-orange-950/80 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60">
+                        <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-ping"></span>
+                        <span>{language === 'en' ? 'Fleet Pinged' : 'መልዕክተኛ ተጠርቷል'}</span>
+                      </span>
+                    )}
                     <span className="text-[11px] font-semibold text-gray-400">
                       {order.paymentMethod} {order.paymentMethod === 'COD' ? '(Cash on Delivery)' : '✅'}
                     </span>
@@ -290,6 +349,20 @@ export default function OrdersTab({
                         <span className="font-semibold text-gray-800 dark:text-zinc-200">{order.courierName}</span>
                         {order.courierPhone && (
                           <span className="text-gray-500 font-mono ml-2">({order.courierPhone})</span>
+                        )}
+                      </div>
+                    )}
+                    {order.dispatchPickupAddress && (
+                      <div className="pt-2 mt-2 border-t border-gray-200 dark:border-zinc-800 text-[11px] text-amber-800 dark:text-amber-300">
+                        <span className="font-bold flex items-center gap-1">
+                          <Navigation className="w-3 h-3 text-amber-600" />
+                          <span>{language === 'en' ? 'Fleet Pickup Station:' : 'የመልዕክተኛ መቀበያ አድራሻ:'}</span>
+                        </span>
+                        <span className="font-medium text-gray-800 dark:text-zinc-200 block truncate">{order.dispatchPickupAddress}</span>
+                        {order.dispatchPickupCoordinates && (
+                          <span className="text-[10px] text-gray-400 font-mono block">
+                            GPS: {order.dispatchPickupCoordinates.lat.toFixed(4)}, {order.dispatchPickupCoordinates.lng.toFixed(4)}
+                          </span>
                         )}
                       </div>
                     )}
@@ -340,7 +413,29 @@ export default function OrdersTab({
                   </div>
 
                   {/* Actions buttons */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Action 0: Request Kasma Dispatch Fleet */}
+                    {!isDelivered && order.status !== 'CANCELLED' && (
+                      <button
+                        type="button"
+                        disabled={isSubmitting || isDispatchingFleet}
+                        onClick={() => setSelectedOrderForDispatch(order)}
+                        className={`px-3.5 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer ${
+                          order.dispatchRequested
+                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 hover:bg-amber-100 dark:hover:bg-amber-900/60'
+                            : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-500/20 hover:shadow-amber-500/30'
+                        }`}
+                        title={language === 'en' ? 'Ping nearby Addis Ababa motorcycle couriers with store pickup GPS' : 'የአዲስ አበባ መልዕክተኞችን በቴሌግራም ጥሩ'}
+                      >
+                        <Navigation className="w-3.5 h-3.5" />
+                        <span>
+                          {order.dispatchRequested
+                            ? (language === 'en' ? '🛵 Re-ping Fleet' : '🛵 መልዕክተኛ በድጋሚ ጥራ')
+                            : (language === 'en' ? '🛵 Request Kasma Dispatch Fleet' : '🛵 የካስማ መልዕክተኛ ጥራ')}
+                        </span>
+                      </button>
+                    )}
+
                     {/* Action 1: Pack */}
                     {isPending && (
                       <button
@@ -517,6 +612,148 @@ export default function OrdersTab({
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{language === 'en' ? 'Dispatch & Alert' : 'ላክ እና አሳውቅ'}</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Kasma Dispatch Fleet Request Modal */}
+      <AnimatePresence>
+        {selectedOrderForDispatch && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-5"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-gray-150 dark:border-zinc-850 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-xs">
+                    <Navigation className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-gray-950 dark:text-white uppercase tracking-wider">
+                      {language === 'en' ? 'Request Kasma Dispatch Fleet' : 'የካስማ ሞተር መልዕክተኞችን ጥራ'}
+                    </h3>
+                    <p className="text-[11px] text-gray-400">
+                      {language === 'en'
+                        ? 'Broadcasts order with store GPS coordinates to Addis Ababa dispatch channel'
+                        : 'የሱቅዎ ጂፒኤስ ካርታ እና የትዕዛዝ መረጃ ለአዲስ አበባ አሽከርካሪዎች በቴሌግራም ይተላለፋል'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedOrderForDispatch(null)}
+                  className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-zinc-200 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="space-y-3.5 text-xs">
+                {/* Store Pickup Location Card */}
+                <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-[11px] uppercase tracking-wider text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-amber-600" />
+                      <span>{language === 'en' ? '1. Your Store Pickup Hub & GPS Pin' : '1. የእርስዎ ሱቅ መውሰጃ እና ጂፒኤስ'}</span>
+                    </span>
+                    <span className="bg-amber-500/20 text-amber-800 dark:text-amber-300 font-bold text-[9px] px-2 py-0.5 rounded-full uppercase">
+                      {currentMerchant.subCity || 'Bole'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-1 text-gray-800 dark:text-zinc-200">
+                    <p className="font-bold text-xs">{currentMerchant.storeName}</p>
+                    <p className="text-[11px] text-gray-600 dark:text-zinc-400">
+                      {[currentMerchant.building, currentMerchant.shopNumber, currentMerchant.subCity, currentMerchant.woreda].filter(Boolean).join(', ') || currentMerchant.locationAddress || 'Bole, Addis Ababa'}
+                    </p>
+                    {currentMerchant.landmark && (
+                      <p className="text-[10px] text-gray-500 dark:text-zinc-400">
+                        🏛️ Landmark: {currentMerchant.landmark}
+                      </p>
+                    )}
+                    <p className="text-[10.5px] font-mono text-amber-700 dark:text-amber-400 pt-0.5">
+                      🧭 GPS Coordinates: {currentMerchant.latitude ? currentMerchant.latitude.toFixed(5) : '8.9953'}° N, {currentMerchant.longitude ? currentMerchant.longitude.toFixed(5) : '38.7885'}° E
+                    </p>
+                    {currentMerchant.pickupInstructions && (
+                      <p className="text-[10.5px] italic text-gray-500 dark:text-zinc-400 pt-1">
+                        📝 "{currentMerchant.pickupInstructions}"
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Customer Dropoff & Payout Card */}
+                <div className="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-900/40 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-[11px] uppercase tracking-wider text-blue-900 dark:text-blue-300 flex items-center gap-1.5">
+                      <Truck className="w-4 h-4 text-blue-600" />
+                      <span>{language === 'en' ? '2. Customer Dropoff Point' : '2. የማድረሻ አድራሻ እና ክፍያ'}</span>
+                    </span>
+                    <span className="font-mono font-bold text-blue-700 dark:text-blue-300 text-[10px]">
+                      Courier Payout: {(selectedOrderForDispatch.shippingFee || 150).toLocaleString()} ETB
+                    </span>
+                  </div>
+
+                  <div className="space-y-1 text-gray-800 dark:text-zinc-200">
+                    <p className="font-bold text-xs">{selectedOrderForDispatch.customerName} (📞 {selectedOrderForDispatch.customerPhone})</p>
+                    <p className="text-[11px] text-gray-600 dark:text-zinc-400">
+                      📍 {selectedOrderForDispatch.shippingAddress} {selectedOrderForDispatch.subCity ? `(${selectedOrderForDispatch.subCity})` : ''}
+                    </p>
+                    {selectedOrderForDispatch.landmark && (
+                      <p className="text-[10px] text-gray-500 dark:text-zinc-400">
+                        🏛️ Customer Landmark: {selectedOrderForDispatch.landmark}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between pt-1 border-t border-blue-100 dark:border-blue-900/40 text-[10.5px]">
+                      <span className="text-gray-500">{language === 'en' ? 'Payment Settlement:' : 'የክፍያ ሁኔታ:'}</span>
+                      <span className="font-bold text-blue-900 dark:text-blue-200">
+                        {selectedOrderForDispatch.paymentMethod === 'COD'
+                          ? `💵 Collect ${selectedOrderForDispatch.total.toLocaleString()} ETB (Cash on Delivery)`
+                          : `💳 Prepaid via ${selectedOrderForDispatch.paymentMethod} (Do NOT collect)`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dispatch SLA Notification Info */}
+                <div className="p-3 rounded-xl bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 text-[11px] text-gray-600 dark:text-zinc-300 flex items-start gap-2">
+                  <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+                  <span>
+                    {language === 'en'
+                      ? 'Dispatch bot will broadcast to active Addis couriers. The accepting rider will navigate to your shop via Google Maps, inspect the package, and proceed to delivery.'
+                      : 'የቴሌግራም መልዕክት ለአካባቢው አሽከርካሪዎች ይላካል። ትዕዛዙን የተቀበለው መልዕክተኛ በGoogle Maps ወደ ሱቅዎ በመምጣት እቃውን ይረከባል።'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-150 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setSelectedOrderForDispatch(null)}
+                  className="px-4 py-2 rounded-xl border border-gray-200 dark:border-zinc-800 text-xs font-bold text-gray-600 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer"
+                >
+                  {language === 'en' ? 'Cancel' : 'ይቅር'}
+                </button>
+                <button
+                  type="button"
+                  disabled={isDispatchingFleet}
+                  onClick={() => handleRequestDispatchFleet(selectedOrderForDispatch)}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-black shadow-md shadow-orange-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1.5 transition-all"
+                >
+                  <Navigation className="w-4 h-4" />
+                  <span>
+                    {isDispatchingFleet 
+                      ? (language === 'en' ? 'Pinging Addis Couriers...' : 'መልዕክተኞችን በመጥራት ላይ...')
+                      : (language === 'en' ? '⚡ Broadcast to Kasma Fleet Now' : '⚡ መልዕክተኞችን አሁኑኑ ጥራ')}
+                  </span>
                 </button>
               </div>
             </motion.div>

@@ -19,7 +19,10 @@ import {
   MessageCircle,
   MapPin,
   Building,
-  Clock
+  Clock,
+  ShieldCheck,
+  QrCode,
+  Wrench
 } from 'lucide-react';
 import { dispatchBulkWhatsAppLowStockAlert } from '../../utils/whatsappNotifications';
 import {
@@ -44,7 +47,7 @@ interface DashboardTabProps {
   stockLogs: StockMovementLog[];
   orders: Order[];
   language: 'en' | 'am';
-  onNavigateToTab: (tab: 'DASHBOARD' | 'CATALOG' | 'STOCK' | 'FORECAST' | 'PERFORMANCE' | 'PAYOUT' | 'KYC' | 'STORE_PROFILE') => void;
+  onNavigateToTab: (tab: 'DASHBOARD' | 'ORDERS' | 'CATALOG' | 'STOCK' | 'STOCK_ACTIVITY' | 'FORECAST' | 'PERFORMANCE' | 'PAYOUT' | 'KYC' | 'STORE_PROFILE' | 'WARRANTY') => void;
 }
 
 export default function DashboardTab({
@@ -567,6 +570,43 @@ export default function DashboardTab({
         >
           <Building className="w-4 h-4 text-[#0052FF] group-hover:text-white" />
           <span>{language === 'en' ? 'Edit Store & Pickup Location' : 'የሱቅ አድራሻ አዘምን'} →</span>
+        </button>
+      </div>
+
+      {/* Digital Warranty Verification & Diagnostics Quick Access */}
+      <div className="bg-gradient-to-r from-emerald-50/70 via-teal-50/40 to-blue-50/40 dark:from-emerald-950/20 dark:via-zinc-900 dark:to-blue-950/20 border border-emerald-200/70 dark:border-emerald-900/40 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5 min-w-0">
+          <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+            <ShieldCheck className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-extrabold text-xs uppercase tracking-wider text-gray-900 dark:text-white">
+                {language === 'en' ? 'Digital Warranty Desk & QR Pass Scanner' : 'ዲጂታል የዋስትና ዴስክ እና የQR ስካነር'}
+              </h3>
+              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300">
+                {language === 'en' ? 'Live Verification' : 'የቀጥታ ማረጋገጫ'}
+              </span>
+            </div>
+            <p className="text-xs font-bold text-gray-800 dark:text-zinc-200 mt-1 truncate">
+              {language === 'en' 
+                ? 'Scan customer QR warranty passes or lookup serial numbers to verify validity and log repairs/replacements.' 
+                : 'የደንበኛ QR ዋስትናዎችን ይቃኙ ወይም የሲሪያል ቁጥሮችን በመፈተሽ ጥገናዎችን/መተኪያዎችን ይመዝግቡ።'}
+            </p>
+            <p className="text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5 flex items-center gap-2">
+              <span>Bole Medhanealem Official Warranty Center</span>
+              <span>•</span>
+              <span>Cryptographic Tamper-Proof ET-WAR Verification</span>
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => onNavigateToTab('WARRANTY')}
+          className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs shrink-0 self-stretch md:self-auto"
+        >
+          <QrCode className="w-4 h-4" />
+          <span>{language === 'en' ? 'Open Warranty Desk' : 'የዋስትና ዴስክ ክፈት'} →</span>
         </button>
       </div>
 

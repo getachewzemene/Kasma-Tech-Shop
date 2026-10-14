@@ -40,7 +40,8 @@ import {
   PanelLeftOpen,
   Menu,
   MessageCircle,
-  MapPin
+  MapPin,
+  ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -60,6 +61,7 @@ import ForecastTab from './merchant/ForecastTab';
 import PerformanceTab from './merchant/PerformanceTab';
 import StockActivityTab from './merchant/StockActivityTab';
 import StoreProfileTab from './merchant/StoreProfileTab';
+import WarrantyDeskTab from './merchant/WarrantyDeskTab';
 import { SyncStatusButton } from './common/SyncStatusButton';
 
 interface MerchantPortalProps {
@@ -132,7 +134,7 @@ export default function MerchantPortal({
   }, [merchants, selectedMerchantId]);
 
   // Main navigation tab & Collapsible Sidebar State
-  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'ORDERS' | 'CATALOG' | 'STOCK' | 'STOCK_ACTIVITY' | 'FORECAST' | 'PERFORMANCE' | 'PAYOUT' | 'KYC' | 'STORE_PROFILE'>('DASHBOARD');
+  const [activeTab, setActiveTab] = useState<'DASHBOARD' | 'ORDERS' | 'CATALOG' | 'STOCK' | 'STOCK_ACTIVITY' | 'FORECAST' | 'PERFORMANCE' | 'PAYOUT' | 'KYC' | 'STORE_PROFILE' | 'WARRANTY'>('DASHBOARD');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Low stock background alarm system
@@ -621,6 +623,26 @@ export default function MerchantPortal({
           </button>
 
           <button
+            onClick={() => setActiveTab('WARRANTY')}
+            title={language === 'en' ? 'Digital Warranty & Claims Desk' : 'ዲጂታል ዋስትና እና ክሌሞች'}
+            className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'justify-between px-3.5 py-3'} rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'WARRANTY'
+                ? 'bg-black text-white dark:bg-white dark:text-zinc-900 shadow-xs'
+                : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900'
+            }`}
+          >
+            <span className="flex items-center gap-2.5">
+              <ShieldCheck className="w-4.5 h-4.5 shrink-0 text-emerald-500" />
+              {!isSidebarCollapsed && <span>{language === 'en' ? 'Warranty & Claims' : 'ዋስትና & ክሌሞች'}</span>}
+            </span>
+            {!isSidebarCollapsed && (
+              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] px-1.5 py-0.5 rounded font-black uppercase">
+                CARE
+              </span>
+            )}
+          </button>
+
+          <button
             onClick={() => setActiveTab('STOCK')}
             title={language === 'en' ? 'Stock & SKU Audit' : 'የክምችት ኦዲት'}
             className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center p-3 relative' : 'justify-between px-3.5 py-3'} rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -849,6 +871,18 @@ export default function MerchantPortal({
           >
             <MapPin className="w-3.5 h-3.5 text-[#0052FF]" />
             <span>{language === 'en' ? 'Store & Pickup' : 'መደብር አድራሻ'}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('WARRANTY')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'WARRANTY'
+                ? 'bg-black text-white dark:bg-white dark:text-zinc-900 shadow-xs'
+                : 'text-gray-600 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-900'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+            <span>{language === 'en' ? 'Warranty Desk' : 'ዋስትና'}</span>
           </button>
 
           <button
@@ -1196,6 +1230,16 @@ export default function MerchantPortal({
                     await onOrderUpdated?.({} as any);
                   }}
                   language={language}
+                  showToast={showToast}
+                />
+              )}
+
+              {activeTab === 'WARRANTY' && (
+                <WarrantyDeskTab
+                  orders={orders}
+                  currentMerchant={currentMerchant}
+                  language={language}
+                  onOrderUpdated={onOrderUpdated}
                   showToast={showToast}
                 />
               )}
