@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LazyImage } from '../../components/LazyImage';
 import { useNavigate, Link } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { SUB_CITIES } from '../../constants/locations';
 import { Order } from '../../types';
 import { AddisLocationPicker } from '../../components/checkout/AddisLocationPicker';
+import { GoogleIcon, FacebookIcon } from '../../components/checkout/CheckoutAuthModal';
 import { 
   ShieldCheck, 
   Truck, 
@@ -20,7 +21,12 @@ import {
   Sparkles, 
   Smartphone,
   Navigation,
-  CheckCircle2
+  CheckCircle2,
+  KeyRound,
+  Mail,
+  Eye,
+  EyeOff,
+  ArrowRight
 } from 'lucide-react';
 
 export const CheckoutPage: React.FC = () => {
@@ -35,6 +41,9 @@ export const CheckoutPage: React.FC = () => {
     customerPhone, 
     customerEmail, 
     isCustomerLoggedIn,
+    loginCustomer,
+    loginWithSocial,
+    logoutCustomer,
     addOrder, 
     showToast 
   } = useShop();
@@ -49,6 +58,162 @@ export const CheckoutPage: React.FC = () => {
   const [specificAddress, setSpecificAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'TELEBIRR' | 'CBE_BIRR' | 'CHAPA' | 'COD'>('TELEBIRR');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Inline Checkout Sign-In Gate State (when unauthenticated)
+  const [authTab, setAuthTab] = useState<'SMS_OTP' | 'PASSWORD' | 'REGISTER'>('SMS_OTP');
+  const [authPhone, setAuthPhone] = useState('+251 9');
+  const [authOtpInput, setAuthOtpInput] = useState('');
+  const [authOtpSent, setAuthOtpSent] = useState(false);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authShowPassword, setAuthShowPassword] = useState(false);
+  const [authRegName, setAuthRegName] = useState('');
+  const [authRegPhone, setAuthRegPhone] = useState('+251 9');
+  const [authRegEmail, setAuthRegEmail] = useState('');
+  const [authRegPassword, setAuthRegPassword] = useState('');
+  const [authCountdown, setAuthCountdown] = useState(0);
+
+  // Sync recipient state when customer logs in
+  useEffect(() => {
+    if (isCustomerLoggedIn) {
+      if (customerName) setName(customerName);
+      if (customerPhone) setPhone(customerPhone);
+      if (customerEmail) setEmail(customerEmail);
+      setIsPhoneVerified(true);
+    }
+  }, [isCustomerLoggedIn, customerName, customerPhone, customerEmail]);
+
+  useEffect(() => {
+    let timer: any;
+    if (authCountdown > 0) {
+      timer = setInterval(() => {
+        setAuthCountdown(prev => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [authCountdown]);
+
+  const handleAuthSendOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const cleanPhone = authPhone.trim().replace(/\s+/g, '');
+    const isEthPhone = /^(\+2519|\+2517|09|07)\d{8}$/.test(cleanPhone);
+    if (!isEthPhone) {
+      showToast(
+        language === 'en'
+          ? 'Please enter a valid Ethiopian mobile number (09... or 07...).'
+          : 'እባክዎን ትክክለኛ የኢትዮጵያ ስልክ ቁጥር (09... ወይም 07...) ያስገቡ።',
+        'warning'
+      );
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/sms/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to dispatch SMS code');
+      setAuthOtpSent(true);
+      setAuthCountdown(60);
+      if (data.devOtp) setAuthOtpInput(data.devOtp);
+      showToast(
+        language === 'en'
+          ? `SMS code sent to ${cleanPhone}${data.devOtp ? ` (Demo Code: ${data.devOtp})` : ''}`
+          : `የማረጋገጫ ኮድ ወደ ${cleanPhone} በኤስኤምኤስ ተልኳል`,
+        'info'
+      );
+    } catch (err: any) {
+      showToast(err.message || 'SMS dispatch failed', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAuthVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authOtpInput || authOtpInput.trim().length < 4) {
+      showToast(language === 'en' ? 'Please enter the SMS code.' : 'እባክዎን ኮዱን ያስገቡ።', 'warning');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const cleanPhone = authPhone.trim().replace(/\s+/g, '');
+      const res = await fetch('/api/sms/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone, otp: authOtpInput.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Invalid or expired code');
+      loginCustomer(cleanPhone, data.user?.name || 'Verified Shopper');
+      showToast(language === 'en' ? 'Phone verified! Proceeding to checkout.' : 'ስልክዎ ተረጋግጧል! ወደ ክፍያ በመቀጠል ላይ።', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Verification failed', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAuthPasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authEmail.trim() || !authPassword.trim()) {
+      showToast(language === 'en' ? 'Please enter your email/phone and password.' : 'እባክዎን ኢሜይል/ስልክ እና የምስጢር ቃል ያስገቡ።', 'warning');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: authEmail.trim(), password: authPassword.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Invalid login credentials');
+      if (data.token) localStorage.setItem('kasma_auth_token', data.token);
+      if (data.user) {
+        loginCustomer(data.user.phone || authEmail.trim(), data.user.name, data.user.email);
+      } else {
+        loginCustomer(authEmail.trim(), 'Kasma Shopper', authEmail.trim());
+      }
+      showToast(language === 'en' ? 'Signed in successfully!' : 'በተሳካ ሁኔታ ገብተዋል!', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Login failed', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAuthRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authRegName.trim() || (!authRegPhone.trim() && !authRegEmail.trim()) || authRegPassword.length < 6) {
+      showToast(language === 'en' ? 'Please complete all required fields (password min. 6 chars).' : 'እባክዎን ሁሉንም አስፈላጊ መረጃዎች ይሙሉ (የምስጢር ቃል ቢያንስ 6 ፊደላት)።', 'warning');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: authRegName.trim(),
+          phone: authRegPhone.trim().replace(/\s+/g, ''),
+          email: authRegEmail.trim().toLowerCase() || `${authRegPhone.replace(/\D/g, '')}@kasma.et`,
+          password: authRegPassword.trim()
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Registration failed');
+      if (data.token) localStorage.setItem('kasma_auth_token', data.token);
+      loginCustomer(authRegPhone.trim(), authRegName.trim(), authRegEmail.trim());
+      showToast(language === 'en' ? 'Account created! Welcome to Kasma.' : 'መለያዎ ተፈጥሯል! እንኳን ወደ ካስማ በደህና መጡ።', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Registration failed', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Cash on Delivery SMS Phone Verification State
   const [isPhoneVerified, setIsPhoneVerified] = useState<boolean>(() => Boolean(isCustomerLoggedIn));
@@ -144,6 +309,17 @@ export const CheckoutPage: React.FC = () => {
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isCustomerLoggedIn) {
+      showToast(
+        language === 'en' 
+          ? 'Please sign in with Google, Facebook, or your Ethiopian mobile number first.' 
+          : 'እባክዎ በመጀመሪያ በጉግል፣ በፌስቡክ ወይም በስልክ ቁጥርዎ ይግቡ።',
+        'warning'
+      );
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
     // Validation
     const cleanPhone = phone.trim().replace(/\s+/g, '');
@@ -300,16 +476,389 @@ export const CheckoutPage: React.FC = () => {
       </nav>
 
       <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Delivery Details & Payment */}
-        <div className="lg:col-span-7 space-y-6">
-          {/* Section 1: Customer Contact */}
-          <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 space-y-4 shadow-sm">
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-[#0052FF]" />
-              <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
-                {language === 'en' ? '1. Recipient Information' : '1. የተቀባይ መረጃ'}
-              </h2>
+        {/* Left Column: If Not Logged In, Render Checkout Authentication Gate */}
+        {!isCustomerLoggedIn ? (
+          <div className="lg:col-span-7 space-y-6">
+            <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 shadow-sm space-y-6">
+              
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-[#0052FF] flex items-center justify-center shrink-0 shadow-xs">
+                  <Lock className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#0052FF] bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-900/60">
+                      {language === 'en' ? 'Step 1 of 2: Customer Identity' : 'ደረጃ 1 ከ 2፡ የማንነት ማረጋገጫ'}
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-black text-gray-900 dark:text-zinc-100 mt-1">
+                    {language === 'en' ? 'Sign In to Complete Your Order' : 'ትዕዛዝዎን ለማጠናቀቅ እባክዎ ይግቡ'}
+                  </h2>
+                  <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                    {language === 'en' 
+                      ? 'Please sign in with Google, Facebook, or your Ethiopian mobile number to unlock 1-click Addis courier dispatch, SMS delivery tracking, and digital warranty protection.'
+                      : 'የአዲስ አበባ ፈጣን ማጓጓዣ፣ የቀጥታ ክትትል እና የዲጂታል ዋስትና ለማግኘት በጉግል፣ በፌስቡክ ወይም በስልክ ቁጥርዎ ይግቡ።'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Fast Social Sign-In: Google & Facebook */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsSubmitting(true);
+                    try {
+                      await loginWithSocial('google', {
+                        name: 'Google Customer',
+                        email: 'shopper@gmail.com',
+                        phone: '+251 91 188 9900'
+                      });
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  disabled={isSubmitting}
+                  className="py-3 px-4 rounded-xl border border-gray-250 dark:border-zinc-750 hover:border-gray-400 dark:hover:border-zinc-600 bg-white dark:bg-zinc-850 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-100 font-bold text-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xs disabled:opacity-60"
+                >
+                  <GoogleIcon className="w-4.5 h-4.5 shrink-0" />
+                  <span>{language === 'en' ? 'Continue with Google' : 'በጉግል (Google) ቀጥል'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsSubmitting(true);
+                    try {
+                      await loginWithSocial('facebook', {
+                        name: 'Facebook Customer',
+                        email: 'shopper@facebook.com',
+                        phone: '+251 92 233 4455'
+                      });
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  disabled={isSubmitting}
+                  className="py-3 px-4 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold text-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xs disabled:opacity-60"
+                >
+                  <FacebookIcon className="w-4.5 h-4.5 shrink-0" />
+                  <span>{language === 'en' ? 'Continue with Facebook' : 'በፌስቡክ (Facebook) ቀጥል'}</span>
+                </button>
+              </div>
+
+              <div className="relative flex items-center justify-center">
+                <div className="border-t border-gray-200 dark:border-zinc-800 w-full" />
+                <span className="bg-white dark:bg-zinc-900 px-3 text-[10px] font-black uppercase text-gray-400 tracking-wider absolute">
+                  {language === 'en' ? 'or sign in with Ethiopian phone / email' : 'ወይም በስልክ / ኢሜይል'}
+                </span>
+              </div>
+
+              {/* Direct Auth Tabs */}
+              <div className="flex rounded-xl bg-gray-100 dark:bg-zinc-800 p-1 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setAuthTab('SMS_OTP')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    authTab === 'SMS_OTP'
+                      ? 'bg-white dark:bg-zinc-900 text-[#0052FF] shadow-xs'
+                      : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  <Smartphone className="w-3.5 h-3.5" />
+                  <span>{language === 'en' ? 'Phone SMS' : 'በስልክ ኮድ'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAuthTab('PASSWORD')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    authTab === 'PASSWORD'
+                      ? 'bg-white dark:bg-zinc-900 text-[#0052FF] shadow-xs'
+                      : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>{language === 'en' ? 'Password' : 'የምስጢር ቃል'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAuthTab('REGISTER')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    authTab === 'REGISTER'
+                      ? 'bg-white dark:bg-zinc-900 text-[#0052FF] shadow-xs'
+                      : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>{language === 'en' ? 'Sign Up' : 'ተመዝገብ'}</span>
+                </button>
+              </div>
+
+              {/* Sub-tab 1: Phone SMS OTP */}
+              {authTab === 'SMS_OTP' && (
+                <div className="space-y-4">
+                  {!authOtpSent ? (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                          {language === 'en' ? 'Ethiopian Mobile Number (09... or 07...)' : 'የኢትዮጵያ ስልክ ቁጥር'}
+                        </label>
+                        <div className="relative flex items-center">
+                          <span className="absolute left-3 text-xs font-black text-gray-500 dark:text-zinc-400">
+                            🇪🇹
+                          </span>
+                          <input
+                            type="tel"
+                            value={authPhone}
+                            onChange={(e) => setAuthPhone(e.target.value)}
+                            placeholder="+251 91 123 4567"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-mono font-bold text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAuthSendOtp}
+                        disabled={isSubmitting}
+                        className="w-full py-3 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                      >
+                        <span>{language === 'en' ? 'Send SMS Verification Code' : 'የማረጋገጫ ኮድ ላክ'}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="p-3 bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-xs flex items-center justify-between">
+                        <div>
+                          <p className="font-bold text-blue-900 dark:text-blue-200">
+                            {language === 'en' ? 'Code dispatched to:' : 'ኮድ የተላከበት:'}
+                          </p>
+                          <p className="font-mono text-xs text-blue-700 dark:text-blue-300 font-bold">{authPhone}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setAuthOtpSent(false)}
+                          className="text-[11px] font-bold text-[#0052FF] hover:underline cursor-pointer"
+                        >
+                          {language === 'en' ? 'Change' : 'ቀይር'}
+                        </button>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                          {language === 'en' ? 'Enter SMS Code' : 'የኤስኤምኤስ ኮዱን ያስገቡ'}
+                        </label>
+                        <input
+                          type="text"
+                          maxLength={6}
+                          value={authOtpInput}
+                          onChange={(e) => setAuthOtpInput(e.target.value)}
+                          placeholder="123456"
+                          autoFocus
+                          className="w-full text-center tracking-[0.5em] text-lg font-mono font-black py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAuthVerifyOtp}
+                        disabled={isSubmitting}
+                        className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>{language === 'en' ? 'Verify & Continue to Checkout' : 'አረጋግጥ እና ወደ ክፍያ ቀጥል'}</span>
+                      </button>
+
+                      <div className="text-center">
+                        <button
+                          type="button"
+                          disabled={authCountdown > 0 || isSubmitting}
+                          onClick={() => handleAuthSendOtp()}
+                          className="text-[11px] font-bold text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200 disabled:opacity-40 cursor-pointer"
+                        >
+                          {authCountdown > 0
+                            ? `${language === 'en' ? 'Resend code in' : 'ኮድ በድጋሚ ለመላክ'} ${authCountdown}s`
+                            : (language === 'en' ? 'Didn\'t receive code? Resend SMS' : 'ኮዱ አልደረሰዎትም? በድጋሚ ይላኩ')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Sub-tab 2: Password Sign In */}
+              {authTab === 'PASSWORD' && (
+                <div className="space-y-3.5">
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                      {language === 'en' ? 'Email or Mobile Phone' : 'ኢሜይል ወይም ስልክ ቁጥር'}
+                    </label>
+                    <div className="relative flex items-center">
+                      <Mail className="w-4 h-4 absolute left-3 text-gray-400" />
+                      <input
+                        type="text"
+                        value={authEmail}
+                        onChange={(e) => setAuthEmail(e.target.value)}
+                        placeholder="customer@kasma.et or 0911234567"
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                      {language === 'en' ? 'Password' : 'የምስጢር ቃል'}
+                    </label>
+                    <div className="relative flex items-center">
+                      <Lock className="w-4 h-4 absolute left-3 text-gray-400" />
+                      <input
+                        type={authShowPassword ? 'text' : 'password'}
+                        value={authPassword}
+                        onChange={(e) => setAuthPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setAuthShowPassword(!authShowPassword)}
+                        className="absolute right-3 text-gray-400 hover:text-gray-600"
+                      >
+                        {authShowPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAuthPasswordLogin}
+                    disabled={isSubmitting}
+                    className="w-full py-3 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                  >
+                    <span>{language === 'en' ? 'Sign In & Continue to Checkout' : 'ይግቡ እና ወደ ክፍያ ቀጥል'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Sub-tab 3: Register */}
+              {authTab === 'REGISTER' && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                      {language === 'en' ? 'Full Name' : 'ሙሉ ስም'}
+                    </label>
+                    <input
+                      type="text"
+                      value={authRegName}
+                      onChange={(e) => setAuthRegName(e.target.value)}
+                      placeholder="e.g. Abebe Bikila"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                      {language === 'en' ? 'Mobile Phone' : 'ስልክ ቁጥር'}
+                    </label>
+                    <input
+                      type="tel"
+                      value={authRegPhone}
+                      onChange={(e) => setAuthRegPhone(e.target.value)}
+                      placeholder="+251 91 123 4567"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-mono font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                      {language === 'en' ? 'Email (Optional)' : 'ኢሜይል (አስፈላጊ ከሆነ)'}
+                    </label>
+                    <input
+                      type="email"
+                      value={authRegEmail}
+                      onChange={(e) => setAuthRegEmail(e.target.value)}
+                      placeholder="abebe@example.et"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                      {language === 'en' ? 'Password (min. 6 characters)' : 'የምስጢር ቃል ይፍጠሩ'}
+                    </label>
+                    <input
+                      type="password"
+                      value={authRegPassword}
+                      onChange={(e) => setAuthRegPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAuthRegister}
+                    disabled={isSubmitting}
+                    className="w-full py-3 rounded-xl bg-black dark:bg-white text-white dark:text-black font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                  >
+                    <span>{language === 'en' ? 'Create Account & Continue' : 'መለያ ፍጠር እና ቀጥል'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-gray-150 dark:border-zinc-800 text-[10px] text-gray-400 flex items-center justify-center gap-3">
+                <span className="flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>{language === 'en' ? '256-Bit SSL Encrypted' : 'ደህንነቱ የተጠበቀ'}</span>
+                </span>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <Truck className="w-3.5 h-3.5 text-blue-500" />
+                  <span>Addis Ababa Courier Network</span>
+                </span>
+              </div>
+
             </div>
+          </div>
+        ) : (
+          <div className="lg:col-span-7 space-y-6">
+            
+            {/* Authenticated Customer Banner */}
+            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between text-xs shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                  ✓
+                </div>
+                <div>
+                  <p className="font-extrabold text-emerald-950 dark:text-emerald-100">
+                    {language === 'en' ? 'Signed In As' : 'የገቡበት መለያ'}: {name || customerName} ({phone || customerPhone})
+                  </p>
+                  <p className="text-[10.5px] text-emerald-700 dark:text-emerald-300 font-medium">
+                    {language === 'en' ? 'Verified Account • Digital Warranty Active' : 'የተረጋገጠ መለያ • ዲጂታል ዋስትና ነቅቷል'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={logoutCustomer}
+                className="text-xs font-bold text-gray-500 hover:text-rose-600 transition-colors cursor-pointer"
+              >
+                {language === 'en' ? 'Switch Account' : 'መለያ ቀይር'}
+              </button>
+            </div>
+
+            {/* Section 1: Customer Contact */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 space-y-4 shadow-sm">
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-[#0052FF]" />
+                <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                  {language === 'en' ? '1. Recipient Information' : '1. የተቀባይ መረጃ'}
+                </h2>
+              </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -604,6 +1153,7 @@ export const CheckoutPage: React.FC = () => {
             )}
           </div>
         </div>
+      )}
 
         {/* Right Column: Order Confirmation Summary */}
         <div className="lg:col-span-5 space-y-4">
@@ -655,13 +1205,19 @@ export const CheckoutPage: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-4 px-6 rounded-2xl bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className={`w-full py-4 px-6 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
+                !isCustomerLoggedIn
+                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                  : 'bg-[#0052FF] hover:bg-blue-600 text-white'
+              }`}
             >
               <Lock className="w-4 h-4" />
               <span>
-                {isSubmitting
-                  ? (language === 'en' ? 'Authorizing Transaction...' : 'ክፍያው እየተረጋገጠ ነው...')
-                  : (language === 'en' ? `Confirm & Place Order (${orderTotal.toLocaleString()} ETB)` : `ትዕዛዙን አረጋግጥ (${orderTotal.toLocaleString()} ብር)`)}
+                {!isCustomerLoggedIn
+                  ? (language === 'en' ? 'Sign In to Complete Order' : 'ትዕዛዙን ለማጠናቀቅ መጀመሪያ ይግቡ')
+                  : isSubmitting
+                    ? (language === 'en' ? 'Authorizing Transaction...' : 'ክፍያው እየተረጋገጠ ነው...')
+                    : (language === 'en' ? `Confirm & Place Order (${orderTotal.toLocaleString()} ETB)` : `ትዕዛዙን አረጋግጥ (${orderTotal.toLocaleString()} ብር)`)}
               </span>
             </button>
 

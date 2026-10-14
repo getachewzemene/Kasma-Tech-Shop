@@ -53,6 +53,7 @@ import { TelegramIntegrationModule } from './TelegramIntegrationModule';
 import { OrderTrackingVisualizer } from './OrderTrackingVisualizer';
 import { generateCustomerReceiptPDF } from '../lib/pdfGenerator';
 import { createDigitalWarrantyPass, downloadDigitalWarrantyCertificatePDF } from '../lib/warrantyService';
+import { GoogleIcon, FacebookIcon } from './checkout/CheckoutAuthModal';
 
 export interface UserProfileViewProps {
   isOpen: boolean;
@@ -60,6 +61,7 @@ export interface UserProfileViewProps {
   language: 'en' | 'am';
   isLoggedIn: boolean;
   onLogin: (phone: string, name?: string) => void;
+  onLoginWithSocial?: (provider: 'google' | 'facebook') => void;
   onLogout: () => void;
   customerName: string;
   setCustomerName: (name: string) => void;
@@ -105,6 +107,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
   language,
   isLoggedIn,
   onLogin,
+  onLoginWithSocial,
   onLogout,
   customerName,
   setCustomerName,
@@ -984,9 +987,53 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 font-medium">
                       {language === 'en' 
-                        ? 'Sign in with your mobile phone number via SMS OTP or password' 
-                        : 'በስልክ ቁጥርዎ በኤስኤምኤስ ኮድ ወይም በምስጢር ቃል ይግቡ'}
+                        ? 'Sign in with Google, Facebook, or your mobile phone number via SMS OTP' 
+                        : 'በጉግል፣ በፌስቡክ ወይም በስልክ ቁጥርዎ በኤስኤምኤስ ኮድ ይግቡ'}
                     </p>
+                  </div>
+
+                  {/* Google & Facebook Fast Sign-In Options */}
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onLoginWithSocial) {
+                          onLoginWithSocial('google');
+                        } else {
+                          onLogin('+251 91 188 9900', 'Google Customer');
+                          showToast(language === 'en' ? 'Signed in with Google!' : 'በጉግል ገብተዋል!', 'success');
+                          onClose();
+                        }
+                      }}
+                      className="w-full py-2.5 px-3 rounded-xl border border-gray-250 dark:border-zinc-750 bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-100 text-xs font-bold flex items-center justify-center gap-2.5 hover:bg-gray-50 dark:hover:bg-zinc-750 transition-colors cursor-pointer shadow-2xs"
+                    >
+                      <GoogleIcon className="w-4.5 h-4.5" />
+                      <span>{language === 'en' ? 'Continue with Google' : 'በጉግል (Google) ቀጥል'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onLoginWithSocial) {
+                          onLoginWithSocial('facebook');
+                        } else {
+                          onLogin('+251 92 233 4455', 'Facebook Customer');
+                          showToast(language === 'en' ? 'Signed in with Facebook!' : 'በፌስቡክ ገብተዋል!', 'success');
+                          onClose();
+                        }
+                      }}
+                      className="w-full py-2.5 px-3 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white text-xs font-bold flex items-center justify-center gap-2.5 transition-colors cursor-pointer shadow-2xs"
+                    >
+                      <FacebookIcon className="w-4.5 h-4.5" />
+                      <span>{language === 'en' ? 'Continue with Facebook' : 'በፌስቡክ (Facebook) ቀጥል'}</span>
+                    </button>
+                  </div>
+
+                  <div className="relative flex items-center justify-center">
+                    <div className="border-t border-gray-200 dark:border-zinc-800 w-full" />
+                    <span className="bg-white dark:bg-zinc-900 px-2 text-[9px] font-black uppercase text-gray-400 tracking-wider absolute">
+                      {language === 'en' ? 'or use phone / password' : 'ወይም በስልክ/ምስጢር ቃል'}
+                    </span>
                   </div>
 
                   {/* Phone OTP vs Password Sub-tabs */}

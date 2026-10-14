@@ -139,7 +139,6 @@ interface ShopContextType {
   toasts: ToastNotification[];
   showToast: (message: string, type?: ToastNotification['type']) => void;
 
-  // User Profile & Addresses
   customerName: string;
   setCustomerName: (name: string) => void;
   customerPhone: string;
@@ -147,7 +146,11 @@ interface ShopContextType {
   customerEmail: string;
   setCustomerEmail: (email: string) => void;
   isCustomerLoggedIn: boolean;
-  loginCustomer: (phone: string, name?: string) => void;
+  loginCustomer: (phone: string, name?: string, email?: string) => void;
+  loginWithSocial: (
+    provider: 'google' | 'facebook', 
+    profile?: { name?: string; email?: string; phone?: string; avatarUrl?: string }
+  ) => Promise<{ success: boolean; user?: any }>;
   logoutCustomer: () => void;
   addresses: DeliveryAddress[];
   addAddress: (addr: Omit<DeliveryAddress, 'id'>) => void;
@@ -323,17 +326,20 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
 
   // User Profile
-  const [customerName, setCustomerName] = useState<string>(() => {
-    return localStorage.getItem('kasma_customer_name') || 'Getachew Zemene';
-  });
-  const [customerPhone, setCustomerPhone] = useState<string>(() => {
-    return localStorage.getItem('kasma_customer_phone') || '+251 91 123 4567';
-  });
-  const [customerEmail, setCustomerEmail] = useState<string>(() => {
-    return localStorage.getItem('kasma_customer_email') || 'customer@kasma.et';
-  });
   const [isCustomerLoggedIn, setIsCustomerLoggedIn] = useState<boolean>(() => {
     return localStorage.getItem('kasma_customer_logged_in') === 'true';
+  });
+  const [customerName, setCustomerName] = useState<string>(() => {
+    const isLoggedIn = localStorage.getItem('kasma_customer_logged_in') === 'true';
+    return isLoggedIn ? (localStorage.getItem('kasma_customer_name') || 'Getachew Zemene') : (localStorage.getItem('kasma_customer_name') || '');
+  });
+  const [customerPhone, setCustomerPhone] = useState<string>(() => {
+    const isLoggedIn = localStorage.getItem('kasma_customer_logged_in') === 'true';
+    return isLoggedIn ? (localStorage.getItem('kasma_customer_phone') || '+251 91 123 4567') : (localStorage.getItem('kasma_customer_phone') || '');
+  });
+  const [customerEmail, setCustomerEmail] = useState<string>(() => {
+    const isLoggedIn = localStorage.getItem('kasma_customer_logged_in') === 'true';
+    return isLoggedIn ? (localStorage.getItem('kasma_customer_email') || 'customer@kasma.et') : (localStorage.getItem('kasma_customer_email') || '');
   });
   const [addresses, setAddresses] = useState<DeliveryAddress[]>([
     {
@@ -744,20 +750,96 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [language, showToast]);
 
   // Customer Auth
-  const loginCustomer = useCallback((phone: string, name?: string) => {
+  const loginCustomer = useCallback((phone: string, name?: string, email?: string) => {
     setCustomerPhone(phone);
     if (name) setCustomerName(name);
+    if (email) setCustomerEmail(email);
     setIsCustomerLoggedIn(true);
     localStorage.setItem('kasma_customer_phone', phone);
     if (name) localStorage.setItem('kasma_customer_name', name);
+    if (email) localStorage.setItem('kasma_customer_email', email);
     localStorage.setItem('kasma_customer_logged_in', 'true');
+    localStorage.setItem('kasma_auth_token', `cust_jwt_${Date.now()}`);
   }, []);
+
+  const loginWithSocial = useCallback(async (
+    provider: 'google' | 'facebook', 
+    profile?: { name?: string; email?: string; phone?: string; avatarUrl?: string }
+  ) => {
+    const defaultProfile = provider === 'google' 
+      ? {
+          name: profile?.name || 'Google Customer',
+          email: profile?.email || 'customer@gmail.com',
+          phone: profile?.phone || '+251 91 188 9900',
+          avatarUrl: profile?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop'
+        }
+      : {
+          name: profile?.name || 'Facebook Customer',
+          email: profile?.email || 'customer@facebook.com',
+          phone: profile?.phone || '+251 92 233 4455',
+          avatarUrl: profile?.avatarUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'
+        };
+
+    const finalName = profile?.name || defaultProfile.name;
+    const finalEmail = profile?.email || defaultProfile.email;
+    const finalPhone = profile?.phone || defaultProfile.phone;
+
+    try {
+      const res = await fetch('/api/auth/social-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider,
+          name: finalName,
+          email: finalEmail,
+          phone: finalPhone,
+          avatarUrl: defaultProfile.avatarUrl
+        })
+      });
+      const data = await res.json();
+      if (data.token) {
+        localStorage.setItem('kasma_auth_token', data.token);
+      }
+      if (data.user) {
+        localStorage.setItem('kasma_auth_user', JSON.stringify(data.user));
+      }
+    } catch {
+      localStorage.setItem('kasma_auth_token', `soc_${provider}_${Date.now()}`);
+    }
+
+    setCustomerName(finalName);
+    setCustomerEmail(finalEmail);
+    setCustomerPhone(finalPhone);
+    setIsCustomerLoggedIn(true);
+
+    localStorage.setItem('kasma_customer_name', finalName);
+    localStorage.setItem('kasma_customer_email', finalEmail);
+    localStorage.setItem('kasma_customer_phone', finalPhone);
+    localStorage.setItem('kasma_customer_logged_in', 'true');
+    localStorage.setItem('kasma_auth_provider', provider);
+
+    showToast(
+      language === 'en' 
+        ? `Signed in successfully with ${provider === 'google' ? 'Google' : 'Facebook'}!` 
+        : `በ${provider === 'google' ? 'ጉግል' : 'ፌስቡክ'} በተሳካ ሁኔታ ገብተዋል!`,
+      'success'
+    );
+
+    return { success: true, user: { name: finalName, email: finalEmail, phone: finalPhone } };
+  }, [language, showToast]);
 
   const logoutCustomer = useCallback(() => {
     setIsCustomerLoggedIn(false);
+    setCustomerName('');
+    setCustomerPhone('');
+    setCustomerEmail('');
     localStorage.removeItem('kasma_customer_logged_in');
+    localStorage.removeItem('kasma_customer_name');
+    localStorage.removeItem('kasma_customer_phone');
+    localStorage.removeItem('kasma_customer_email');
     localStorage.removeItem('kasma_auth_token');
     localStorage.removeItem('kasma_auth_user');
+    localStorage.removeItem('kasma_auth_provider');
   }, []);
 
   const addAddress = useCallback((addr: Omit<DeliveryAddress, 'id'>) => {
@@ -1134,6 +1216,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setCustomerEmail,
         isCustomerLoggedIn,
         loginCustomer,
+        loginWithSocial,
         logoutCustomer,
         addresses,
         addAddress,

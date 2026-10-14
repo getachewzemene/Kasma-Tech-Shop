@@ -281,6 +281,77 @@ async function startServer() {
     }
   });
 
+  // 2b. Social Authentication (Google & Facebook)
+  app.post('/api/auth/social-login', async (req, res) => {
+    try {
+      const { provider, name, email, phone, avatarUrl } = req.body || {};
+      const cleanProvider = (provider === 'facebook' ? 'facebook' : 'google').toLowerCase();
+      const cleanEmail = email ? email.trim().toLowerCase() : `${cleanProvider}_${Date.now()}@kasma.et`;
+      const cleanName = name ? name.trim() : (cleanProvider === 'google' ? 'Google Shopper' : 'Facebook User');
+      const cleanPhone = phone ? phone.trim().replace(/\s+/g, '') : null;
+
+      let userRecord: any;
+      try {
+        const found = await pgDb.select().from(usersTable).where(eq(usersTable.email, cleanEmail));
+        if (found && found.length > 0) {
+          userRecord = found[0];
+        } else {
+          const uid = `soc-${cleanProvider}-${Date.now()}`;
+          const inserted = await pgDb.insert(usersTable).values({
+            uid,
+            email: cleanEmail,
+            name: cleanName,
+            phone: cleanPhone,
+            role: 'customer',
+          }).returning();
+          userRecord = inserted[0];
+        }
+      } catch (dbErr) {
+        userRecord = {
+          id: `soc-${Date.now()}`,
+          uid: `soc-${cleanProvider}-${Date.now()}`,
+          email: cleanEmail,
+          name: cleanName,
+          phone: cleanPhone,
+          role: 'customer'
+        };
+      }
+
+      const token = generateToken({
+        id: String(userRecord.id),
+        uid: userRecord.uid,
+        email: userRecord.email,
+        name: userRecord.name || undefined,
+        phone: userRecord.phone || undefined,
+        role: 'customer',
+      });
+
+      db.logAudit(
+        userRecord.name || cleanProvider,
+        'SOCIAL_AUTHENTICATION',
+        `Customer signed in via ${cleanProvider.toUpperCase()} (${userRecord.email}).`,
+        'INFO'
+      );
+
+      res.json({
+        success: true,
+        token,
+        provider: cleanProvider,
+        user: {
+          id: userRecord.id,
+          uid: userRecord.uid,
+          email: userRecord.email,
+          name: userRecord.name,
+          phone: userRecord.phone,
+          role: userRecord.role,
+        }
+      });
+    } catch (err: any) {
+      console.error('Social login error:', err);
+      res.status(500).json({ error: err.message || 'Server error during social authentication.' });
+    }
+  });
+
   // 3. Administrator Authentication
   app.post('/api/auth/admin-login', async (req, res) => {
     try {

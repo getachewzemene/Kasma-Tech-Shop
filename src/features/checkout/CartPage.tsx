@@ -14,6 +14,7 @@ import {
   X,
   Sparkles
 } from 'lucide-react';
+import { CheckoutAuthModal } from '../../components/checkout/CheckoutAuthModal';
 
 export const CartPage: React.FC = () => {
   const navigate = useNavigate();
@@ -28,10 +29,12 @@ export const CartPage: React.FC = () => {
     appliedPromo,
     applyPromoCode,
     removePromoCode,
-    discountAmount
+    discountAmount,
+    isCustomerLoggedIn
   } = useShop();
 
   const [promoInput, setPromoInput] = useState('');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const handleApplyPromo = (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,7 +234,13 @@ export const CartPage: React.FC = () => {
             </div>
 
             <button
-              onClick={() => navigate('/checkout')}
+              onClick={() => {
+                if (!isCustomerLoggedIn) {
+                  setIsAuthModalOpen(true);
+                  return;
+                }
+                navigate('/checkout');
+              }}
               className="w-full py-3.5 px-4 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{language === 'en' ? 'Proceed to Checkout' : 'ወደ ክፍያ ቀጥል'}</span>
@@ -240,6 +249,16 @@ export const CartPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Checkout Authentication Barrier Modal */}
+      <CheckoutAuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={() => {
+          setIsAuthModalOpen(false);
+          navigate('/checkout');
+        }}
+      />
     </div>
   );
 };

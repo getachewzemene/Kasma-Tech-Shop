@@ -21,6 +21,7 @@ export const RootLayout: React.FC = () => {
     setCustomerEmail,
     isCustomerLoggedIn,
     loginCustomer,
+    loginWithSocial,
     logoutCustomer,
     addresses,
     addAddress,
@@ -50,6 +51,10 @@ export const RootLayout: React.FC = () => {
         isLoggedIn={isCustomerLoggedIn}
         onLogin={(phone, name) => {
           loginCustomer(phone, name);
+          setIsProfileOpen(false);
+        }}
+        onLoginWithSocial={async (provider) => {
+          await loginWithSocial(provider);
           setIsProfileOpen(false);
         }}
         onLogout={logoutCustomer}
