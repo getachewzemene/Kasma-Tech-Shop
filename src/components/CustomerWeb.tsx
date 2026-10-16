@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Product, Variant, CartItem, Order, PriceAlert, PromoCode, DeliveryAddress, SavedPaymentMethod, KasmaPointsReward, KasmaPointsLog, FlashDealNomination } from '../types';
-import { ShoppingCart, Heart, Search, Eye, Sparkles, Check, ChevronRight, ChevronLeft, MapPin, Phone, ShieldCheck, CreditCard, RefreshCw, SlidersHorizontal, ArrowRight, Truck, Package, Clock, Star, MessageSquare, ThumbsUp, Bell, TrendingDown, GitCompare, Gamepad2, Laptop, Camera, Tv, Watch, Smartphone, Headphones, Cpu, ChevronDown, Menu, Flame, Percent, User, Lock, Award, Plus, Zap, Scale, Box, Wifi, WifiOff, Database, Battery, QrCode, Copy, ExternalLink, Download, CheckCircle2, Home, Share2, Link2, Send, MessageCircle, RotateCcw, X, Layers, Filter, Tag, Printer, Activity, Info, BarChart2, Trash2, LogIn, UserPlus, Globe, Building2, Upload } from 'lucide-react';
+import { ShoppingCart, Heart, Search, Eye, Sparkles, Check, ChevronRight, ChevronLeft, MapPin, Phone, ShieldCheck, CreditCard, RefreshCw, SlidersHorizontal, ArrowRight, Truck, Package, Clock, Star, MessageSquare, ThumbsUp, Bell, TrendingDown, GitCompare, Gamepad2, Laptop, Camera, Tv, Watch, Smartphone, Headphones, Cpu, ChevronDown, ChevronUp, Menu, Flame, Percent, User, Lock, Award, Plus, Zap, Scale, Box, Wifi, WifiOff, Database, Battery, QrCode, Copy, ExternalLink, Download, CheckCircle2, Home, Share2, Link2, Send, MessageCircle, RotateCcw, X, Layers, Filter, Tag, Printer, Activity, Info, BarChart2, Trash2, LogIn, UserPlus, Globe, Building2, Upload } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 import { CheckoutAuthModal } from './checkout/CheckoutAuthModal';
 import { CatalogCacheMeta } from '../utils/offlineCatalogCache';
@@ -239,6 +239,17 @@ export default function CustomerWeb({
     }
   };
   const [isCategoriesExpanded, setIsCategoriesExpanded] = useState<boolean>(false);
+
+  // Auto-expand category section if user selects a category that is in the overflow/hidden list
+  useEffect(() => {
+    if (selectedCategory && selectedCategory !== 'all') {
+      const overflowCatIds = ['cameras', 'television', 'accessories'];
+      if (overflowCatIds.includes(selectedCategory)) {
+        setIsCategoriesExpanded(true);
+      }
+    }
+  }, [selectedCategory]);
+
   const [sortBy, setSortBy] = useState<'default' | 'priceAsc' | 'priceDesc' | 'newest'>('default');
   const [isGridLoading, setIsGridLoading] = useState(false);
   const [showWhatsAppButton, setShowWhatsAppButton] = useState<boolean>(false);
@@ -2467,59 +2478,150 @@ export default function CustomerWeb({
         )}
       </div>
 
-      {/* 3. SLEEK HORIZONTAL CATEGORY NAVIGATION BAR - NO WASTED VERTICAL PADDING */}
-      <div className="max-w-[1440px] mx-auto w-full px-2 sm:px-4 md:px-8 mt-2.5 sm:mt-3">
-        <div className="flex items-center justify-between mb-1.5 px-0.5">
-          <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-gray-700 dark:text-zinc-300">
-            <Layers className="w-3.5 h-3.5 text-[#0052FF]" />
-            <span>{language === 'en' ? 'Categories' : 'ምድቦች'}</span>
+      {/* 3. PROFESSIONAL READABLE & EXPANDABLE CATEGORY NAVIGATION BAR */}
+      <div className="max-w-[1440px] mx-auto w-full px-2 sm:px-4 md:px-8 mt-3 sm:mt-4">
+        {/* Category Header with Title, Count, Clear Filter & Expand Toggle */}
+        <div className="flex items-center justify-between mb-2.5 sm:mb-3 px-0.5">
+          <div className="flex items-center gap-2">
+            <div className="p-1 sm:p-1.5 rounded-lg bg-[#0052FF]/10 text-[#0052FF] dark:bg-blue-500/15 dark:text-blue-400">
+              <Layers className="w-4 h-4" />
+            </div>
+            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-gray-800 dark:text-zinc-200">
+              {language === 'en' ? 'Categories' : 'ምድቦች'}
+            </span>
+            <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border border-gray-200/80 dark:border-zinc-700">
+              8
+            </span>
           </div>
-          {selectedCategory !== 'all' && (
+
+          <div className="flex items-center gap-3">
+            {selectedCategory !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setSelectedCategory('all')}
+                className="text-xs sm:text-sm font-bold text-[#0052FF] dark:text-blue-400 hover:underline cursor-pointer flex items-center gap-1"
+              >
+                <span>{language === 'en' ? 'Clear Filter' : 'ሁሉንም አሳይ'}</span>
+              </button>
+            )}
+
+            {/* Expand / Collapse Header Trigger */}
             <button
-              onClick={() => setSelectedCategory('all')}
-              className="text-xs font-bold text-[#0052FF] dark:text-blue-400 hover:underline cursor-pointer flex items-center gap-1"
+              type="button"
+              onClick={() => setIsCategoriesExpanded(!isCategoriesExpanded)}
+              className="text-xs sm:text-sm font-bold text-gray-600 dark:text-zinc-400 hover:text-[#0052FF] dark:hover:text-blue-400 cursor-pointer flex items-center gap-1.5 transition-colors group"
             >
-              <span>{language === 'en' ? 'Clear Filter' : 'ሁሉንም አሳይ'}</span>
+              <span>
+                {isCategoriesExpanded
+                  ? (language === 'en' ? 'Show Less' : 'ያነሱ')
+                  : (language === 'en' ? 'See All Categories' : 'ሁሉንም ይመልከቱ')}
+              </span>
+              <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0052FF] dark:text-blue-400 transition-transform duration-300 group-hover:scale-110 ${isCategoriesExpanded ? 'rotate-180' : ''}`} />
             </button>
-          )}
+          </div>
         </div>
 
-        {/* Space-Efficient Horizontal Category Pills */}
-        <div className="grid grid-cols-4 md:grid-cols-8 gap-1.5 sm:gap-2 items-center w-full">
-          {[
+        {/* Category Cards Container */}
+        {(() => {
+          const ALL_CATEGORIES = [
             { id: 'computers', nameEn: 'Computers', nameAm: 'ላፕቶፕ', icon: Laptop },
-            { id: 'cameras', nameEn: 'Cameras', nameAm: 'ካሜራ', icon: Camera },
-            { id: 'television', nameEn: 'TV & Video', nameAm: 'ቴሌቪዥን', icon: Tv },
-            { id: 'smartwatches', nameEn: 'Smartwatches', nameAm: 'ሰዓቶች', icon: Watch },
-            { id: 'gaming', nameEn: 'Gaming', nameAm: 'ጌሚንግ', icon: Gamepad2 },
             { id: 'mobiles', nameEn: 'Phones', nameAm: 'ሞባይል', icon: Smartphone },
             { id: 'headphones', nameEn: 'Headphones', nameAm: 'ማዳመጫዎች', icon: Headphones },
+            { id: 'gaming', nameEn: 'Gaming', nameAm: 'ጌሚንግ', icon: Gamepad2 },
+            { id: 'smartwatches', nameEn: 'Smartwatches', nameAm: 'ስማርት ሰዓት', icon: Watch },
+            { id: 'cameras', nameEn: 'Cameras', nameAm: 'ካሜራ', icon: Camera },
+            { id: 'television', nameEn: 'TV & Video', nameAm: 'ቴሌቪዥን', icon: Tv },
             { id: 'accessories', nameEn: 'Accessories', nameAm: 'መለዋወጫዎች', icon: Cpu }
-          ].map((dept) => {
-            const DeptIcon = dept.icon;
-            const isSelected = selectedCategory === dept.id;
+          ];
 
-            return (
-              <button
-                key={dept.id}
-                onClick={() => {
-                  setSelectedCategory(isSelected ? 'all' : dept.id);
-                  const el = document.getElementById('products-grid-section');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className={`w-full flex items-center justify-center gap-1.5 sm:gap-2 py-2 px-2 sm:px-2.5 rounded-xl border transition-all duration-200 group cursor-pointer focus:outline-none min-h-[38px] sm:min-h-[42px] shadow-2xs hover:shadow-xs ${isSelected
-                  ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-xs scale-[1.01]'
-                  : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/60 hover:text-[#0052FF] hover:bg-blue-50/40 dark:hover:bg-blue-950/20'
-                  }`}
+          // In collapsed mode: show 5 prominent items + 1 expandable "See More" button (total 6 items in 1 row on desktop)
+          // In expanded mode: show all 8 categories across a spacious multi-column grid
+          const visibleCategories = isCategoriesExpanded ? ALL_CATEGORIES : ALL_CATEGORIES.slice(0, 5);
+          const hiddenCount = ALL_CATEGORIES.length - 5;
+
+          return (
+            <div className="w-full">
+              <div
+                className={`grid gap-2 sm:gap-2.5 md:gap-3 items-center w-full transition-all duration-300 ${
+                  isCategoriesExpanded
+                    ? 'grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-4'
+                    : 'grid-cols-2 xs:grid-cols-3 md:grid-cols-6'
+                }`}
               >
-                <DeptIcon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-transform group-hover:scale-110 ${isSelected ? 'text-white' : 'text-[#0052FF] dark:text-blue-400'}`} />
-                <span className={`text-[11px] sm:text-xs font-bold text-center leading-none tracking-tight truncate ${isSelected ? 'text-white' : 'text-gray-900 dark:text-zinc-100 group-hover:text-[#0052FF] dark:group-hover:text-blue-400'}`}>
-                  {language === 'en' ? dept.nameEn : dept.nameAm}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                {visibleCategories.map((dept) => {
+                  const DeptIcon = dept.icon;
+                  const isSelected = selectedCategory === dept.id;
+
+                  return (
+                    <button
+                      key={dept.id}
+                      onClick={() => {
+                        setSelectedCategory(isSelected ? 'all' : dept.id);
+                        const el = document.getElementById('products-grid-section');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className={`w-full flex items-center justify-center gap-2 sm:gap-2.5 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl border transition-all duration-200 group cursor-pointer focus:outline-none min-h-[46px] sm:min-h-[50px] shadow-2xs hover:shadow-sm ${
+                        isSelected
+                          ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-md shadow-blue-500/25 ring-2 ring-[#0052FF]/30 scale-[1.01]'
+                          : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/60 hover:text-[#0052FF] hover:bg-blue-50/50 dark:hover:bg-blue-950/20'
+                      }`}
+                    >
+                      <div
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          isSelected
+                            ? 'bg-white/20 text-white'
+                            : 'bg-blue-50 dark:bg-blue-950/50 text-[#0052FF] dark:text-blue-400 group-hover:bg-[#0052FF] group-hover:text-white'
+                        }`}
+                      >
+                        <DeptIcon className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0 transition-transform group-hover:scale-110" />
+                      </div>
+                      <span
+                        className={`text-xs sm:text-sm font-bold text-center leading-snug tracking-normal whitespace-nowrap ${
+                          isSelected
+                            ? 'text-white'
+                            : 'text-gray-900 dark:text-zinc-100 group-hover:text-[#0052FF] dark:group-hover:text-blue-400'
+                        }`}
+                      >
+                        {language === 'en' ? dept.nameEn : dept.nameAm}
+                      </span>
+                    </button>
+                  );
+                })}
+
+                {/* Collapsed Mode: Expandable "+X More" Button */}
+                {!isCategoriesExpanded && (
+                  <button
+                    type="button"
+                    onClick={() => setIsCategoriesExpanded(true)}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl border border-dashed border-[#0052FF]/40 dark:border-blue-500/40 bg-blue-50/60 dark:bg-blue-950/30 text-[#0052FF] dark:text-blue-400 hover:bg-[#0052FF] hover:text-white hover:border-[#0052FF] transition-all duration-200 group cursor-pointer focus:outline-none min-h-[46px] sm:min-h-[50px] shadow-2xs hover:shadow-sm"
+                    title={language === 'en' ? 'Click to expand all categories' : 'ሁሉንም ምድቦች ለማየት ይጫኑ'}
+                  >
+                    <div className="p-1.5 rounded-lg bg-[#0052FF]/10 dark:bg-blue-400/10 group-hover:bg-white/20 transition-all">
+                      <ChevronDown className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0 transition-transform group-hover:translate-y-0.5" />
+                    </div>
+                    <span className="text-xs sm:text-sm font-bold tracking-normal whitespace-nowrap">
+                      {language === 'en' ? `+${hiddenCount} More` : `+${hiddenCount} ተጨማሪ`}
+                    </span>
+                  </button>
+                )}
+              </div>
+
+              {/* Expanded Mode: Centered "Show Less" Pill */}
+              {isCategoriesExpanded && (
+                <div className="flex justify-center mt-2.5 sm:mt-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsCategoriesExpanded(false)}
+                    className="inline-flex items-center gap-1.5 px-4 py-1.5 sm:py-2 rounded-xl bg-gray-100 hover:bg-gray-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs sm:text-sm font-bold text-gray-700 dark:text-zinc-200 transition-all border border-gray-200 dark:border-zinc-700 shadow-2xs cursor-pointer active:scale-95"
+                  >
+                    <ChevronUp className="w-4 h-4 text-[#0052FF] dark:text-blue-400" />
+                    <span>{language === 'en' ? 'Show Less' : 'ያነሱ'}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
 
