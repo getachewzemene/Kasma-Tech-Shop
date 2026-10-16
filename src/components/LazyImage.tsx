@@ -69,10 +69,14 @@ export const LazyImage: React.FC<LazyImageProps> = ({
     }
   };
 
+  const hasExplicitWidth = containerClassName.includes('w-');
+  const hasExplicitHeight = containerClassName.includes('h-');
+  const defaultDimensions = `${hasExplicitWidth ? '' : 'w-full'} ${hasExplicitHeight ? '' : 'h-full'}`.trim();
+
   return (
     <div 
       ref={containerRef} 
-      className={`relative overflow-hidden w-full h-full ${containerClassName}`}
+      className={`relative overflow-hidden ${defaultDimensions} ${containerClassName}`.trim()}
     >
       <AnimatePresence mode="popLayout">
         {!isLoaded && (

@@ -263,8 +263,11 @@ export const AdminDashboardSkeleton: React.FC = () => {
 export const ProductCardSkeleton: React.FC<{ className?: string }> = ({ className = '' }) => {
   return (
     <div className={`bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-xs flex flex-col justify-between ${className}`}>
-      {/* Image Skeleton */}
-      <div className="aspect-[4/3] w-full relative overflow-hidden bg-gray-100 dark:bg-zinc-850">
+      {/* Image Skeleton: 45% proportion matching ProductCard */}
+      <div 
+        style={{ aspectRatio: '16 / 11' }}
+        className="aspect-[16/11] w-full relative overflow-hidden bg-gray-100 dark:bg-zinc-850"
+      >
         <Shimmer className="w-full h-full rounded-none" />
       </div>
 

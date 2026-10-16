@@ -56,6 +56,7 @@ export const AutoCarousel: React.FC<AutoCarouselProps> = ({
       intervalId = setInterval(() => {
         if (!container) return;
         const maxScroll = container.scrollWidth - container.clientWidth;
+        if (maxScroll <= 5) return;
         if (container.scrollLeft >= maxScroll - 10) {
           container.scrollTo({ left: 0, behavior: 'smooth' });
         } else {
@@ -110,6 +111,8 @@ export const AutoCarousel: React.FC<AutoCarouselProps> = ({
     indigo: 'bg-indigo-600'
   };
 
+  const isGridOnDesktop = products.length <= 4;
+
   return (
     <div className="border-0 sm:border border-gray-150 dark:border-zinc-800 rounded-none sm:rounded-3xl bg-transparent sm:bg-white dark:sm:bg-zinc-900 p-0 sm:p-5 shadow-none sm:shadow-xs w-full max-w-full overflow-hidden">
       {/* Container Header */}
@@ -125,7 +128,7 @@ export const AutoCarousel: React.FC<AutoCarouselProps> = ({
           </div>
 
           {badgeColor === 'red' && timeLeft && (
-            <div className="flex items-center gap-1.5 sm:gap-2 pl-0 sm:pl-4 border-l-0 sm:border-l border-gray-200 dark:border-zinc-850 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 pl-0 sm:pl-4 border-l-0 sm:border-l border-gray-200 dark:border-zinc-855 shrink-0">
               <span className="text-[9px] sm:text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
                 {language === 'en' ? 'Ends in:' : 'የቀረው ጊዜ:'}
               </span>
@@ -146,7 +149,7 @@ export const AutoCarousel: React.FC<AutoCarouselProps> = ({
           )}
         </div>
         
-        <div className="flex gap-1.5 self-end sm:self-auto shrink-0 mt-0.5 sm:mt-0">
+        <div className={`flex gap-1.5 self-end sm:self-auto shrink-0 mt-0.5 sm:mt-0 ${isGridOnDesktop ? 'lg:hidden' : ''}`}>
           <button 
             type="button"
             onClick={scrollLeft} 
@@ -167,7 +170,7 @@ export const AutoCarousel: React.FC<AutoCarouselProps> = ({
       {/* Carousel Track */}
       <div 
         ref={containerRef}
-        className="flex gap-2.5 sm:gap-5 overflow-x-auto pb-1.5 pt-1.5 sm:pt-3 px-0.5 no-scrollbar scrollbar-none scroll-smooth snap-x snap-mandatory"
+        className={`flex ${isGridOnDesktop ? 'lg:grid lg:grid-cols-4 lg:overflow-visible' : ''} items-stretch gap-2.5 sm:gap-4 lg:gap-5 overflow-x-auto pb-1.5 pt-1.5 sm:pt-3 px-0.5 no-scrollbar scrollbar-none scroll-smooth snap-x snap-mandatory w-full`}
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {products.map((p) => {

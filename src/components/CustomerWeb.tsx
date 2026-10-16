@@ -18,6 +18,7 @@ import { FlashDealsView } from './FlashDealsView';
 import { ProductCard } from './ProductCard';
 import { SectionHeader } from './SectionHeader';
 import DeliveryTimeEstimator from './DeliveryTimeEstimator';
+import { ShareProductModal } from './ShareProductModal';
 import { GridContainer, CarouselContainer } from './GridContainer';
 import { AutoCarousel } from './AutoCarousel';
 import { sendTelegramOrderConfirmation, sendTelegramShippingUpdate, sendStoreOwnerTelegramNotification } from '../utils/telegramBot';
@@ -279,7 +280,7 @@ export default function CustomerWeb({
         { id: p.id, nameEn: p.nameEn, nameAm: p.nameAm, category: p.category, timestamp: Date.now() },
         ...filtered
       ].slice(0, 15);
-      try { localStorage.setItem('kasma_viewed_products', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('kasma_viewed_products', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
   }, []);
@@ -290,7 +291,7 @@ export default function CustomerWeb({
     setRecentSearchesHistory(prev => {
       const filtered = prev.filter(q => q.toLowerCase() !== trimmed.toLowerCase());
       const updated = [trimmed, ...filtered].slice(0, 10);
-      try { localStorage.setItem('kasma_recent_searches', JSON.stringify(updated)); } catch (e) {}
+      try { localStorage.setItem('kasma_recent_searches', JSON.stringify(updated)); } catch (e) { }
       return updated;
     });
   }, []);
@@ -366,16 +367,13 @@ export default function CustomerWeb({
 
   const activeFiltersCount = React.useMemo(() => {
     let count = 0;
-    if (selectedCategory !== 'all') count++;
     if (searchQuery.trim() !== '') count++;
-    if (minPriceInput.trim() !== '') count++;
-    if (maxPriceInput.trim() !== '') count++;
-    if (selectedBrands.length > 0) count++;
+    if (minPriceInput.trim() !== '' || maxPriceInput.trim() !== '') count++;
+    if (selectedBrands.length > 0) count += selectedBrands.length;
     if (availabilityFilter !== 'ALL') count++;
     if (selectedRatingFilter > 0) count++;
-    if (sortBy !== 'default') count++;
     return count;
-  }, [selectedCategory, searchQuery, minPriceInput, maxPriceInput, selectedBrands, availabilityFilter, selectedRatingFilter, sortBy]);
+  }, [searchQuery, minPriceInput, maxPriceInput, selectedBrands, availabilityFilter, selectedRatingFilter]);
 
   const handleClearAllFilters = () => {
     setSelectedCategory('all');
@@ -408,13 +406,13 @@ export default function CustomerWeb({
   };
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  
+
   // Quick buy / Quick View states
   const [quickBuyProduct, setQuickBuyProduct] = useState<Product | null>(null);
   const [quickBuyVariant, setQuickBuyVariant] = useState<Variant | null>(null);
   const [quickBuyQuantity, setQuickBuyQuantity] = useState<number>(1);
   const [quickViewImageIndex, setQuickViewImageIndex] = useState<number>(0);
-  
+
   // Quick view high-res gallery state
   const [activeGalleryIndex, setActiveGalleryIndex] = useState<number>(0);
 
@@ -484,7 +482,7 @@ export default function CustomerWeb({
   };
 
   // Sorting options: 'default' | 'priceAsc' | 'priceDesc'
-  
+
   // Slidable carousel active slide index state
   const [currentSlide, setCurrentSlide] = useState(0);
   const [carouselTab, setCarouselTab] = useState<'featured' | 'new_arrivals' | 'top_sold'>('featured');
@@ -499,7 +497,8 @@ export default function CustomerWeb({
     }, 4000);
   };
 
-  // Share Cart feature states & handlers
+  // Share feature states & handlers
+  const [sharingProduct, setSharingProduct] = useState<Product | null>(null);
   const [isShareCartModalOpen, setIsShareCartModalOpen] = useState(false);
   const [copiedSharedLink, setCopiedSharedLink] = useState(false);
 
@@ -675,7 +674,7 @@ export default function CustomerWeb({
       'info'
     );
   };
-  
+
   // Payment Simulation Screen State
   const [paymentStep, setPaymentStep] = useState<'FORM' | 'GATEWAY' | 'OTP' | 'SUCCESS'>('FORM');
   const [telebirrOtp, setTelebirrOtp] = useState('');
@@ -909,7 +908,7 @@ export default function CustomerWeb({
   // 1. Jumia-style Flash Sales Countdown and claimed stats
   const [flashTimeLeft, setFlashTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({ hours: 4, minutes: 12, seconds: 35 });
   const [simulatedClaimedQty, setSimulatedClaimedQty] = useState<Record<string, number>>({});
-  
+
   // 2. Real-transaction privacy-safe Social Proof notification
   const [activeSocialProof, setActiveSocialProof] = useState<{ item: string; timeAgo: string; show: boolean } | null>(null);
 
@@ -984,10 +983,10 @@ export default function CustomerWeb({
   // Compute Frequently Bought Together recommendations for selectedProduct using category metadata
   const fbtProducts = React.useMemo(() => {
     if (!selectedProduct) return [];
-    
+
     const currentCat = selectedProduct.category.toLowerCase();
     const preferredCategories = COMPLEMENTARY_CATEGORY_MAP[currentCat] || [];
-    
+
     const candidates: Product[] = [];
     const usedIds = new Set<string>([selectedProduct.id]);
 
@@ -1128,11 +1127,15 @@ export default function CustomerWeb({
 
   // Helper to calculate average product ratings
   const getProductRatingInfo = (product: Product) => {
-    if (!product.reviews || product.reviews.length === 0) {
-      return { avg: 0, count: 0 };
-    }
-    const sum = product.reviews.reduce((acc, r) => acc + r.rating, 0);
-    return { avg: Number((sum / product.reviews.length).toFixed(1)), count: product.reviews.length };
+    if (!product) return { avg: 0, count: 0 };
+    const reviews = product.reviews || [];
+    const count = product.reviewsCount !== undefined 
+      ? product.reviewsCount 
+      : (reviews.length > 0 ? reviews.length : 0);
+    const avg = product.rating !== undefined 
+      ? Number(product.rating.toFixed(1))
+      : (reviews.length > 0 ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)) : 0);
+    return { avg, count };
   };
 
   // Helper to highlight matching keywords in text
@@ -1147,7 +1150,7 @@ export default function CustomerWeb({
       const parts = text.split(regex);
       return (
         <>
-          {parts.map((part, idx) => 
+          {parts.map((part, idx) =>
             regex.test(part) ? (
               <mark key={idx} className="bg-amber-200/90 dark:bg-amber-500/30 text-amber-950 dark:text-amber-200 px-1 py-0.5 rounded font-semibold transition-all">
                 {part}
@@ -1348,7 +1351,7 @@ export default function CustomerWeb({
         const isFav = favorites.includes(p.id);
         const isInCart = cart.some(item => item.product.id === p.id);
         const hasPurchased = purchasedProductIds.has(p.id);
-        
+
         if (isFav || isInCart || hasPurchased) {
           return { product: p, score: -1, reason: { en: 'Popular pick', am: 'ተወዳጅ ምርጫ' } };
         }
@@ -1418,7 +1421,7 @@ export default function CustomerWeb({
     setViewedProductsHistory([]);
     try {
       localStorage.removeItem('kasma_viewed_products');
-    } catch (e) {}
+    } catch (e) { }
     showToast(
       language === 'en' ? 'Recently viewed history cleared.' : 'የቅርብ ጊዜ የታዩ እቃዎች ታሪክ ተሰርዟል።',
       'info'
@@ -1426,11 +1429,11 @@ export default function CustomerWeb({
   };
 
   const filteredProducts = approvedProducts.filter(p => {
-    const matchesCategory = selectedCategory === 'all' 
-      ? true 
+    const matchesCategory = selectedCategory === 'all'
+      ? true
       : selectedCategory === 'deals'
-      ? (p.featured || (p.variants && p.variants.some(v => v.priceOffset < 0)))
-      : p.category === selectedCategory;
+        ? (p.featured || (p.variants && p.variants.some(v => v.priceOffset < 0)))
+        : p.category === selectedCategory;
     const name = language === 'en' ? p.nameEn.toLowerCase() : p.nameAm.toLowerCase();
     const desc = language === 'en' ? p.descriptionEn.toLowerCase() : p.descriptionAm.toLowerCase();
     const query = searchQuery.toLowerCase().trim();
@@ -1488,8 +1491,8 @@ export default function CustomerWeb({
 
     if (!hasPurchased) {
       setReviewError(
-        language === 'en' 
-          ? 'Verification failed: Only customers who purchased this product can submit a review. Please use the mobile number from your order checkout.' 
+        language === 'en'
+          ? 'Verification failed: Only customers who purchased this product can submit a review. Please use the mobile number from your order checkout.'
           : 'ማረጋገጫ አልተሳካም፡ ይህንን ምርት የገዙ ደንበኞች ብቻ ናቸው አስተያየት መተው የሚችሉት። እባክዎን በትእዛዝዎ ጊዜ የተጠቀሙበትን ስልክ ቁጥር ያስገቡ።'
       );
       return;
@@ -1559,16 +1562,16 @@ export default function CustomerWeb({
     if (existing) {
       setPriceAlerts(priceAlerts.filter(a => a.productId !== product.id));
       showToast(
-        language === 'en' 
-          ? `Removed price alert for ${product.nameEn}.` 
+        language === 'en'
+          ? `Removed price alert for ${product.nameEn}.`
           : `ለ${product.nameAm} የዋጋ ማንቂያ ተነስቷል።`,
         'info'
       );
     } else {
       setPriceAlerts([...priceAlerts, { productId: product.id, thresholdPrice: product.price }]);
       showToast(
-        language === 'en' 
-          ? `Price alert set for ${product.nameEn} at ${product.price.toLocaleString()} ETB.` 
+        language === 'en'
+          ? `Price alert set for ${product.nameEn} at ${product.price.toLocaleString()} ETB.`
           : `ለ${product.nameAm} የዋጋ ማንቂያ በ${product.price.toLocaleString()} ETB ተዋቅሯል።`,
         'success'
       );
@@ -1576,49 +1579,53 @@ export default function CustomerWeb({
   };
 
   const handleUpdateThresholdPrice = (productId: string, price: number) => {
-    setPriceAlerts(priceAlerts.map(a => 
+    setPriceAlerts(priceAlerts.map(a =>
       a.productId === productId ? { ...a, thresholdPrice: Math.max(0, price) } : a
     ));
   };
 
   const addToCart = (product: Product, variant: Variant, quantity: number = 1) => {
-    const existing = cart.find(item => item.product.id === product.id && item.sku === variant.sku);
-    const currentQtyInCart = existing ? existing.quantity : 0;
+    let canAdd = true;
+    setCart(prev => {
+      const existing = prev.find(item => item.product.id === product.id && item.sku === variant.sku);
+      const currentQtyInCart = existing ? existing.quantity : 0;
 
-    if (currentQtyInCart + quantity > variant.onHand) {
-      showToast(language === 'en' 
-        ? `Cannot add more. Only ${variant.onHand} items on hand.` 
-        : `ማከል አይቻልም። በእጅ ላይ ያለው ${variant.onHand} ፍሬ ብቻ ነው።`,
-        'warning'
-      );
-      return;
-    }
+      if (currentQtyInCart + quantity > variant.onHand) {
+        showToast(language === 'en'
+          ? `Cannot add more. Only ${variant.onHand} items on hand.`
+          : `ማከል አይቻልም። በእጅ ላይ ያለው ${variant.onHand} ፍሬ ብቻ ነው።`,
+          'warning'
+        );
+        canAdd = false;
+        return prev;
+      }
 
-    if (existing) {
-      setCart(cart.map(item => 
-        (item.product.id === product.id && item.sku === variant.sku)
-          ? { ...item, quantity: item.quantity + quantity }
-          : item
-      ));
-    } else {
-      setCart([...cart, {
-        product,
-        sku: variant.sku,
-        variantName: variant.name,
-        quantity: quantity,
-        price: product.price + variant.priceOffset
-      }]);
-    }
+      if (existing) {
+        return prev.map(item =>
+          (item.product.id === product.id && item.sku === variant.sku)
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      } else {
+        return [...prev, {
+          product,
+          sku: variant.sku,
+          variantName: variant.name,
+          quantity: quantity,
+          price: product.price + variant.priceOffset
+        }];
+      }
+    });
 
-    // Trigger visual animation highlight for newly added item
-    setRecentlyAddedSkus(prev => [...prev, variant.sku]);
-    setTimeout(() => {
-      setRecentlyAddedSkus(prev => prev.filter(s => s !== variant.sku));
-    }, 1200);
+    if (canAdd) {
+      // Trigger visual animation highlight for newly added item
+      setRecentlyAddedSkus(prev => [...prev, variant.sku]);
+      setTimeout(() => {
+        setRecentlyAddedSkus(prev => prev.filter(s => s !== variant.sku));
+      }, 1200);
 
-    // Sync wishlist: remove from favorites when added to cart
-    if (favorites.includes(product.id)) {
-      setFavorites(favorites.filter(fId => fId !== product.id));
+      // Sync wishlist: remove from favorites when added to cart
+      setFavorites(prev => prev.filter(fId => fId !== product.id));
     }
   };
 
@@ -1638,9 +1645,9 @@ export default function CustomerWeb({
       setIsCheckoutOpen(true);
     }
     showToast(
-      language === 'en' 
-        ? '⚡ Instant checkout initiated! Complete your order details below.' 
-        : '⚡ የፈጣን ክፍያ ገፅ ተከፍቷል! ትዕዛዝዎን ከታች ያጠናቁ።', 
+      language === 'en'
+        ? '⚡ Instant checkout initiated! Complete your order details below.'
+        : '⚡ የፈጣን ክፍያ ገፅ ተከፍቷል! ትዕዛዝዎን ከታች ያጠናቁ።',
       'info'
     );
   };
@@ -1652,9 +1659,9 @@ export default function CustomerWeb({
       const defaultVariant = product.variants[0] || { sku: 'DEFAULT', name: 'Standard Option', onHand: 10, priceOffset: 0 };
       addedSkus.push(defaultVariant.sku);
       const existing = newCart.find(item => item.product.id === product.id && item.sku === defaultVariant.sku);
-      
+
       if (existing) {
-        newCart = newCart.map(item => 
+        newCart = newCart.map(item =>
           (item.product.id === product.id && item.sku === defaultVariant.sku)
             ? { ...item, quantity: item.quantity + 1 }
             : item
@@ -1702,8 +1709,8 @@ export default function CustomerWeb({
     const maxStock = variantObj ? variantObj.onHand : 99;
 
     if (value > maxStock) {
-      showToast(language === 'en' 
-        ? `Only ${maxStock} items available in stock.` 
+      showToast(language === 'en'
+        ? `Only ${maxStock} items available in stock.`
         : `በክምችት ውስጥ ያለው ${maxStock} ፍሬ ብቻ ነው።`,
         'warning'
       );
@@ -1767,9 +1774,9 @@ export default function CustomerWeb({
 
     if (!cleanLandmark) {
       showToast(
-        language === 'en' 
-          ? 'Known Landmark / Area is required (e.g. Behind Edna Mall, Near Medhanialem Church).' 
-          : 'እባክዎን የሚታወቅ መለያ ቦታ ያስገቡ (ለምሳሌ፡ ከኤድና ሞል ጀርባ፣ ከመድኃኔዓለም ቤተክርስቲያን አጠገብ)።', 
+        language === 'en'
+          ? 'Known Landmark / Area is required (e.g. Behind Edna Mall, Near Medhanialem Church).'
+          : 'እባክዎን የሚታወቅ መለያ ቦታ ያስገቡ (ለምሳሌ፡ ከኤድና ሞል ጀርባ፣ ከመድኃኔዓለም ቤተክርስቲያን አጠገብ)።',
         'warning'
       );
       return;
@@ -1779,9 +1786,9 @@ export default function CustomerWeb({
     const isEthPhone = /^(\+2519|\+2517|09|07)\d{8}$/.test(cleanPhone);
     if (!isEthPhone) {
       showToast(
-        language === 'en' 
-          ? 'Valid Ethiopian mobile number required (+251 9... / +251 7... or 09... / 07...).' 
-          : 'ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ (+2519... ወይም 09...)።', 
+        language === 'en'
+          ? 'Valid Ethiopian mobile number required (+251 9... / +251 7... or 09... / 07...).'
+          : 'ትክክለኛ የኢትዮጵያ ስልክ ቁጥር ያስገቡ (+2519... ወይም 09...)።',
         'warning'
       );
       return;
@@ -1833,9 +1840,9 @@ export default function CustomerWeb({
       if (paymentMethod === 'COD') {
         completeOrder('PROCESSING', data.txRef);
         showToast(
-          language === 'en' 
-            ? `Cash on Delivery order confirmed! Courier fleet dispatched (PIN: ${data.verificationPin || '8492'})` 
-            : `የእጅ በእጅ ክፍያ ትዕዛዝ ተረጋግጧል! መልዕክተኛ ተመድቧል (ፒን፡ ${data.verificationPin || '8492'})`, 
+          language === 'en'
+            ? `Cash on Delivery order confirmed! Courier fleet dispatched (PIN: ${data.verificationPin || '8492'})`
+            : `የእጅ በእጅ ክፍያ ትዕዛዝ ተረጋግጧል! መልዕክተኛ ተመድቧል (ፒን፡ ${data.verificationPin || '8492'})`,
           'success'
         );
         return;
@@ -2023,8 +2030,8 @@ export default function CustomerWeb({
     if (cart.length > 0) {
       const totalCount = cart.reduce((acc, item) => acc + item.quantity, 0);
       showTelegramMainButton({
-        text: language === 'en' 
-          ? `VIEW CART (${totalCount}) • ${cartTotal.toLocaleString()} ETB` 
+        text: language === 'en'
+          ? `VIEW CART (${totalCount}) • ${cartTotal.toLocaleString()} ETB`
           : `ጋሪ ተመልከት (${totalCount}) • ${cartTotal.toLocaleString()} ብር`,
         onClick: () => setIsCartOpen(true),
         color: '#0052FF'
@@ -2052,15 +2059,15 @@ export default function CustomerWeb({
     const selectedSubCityObj = SUB_CITIES.find(sc => sc.id === selectedSubCity);
     const subCityLabel = selectedSubCityObj ? selectedSubCityObj.nameEn : selectedSubCity;
     const resolvedTxRef = verifiedPaymentId || activePaymentSession?.txRef || (
-      paymentMethod === 'TELEBIRR' 
-        ? `tb_tx_${Math.random().toString(36).substring(7)}` 
+      paymentMethod === 'TELEBIRR'
+        ? `tb_tx_${Math.random().toString(36).substring(7)}`
         : paymentMethod === 'BANK'
-        ? `bank_tx_${bankReference || Math.random().toString(36).substring(7)}`
-        : paymentMethod === 'CBE_BIRR'
-        ? `cbe_tx_${Math.random().toString(36).substring(7)}`
-        : paymentMethod === 'CHAPA'
-        ? `ch_tx_${Math.random().toString(36).substring(7)}`
-        : `cod_pin_${activePaymentSession?.verificationPin || Math.floor(1000 + Math.random() * 9000)}`
+          ? `bank_tx_${bankReference || Math.random().toString(36).substring(7)}`
+          : paymentMethod === 'CBE_BIRR'
+            ? `cbe_tx_${Math.random().toString(36).substring(7)}`
+            : paymentMethod === 'CHAPA'
+              ? `ch_tx_${Math.random().toString(36).substring(7)}`
+              : `cod_pin_${activePaymentSession?.verificationPin || Math.floor(1000 + Math.random() * 9000)}`
     );
 
     const newOrder: Order = {
@@ -2097,9 +2104,9 @@ export default function CustomerWeb({
     // Decrement the physical stock on hand
     cart.forEach(item => {
       onUpdateProductStock(
-        item.product.id, 
-        item.sku, 
-        -item.quantity, 
+        item.product.id,
+        item.sku,
+        -item.quantity,
         `Sales checkout order #${newOrder.id} fulfilment (Auto-decrement)`
       );
     });
@@ -2107,7 +2114,7 @@ export default function CustomerWeb({
     onAddOrder(newOrder);
     setLastPlacedOrderId(newOrder.id);
     setLastPlacedOrder(newOrder);
-    
+
     // Dispatch automated Telegram order confirmation receipt to customer
     sendTelegramOrderConfirmation(newOrder, language).catch(err => {
       console.warn("Telegram order receipt dispatch failed:", err);
@@ -2148,9 +2155,9 @@ export default function CustomerWeb({
 
     if (isOfflineSimulated) {
       showToast(
-        language === 'en' 
-          ? 'Offline mode active: Order queued in local cache.' 
-          : 'ከመስመር ውጭ ሁነታ ገቢር ነው፡ ትዕዛዙ በካሽ ውስጥ ተቀምጧል።', 
+        language === 'en'
+          ? 'Offline mode active: Order queued in local cache.'
+          : 'ከመስመር ውጭ ሁነታ ገቢር ነው፡ ትዕዛዙ በካሽ ውስጥ ተቀምጧል።',
         'info'
       );
     }
@@ -2227,7 +2234,7 @@ export default function CustomerWeb({
 
   return (
     <div className="w-full max-w-full bg-slate-50 dark:bg-[#0B0F17] min-h-screen pb-3 sm:pb-4 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-200">
-      
+
       {/* IndexedDB & Cache API Offline Catalog Cache Status Banner */}
       {(!isOnline || isOfflineSimulated) && (
         <div className="bg-amber-500/10 dark:bg-amber-950/40 border-b border-amber-500/20 px-3 sm:px-6 py-2 text-xs font-medium text-amber-900 dark:text-amber-200 flex items-center justify-between gap-2 flex-wrap z-40 relative">
@@ -2304,7 +2311,7 @@ export default function CustomerWeb({
 
           return (
             <div id="tour-welcome-banner" className="relative bg-gradient-to-br from-[#021B24] via-[#052C38] to-[#0A1A28] dark:from-zinc-950 dark:via-[#032029] dark:to-zinc-950 text-white rounded-2xl sm:rounded-3xl overflow-hidden min-h-[240px] sm:min-h-[320px] md:min-h-[380px] lg:min-h-[420px] flex flex-col justify-center p-3.5 xs:p-4 sm:p-8 md:p-10 lg:p-12 shadow-2xl border border-cyan-500/25 dark:border-zinc-800/85 group transition-all duration-500">
-              
+
               {/* Background ambient glow behind product */}
               <div className="absolute right-4 sm:right-16 top-1/2 -translate-y-1/2 w-48 sm:w-[360px] h-48 sm:h-[360px] bg-cyan-400/10 dark:bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -2325,10 +2332,10 @@ export default function CustomerWeb({
               </div>
 
               <div className="grid grid-cols-12 items-center gap-3 sm:gap-6 md:gap-8 lg:gap-12 relative z-10 w-full pt-6 xs:pt-7 sm:pt-4 pb-2">
-                
+
                 {/* Left Content Column (Balanced 6 Columns) */}
-                <div 
-                  key={`slide-info-${slide.id}`} 
+                <div
+                  key={`slide-info-${slide.id}`}
                   className="col-span-6 xs:col-span-6 sm:col-span-6 md:col-span-6 lg:col-span-6 space-y-1.5 xs:space-y-2 sm:space-y-3.5 text-left animate-in fade-in slide-in-from-left-6 duration-500 min-w-0 pr-1 sm:pr-0"
                 >
                   {/* Brand Label */}
@@ -2337,12 +2344,12 @@ export default function CustomerWeb({
                       {brandName}
                     </div>
                   )}
-                  
+
                   {/* Product Title - Max 2 lines */}
                   <h1 className="text-xs xs:text-sm sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight leading-snug text-white uppercase drop-shadow-sm font-sans line-clamp-2">
                     {line1} {line2}
                   </h1>
-                  
+
                   {/* Price & Savings Hierarchy - STRICT ONE-LINER PRICE */}
                   <div className="space-y-0.5 sm:space-y-1 pt-0.5">
                     <div className="flex items-baseline gap-1.5 sm:gap-2.5 flex-nowrap overflow-hidden">
@@ -2353,16 +2360,16 @@ export default function CustomerWeb({
                         {originalPrice.toLocaleString()} ETB
                       </span>
                     </div>
-                    
+
                     <div>
                       <span className="text-[8px] xs:text-[9px] sm:text-xs font-black uppercase text-emerald-300 bg-[#00925D]/30 border border-[#00925D]/60 px-2 py-0.5 rounded-md tracking-wider inline-block whitespace-nowrap">
-                        {language === 'en' 
-                          ? `SAVE ${savingsAmount.toLocaleString()} ETB` 
+                        {language === 'en'
+                          ? `SAVE ${savingsAmount.toLocaleString()} ETB`
                           : `ከ${savingsAmount.toLocaleString()} ብር ይቆጥቡ`}
                       </span>
                     </div>
                   </div>
-                  
+
                   {/* CTA Buttons - Compact Inline Horizontal Row */}
                   <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 pt-1 sm:pt-2 flex-row flex-nowrap">
                     <button
@@ -2390,8 +2397,8 @@ export default function CustomerWeb({
 
                 {/* Right Side Product Image - Large Hero Main Character (6 Columns) */}
                 <div className="col-span-6 xs:col-span-6 sm:col-span-6 md:col-span-6 lg:col-span-6 flex justify-center items-center relative w-full">
-                  <div 
-                    key={`slide-img-${slide.id}`} 
+                  <div
+                    key={`slide-img-${slide.id}`}
                     className="relative w-full h-full max-w-full aspect-[4/3] xs:aspect-square max-h-[220px] xs:max-h-[270px] sm:max-h-[360px] md:max-h-[400px] lg:max-h-[440px] flex items-center justify-center group-hover:scale-[1.03] transition-all duration-500 animate-in fade-in zoom-in-95 z-10"
                   >
                     <LazyImage
@@ -2410,16 +2417,15 @@ export default function CustomerWeb({
                   <button
                     key={`bullet-${index}`}
                     onClick={() => setCurrentSlide(index)}
-                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                      index === currentSlide ? 'w-5 bg-white shadow-xs' : 'w-1.5 bg-white/40 hover:bg-white/70'
-                    }`}
+                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${index === currentSlide ? 'w-5 bg-white shadow-xs' : 'w-1.5 bg-white/40 hover:bg-white/70'
+                      }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
                 ))}
               </div>
 
               <div className="absolute bottom-2.5 right-3 sm:bottom-4 sm:right-8 flex items-center gap-1.5 z-20">
-                <button 
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setCurrentSlide((prev) => (prev - 1 + activeSlides.length) % activeSlides.length);
@@ -2429,7 +2435,7 @@ export default function CustomerWeb({
                 >
                   <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
-                <button 
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setCurrentSlide((prev) => (prev + 1) % activeSlides.length);
@@ -2473,15 +2479,15 @@ export default function CustomerWeb({
               {language === 'en' ? 'Explore authentic electronics, devices & accessories' : 'ምርጥ የኤሌክትሮኒክስ እቃዎችን ይፈልጉ'}
             </p>
           </div>
-          <button 
+          <button
             onClick={() => {
               setIsCategoriesExpanded(prev => !prev);
             }}
             className="text-xs sm:text-sm lg:text-base font-bold text-[#0052FF] dark:text-blue-400 hover:underline flex items-center gap-1.5 cursor-pointer"
           >
             <span>
-              {language === 'en' 
-                ? (isCategoriesExpanded ? 'Show Less' : 'View All') 
+              {language === 'en'
+                ? (isCategoriesExpanded ? 'Show Less' : 'View All')
                 : (isCategoriesExpanded ? 'ያነሱ' : 'ሁሉንም')}
             </span>
             <ChevronRight className={`w-4 h-4 lg:w-5 lg:h-5 transition-transform duration-200 ${isCategoriesExpanded ? 'rotate-90 md:rotate-0' : ''}`} />
@@ -2512,22 +2518,19 @@ export default function CustomerWeb({
                   const el = document.getElementById('products-grid-section');
                   if (el) el.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className={`${isHiddenOnMobile ? 'hidden md:flex' : 'flex'} w-full flex-col items-center justify-center p-3 sm:p-4 lg:p-5 rounded-2xl lg:rounded-3xl border transition-all duration-300 group cursor-pointer focus:outline-none min-h-[92px] sm:min-h-[120px] lg:min-h-[148px] shadow-2xs hover:shadow-lg ${
-                  isSelected
-                    ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-md shadow-blue-500/20 scale-[1.03]'
-                    : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800/90 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/60 hover:shadow-blue-500/10 hover:-translate-y-1'
-                }`}
+                className={`${isHiddenOnMobile ? 'hidden md:flex' : 'flex'} w-full flex-col items-center justify-center p-3 sm:p-4 lg:p-5 rounded-2xl lg:rounded-3xl border transition-all duration-300 group cursor-pointer focus:outline-none min-h-[92px] sm:min-h-[120px] lg:min-h-[148px] shadow-2xs hover:shadow-lg ${isSelected
+                  ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-md shadow-blue-500/20 scale-[1.03]'
+                  : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800/90 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/60 hover:shadow-blue-500/10 hover:-translate-y-1'
+                  }`}
               >
-                <div className={`w-9 h-9 sm:w-13 sm:h-13 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center mb-1.5 sm:mb-2.5 lg:mb-3 transition-transform duration-300 group-hover:scale-110 shadow-xs ${
-                  isSelected
-                    ? 'bg-white/20 text-white'
-                    : 'bg-slate-100/90 dark:bg-zinc-800/90 text-[#0052FF] dark:text-blue-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/60'
-                }`}>
+                <div className={`w-9 h-9 sm:w-13 sm:h-13 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl flex items-center justify-center mb-1.5 sm:mb-2.5 lg:mb-3 transition-transform duration-300 group-hover:scale-110 shadow-xs ${isSelected
+                  ? 'bg-white/20 text-white'
+                  : 'bg-slate-100/90 dark:bg-zinc-800/90 text-[#0052FF] dark:text-blue-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/60'
+                  }`}>
                   <DeptIcon className="w-5 h-5 sm:w-6.5 sm:h-6.5 lg:w-8 lg:h-8" />
                 </div>
-                <span className={`text-[10px] sm:text-xs md:text-sm lg:text-[14px] font-black text-center leading-snug tracking-tight w-full break-keep line-clamp-2 px-0.5 ${
-                  isSelected ? 'text-white font-black' : 'text-gray-900 dark:text-zinc-100 group-hover:text-[#0052FF] dark:group-hover:text-blue-400'
-                }`}>
+                <span className={`text-[10px] sm:text-xs md:text-sm lg:text-[14px] font-black text-center leading-snug tracking-tight w-full break-keep line-clamp-2 px-0.5 ${isSelected ? 'text-white font-black' : 'text-gray-900 dark:text-zinc-100 group-hover:text-[#0052FF] dark:group-hover:text-blue-400'
+                  }`}>
                   {language === 'en' ? dept.nameEn : dept.nameAm}
                 </span>
               </button>
@@ -2605,7 +2608,7 @@ export default function CustomerWeb({
             </div>
 
             {/* Flash Deals: 4-Column Responsive Grid on Desktop (no horizontal overflow/truncation), Scrollable Carousel on Mobile */}
-            <div className="flex lg:grid overflow-x-auto lg:overflow-visible lg:grid-cols-4 gap-1.5 sm:gap-4 xl:gap-5 pb-0.5 pt-0.5 no-scrollbar scrollbar-none snap-x snap-mandatory w-full min-w-0 relative z-10">
+            <div className="flex lg:grid overflow-x-auto lg:overflow-visible lg:grid-cols-4 items-stretch gap-1.5 sm:gap-4 xl:gap-5 pb-0.5 pt-0.5 no-scrollbar scrollbar-none snap-x snap-mandatory w-full min-w-0 relative z-10">
               {(() => {
                 // Priority-merge merchant nominated flash deals
                 const activeMerchantDeals = flashDeals.filter(d => d.status === 'ACTIVE');
@@ -2696,7 +2699,7 @@ export default function CustomerWeb({
               })()}
 
               {/* End Card on Mobile: View All Flash Deals */}
-              <div 
+              <div
                 onClick={() => setIsFlashDealsOpen(true)}
                 className="lg:hidden w-[120px] xs:w-[135px] sm:w-[180px] shrink-0 snap-start bg-white/15 hover:bg-white/25 border border-white/30 hover:border-amber-300 rounded-2xl p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer group transition-all duration-300 shadow-md hover:-translate-y-1"
               >
@@ -2720,7 +2723,7 @@ export default function CustomerWeb({
       {recommendedProductsWithReasons.length > 0 && (
         <div className="max-w-[1440px] mx-auto w-full px-1.5 sm:px-4 md:px-8 mt-4 sm:mt-10">
           <div className="bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/30 dark:from-zinc-900/50 dark:via-zinc-900 dark:to-purple-950/20 p-3 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-indigo-100/80 dark:border-zinc-800 shadow-xs">
-            
+
             {/* Header with Reason Context */}
             <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
               <div className="flex items-center gap-2 flex-wrap">
@@ -2767,7 +2770,7 @@ export default function CustomerWeb({
       {recentlyViewedProducts.length > 0 && (
         <div id="recently-viewed-section" className="max-w-[1440px] mx-auto w-full px-1.5 sm:px-4 md:px-8 mt-4 sm:mt-10">
           <div className="bg-gradient-to-br from-blue-50/40 via-white to-slate-50/30 dark:from-zinc-900/60 dark:via-zinc-900 dark:to-zinc-950 p-3 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl border border-blue-100/80 dark:border-zinc-800 shadow-xs">
-            
+
             {/* Header with Title, Count Badge & Clear History */}
             <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
               <div className="flex items-center gap-2.5">
@@ -2784,7 +2787,7 @@ export default function CustomerWeb({
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-zinc-400 font-medium hidden sm:block">
-                    {language === 'en' 
+                    {language === 'en'
                       ? 'The last 5 products you clicked on or inspected. Easily revisit your items of interest.'
                       : 'በቅርቡ የተመለከቷቸው የመጨረሻዎቹ 5 ምርቶች። ፍላጎት ያሳዩባቸውን እቃዎች በፍጥነት ይመልከቱ።'}
                   </p>
@@ -2804,7 +2807,7 @@ export default function CustomerWeb({
             </div>
 
             {/* Recently Viewed Grid Container (Up to 5 Products) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 items-stretch gap-2.5 sm:gap-4">
               {recentlyViewedProducts.map((p) => {
                 const isFavorite = favorites.includes(p.id);
                 const isCompared = comparedProductIds.includes(p.id);
@@ -2835,7 +2838,7 @@ export default function CustomerWeb({
 
       {/* 5. DYNAMIC SPOTLIGHT & DEALS HUBS - 4 AUTO-SCROLL CAROUSELS */}
       <div id="featured-deals-section" className="max-w-[1440px] mx-auto w-full px-1.5 sm:px-4 md:px-8 mt-4 sm:mt-12 space-y-4 sm:space-y-12">
-        
+
         {/* Carousel 1: Trending Tech & Editor's Choice */}
         <AutoCarousel
           titleEn="Trending Tech & Editor's Choice"
@@ -2924,7 +2927,7 @@ export default function CustomerWeb({
 
       {/* 6. MIDDLE BANNER LAYOUTS (MARSHALL SPEAKER PROMO BANNER GRID) */}
       <div className="max-w-[1440px] mx-auto w-full px-2.5 sm:px-4 md:px-8 mt-8 sm:mt-10 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
-        
+
         {/* Large Marshall Banner */}
         <div className="lg:col-span-7 bg-gradient-to-r from-[#004C61] via-[#00607A] to-[#0D1F2D] dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 flex flex-row justify-between items-center overflow-hidden border border-cyan-500/15 dark:border-zinc-800 hover:border-cyan-500/30 dark:hover:border-zinc-700 transition-all min-h-[160px] sm:min-h-[220px] relative group">
           <div className="space-y-2 sm:space-y-4 z-10 text-left max-w-[60%] sm:max-w-xs">
@@ -2950,7 +2953,7 @@ export default function CustomerWeb({
               <ArrowRight className="w-3 h-3" />
             </button>
           </div>
-          
+
           {/* Speaker image with shimmer */}
           <LazyImage
             src="https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=600&q=80"
@@ -2962,7 +2965,7 @@ export default function CustomerWeb({
 
         {/* Small Banners Side Panel - 2 Columns on Mobile for better horizontal spacing */}
         <div className="lg:col-span-5 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-1 lg:grid-rows-2 gap-2 sm:gap-4 lg:gap-6">
-          
+
           {/* Row 1: Power Bank */}
           <div className="bg-gray-100 dark:bg-zinc-900 rounded-xl sm:rounded-2xl p-2.5 sm:p-5 flex justify-between items-center border border-gray-150 dark:border-zinc-800 min-h-[85px] sm:min-h-[100px] hover:border-gray-250 transition-all relative group overflow-hidden">
             <div className="space-y-0.5 sm:space-y-1 text-left z-10 max-w-[62%] sm:max-w-[65%] min-w-0">
@@ -3001,7 +3004,7 @@ export default function CustomerWeb({
 
       {/* Category Pills & Filters Section */}
       <div id="products-grid-section" className="max-w-[1440px] mx-auto w-full px-2.5 sm:px-4 md:px-8 mt-8 sm:mt-10 lg:mt-12 space-y-4">
-        
+
         {/* Category Header with Track shipment */}
         <div className="flex justify-between items-center pb-1">
           <div className="flex items-center gap-2.5">
@@ -3010,7 +3013,7 @@ export default function CustomerWeb({
               {language === 'en' ? 'Explore' : 'ምድቦች'}
             </h3>
           </div>
-          
+
           {isLoggedIn && (
             <button
               onClick={() => {
@@ -3028,46 +3031,53 @@ export default function CustomerWeb({
         </div>
 
         {/* Sticky Product Control Bar: Title/Count on Left, [ FILTER ] & [ SORT ] on Right */}
-        <div className="sticky top-[60px] sm:top-[68px] lg:top-[74px] z-30 bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-md p-3.5 sm:p-5 lg:p-6 rounded-2xl lg:rounded-3xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-all space-y-3.5">
-          
+        <div className="sticky top-[60px] sm:top-[68px] lg:top-[74px] z-30 bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-md p-4 sm:p-5 lg:p-6 rounded-2xl lg:rounded-3xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-all space-y-3.5">
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
-            
-            {/* Left: Category Title & Product Count */}
-            <div className="flex items-center gap-3">
-              <div>
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white tracking-tight font-sans leading-tight">
-                    {selectedCategory === 'all'
-                      ? (language === 'en' ? 'All Products' : 'ሁሉም ምርቶች')
-                      : selectedCategory === 'deals'
+
+            {/* Left: Breadcrumb, Category Title & Product Count */}
+            <div className="space-y-1">
+              <nav className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 dark:text-zinc-500">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory('all')}
+                  className="hover:text-[#0052FF] transition-colors cursor-pointer"
+                >
+                  {language === 'en' ? 'Catalog' : 'ካታሎግ'}
+                </button>
+                <span>/</span>
+                <span className="text-gray-900 dark:text-white font-extrabold truncate max-w-[200px]">
+                  {selectedCategory === 'all'
+                    ? (language === 'en' ? 'All Products' : 'ሁሉም ምርቶች')
+                    : selectedCategory === 'deals'
                       ? (language === 'en' ? 'Flash Deals' : 'ልዩ ቅናሾች')
-                      : (language === 'en' 
-                          ? (categories.find(c => c.id === selectedCategory)?.nameEn || selectedCategory)
-                          : (categories.find(c => c.id === selectedCategory)?.nameAm || selectedCategory))}
-                  </h2>
-                  {selectedCategory !== 'all' && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCategory('all')}
-                      className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-[#0052FF] dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 px-3 py-1 rounded-full transition-colors cursor-pointer border border-blue-200/80 dark:border-blue-800/80"
-                      title={language === 'en' ? 'Reset category filter' : 'ሁሉንም ምርቶች አሳይ'}
-                    >
-                      <span>{language === 'en' ? 'Show All' : 'ሁሉንም አሳይ'}</span>
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-                <p className="text-xs sm:text-sm lg:text-base font-bold text-gray-500 dark:text-zinc-400 mt-1 font-mono">
-                  {language === 'en' 
-                    ? `${sortedAndFilteredProducts.length} items found` 
-                    : `${sortedAndFilteredProducts.length} ምርቶች ተገኝተዋል`}
-                </p>
+                      : (language === 'en'
+                        ? (categories.find(c => c.id === selectedCategory)?.nameEn || selectedCategory)
+                        : (categories.find(c => c.id === selectedCategory)?.nameAm || selectedCategory))}
+                </span>
+              </nav>
+
+              <div className="flex items-center gap-3 flex-wrap">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white tracking-tight font-sans leading-tight">
+                  {selectedCategory === 'all'
+                    ? (language === 'en' ? 'All Tech Products' : 'ሁሉም ምርቶች')
+                    : selectedCategory === 'deals'
+                      ? (language === 'en' ? '⚡ Flash Deals' : '⚡ ልዩ ቅናሾች')
+                      : (language === 'en'
+                        ? (categories.find(c => c.id === selectedCategory)?.nameEn || selectedCategory)
+                        : (categories.find(c => c.id === selectedCategory)?.nameAm || selectedCategory))}
+                </h2>
+                <span className="text-xs sm:text-sm font-mono font-bold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border border-gray-200 dark:border-zinc-700">
+                  {language === 'en'
+                    ? `${sortedAndFilteredProducts.length} ${sortedAndFilteredProducts.length === 1 ? 'item' : 'items'}`
+                    : `${sortedAndFilteredProducts.length} እቃዎች`}
+                </span>
               </div>
             </div>
 
             {/* Right: Action Buttons - [ FILTER ] & [ SORT: Popular ] */}
-            <div className="flex items-center gap-2.5 sm:gap-3 self-start sm:self-auto">
-              
+            <div className="flex items-center gap-2.5 sm:gap-3 self-start sm:self-auto shrink-0">
+
               {/* [ FILTER ] Button */}
               <button
                 type="button"
@@ -3075,16 +3085,15 @@ export default function CustomerWeb({
                   setFilterSectionFocus('all');
                   setIsAdvancedFilterOpen(true);
                 }}
-                className={`h-10 sm:h-11 lg:h-12 px-4 sm:px-5 lg:px-6 rounded-xl sm:rounded-2xl text-xs sm:text-sm lg:text-[15px] font-black uppercase tracking-wider transition-all cursor-pointer border flex items-center gap-2 shadow-2xs ${
-                  activeFiltersCount > 0
-                    ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-[#0052FF]/20'
-                    : 'bg-gray-100/90 dark:bg-zinc-800/90 text-gray-800 dark:text-zinc-200 border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700'
-                }`}
+                className={`h-10 sm:h-11 px-4 sm:px-5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all cursor-pointer border flex items-center gap-2 shadow-2xs ${activeFiltersCount > 0
+                  ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-[#0052FF]/20'
+                  : 'bg-gray-100/90 dark:bg-zinc-800/90 text-gray-800 dark:text-zinc-200 border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700'
+                  }`}
               >
-                <SlidersHorizontal className="w-4 h-4 sm:w-4.5 sm:h-4.5 lg:w-5 lg:h-5" />
+                <SlidersHorizontal className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 <span>{language === 'en' ? 'Filter' : 'ማጣሪያ'}</span>
                 {activeFiltersCount > 0 && (
-                  <span className="bg-white text-[#0052FF] font-mono text-xs sm:text-sm px-2 py-0.5 rounded-full font-black">
+                  <span className="bg-white text-[#0052FF] font-mono text-xs px-2 py-0.5 rounded-full font-black">
                     {activeFiltersCount}
                   </span>
                 )}
@@ -3095,14 +3104,14 @@ export default function CustomerWeb({
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="h-10 sm:h-11 lg:h-12 appearance-none bg-gray-100/90 dark:bg-zinc-800/90 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700 rounded-xl sm:rounded-2xl px-4 sm:px-5 pr-9 sm:pr-10 lg:pr-11 text-xs sm:text-sm lg:text-[15px] font-black uppercase tracking-wider cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0052FF]/30 transition-all"
+                  className="h-10 sm:h-11 appearance-none bg-gray-100/90 dark:bg-zinc-800/90 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700 rounded-xl sm:rounded-2xl px-4 pr-9 sm:pr-10 text-xs sm:text-sm font-black uppercase tracking-wider cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0052FF]/30 transition-all"
                 >
                   <option value="default">{language === 'en' ? 'Sort: Popular' : 'በተወዳጅነት'}</option>
                   <option value="priceAsc">{language === 'en' ? 'Price: Low → High' : 'ዋጋ፡ ዝቅተኛ'}</option>
                   <option value="priceDesc">{language === 'en' ? 'Price: High → Low' : 'ዋጋ፡ ከፍተኛ'}</option>
                   <option value="newest">{language === 'en' ? 'Sort: Newest' : 'አዲስ የገቡ'}</option>
                 </select>
-                <ChevronDown className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-gray-500 dark:text-zinc-400 absolute right-3 sm:right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-4 h-4 text-gray-500 dark:text-zinc-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
 
             </div>
@@ -3110,8 +3119,8 @@ export default function CustomerWeb({
           </div>
 
           {/* Horizontal Filter Chips Row (Brand, Price, Rating, Availability, Features) */}
-          <div className="flex items-center gap-2 sm:gap-2.5 lg:gap-3 overflow-x-auto scroll-smooth touch-pan-x py-1 no-scrollbar">
-            
+          <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto scroll-smooth touch-pan-x py-1 no-scrollbar">
+
             {/* Brand Chip */}
             <button
               type="button"
@@ -3119,14 +3128,13 @@ export default function CustomerWeb({
                 setFilterSectionFocus('brand');
                 setIsAdvancedFilterOpen(true);
               }}
-              className={`h-9 sm:h-10 lg:h-11 px-3.5 sm:px-4.5 lg:px-5 rounded-full text-xs sm:text-sm lg:text-[14px] font-bold sm:font-extrabold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 ${
-                selectedBrands.length > 0
-                  ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 border-blue-200 dark:border-blue-900/60 font-black'
-                  : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
-              }`}
+              className={`h-9 sm:h-10 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 ${selectedBrands.length > 0
+                ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 border-blue-200 dark:border-blue-900/60 font-black shadow-2xs'
+                : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
+                }`}
             >
               <span>{selectedBrands.length > 0 ? `Brand (${selectedBrands.length})` : 'Brand'}</span>
-              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
             </button>
 
             {/* Price Chip */}
@@ -3136,18 +3144,17 @@ export default function CustomerWeb({
                 setFilterSectionFocus('price');
                 setIsAdvancedFilterOpen(true);
               }}
-              className={`h-9 sm:h-10 lg:h-11 px-3.5 sm:px-4.5 lg:px-5 rounded-full text-xs sm:text-sm lg:text-[14px] font-bold sm:font-extrabold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 ${
-                minPriceInput !== '' || maxPriceInput !== ''
-                  ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 border-blue-200 dark:border-blue-900/60 font-black'
-                  : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
-              }`}
+              className={`h-9 sm:h-10 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 ${minPriceInput !== '' || maxPriceInput !== ''
+                ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 border-blue-200 dark:border-blue-900/60 font-black shadow-2xs'
+                : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
+                }`}
             >
               <span>
                 {minPriceInput !== '' || maxPriceInput !== ''
                   ? `Price (${minPriceInput || '0'}-${maxPriceInput || '∞'})`
                   : 'Price'}
               </span>
-              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
             </button>
 
             {/* Rating Chip */}
@@ -3157,14 +3164,13 @@ export default function CustomerWeb({
                 setFilterSectionFocus('rating');
                 setIsAdvancedFilterOpen(true);
               }}
-              className={`h-9 sm:h-10 lg:h-11 px-3.5 sm:px-4.5 lg:px-5 rounded-full text-xs sm:text-sm lg:text-[14px] font-bold sm:font-extrabold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 ${
-                selectedRatingFilter > 0
-                  ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/60 font-black'
-                  : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
-              }`}
+              className={`h-9 sm:h-10 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 ${selectedRatingFilter > 0
+                ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/60 font-black shadow-2xs'
+                : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
+                }`}
             >
               <span>{selectedRatingFilter > 0 ? `Rating (${selectedRatingFilter}★+)` : 'Rating'}</span>
-              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
             </button>
 
             {/* Availability Chip */}
@@ -3174,16 +3180,15 @@ export default function CustomerWeb({
                 setFilterSectionFocus('availability');
                 setIsAdvancedFilterOpen(true);
               }}
-              className={`h-9 sm:h-10 lg:h-11 px-3.5 sm:px-4.5 lg:px-5 rounded-full text-xs sm:text-sm lg:text-[14px] font-bold sm:font-extrabold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 ${
-                availabilityFilter !== 'ALL'
-                  ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/60 font-black'
-                  : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
-              }`}
+              className={`h-9 sm:h-10 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 ${availabilityFilter !== 'ALL'
+                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/60 font-black shadow-2xs'
+                : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
+                }`}
             >
               <span>
                 {availabilityFilter === 'IN_STOCK' ? 'In Stock' : availabilityFilter === 'ON_SALE' ? 'On Sale' : availabilityFilter === 'HIGHLY_RATED' ? '4★+ Rated' : 'Availability'}
               </span>
-              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
             </button>
 
             {/* Features Chip */}
@@ -3193,24 +3198,115 @@ export default function CustomerWeb({
                 setFilterSectionFocus('features');
                 setIsAdvancedFilterOpen(true);
               }}
-              className="h-9 sm:h-10 lg:h-11 px-3.5 sm:px-4.5 lg:px-5 rounded-full text-xs sm:text-sm lg:text-[14px] font-bold sm:font-extrabold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 sm:gap-2 shrink-0 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800"
+              className="h-9 sm:h-10 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800"
             >
               <span>Features</span>
-              <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
             </button>
+          </div>
 
-            {/* Reset All Filters Button (Shows when filters are active) */}
-            {activeFiltersCount > 0 && (
+          {/* Active Refinements Badges (Integrated into Control Card) */}
+          {(selectedCategory !== 'all' || searchQuery.trim() !== '' || minPriceInput !== '' || maxPriceInput !== '' || selectedBrands.length > 0 || availabilityFilter !== 'ALL' || selectedRatingFilter > 0) && (
+            <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-150 dark:border-slate-800/80">
+              <span className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 tracking-wider">
+                {language === 'en' ? 'Active:' : 'የተመረጡ፡'}
+              </span>
+
+              {/* Category chip if not 'all' */}
+              {selectedCategory !== 'all' && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-300 border border-blue-200/80 dark:border-blue-900/60 shadow-2xs">
+                  <span>{categories.find(c => c.id === selectedCategory)?.nameEn || selectedCategory}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory('all')}
+                    className="hover:text-red-500 cursor-pointer p-0.5 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/40"
+                    title={language === 'en' ? 'Clear category' : 'ምድብ አጽዳ'}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
+              {/* Search query chip */}
+              {searchQuery.trim() !== '' && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/60 shadow-2xs">
+                  <span>"{searchQuery}"</span>
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="hover:text-red-500 cursor-pointer p-0.5 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/40"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
+              {/* Price range chip */}
+              {(minPriceInput !== '' || maxPriceInput !== '') && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60 shadow-2xs font-mono">
+                  <span>ETB {minPriceInput || '0'} - {maxPriceInput || '∞'}</span>
+                  <button
+                    type="button"
+                    onClick={() => { setMinPriceInput(''); setMaxPriceInput(''); }}
+                    className="hover:text-red-500 cursor-pointer p-0.5 rounded-full hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
+              {/* Brand chips */}
+              {selectedBrands.map(b => (
+                <span key={`active-b-${b}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900/60 shadow-2xs">
+                  <span>{b}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBrands(selectedBrands.filter(brand => brand !== b))}
+                    className="hover:text-red-500 cursor-pointer p-0.5 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/40"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+
+              {/* Availability chip */}
+              {availabilityFilter !== 'ALL' && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 shadow-2xs">
+                  <span>{availabilityFilter === 'IN_STOCK' ? 'In Stock' : availabilityFilter === 'ON_SALE' ? 'On Sale' : '4★+ Rated'}</span>
+                  <button
+                    type="button"
+                    onClick={() => setAvailabilityFilter('ALL')}
+                    className="hover:text-red-500 cursor-pointer p-0.5 rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/40"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
+              {/* Rating chip */}
+              {selectedRatingFilter > 0 && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 shadow-2xs">
+                  <span>{selectedRatingFilter}★+ Rating</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRatingFilter(0)}
+                    className="hover:text-red-500 cursor-pointer p-0.5 rounded-full hover:bg-amber-100 dark:hover:bg-amber-900/40"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
+              {/* Single Clear All Button */}
               <button
                 type="button"
                 onClick={handleClearAllFilters}
-                className="h-9 sm:h-10 lg:h-11 px-3.5 sm:px-4.5 py-1 rounded-full text-xs sm:text-sm lg:text-[14px] font-black text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 border border-red-200 dark:border-red-900/60 transition-all whitespace-nowrap cursor-pointer shrink-0"
+                className="text-xs font-black text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:underline cursor-pointer ml-auto px-2 py-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
               >
                 {language === 'en' ? 'Clear All' : 'ሁሉንም አጽዳ'}
               </button>
-            )}
-
-          </div>
+            </div>
+          )}
 
         </div>
 
@@ -3293,11 +3389,10 @@ export default function CustomerWeb({
                       return (
                         <label
                           key={`sheet-brand-${brand}`}
-                          className={`flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-blue-50/70 dark:bg-blue-950/50 border-[#0052FF] text-gray-900 dark:text-white font-black shadow-xs'
-                              : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
-                          }`}
+                          className={`flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${isSelected
+                            ? 'bg-blue-50/70 dark:bg-blue-950/50 border-[#0052FF] text-gray-900 dark:text-white font-black shadow-xs'
+                            : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
+                            }`}
                         >
                           <div className="flex items-center gap-3">
                             <input
@@ -3353,11 +3448,10 @@ export default function CustomerWeb({
                       return (
                         <label
                           key={`sheet-price-preset-${idx}`}
-                          className={`flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-blue-50/70 dark:bg-blue-950/50 border-[#0052FF] text-gray-900 dark:text-white font-black shadow-xs'
-                              : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
-                          }`}
+                          className={`flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${isSelected
+                            ? 'bg-blue-50/70 dark:bg-blue-950/50 border-[#0052FF] text-gray-900 dark:text-white font-black shadow-xs'
+                            : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
+                            }`}
                         >
                           <input
                             type="radio"
@@ -3392,11 +3486,10 @@ export default function CustomerWeb({
                       return (
                         <label
                           key={`sheet-rating-${rOpt.value}`}
-                          className={`flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-amber-50/70 dark:bg-amber-950/50 border-amber-500 text-gray-900 dark:text-white font-black shadow-xs'
-                              : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
-                          }`}
+                          className={`flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${isSelected
+                            ? 'bg-amber-50/70 dark:bg-amber-950/50 border-amber-500 text-gray-900 dark:text-white font-black shadow-xs'
+                            : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
+                            }`}
                         >
                           <input
                             type="radio"
@@ -3428,11 +3521,10 @@ export default function CustomerWeb({
                       return (
                         <label
                           key={`sheet-avail-${aOpt.id}`}
-                          className={`flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-emerald-50/70 dark:bg-emerald-950/50 border-emerald-500 text-gray-900 dark:text-white font-black shadow-xs'
-                              : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
-                          }`}
+                          className={`flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${isSelected
+                            ? 'bg-emerald-50/70 dark:bg-emerald-950/50 border-emerald-500 text-gray-900 dark:text-white font-black shadow-xs'
+                            : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
+                            }`}
                         >
                           <input
                             type="radio"
@@ -3474,79 +3566,9 @@ export default function CustomerWeb({
         )}
       </AnimatePresence>
 
-        {/* Active Filter Badges Ribbon */}
-        {activeFiltersCount > 0 && (
-          <div className="flex flex-wrap items-center gap-2.5 mb-4 bg-white/80 dark:bg-zinc-900/80 p-3 rounded-2xl border border-gray-150 dark:border-zinc-800 shadow-2xs">
-            <span className="text-xs sm:text-sm font-extrabold uppercase text-gray-500 dark:text-zinc-400 tracking-wider">
-              {language === 'en' ? 'Active Filters:' : 'ንቁ ማጣሪያዎች፡'}
-            </span>
-
-            {/* Category badge */}
-            {selectedCategory !== 'all' && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/40">
-                <span>Category: {categories.find(c => c.id === selectedCategory)?.nameEn || selectedCategory}</span>
-                <button onClick={() => setSelectedCategory('all')} className="hover:text-red-500 cursor-pointer">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </span>
-            )}
-
-            {/* Search query badge */}
-            {searchQuery.trim() !== '' && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/40">
-                <span>"{searchQuery}"</span>
-                <button onClick={() => setSearchQuery('')} className="hover:text-red-500 cursor-pointer">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-
-            {/* Price badge */}
-            {(minPriceInput !== '' || maxPriceInput !== '') && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/40">
-                <span>
-                  ETB {minPriceInput || '0'} - {maxPriceInput || '∞'}
-                </span>
-                <button onClick={() => { setMinPriceInput(''); setMaxPriceInput(''); }} className="hover:text-red-500 cursor-pointer">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-
-            {/* Brand badges */}
-            {selectedBrands.map(b => (
-              <span key={`active-b-${b}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900/40">
-                <span>Brand: {b}</span>
-                <button onClick={() => setSelectedBrands(selectedBrands.filter(brand => brand !== b))} className="hover:text-red-500 cursor-pointer">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            ))}
-
-            {/* Availability badge */}
-            {availabilityFilter !== 'ALL' && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/40">
-                <span>
-                  {availabilityFilter === 'IN_STOCK' ? 'In Stock Only' : availabilityFilter === 'ON_SALE' ? 'On Sale' : 'Top Rated (4.0+ ★)'}
-                </span>
-                <button onClick={() => setAvailabilityFilter('ALL')} className="hover:text-red-500 cursor-pointer">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-
-            <button
-              onClick={handleClearAllFilters}
-              className="text-[11px] font-bold text-red-500 hover:underline cursor-pointer ml-auto"
-            >
-              {language === 'en' ? 'Clear All' : 'ሁሉንም አጽዳ'}
-            </button>
-          </div>
-        )}
-
       {/* Main Grid Section */}
-      <div id="products-grid-section" className="max-w-[1440px] mx-auto w-full px-4 md:px-8 mt-6">
-        
+      <div id="products-catalog-grid" className="max-w-[1440px] mx-auto w-full px-2.5 sm:px-4 md:px-8 mt-6">
+
         {isGridLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -3617,12 +3639,12 @@ export default function CustomerWeb({
               <div className="mt-10 mb-6 flex flex-col items-center justify-center space-y-3">
                 <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-400 font-medium">
                   <span>
-                    {language === 'en' 
-                      ? `Showing ${Math.min(visibleProductCount, sortedAndFilteredProducts.length)} of ${sortedAndFilteredProducts.length} products` 
+                    {language === 'en'
+                      ? `Showing ${Math.min(visibleProductCount, sortedAndFilteredProducts.length)} of ${sortedAndFilteredProducts.length} products`
                       : `${sortedAndFilteredProducts.length} ውስጥ ${Math.min(visibleProductCount, sortedAndFilteredProducts.length)} ታይቷል`}
                   </span>
                   <div className="w-24 bg-gray-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                    <div 
+                    <div
                       className="bg-[#0052FF] h-full rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(100, Math.round((visibleProductCount / sortedAndFilteredProducts.length) * 100))}%` }}
                     />
@@ -3673,36 +3695,115 @@ export default function CustomerWeb({
       {selectedProduct && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-0 sm:p-4 backdrop-blur-sm transition-all">
           <div className="bg-white dark:bg-zinc-900 rounded-none sm:rounded-3xl max-w-4xl w-full h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto shadow-2xl relative border-0 sm:border border-gray-150 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 transition-colors">
-            
-            {/* Mobile Sticky Header Bar with Close Button */}
-            <div className="sticky top-0 z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md px-4 py-3 border-b border-gray-150 dark:border-zinc-800 flex items-center justify-between sm:hidden">
-              <span className="text-xs font-bold text-gray-700 dark:text-zinc-300 truncate max-w-[240px]">
+
+            {/* Mobile Sticky Header Bar with Compare, Share & Close Button */}
+            <div className="sticky top-0 z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md px-3.5 py-2.5 border-b border-gray-150 dark:border-zinc-800 flex items-center justify-between sm:hidden gap-2">
+              <span className="text-xs font-bold text-gray-700 dark:text-zinc-300 truncate flex-1 min-w-0">
                 {language === 'en' ? selectedProduct.nameEn : selectedProduct.nameAm}
               </span>
-              <button 
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  title={language === 'en' ? 'Compare' : 'አነጻጽር'}
+                  onClick={(e) => handleToggleCompare(selectedProduct.id, e)}
+                  className={`p-1.5 rounded-full border text-xs cursor-pointer transition-all ${
+                    comparedProductIds.includes(selectedProduct.id)
+                      ? 'bg-[#0052FF] text-white border-blue-400'
+                      : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 border-gray-200 dark:border-zinc-700'
+                  }`}
+                >
+                  <GitCompare className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  title={language === 'en' ? 'Share' : 'አጋራ'}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSharingProduct(selectedProduct);
+                  }}
+                  className="p-1.5 rounded-full border border-gray-200 dark:border-zinc-700 bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 cursor-pointer transition-all"
+                >
+                  <Share2 className="w-3.5 h-3.5 text-indigo-500" />
+                </button>
+                <button
+                  type="button"
+                  title={language === 'en' ? 'Wishlist' : 'ተወዳጆች'}
+                  onClick={(e) => handleToggleFavorite(selectedProduct.id, e)}
+                  className={`p-1.5 rounded-full border text-xs cursor-pointer transition-all ${
+                    favorites.includes(selectedProduct.id)
+                      ? 'bg-rose-50 text-rose-500 border-rose-300'
+                      : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 border-gray-200 dark:border-zinc-700'
+                  }`}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${favorites.includes(selectedProduct.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
+                </button>
+                <button
+                  onClick={() => setSelectedProduct(null)}
+                  className="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 rounded-full p-1.5 text-xs font-bold w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all shrink-0 ml-1"
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Desktop Floating Action Bar: Compare, Share, Wishlist & Close */}
+            <div className="hidden sm:flex absolute top-4 right-4 items-center gap-2 z-50">
+              <button
+                type="button"
+                title={language === 'en' ? 'Side-by-Side Specs Compare' : 'ዝርዝር ማነጻጸሪያ'}
+                onClick={(e) => handleToggleCompare(selectedProduct.id, e)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer shadow-xs border text-xs font-bold ${
+                  comparedProductIds.includes(selectedProduct.id)
+                    ? 'bg-[#0052FF] text-white border-blue-400 shadow-blue-500/30'
+                    : 'bg-white/95 dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 hover:text-[#0052FF] border-gray-200 dark:border-zinc-700 hover:bg-gray-50'
+                }`}
+              >
+                <GitCompare className="w-3.5 h-3.5 text-[#0052FF]" />
+                <span>{comparedProductIds.includes(selectedProduct.id) ? (language === 'en' ? 'Compared ✓' : 'ተነጻጽሯል ✓') : (language === 'en' ? 'Compare' : 'አነጻጽር')}</span>
+              </button>
+
+              <button
+                type="button"
+                title={language === 'en' ? 'Share Product' : 'ምርቱን ያጋሩ'}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSharingProduct(selectedProduct);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer shadow-xs border bg-white/95 dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 hover:text-indigo-600 border-gray-200 dark:border-zinc-700 hover:bg-gray-50 text-xs font-bold"
+              >
+                <Share2 className="w-3.5 h-3.5 text-indigo-500" />
+                <span>{language === 'en' ? 'Share' : 'አጋራ'}</span>
+              </button>
+
+              <button
+                type="button"
+                title={language === 'en' ? 'Save to Wishlist' : 'ወደ ተወዳጆች ያስቀምጡ'}
+                onClick={(e) => handleToggleFavorite(selectedProduct.id, e)}
+                className={`p-2 rounded-full transition-all cursor-pointer shadow-xs border ${
+                  favorites.includes(selectedProduct.id)
+                    ? 'bg-rose-50 dark:bg-rose-950/90 text-rose-500 border-rose-300 dark:border-rose-800'
+                    : 'bg-white/95 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:text-rose-500 border-gray-200 dark:border-zinc-700'
+                }`}
+              >
+                <Heart className={`w-4 h-4 ${favorites.includes(selectedProduct.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
+              </button>
+
+              <button
                 onClick={() => setSelectedProduct(null)}
-                className="bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 rounded-full p-1.5 text-xs font-bold w-7 h-7 flex items-center justify-center cursor-pointer hover:bg-gray-200 dark:hover:bg-zinc-700 transition-all shrink-0"
-                title="Close Quick View"
+                className="bg-gray-50 hover:bg-gray-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-gray-500 dark:text-zinc-400 rounded-full p-2 text-sm font-bold w-9 h-9 flex items-center justify-center transition-all border border-gray-150 dark:border-zinc-800 cursor-pointer shadow-xs ml-1"
+                title="Close"
               >
                 ✕
               </button>
             </div>
 
-            {/* Desktop Floating Close Button */}
-            <button 
-              onClick={() => setSelectedProduct(null)}
-              className="hidden sm:flex absolute top-4 right-4 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-gray-500 dark:text-zinc-400 rounded-full p-2 text-sm font-bold w-9 h-9 items-center justify-center z-50 transition-all border border-gray-150 dark:border-zinc-800 cursor-pointer shadow-xs"
-              title="Close Quick View"
-            >
-              ✕
-            </button>
-            
             {(() => {
               const gallery = getProductGallery(selectedProduct);
               const mainImg = gallery[activeGalleryIndex] || selectedProduct.image;
               const activeStock = selectedVariant ? selectedVariant.onHand : selectedProduct.variants.reduce((acc, v) => acc + v.onHand, 0);
               const isOutOfStock = selectedVariant ? selectedVariant.onHand <= 0 : selectedProduct.variants.every(v => v.onHand <= 0);
-              const isLowStock = selectedVariant 
+              const isLowStock = selectedVariant
                 ? (selectedVariant.onHand > 0 && selectedVariant.onHand <= selectedProduct.lowStockThreshold)
                 : (activeStock > 0 && activeStock <= selectedProduct.lowStockThreshold * selectedProduct.variants.length);
 
@@ -3712,9 +3813,9 @@ export default function CustomerWeb({
                     <div className="space-y-2.5 sm:space-y-4 w-full min-w-0">
                       {/* Main Image Container */}
                       <div className="relative w-full aspect-square rounded-xl sm:rounded-2xl overflow-hidden bg-gray-100 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 shadow-xs group flex items-center justify-center p-0">
-                        <LazyImage 
-                          src={mainImg} 
-                          alt={selectedProduct.nameEn} 
+                        <LazyImage
+                          src={mainImg}
+                          alt={selectedProduct.nameEn}
                           className="w-full h-full object-cover transition-all duration-300 transform group-hover:scale-105"
                         />
                         <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[8px] sm:text-[9px] font-bold uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-md sm:rounded-lg z-10 shadow-xs">
@@ -3728,11 +3829,10 @@ export default function CustomerWeb({
                           <button
                             key={idx}
                             onClick={() => setActiveGalleryIndex(idx)}
-                            className={`aspect-square w-full rounded-lg sm:rounded-xl overflow-hidden border-2 transition-all relative cursor-pointer flex items-center justify-center bg-gray-100 dark:bg-zinc-900 ${
-                              activeGalleryIndex === idx 
-                                ? 'border-kasma-blue scale-102 shadow-xs' 
-                                : 'border-gray-200 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-600'
-                            }`}
+                            className={`aspect-square w-full rounded-lg sm:rounded-xl overflow-hidden border-2 transition-all relative cursor-pointer flex items-center justify-center bg-gray-100 dark:bg-zinc-900 ${activeGalleryIndex === idx
+                              ? 'border-kasma-blue scale-102 shadow-xs'
+                              : 'border-gray-200 dark:border-zinc-800 hover:border-gray-400 dark:hover:border-zinc-600'
+                              }`}
                           >
                             <LazyImage src={imgUrl} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
                             {activeGalleryIndex === idx && (
@@ -3777,25 +3877,23 @@ export default function CustomerWeb({
                         <span className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase tracking-widest font-extrabold truncate max-w-[200px]">
                           {selectedProduct.brand} • {categories.find(c => c.id === selectedProduct.category)?.nameEn}
                         </span>
-                        
+
                         <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-zinc-850 px-2.5 py-1 rounded-full border border-gray-150 dark:border-zinc-800 shrink-0">
-                          <span className={`w-2 h-2 rounded-full relative flex shrink-0 ${
-                            isOutOfStock 
-                              ? 'bg-red-500' 
-                              : isLowStock 
-                                ? 'bg-orange-500 animate-pulse' 
-                                : 'bg-green-500 animate-pulse'
-                          }`}>
+                          <span className={`w-2 h-2 rounded-full relative flex shrink-0 ${isOutOfStock
+                            ? 'bg-red-500'
+                            : isLowStock
+                              ? 'bg-orange-500 animate-pulse'
+                              : 'bg-green-500 animate-pulse'
+                            }`}>
                             {!isOutOfStock && (
-                              <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${
-                                isLowStock ? 'bg-orange-400' : 'bg-green-400'
-                              }`} />
+                              <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${isLowStock ? 'bg-orange-400' : 'bg-green-400'
+                                }`} />
                             )}
                           </span>
                           <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600 dark:text-zinc-300 whitespace-nowrap">
-                            {isOutOfStock 
-                              ? (language === 'en' ? 'Out of Stock' : 'ክምችት አልቋል') 
-                              : isLowStock 
+                            {isOutOfStock
+                              ? (language === 'en' ? 'Out of Stock' : 'ክምችት አልቋል')
+                              : isLowStock
                                 ? (language === 'en' ? `Low Stock: Only ${activeStock} left` : `ክምችት ጥቂት፡ ${activeStock} ብቻ ቀሪ`)
                                 : (language === 'en' ? `In Stock: ${activeStock} available` : `በክምችት ውስጥ፡ ${activeStock} አለ`)}
                           </span>
@@ -3850,20 +3948,20 @@ export default function CustomerWeb({
 
                         <p className="text-[11px] text-gray-600 dark:text-zinc-400 leading-snug">
                           {selectedProduct.condition === 'SEALED'
-                            ? (language === 'en' 
-                                ? '🔒 Factory Sealed: Manufacturer original box with intact tamper-evident holographic seal. Never opened, unsealed, or activated.' 
-                                : '🔒 በፋብሪካው የታሸገ፡ የፋብሪካው ኦሪጅናል ማሸጊያ ያልተከፈተና ያልበራ አዲስ እቃ።')
+                            ? (language === 'en'
+                              ? '🔒 Factory Sealed: Manufacturer original box with intact tamper-evident holographic seal. Never opened, unsealed, or activated.'
+                              : '🔒 በፋብሪካው የታሸገ፡ የፋብሪካው ኦሪጅናል ማሸጊያ ያልተከፈተና ያልበራ አዲስ እቃ።')
                             : selectedProduct.condition === 'BRAND_NEW'
-                              ? (language === 'en' 
-                                  ? '✨ Brand New: 100% brand new, zero operational hours, with all genuine accessories and factory documentation.' 
-                                  : '✨ አዲስ እቃ፡ 100% አዲስ ያልተጠቀሙበት እቃ ከሙሉ ኦሪጅናል መለዋወጫዎች ጋር።')
+                              ? (language === 'en'
+                                ? '✨ Brand New: 100% brand new, zero operational hours, with all genuine accessories and factory documentation.'
+                                : '✨ አዲስ እቃ፡ 100% አዲስ ያልተጠቀሙበት እቃ ከሙሉ ኦሪጅናል መለዋወጫዎች ጋር።')
                               : selectedProduct.condition === 'OPEN_BOX'
-                                ? (language === 'en' 
-                                    ? '📦 Open Box: Original packaging opened for display or inspection. Device is in mint condition and 100% tested.' 
-                                    : '📦 ክፍት ሳጥን፡ ለማሳያ ወይም ምርመራ የተከፈተ ሳጥን፣ 100% የሚሰራ ያለ ምንም ጉድለት።')
-                                : (language === 'en' 
-                                    ? '🔄 Certified Refurbished: Professionally inspected, repaired, and certified to meet original manufacturer standards.' 
-                                    : '🔄 የታደሰ፡ በካስማ ቴክኒሻኖች በሚገባ የተፈተሸ እና የተረጋገጠ።')}
+                                ? (language === 'en'
+                                  ? '📦 Open Box: Original packaging opened for display or inspection. Device is in mint condition and 100% tested.'
+                                  : '📦 ክፍት ሳጥን፡ ለማሳያ ወይም ምርመራ የተከፈተ ሳጥን፣ 100% የሚሰራ ያለ ምንም ጉድለት።')
+                                : (language === 'en'
+                                  ? '🔄 Certified Refurbished: Professionally inspected, repaired, and certified to meet original manufacturer standards.'
+                                  : '🔄 የታደሰ፡ በካስማ ቴክኒሻኖች በሚገባ የተፈተሸ እና የተረጋገጠ።')}
                         </p>
                       </div>
 
@@ -3872,32 +3970,29 @@ export default function CustomerWeb({
                         const { avg, count } = getProductRatingInfo(selectedProduct);
                         return (
                           <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-zinc-400">
-                            {count > 0 ? (
+                            {count > 0 || avg > 0 ? (
                               <>
                                 <div className="flex items-center text-amber-500 font-extrabold gap-0.5">
                                   {[1, 2, 3, 4, 5].map((s) => (
                                     <Star
                                       key={s}
-                                      className={`w-3.5 h-3.5 ${
-                                        s <= Math.round(avg) 
-                                          ? 'fill-amber-500 text-amber-500' 
-                                          : 'text-gray-200 dark:text-zinc-800'
-                                      }`}
+                                      className={`w-3.5 h-3.5 ${s <= Math.round(avg)
+                                        ? 'fill-amber-500 text-amber-500'
+                                        : 'text-gray-200 dark:text-zinc-800'
+                                        }`}
                                     />
                                   ))}
                                   <span className="ml-1 text-gray-900 dark:text-white font-mono">{avg}</span>
                                 </div>
                                 <span className="text-gray-350 dark:text-zinc-700">•</span>
-                                <span 
-                                  className="font-bold underline cursor-pointer hover:text-black dark:hover:text-white transition-all text-[11px]" 
+                                <span
+                                  className="font-bold underline cursor-pointer hover:text-black dark:hover:text-white transition-all text-[11px]"
                                   onClick={() => {
                                     const el = document.getElementById('reviews-section');
                                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                                   }}
                                 >
-                                  {count === 1 
-                                    ? (language === 'en' ? '1 Customer Review' : '1 ደንበኛ ግምገማ')
-                                    : (language === 'en' ? `${count} Customer Reviews` : `${count} ደንበኞች ግምገማዎች`)}
+                                  ({count} {language === 'en' ? 'reviews' : 'ግምገማዎች'})
                                 </span>
                               </>
                             ) : (
@@ -3935,8 +4030,8 @@ export default function CustomerWeb({
                                 const isBattery = spec.labelEn.toLowerCase().includes('battery');
                                 const isConn = spec.labelEn.toLowerCase().includes('connection') || spec.labelEn.toLowerCase().includes('wireless');
                                 return (
-                                  <div 
-                                    key={sIdx} 
+                                  <div
+                                    key={sIdx}
                                     className="p-2.5 sm:p-3 rounded-xl border bg-white dark:bg-zinc-900 border-gray-200/80 dark:border-zinc-800 flex flex-col justify-between shadow-2xs"
                                   >
                                     <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-gray-500 dark:text-zinc-400 mb-0.5">
@@ -3967,7 +4062,7 @@ export default function CustomerWeb({
                         <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-extrabold uppercase tracking-widest block">
                           {language === 'en' ? 'Select Option / SKU' : 'የእቃውን አይነት / SKU ይምረጡ'}
                         </span>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className={`grid gap-2 ${selectedProduct.variants.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
                           {selectedProduct.variants.map(v => {
                             const isSelected = selectedVariant?.sku === v.sku;
                             const isVariantOutOfStock = v.onHand <= 0;
@@ -3978,39 +4073,40 @@ export default function CustomerWeb({
                                 key={v.sku}
                                 disabled={isVariantOutOfStock}
                                 onClick={() => setSelectedVariant(v)}
-                                className={`w-full p-3 rounded-xl border text-left text-xs transition-all duration-200 flex justify-between items-center cursor-pointer ${
-                                  isSelected 
-                                    ? 'border-kasma-blue bg-blue-50/70 dark:bg-blue-950/40 ring-2 ring-kasma-blue text-gray-950 dark:text-white shadow-xs' 
-                                    : isVariantOutOfStock 
-                                      ? 'border-gray-100 dark:border-zinc-850 bg-gray-50 dark:bg-zinc-900/50 text-gray-300 dark:text-zinc-600 cursor-not-allowed opacity-50'
-                                      : 'border-gray-200 dark:border-zinc-800 hover:border-kasma-blue/70 dark:hover:border-kasma-blue/70 bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200'
-                                }`}
+                                className={`w-full p-3 sm:p-3.5 rounded-xl sm:rounded-2xl border text-left text-xs transition-all duration-200 flex justify-between items-center cursor-pointer min-w-0 ${isSelected
+                                  ? 'border-kasma-blue bg-blue-50/70 dark:bg-blue-950/40 ring-2 ring-kasma-blue text-gray-950 dark:text-white shadow-xs'
+                                  : isVariantOutOfStock
+                                    ? 'border-gray-100 dark:border-zinc-850 bg-gray-50 dark:bg-zinc-900/50 text-gray-300 dark:text-zinc-600 cursor-not-allowed opacity-50'
+                                    : 'border-gray-200 dark:border-zinc-800 hover:border-kasma-blue/70 dark:hover:border-kasma-blue/70 bg-white dark:bg-zinc-900 text-gray-800 dark:text-zinc-200'
+                                  }`}
                               >
-                                <div className="space-y-0.5">
-                                  <div className="flex items-center gap-1.5">
-                                    <p className="font-bold">{v.name}</p>
-                                    <span className="text-[8px] font-mono text-gray-400 dark:text-zinc-500 bg-gray-100 dark:bg-zinc-800 px-1 py-0.5 rounded">
+                                <div className="space-y-0.5 min-w-0 flex-1 pr-2">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <p className="font-bold truncate text-gray-950 dark:text-white">{v.name}</p>
+                                    <span className="text-[8px] sm:text-[9px] font-mono text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded shrink-0">
                                       {v.sku}
                                     </span>
                                   </div>
-                                  <div className="flex items-center gap-1">
-                                    <span className={`w-1.5 h-1.5 rounded-full ${
-                                      isVariantOutOfStock 
-                                        ? 'bg-red-400' 
-                                        : isVariantLowStock 
-                                          ? 'bg-orange-400' 
-                                          : 'bg-green-400'
-                                    }`} />
-                                    <p className="text-[9px] text-gray-400 dark:text-zinc-500">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isVariantOutOfStock
+                                      ? 'bg-red-400'
+                                      : isVariantLowStock
+                                        ? 'bg-orange-400'
+                                        : 'bg-green-400'
+                                      }`} />
+                                    <p className="text-[9px] sm:text-[10px] text-gray-400 dark:text-zinc-500 truncate">
                                       {v.onHand} {language === 'en' ? 'available' : 'በእጅ ያለ'}
                                     </p>
                                   </div>
                                 </div>
-                                <div className="text-right flex flex-col items-end">
-                                  <p className="font-black text-gray-950 dark:text-white font-mono text-xs">{totalCost.toLocaleString()} ETB</p>
+                                <div className="text-right flex flex-col items-end shrink-0 whitespace-nowrap ml-2">
+                                  <p className="font-black text-gray-950 dark:text-white font-mono text-xs sm:text-sm whitespace-nowrap">
+                                    {totalCost.toLocaleString()}{' '}
+                                    <span className="text-[10px] sm:text-xs font-bold font-mono text-[#0052FF] dark:text-blue-400">ETB</span>
+                                  </p>
                                   {isSelected && (
-                                    <span className="text-[9px] text-kasma-blue font-black flex items-center gap-0.5">
-                                      <Check className="w-2.5 h-2.5" /> Selected
+                                    <span className="text-[9px] sm:text-[10px] text-kasma-blue dark:text-blue-400 font-black flex items-center gap-0.5 whitespace-nowrap mt-0.5">
+                                      <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> Selected
                                     </span>
                                   )}
                                 </div>
@@ -4048,19 +4144,55 @@ export default function CustomerWeb({
 
                     {/* Footer Actions: Grand Total & Add to Cart */}
                     <div className="pt-3 border-t border-gray-150 dark:border-zinc-800 flex flex-col gap-3">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-50/80 dark:bg-zinc-950/60 p-3.5 rounded-2xl border border-gray-150 dark:border-zinc-800">
-                        <div className="flex items-center justify-between sm:block">
-                          <span className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase font-extrabold tracking-wider">{language === 'en' ? 'Calculated Total' : 'የተሰላ ጠቅላላ ዋጋ'}</span>
-                          <p className="text-xl sm:text-2xl font-black text-gray-950 dark:text-white font-mono mt-0.5">
-                            {selectedVariant 
-                              ? (selectedProduct.price + selectedVariant.priceOffset).toLocaleString() 
-                              : selectedProduct.price.toLocaleString()}{' '}
-                            ETB
-                          </p>
+                      <div className="bg-gradient-to-b from-gray-50/95 via-gray-50/80 to-slate-50/90 dark:from-zinc-900/90 dark:via-zinc-900/80 dark:to-zinc-950/90 p-4 sm:p-5 rounded-2xl border border-gray-200/90 dark:border-zinc-800 shadow-2xs space-y-3.5">
+
+                        {/* Price & Status Header */}
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <span className="text-[10px] sm:text-[11px] text-gray-400 dark:text-zinc-500 uppercase font-black tracking-wider block">
+                              {language === 'en' ? 'Calculated Total' : 'የተሰላ ጠቅላላ ዋጋ'}
+                            </span>
+                            <div className="flex items-baseline gap-1.5 mt-0.5">
+                              <span className="text-2xl sm:text-3xl font-black text-gray-950 dark:text-white font-mono tracking-tight whitespace-nowrap">
+                                {(selectedVariant
+                                  ? (selectedProduct.price + selectedVariant.priceOffset)
+                                  : selectedProduct.price).toLocaleString()}
+                              </span>
+                              <span className="text-xs sm:text-sm font-black font-mono text-[#0052FF] dark:text-blue-400 uppercase tracking-wider whitespace-nowrap">
+                                ETB
+                              </span>
+                              {selectedProduct.originalPrice && selectedProduct.originalPrice > (selectedVariant ? selectedProduct.price + selectedVariant.priceOffset : selectedProduct.price) && (
+                                <span className="text-xs font-mono line-through text-gray-400 dark:text-zinc-500 ml-1.5 whitespace-nowrap">
+                                  {selectedProduct.originalPrice.toLocaleString()} ETB
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            {isOutOfStock ? (
+                              <span className="inline-flex items-center gap-1.5 text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900/50 px-2.5 py-1 rounded-full whitespace-nowrap">
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                <span>{language === 'en' ? 'Out of Stock' : 'ክምችት አልቋል'}</span>
+                              </span>
+                            ) : isLowStock ? (
+                              <span className="inline-flex items-center gap-1.5 text-xs font-black text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-900/50 px-2.5 py-1 rounded-full whitespace-nowrap">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                                <span>{language === 'en' ? `Only ${activeStock} left` : `${activeStock} ብቻ ቀሪ`}</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-900/50 px-2.5 py-1 rounded-full whitespace-nowrap">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <span>{language === 'en' ? `${activeStock} available` : `${activeStock} በክምችት አለ`}</span>
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        
-                        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+
+                        {/* Balanced 2-Button Grid on ALL Device Types */}
+                        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
                           <button
+                            type="button"
                             disabled={!selectedVariant || selectedVariant.onHand <= 0}
                             onClick={() => {
                               if (selectedVariant) {
@@ -4069,47 +4201,46 @@ export default function CustomerWeb({
                                 setIsCartOpen(true);
                               }
                             }}
-                            className={`w-full sm:w-auto px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
-                              (!selectedVariant || selectedVariant.onHand <= 0)
-                                ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed border border-gray-150 dark:border-zinc-750'
-                                : 'bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-900 dark:text-white'
-                            }`}
+                            className={`w-full h-11 sm:h-12 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-xs whitespace-nowrap border ${(!selectedVariant || selectedVariant.onHand <= 0)
+                              ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed border-gray-200 dark:border-zinc-800'
+                              : 'bg-white hover:bg-gray-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-gray-900 dark:text-zinc-100 border-gray-250 dark:border-zinc-700 active:scale-[0.98]'
+                              }`}
                           >
-                            <ShoppingCart className="w-4 h-4 text-gray-700 dark:text-zinc-300" />
-                            <span>{language === 'en' ? 'Add To Cart' : 'ወደ ጋሪ አስገባ'}</span>
+                            <ShoppingCart className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-gray-700 dark:text-zinc-300 shrink-0" />
+                            <span className="truncate">{language === 'en' ? 'Add To Cart' : 'ወደ ጋሪ አስገባ'}</span>
                           </button>
 
                           <button
+                            type="button"
                             disabled={!selectedVariant || selectedVariant.onHand <= 0}
                             onClick={() => {
                               if (selectedVariant) {
                                 handleInstantBuy(selectedProduct, selectedVariant);
                               }
                             }}
-                            className={`w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md ${
-                              (!selectedVariant || selectedVariant.onHand <= 0)
-                                ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed border border-gray-150 dark:border-zinc-750'
-                                : 'bg-[#0052FF] hover:bg-blue-600 hover:scale-[1.02] active:scale-95 text-white'
-                            }`}
+                            className={`w-full h-11 sm:h-12 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-md shadow-blue-500/20 whitespace-nowrap active:scale-[0.98] ${(!selectedVariant || selectedVariant.onHand <= 0)
+                              ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed border border-gray-200 dark:border-zinc-800'
+                              : 'bg-[#0052FF] hover:bg-blue-600 text-white'
+                              }`}
                           >
-                            <Zap className="w-4 h-4 fill-current text-amber-300" />
-                            <span>{language === 'en' ? '⚡ Buy Now' : '⚡ አሁን ግዛ'}</span>
+                            <Zap className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-current text-amber-300 shrink-0" />
+                            <span className="truncate">{language === 'en' ? '⚡ Buy Now' : '⚡ አሁን ግዛ'}</span>
                           </button>
                         </div>
                       </div>
 
                       {/* Clean 1-Line Trust & Payment Ribbon */}
-                      <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-1 text-[10px] text-gray-500 dark:text-zinc-400 font-medium py-1">
-                        <span className="flex items-center gap-1">
-                          <ShieldCheck className="w-3 h-3 text-emerald-500 shrink-0" />
-                          {language === 'en' ? 'Doorstep Inspection' : 'ደጃፍ ላይ ፈትሾ መረከብ'}
+                      <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-1.5 text-[10.5px] sm:text-xs text-gray-500 dark:text-zinc-400 font-medium py-1 px-1 text-center">
+                        <span className="inline-flex items-center gap-1.5 text-gray-700 dark:text-zinc-300">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                          <span>{language === 'en' ? 'Doorstep Inspection' : 'ደጃፍ ላይ ፈትሾ መረከብ'}</span>
                         </span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <Award className="w-3 h-3 text-indigo-500 shrink-0" />
-                          {language === 'en' ? 'Store Warranty' : 'የሱቅ ዋስትና'}
+                        <span className="text-gray-300 dark:text-zinc-700 font-bold">•</span>
+                        <span className="inline-flex items-center gap-1.5 text-gray-700 dark:text-zinc-300">
+                          <Award className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                          <span>{language === 'en' ? 'Store Warranty' : 'የሱቅ ዋስትና'}</span>
                         </span>
-                        <span>•</span>
+                        <span className="text-gray-300 dark:text-zinc-700 font-bold">•</span>
                         <span className="font-semibold text-gray-700 dark:text-zinc-300">
                           telebirr / CBE Birr / Chapa / VISA
                         </span>
@@ -4130,11 +4261,10 @@ export default function CustomerWeb({
 
                       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
                         {/* Left Side: Product Bundle Cards Grid (8 cols) */}
-                        <div className={`col-span-full lg:col-span-8 grid ${
-                          1 + fbtProducts.length >= 4 
-                            ? 'grid-cols-3 sm:grid-cols-4' 
-                            : 'grid-cols-3 sm:grid-cols-3'
-                        } gap-1.5 sm:gap-4 items-stretch`}>
+                        <div className={`col-span-full lg:col-span-8 grid ${1 + fbtProducts.length >= 4
+                          ? 'grid-cols-3 sm:grid-cols-4'
+                          : 'grid-cols-3 sm:grid-cols-3'
+                          } gap-1.5 sm:gap-4 items-stretch`}>
                           {/* Main item */}
                           <div className="h-full flex flex-col justify-between p-2 sm:p-4 bg-white dark:bg-zinc-900 rounded-xl sm:rounded-2xl border border-amber-500/40 shadow-2xs hover:shadow-xs transition-all min-w-0">
                             <div>
@@ -4145,11 +4275,11 @@ export default function CustomerWeb({
                                 <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
                               </div>
                               <div className="w-full aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-gray-50 dark:bg-zinc-850 border border-gray-100 dark:border-zinc-800 mb-1.5 sm:mb-3">
-                                <img 
-                                  src={selectedProduct.image} 
+                                <img
+                                  src={selectedProduct.image}
                                   alt={selectedProduct.nameEn}
                                   referrerPolicy="no-referrer"
-                                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" 
+                                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                                 />
                               </div>
                             </div>
@@ -4167,7 +4297,7 @@ export default function CustomerWeb({
                           {fbtProducts.map((p) => {
                             const isChecked = fbtSelectedIds.includes(p.id);
                             return (
-                              <div 
+                              <div
                                 key={`fbt-chain-${p.id}`}
                                 onClick={() => {
                                   if (isChecked) {
@@ -4176,25 +4306,22 @@ export default function CustomerWeb({
                                     setFbtSelectedIds([...fbtSelectedIds, p.id]);
                                   }
                                 }}
-                                className={`group h-full flex flex-col justify-between p-2 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer shadow-2xs min-w-0 ${
-                                  isChecked 
-                                    ? 'bg-white dark:bg-zinc-900 border-amber-500/40 ring-1 ring-amber-500/20' 
-                                    : 'bg-gray-50/80 dark:bg-zinc-950/40 border-gray-200/80 dark:border-zinc-800 opacity-60 hover:opacity-100'
-                                }`}
+                                className={`group h-full flex flex-col justify-between p-2 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer shadow-2xs min-w-0 ${isChecked
+                                  ? 'bg-white dark:bg-zinc-900 border-amber-500/40 ring-1 ring-amber-500/20'
+                                  : 'bg-gray-50/80 dark:bg-zinc-950/40 border-gray-200/80 dark:border-zinc-800 opacity-60 hover:opacity-100'
+                                  }`}
                               >
                                 <div>
                                   <div className="flex items-center justify-between gap-1 mb-1.5 sm:mb-3">
                                     <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-                                      <div className={`w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 rounded sm:rounded-md border flex items-center justify-center shrink-0 transition-all ${
-                                        isChecked 
-                                          ? 'bg-amber-500 border-amber-500 text-white shadow-2xs' 
-                                          : 'border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900'
-                                      }`}>
+                                      <div className={`w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 rounded sm:rounded-md border flex items-center justify-center shrink-0 transition-all ${isChecked
+                                        ? 'bg-amber-500 border-amber-500 text-white shadow-2xs'
+                                        : 'border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900'
+                                        }`}>
                                         {isChecked && <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[3]" />}
                                       </div>
-                                      <span className={`text-[8px] sm:text-[10px] font-black uppercase tracking-wider truncate ${
-                                        isChecked ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-zinc-400'
-                                      }`}>
+                                      <span className={`text-[8px] sm:text-[10px] font-black uppercase tracking-wider truncate ${isChecked ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-zinc-400'
+                                        }`}>
                                         {isChecked ? (language === 'en' ? 'INCLUDED' : 'ተካቷል') : (language === 'en' ? 'ADD ITEM' : 'ጨምር')}
                                       </span>
                                     </div>
@@ -4202,11 +4329,11 @@ export default function CustomerWeb({
                                   </div>
 
                                   <div className="w-full aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-gray-50 dark:bg-zinc-850 border border-gray-100 dark:border-zinc-800 mb-1.5 sm:mb-3">
-                                    <img 
-                                      src={p.image} 
+                                    <img
+                                      src={p.image}
                                       alt={p.nameEn}
                                       referrerPolicy="no-referrer"
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                     />
                                   </div>
                                 </div>
@@ -4234,7 +4361,7 @@ export default function CustomerWeb({
                           // Compute total calculation
                           let normalSum = selectedProduct.price;
                           let itemsList: { product: Product; price: number }[] = [{ product: selectedProduct, price: selectedProduct.price }];
-                          
+
                           fbtProducts.forEach(p => {
                             if (fbtSelectedIds.includes(p.id)) {
                               normalSum += p.price;
@@ -4260,28 +4387,33 @@ export default function CustomerWeb({
                                 <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#0052FF] bg-blue-50 dark:bg-zinc-800 px-2.5 py-1 rounded-md w-fit block">
                                   {language === 'en' ? 'Bundle Summary' : 'የጥቅል መግለጫ'}
                                 </span>
-                                
-                                <div className="pt-2 flex justify-between items-baseline">
-                                  <span className="text-xs font-extrabold text-gray-500 uppercase tracking-wider">
+
+                                <div className="pt-2 flex justify-between items-baseline gap-2">
+                                  <span className="text-xs font-black text-gray-500 uppercase tracking-wider">
                                     {language === 'en' ? `Total (${checkedCount} items)` : `ድምር (${checkedCount} እቃዎች)`}
                                   </span>
-                                  <div className="text-right">
+                                  <div className="text-right shrink-0 whitespace-nowrap">
                                     {discountPct > 0 && (
-                                      <span className="text-xs font-bold text-gray-400 font-mono line-through block">
+                                      <span className="text-xs font-bold text-gray-400 font-mono line-through block whitespace-nowrap">
                                         {normalSum.toLocaleString()} ETB
                                       </span>
                                     )}
-                                    <span className="text-xl font-black font-mono text-gray-950 dark:text-white block">
-                                      {discountedBundlePrice.toLocaleString()} ETB
-                                    </span>
+                                    <div className="flex items-baseline gap-1 justify-end whitespace-nowrap">
+                                      <span className="text-xl sm:text-2xl font-black font-mono text-gray-950 dark:text-white">
+                                        {discountedBundlePrice.toLocaleString()}
+                                      </span>
+                                      <span className="text-xs font-mono font-black text-[#0052FF] dark:text-blue-400 uppercase">
+                                        ETB
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
 
                                 {discountPct > 0 && (
                                   <div className="pt-1 flex justify-between items-center text-xs text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-wider">
                                     <span>{language === 'en' ? 'Bundle Savings' : 'የጥቅል ቁጠባ'}:</span>
-                                    <span className="bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200/60 dark:border-emerald-900/40 font-bold font-mono text-xs">
-                                      -{savingsAmount.toLocaleString()} ETB ({discountPct}%)
+                                    <span className="bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200/60 dark:border-emerald-900/40 font-bold font-mono text-xs whitespace-nowrap">
+                                      {savingsAmount.toLocaleString()} ETB ({discountPct}%)
                                     </span>
                                   </div>
                                 )}
@@ -4290,16 +4422,15 @@ export default function CustomerWeb({
                               <button
                                 disabled={checkedCount === 0}
                                 onClick={() => addBundleToCart(finalItemsWithSaving)}
-                                className={`w-full py-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                                  checkedCount === 0 
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed border' 
-                                    : 'bg-amber-500 hover:bg-amber-600 text-white font-extrabold shadow-sm hover:scale-[1.01]'
-                                }`}
+                                className={`w-full h-11 sm:h-12 px-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md whitespace-nowrap active:scale-[0.98] ${checkedCount === 0
+                                  ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed border border-gray-200 dark:border-zinc-800'
+                                  : 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20'
+                                  }`}
                               >
-                                <ShoppingCart className="w-4 h-4" />
-                                <span>
-                                  {language === 'en' 
-                                    ? `Add All ${checkedCount} to Cart` 
+                                <ShoppingCart className="w-4 h-4 shrink-0" />
+                                <span className="truncate">
+                                  {language === 'en'
+                                    ? `Add All ${checkedCount} to Cart`
                                     : `ሁሉንም ${checkedCount} ጋሪ ውስጥ አስገባ`}
                                 </span>
                               </button>
@@ -4331,8 +4462,8 @@ export default function CustomerWeb({
                                   {language === 'en' ? 'No reviews yet' : 'እስካሁን ምንም ግምገማዎች የሉም'}
                                 </p>
                                 <p className="text-[11px] mt-1 text-gray-400">
-                                  {language === 'en' 
-                                    ? 'Be the first to review this product after your purchase!' 
+                                  {language === 'en'
+                                    ? 'Be the first to review this product after your purchase!'
                                     : 'ይህን ምርት ከገዙ በኋላ የመጀመሪያው ግምገማ ሰጪ ይሁኑ!'}
                                 </p>
                               </div>
@@ -4355,9 +4486,8 @@ export default function CustomerWeb({
                                   {[1, 2, 3, 4, 5].map((s) => (
                                     <Star
                                       key={s}
-                                      className={`w-3.5 h-3.5 ${
-                                        s <= Math.round(avg) ? 'fill-amber-500 text-amber-500' : 'text-gray-205 dark:text-zinc-850'
-                                      }`}
+                                      className={`w-3.5 h-3.5 ${s <= Math.round(avg) ? 'fill-amber-500 text-amber-500' : 'text-gray-205 dark:text-zinc-850'
+                                        }`}
                                     />
                                   ))}
                                 </div>
@@ -4374,8 +4504,8 @@ export default function CustomerWeb({
                                       <span className="w-3 text-right font-bold text-gray-600 dark:text-zinc-400 font-mono">{stars}</span>
                                       <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500 shrink-0" />
                                       <div className="flex-grow bg-gray-100 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
-                                        <div 
-                                          className="bg-amber-500 h-full rounded-full" 
+                                        <div
+                                          className="bg-amber-500 h-full rounded-full"
                                           style={{ width: `${percentage}%` }}
                                         />
                                       </div>
@@ -4392,8 +4522,8 @@ export default function CustomerWeb({
                         {selectedProduct.reviews && selectedProduct.reviews.length > 0 && (
                           <div className="space-y-4 max-h-[450px] overflow-y-auto pr-2">
                             {selectedProduct.reviews.map((rev) => (
-                              <div 
-                                key={rev.id} 
+                              <div
+                                key={rev.id}
                                 className="bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-gray-150 dark:border-zinc-800 space-y-2.5 transition-all shadow-2xs hover:shadow-xs"
                               >
                                 <div className="flex justify-between items-start gap-4">
@@ -4416,9 +4546,8 @@ export default function CustomerWeb({
                                     {[1, 2, 3, 4, 5].map((s) => (
                                       <Star
                                         key={s}
-                                        className={`w-3.5 h-3.5 ${
-                                          s <= rev.rating ? 'fill-amber-500 text-amber-500' : 'text-gray-200 dark:text-zinc-800'
-                                        }`}
+                                        className={`w-3.5 h-3.5 ${s <= rev.rating ? 'fill-amber-500 text-amber-500' : 'text-gray-200 dark:text-zinc-800'
+                                          }`}
                                       />
                                     ))}
                                   </div>
@@ -4439,8 +4568,8 @@ export default function CustomerWeb({
                             {language === 'en' ? 'Write a Review' : 'ግምገማ ይጻፉ'}
                           </h5>
                           <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1 mb-3.5">
-                            {language === 'en' 
-                              ? 'Share your experience to help other buyers. Verified purchase is required.' 
+                            {language === 'en'
+                              ? 'Share your experience to help other buyers. Verified purchase is required.'
                               : 'ሌሎች ገዢዎችን ለመርዳት የእርስዎን ተሞክሮ ያካፍሉ። የተረጋገጠ ግዢ ያስፈልጋል።'}
                           </p>
 
@@ -4543,11 +4672,10 @@ export default function CustomerWeb({
                                   className="text-amber-500 hover:scale-110 transition-all p-0.5 cursor-pointer focus:outline-none"
                                 >
                                   <Star
-                                    className={`w-7 h-7 ${
-                                      s <= reviewRating 
-                                        ? 'fill-amber-500 text-amber-500' 
-                                        : 'text-gray-200 dark:text-zinc-800'
-                                    }`}
+                                    className={`w-7 h-7 ${s <= reviewRating
+                                      ? 'fill-amber-500 text-amber-500'
+                                      : 'text-gray-200 dark:text-zinc-800'
+                                      }`}
                                   />
                                 </button>
                               ))}
@@ -4583,8 +4711,8 @@ export default function CustomerWeb({
                               className="w-full border border-gray-155 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950 rounded-xl px-3.5 py-2.5 text-xs text-gray-950 dark:text-white focus:outline-none focus:border-kasma-blue focus:bg-white dark:focus:bg-zinc-900 transition-all font-mono"
                             />
                             <p className="text-[9px] text-gray-400 leading-normal">
-                              {language === 'en' 
-                                ? 'We verify your purchase history against this phone number.' 
+                              {language === 'en'
+                                ? 'We verify your purchase history against this phone number.'
                                 : 'በዚህ ስልክ ቁጥር መሰረት የገዙበትን ታሪክ እናረጋግጣለን።'}
                             </p>
                           </div>
@@ -4607,11 +4735,10 @@ export default function CustomerWeb({
                           <button
                             type="submit"
                             disabled={isSubmittingReview}
-                            className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                              isSubmittingReview
-                                ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed'
-                                : 'bg-kasma-blue hover:bg-blue-600 text-white shadow-sm'
-                            }`}
+                            className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${isSubmittingReview
+                              ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed'
+                              : 'bg-kasma-blue hover:bg-blue-600 text-white shadow-sm'
+                              }`}
                           >
                             {isSubmittingReview ? (
                               <>
@@ -4639,11 +4766,11 @@ export default function CustomerWeb({
 
       {/* Quick View / Quick Purchase Modal */}
       {quickBuyProduct && (
-        <div 
+        <div
           onClick={() => setQuickBuyProduct(null)}
           className="fixed inset-0 bg-black/75 z-55 flex items-end sm:items-center justify-center p-0 sm:p-4 backdrop-blur-md animate-in fade-in duration-200"
         >
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
             className="bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl max-w-3xl w-full shadow-2xl relative border-t sm:border border-gray-150 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 my-0 sm:my-auto"
           >
@@ -4670,7 +4797,7 @@ export default function CustomerWeb({
               </div>
 
               {/* Close Button */}
-              <button 
+              <button
                 type="button"
                 onClick={() => setQuickBuyProduct(null)}
                 className="bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-500 dark:text-zinc-400 rounded-full p-1.5 sm:p-2 transition-all cursor-pointer hover:scale-110 active:scale-95 shadow-xs shrink-0 ml-2"
@@ -4682,25 +4809,30 @@ export default function CustomerWeb({
 
             {/* Modal Inner Scroll Body */}
             <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar space-y-4 sm:space-y-6 flex-1">
-              
+
               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 md:gap-8 items-start">
-                
+
                 {/* Left Column / Mobile Image Gallery */}
                 <div className="md:col-span-5 flex flex-col gap-2.5">
-                  
+
                   {/* Title & Rating (Prominently displayed on top for Mobile) */}
                   <div className="md:hidden space-y-1.5">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-100 dark:border-indigo-900/40">
                         {quickBuyProduct.brand}
                       </span>
-                      <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-900/40 px-2 py-0.5 rounded-full text-amber-800 dark:text-amber-300 font-bold text-[10px]">
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        <span>4.8</span>
-                        <span className="text-gray-400 font-normal">
-                          ({quickBuyProduct.reviews?.length || 18})
-                        </span>
-                      </div>
+                      {(() => {
+                        const { avg, count } = getProductRatingInfo(quickBuyProduct);
+                        return avg > 0 ? (
+                          <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-900/40 px-2 py-0.5 rounded-full text-amber-800 dark:text-amber-300 font-bold text-[10px]">
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                            <span>{avg}</span>
+                            <span className="text-gray-400 font-normal">
+                              ({count} {language === 'en' ? 'reviews' : 'ግምገማዎች'})
+                            </span>
+                          </div>
+                        ) : null;
+                      })()}
                     </div>
                     <h2 className="text-base font-black text-gray-950 dark:text-white leading-snug">
                       {language === 'en' ? quickBuyProduct.nameEn : quickBuyProduct.nameAm}
@@ -4726,19 +4858,48 @@ export default function CustomerWeb({
                       {quickBuyProduct.category}
                     </span>
 
-                    {/* Wishlist Heart Toggle Button */}
-                    <button
-                      type="button"
-                      title={language === 'en' ? 'Save to Wishlist' : 'ወደ ተወዳጆች ያስቀምጡ'}
-                      onClick={(e) => handleToggleFavorite(quickBuyProduct.id, e)}
-                      className={`absolute top-2 right-2 p-1.5 sm:p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md hover:scale-110 active:scale-95 ${
-                        favorites.includes(quickBuyProduct.id)
-                          ? 'bg-orange-50 dark:bg-orange-950/90 text-orange-500 dark:text-orange-400 border border-orange-300 dark:border-orange-800'
-                          : 'bg-white/90 dark:bg-zinc-900/90 text-gray-500 hover:text-orange-500 border border-white/80 dark:border-zinc-700'
-                      }`}
-                    >
-                      <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${favorites.includes(quickBuyProduct.id) ? 'fill-orange-500 text-orange-500' : ''}`} />
-                    </button>
+                    {/* Action Bar on Image: Compare, Share & Wishlist */}
+                    <div className="absolute top-2 right-2 flex items-center gap-1.5 z-20">
+                      {/* Compare Button */}
+                      <button
+                        type="button"
+                        title={language === 'en' ? 'Compare Specs' : 'ዝርዝር አነጻጽር'}
+                        onClick={(e) => handleToggleCompare(quickBuyProduct.id, e)}
+                        className={`p-1.5 sm:p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md hover:scale-110 active:scale-95 border ${
+                          comparedProductIds.includes(quickBuyProduct.id)
+                            ? 'bg-[#0052FF] text-white border-blue-400 shadow-blue-500/30'
+                            : 'bg-white/90 dark:bg-zinc-900/90 text-gray-600 dark:text-zinc-300 hover:text-[#0052FF] border-white/80 dark:border-zinc-700'
+                        }`}
+                      >
+                        <GitCompare className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${comparedProductIds.includes(quickBuyProduct.id) ? 'scale-110' : ''}`} />
+                      </button>
+
+                      {/* Share Button */}
+                      <button
+                        type="button"
+                        title={language === 'en' ? 'Share Product' : 'ምርቱን ያጋሩ'}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSharingProduct(quickBuyProduct);
+                        }}
+                        className="p-1.5 sm:p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md hover:scale-110 active:scale-95 bg-white/90 dark:bg-zinc-900/90 text-gray-600 dark:text-zinc-300 hover:text-indigo-600 border border-white/80 dark:border-zinc-700"
+                      >
+                        <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-500" />
+                      </button>
+
+                      {/* Wishlist Heart Toggle Button */}
+                      <button
+                        type="button"
+                        title={language === 'en' ? 'Save to Wishlist' : 'ወደ ተወዳጆች ያስቀምጡ'}
+                        onClick={(e) => handleToggleFavorite(quickBuyProduct.id, e)}
+                        className={`p-1.5 sm:p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md hover:scale-110 active:scale-95 border ${favorites.includes(quickBuyProduct.id)
+                          ? 'bg-rose-50 dark:bg-rose-950/90 text-rose-500 border-rose-300 dark:border-rose-800'
+                          : 'bg-white/90 dark:bg-zinc-900/90 text-gray-500 hover:text-rose-500 border border-white/80 dark:border-zinc-700'
+                          }`}
+                      >
+                        <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${favorites.includes(quickBuyProduct.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Thumbnail Gallery Switcher */}
@@ -4752,11 +4913,10 @@ export default function CustomerWeb({
                             key={idx}
                             type="button"
                             onClick={() => setQuickViewImageIndex(idx)}
-                            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden border-2 transition-all cursor-pointer shrink-0 bg-gray-100 dark:bg-zinc-900 ${
-                              quickViewImageIndex === idx
-                                ? 'border-[#0052FF] scale-105 shadow-xs'
-                                : 'border-gray-200 dark:border-zinc-800 opacity-70 hover:opacity-100'
-                            }`}
+                            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl overflow-hidden border-2 transition-all cursor-pointer shrink-0 bg-gray-100 dark:bg-zinc-900 ${quickViewImageIndex === idx
+                              ? 'border-[#0052FF] scale-105 shadow-xs'
+                              : 'border-gray-200 dark:border-zinc-800 opacity-70 hover:opacity-100'
+                              }`}
                           >
                             <LazyImage src={imgUrl} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
                           </button>
@@ -4785,7 +4945,7 @@ export default function CustomerWeb({
                 {/* Right Column: Title, Specs, Options, Pricing & CTAs */}
                 <div className="md:col-span-7 flex flex-col justify-between space-y-3.5 sm:space-y-4 text-left min-w-0">
                   <div className="space-y-3 min-w-0">
-                    
+
                     {/* Brand & Rating Row (Desktop View) */}
                     <div className="hidden md:flex items-center justify-between gap-2 flex-wrap">
                       <span className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-900/40">
@@ -4794,13 +4954,18 @@ export default function CustomerWeb({
                       </span>
 
                       {/* Star Rating Capsule */}
-                      <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-900/40 px-2.5 py-1 rounded-full text-amber-800 dark:text-amber-300 font-bold text-xs">
-                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                        <span>4.8</span>
-                        <span className="text-gray-400 font-normal text-[10px]">
-                          ({quickBuyProduct.reviews?.length || 18} {language === 'en' ? 'reviews' : 'ግምገማዎች'})
-                        </span>
-                      </div>
+                      {(() => {
+                        const { avg, count } = getProductRatingInfo(quickBuyProduct);
+                        return avg > 0 ? (
+                          <div className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-900/40 px-2.5 py-1 rounded-full text-amber-800 dark:text-amber-300 font-bold text-xs">
+                            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                            <span>{avg}</span>
+                            <span className="text-gray-400 font-normal text-[10px]">
+                              ({count} {language === 'en' ? 'reviews' : 'ግምገማዎች'})
+                            </span>
+                          </div>
+                        ) : null;
+                      })()}
                     </div>
 
                     {/* Title in English and Amharic (Desktop View) */}
@@ -4817,16 +4982,19 @@ export default function CustomerWeb({
 
                     {/* Price Banner */}
                     <div className="p-3 sm:p-3.5 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-transparent dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 rounded-2xl border border-blue-100/80 dark:border-zinc-800 flex items-center justify-between gap-2.5">
-                      <div>
+                      <div className="min-w-0">
                         <span className="text-[9px] uppercase font-extrabold text-gray-400 tracking-wider block">
                           {language === 'en' ? 'Calculated Price' : 'የተሰላ ዋጋ'}
                         </span>
-                        <div className="flex items-baseline gap-2 mt-0.5">
-                          <span className="font-mono text-lg sm:text-xl font-black text-[#0052FF] dark:text-blue-400">
-                            {((quickBuyVariant ? quickBuyProduct.price + quickBuyVariant.priceOffset : quickBuyProduct.price) * quickBuyQuantity).toLocaleString()} ETB
+                        <div className="flex items-baseline gap-1.5 mt-0.5 whitespace-nowrap">
+                          <span className="font-mono text-lg sm:text-xl font-black text-gray-900 dark:text-white tracking-tight whitespace-nowrap">
+                            {((quickBuyVariant ? quickBuyProduct.price + quickBuyVariant.priceOffset : quickBuyProduct.price) * quickBuyQuantity).toLocaleString()}
+                          </span>
+                          <span className="text-xs sm:text-sm font-black font-mono text-[#0052FF] dark:text-blue-400 uppercase tracking-wider whitespace-nowrap">
+                            ETB
                           </span>
                           {quickBuyQuantity > 1 && (
-                            <span className="text-[10px] text-gray-500 font-bold font-mono">
+                            <span className="text-[10px] text-gray-500 font-bold font-mono ml-1 whitespace-nowrap">
                               ({(quickBuyVariant ? quickBuyProduct.price + quickBuyVariant.priceOffset : quickBuyProduct.price).toLocaleString()} ETB / {language === 'en' ? 'unit' : 'ፍሬ'})
                             </span>
                           )}
@@ -4834,7 +5002,7 @@ export default function CustomerWeb({
                       </div>
 
                       {/* Stock Status Badge */}
-                      <div>
+                      <div className="shrink-0">
                         {(() => {
                           const activeStock = quickBuyVariant ? quickBuyVariant.onHand : quickBuyProduct.variants.reduce((a, v) => a + v.onHand, 0);
                           if (activeStock <= 0) {
@@ -4872,7 +5040,7 @@ export default function CustomerWeb({
                         <label className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-wider block">
                           {language === 'en' ? 'Select Variant / Color' : 'አማራጭ / ቀለም ይምረጡ'}
                         </label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className={`grid gap-2 ${quickBuyProduct.variants.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
                           {quickBuyProduct.variants.map((v) => {
                             const isSelected = quickBuyVariant?.sku === v.sku;
                             const totalCost = quickBuyProduct.price + v.priceOffset;
@@ -4884,24 +5052,23 @@ export default function CustomerWeb({
                                   setQuickBuyVariant(v);
                                   setQuickBuyQuantity(1);
                                 }}
-                                className={`p-2 sm:p-2.5 rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between ${
-                                  isSelected
-                                    ? 'border-[#0052FF] bg-blue-50/40 dark:bg-blue-950/30 ring-1 ring-[#0052FF]'
-                                    : 'border-gray-150 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/50'
-                                }`}
+                                className={`p-2.5 sm:p-3 rounded-xl sm:rounded-2xl text-left border transition-all cursor-pointer flex flex-col justify-between min-w-0 ${isSelected
+                                  ? 'border-[#0052FF] bg-blue-50/40 dark:bg-blue-950/30 ring-1 ring-[#0052FF]'
+                                  : 'border-gray-150 dark:border-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-800/50'
+                                  }`}
                               >
-                                <div className="flex items-center justify-between gap-1">
+                                <div className="flex items-center justify-between gap-1 min-w-0">
                                   <span className="text-xs font-extrabold text-gray-950 dark:text-white truncate">
                                     {v.name}
                                   </span>
                                   {isSelected && <Check className="w-3.5 h-3.5 text-[#0052FF] shrink-0" />}
                                 </div>
-                                <div className="flex justify-between items-center mt-1">
-                                  <span className="text-[10px] font-mono font-bold text-gray-500 dark:text-zinc-400">
+                                <div className="flex justify-between items-center mt-1.5 gap-1">
+                                  <span className="text-[10px] font-mono font-bold text-gray-700 dark:text-zinc-300 whitespace-nowrap">
                                     {totalCost.toLocaleString()} ETB
                                   </span>
-                                  <span className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded-md ${v.onHand > 0 ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'}`}>
-                                    {v.onHand > 0 ? `${v.onHand} in stock` : 'Out'}
+                                  <span className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap ${v.onHand > 0 ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400'}`}>
+                                    {v.onHand > 0 ? `${v.onHand} left` : 'Out'}
                                   </span>
                                 </div>
                               </button>
@@ -4918,7 +5085,7 @@ export default function CustomerWeb({
                           {language === 'en' ? 'Select Quantity' : 'ብዛት ይምረጡ'}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center gap-2.5 bg-gray-100 dark:bg-zinc-950 p-1 sm:p-1.5 rounded-xl border border-gray-200/60 dark:border-zinc-800">
                         <button
                           type="button"
@@ -4935,9 +5102,9 @@ export default function CustomerWeb({
                           onClick={() => {
                             const maxStock = quickBuyVariant ? quickBuyVariant.onHand : 99;
                             if (quickBuyQuantity + 1 > maxStock) {
-                              showToast(language === 'en' 
-                                ? `Cannot select more than ${maxStock} items.` 
-                                : `ከ ${maxStock} በላይ መምረጥ አይቻልም።`, 
+                              showToast(language === 'en'
+                                ? `Cannot select more than ${maxStock} items.`
+                                : `ከ ${maxStock} በላይ መምረጥ አይቻልም።`,
                                 'warning'
                               );
                             } else {
@@ -4955,7 +5122,7 @@ export default function CustomerWeb({
 
                   {/* Primary Action Buttons */}
                   <div className="space-y-2 pt-2 border-t border-gray-100 dark:border-zinc-800">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
                       {/* Add to Cart Button */}
                       <button
                         type="button"
@@ -4964,20 +5131,19 @@ export default function CustomerWeb({
                           if (!quickBuyVariant) return;
                           addToCart(quickBuyProduct, quickBuyVariant, quickBuyQuantity);
                           setQuickBuyProduct(null);
-                          showToast(language === 'en' 
-                            ? `Added ${quickBuyQuantity}x ${quickBuyProduct.nameEn} to your cart!` 
+                          showToast(language === 'en'
+                            ? `Added ${quickBuyQuantity}x ${quickBuyProduct.nameEn} to your cart!`
                             : `${quickBuyQuantity}x ${quickBuyProduct.nameAm} ወደ ሱቅ ጋሪዎ ተጨምሯል!`,
                             'success'
                           );
                         }}
-                        className={`py-3 px-3 sm:px-4 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm ${
-                          !quickBuyVariant || quickBuyVariant.onHand <= 0
-                            ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed'
-                            : 'bg-[#0052FF] hover:bg-blue-600 text-white hover:shadow-md active:scale-98'
-                        }`}
+                        className={`h-11 sm:h-12 w-full px-2.5 sm:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap ${!quickBuyVariant || quickBuyVariant.onHand <= 0
+                          ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed border border-gray-200 dark:border-zinc-800'
+                          : 'bg-[#0052FF] hover:bg-blue-600 text-white shadow-md shadow-blue-500/20 active:scale-[0.98]'
+                          }`}
                       >
-                        <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        <span>{language === 'en' ? 'Add To Cart' : 'ወደ ጋሪ אסገባ'}</span>
+                        <ShoppingCart className="w-4 h-4 shrink-0" />
+                        <span className="truncate">{language === 'en' ? 'Add To Cart' : 'ወደ ጋሪ አስገባ'}</span>
                       </button>
 
                       {/* Instant Buy Button */}
@@ -4989,20 +5155,19 @@ export default function CustomerWeb({
                           addToCart(quickBuyProduct, quickBuyVariant, quickBuyQuantity);
                           setQuickBuyProduct(null);
                           setIsCartOpen(true);
-                          showToast(language === 'en' 
-                            ? 'Proceeding to checkout...' 
+                          showToast(language === 'en'
+                            ? 'Proceeding to checkout...'
                             : 'ወደ ክፍያ በመሄድ ላይ...',
                             'info'
                           );
                         }}
-                        className={`py-3 px-3 sm:px-4 rounded-2xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
-                          !quickBuyVariant || quickBuyVariant.onHand <= 0
-                            ? 'bg-gray-100 dark:bg-zinc-800 border-transparent text-gray-400 dark:text-zinc-600 cursor-not-allowed'
-                            : 'bg-amber-400 hover:bg-amber-500 text-black border-amber-500 hover:shadow-md active:scale-98'
-                        }`}
+                        className={`h-11 sm:h-12 w-full px-2.5 sm:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer border whitespace-nowrap shadow-xs active:scale-[0.98] ${!quickBuyVariant || quickBuyVariant.onHand <= 0
+                          ? 'bg-gray-100 dark:bg-zinc-800 border-transparent text-gray-400 dark:text-zinc-600 cursor-not-allowed'
+                          : 'bg-amber-400 hover:bg-amber-500 text-black border-amber-500 shadow-md shadow-amber-500/20'
+                          }`}
                       >
-                        <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current text-black" />
-                        <span>{language === 'en' ? 'Buy Now' : 'አሁኑኑ ግዛ'}</span>
+                        <Zap className="w-4 h-4 fill-current text-black shrink-0" />
+                        <span className="truncate">{language === 'en' ? 'Buy Now' : 'አሁኑኑ ግዛ'}</span>
                       </button>
                     </div>
 
@@ -5013,6 +5178,36 @@ export default function CustomerWeb({
                       <span>🚚 Express Delivery</span>
                       <span>·</span>
                       <span>🔄 Easy Returns</span>
+                    </div>
+
+                    {/* Compare & Share Action Buttons in QuickView */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={(e) => handleToggleCompare(quickBuyProduct.id, e)}
+                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                          comparedProductIds.includes(quickBuyProduct.id)
+                            ? 'bg-blue-50 dark:bg-blue-950/50 border-[#0052FF] text-[#0052FF]'
+                            : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800'
+                        }`}
+                      >
+                        <GitCompare className="w-3.5 h-3.5 text-[#0052FF]" />
+                        <span>{comparedProductIds.includes(quickBuyProduct.id)
+                          ? (language === 'en' ? 'Compared ✓' : 'ተነጻጽሯል ✓')
+                          : (language === 'en' ? 'Compare' : 'አነጻጽር')}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSharingProduct(quickBuyProduct);
+                        }}
+                        className="py-2 px-3 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Share2 className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>{language === 'en' ? 'Share' : 'አጋራ'}</span>
+                      </button>
                     </div>
 
                     {/* View Full Page & Reviews button */}
@@ -5042,15 +5237,15 @@ export default function CustomerWeb({
 
       {/* Cart Center Modal */}
       {isCartOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-5 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
           onClick={() => setIsCartOpen(false)}
         >
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
             className="bg-white dark:bg-zinc-900 w-full max-w-xl max-h-[90vh] sm:max-h-[85vh] rounded-3xl flex flex-col shadow-2xl relative animate-in zoom-in-95 duration-200 border border-gray-150 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 overflow-hidden"
           >
-            
+
             {/* 1. Header (Fixed top) */}
             <div className="p-4 sm:p-5 bg-white dark:bg-zinc-900 text-gray-950 dark:text-white border-b border-gray-150 dark:border-zinc-800 flex justify-between items-center shrink-0">
               <div className="flex items-center gap-2.5">
@@ -5069,11 +5264,11 @@ export default function CustomerWeb({
                     {language === 'en' ? 'My Shopping Cart' : 'የእኔ ሱቅ ጋሪ'}
                   </h3>
                   <p className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">
-                    {cart.length === 0 
+                    {cart.length === 0
                       ? (language === 'en' ? '0 items' : '0 እቃዎች')
-                      : cart.length === 1 
-                      ? (language === 'en' ? '1 unique item' : '1 ልዩ እቃ') 
-                      : (language === 'en' ? `${cart.length} unique items` : `${cart.length} ልዩ እቃዎች`)}
+                      : cart.length === 1
+                        ? (language === 'en' ? '1 unique item' : '1 ልዩ እቃ')
+                        : (language === 'en' ? `${cart.length} unique items` : `${cart.length} ልዩ እቃዎች`)}
                   </p>
                 </div>
               </div>
@@ -5083,14 +5278,14 @@ export default function CustomerWeb({
                     type="button"
                     onClick={() => setIsShareCartModalOpen(true)}
                     className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-[#0052FF] dark:text-blue-400 border border-blue-200 dark:border-blue-900/40 rounded-xl text-xs font-extrabold transition-all cursor-pointer shadow-2xs"
-                    title="Share Cart Link"
+                    title={language === 'en' ? 'Share Cart' : 'ጋሪ አጋራ'}
                   >
                     <Share2 className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">{language === 'en' ? 'Share Cart' : 'ጋሪ አጋራ'}</span>
                   </button>
                 )}
-                <button 
-                  onClick={() => setIsCartOpen(false)} 
+                <button
+                  onClick={() => setIsCartOpen(false)}
                   className="text-gray-400 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full p-1.5 w-8 h-8 flex items-center justify-center transition-all cursor-pointer font-bold text-sm"
                 >
                   ✕
@@ -5121,107 +5316,38 @@ export default function CustomerWeb({
                 </div>
               ) : (
                 <>
-                  {/* Free Express Shipping Progress Bar */}
-                  {(() => {
-                    const freeShippingThreshold = 25000;
-                    const amountLeft = Math.max(0, freeShippingThreshold - cartSubtotal);
-                    const progress = Math.min(100, Math.round((cartSubtotal / freeShippingThreshold) * 100));
-                    return (
-                      <div className="bg-gradient-to-r from-amber-500/10 via-blue-500/10 to-indigo-500/10 dark:from-amber-500/20 dark:via-blue-500/20 dark:to-indigo-500/20 p-3 rounded-2xl border border-blue-200/60 dark:border-blue-800/50 shadow-2xs space-y-2">
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="font-extrabold text-gray-900 dark:text-zinc-100 flex items-center gap-1.5 text-[11px] sm:text-xs">
-                            <Truck className="w-4 h-4 text-[#0052FF] shrink-0" />
-                            {amountLeft > 0 ? (
-                              language === 'en' ? (
-                                <span>Add <span className="font-mono text-[#0052FF] dark:text-blue-400 font-black">{amountLeft.toLocaleString()} ETB</span> for FREE Express Shipping</span>
-                              ) : (
-                                <span>ነፃ ኤክስፕረስ ማጓጓዣ ለማግኘት <span className="font-mono text-[#0052FF] font-black">{amountLeft.toLocaleString()} ብር</span> ጨምሩ</span>
-                              )
-                            ) : (
-                              language === 'en' ? '🎉 You unlocked FREE Kasma Express Shipping!' : '🎉 ነፃ የካስማ ኤክስፕረስ ማጓጓዣ አግኝተዋል!'
-                            )}
-                          </span>
-                          <span className="text-[10px] font-mono font-black text-[#0052FF] dark:text-blue-400 shrink-0 ml-1">
-                            {progress}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden p-0.5">
-                          <div 
-                            className="bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 h-full rounded-full transition-all duration-500 shadow-xs"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* Share Cart Quick Banner */}
-                  <div className="bg-gradient-to-r from-blue-50/90 to-indigo-50/90 dark:from-blue-950/40 dark:to-indigo-950/40 p-2.5 sm:p-3 rounded-2xl border border-blue-200/80 dark:border-blue-900/40 flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 shadow-2xs">
-                    <div className="flex items-center gap-2 min-w-0 w-full xs:w-auto">
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#0052FF] text-white flex items-center justify-center shrink-0 shadow-xs">
-                        <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-extrabold text-[11px] sm:text-xs text-gray-900 dark:text-zinc-100 truncate leading-snug">
-                          {language === 'en' ? 'Share Cart with Friends' : 'ጋሪዎን ለጓደኞችዎ ያጋሩ'}
-                        </p>
-                        <p className="text-[9px] sm:text-[10px] text-gray-500 dark:text-zinc-400 truncate leading-none mt-0.5">
-                          {language === 'en' ? 'Generate a shareable link' : 'የጋሪዎን ዕቃዎች በሊንክ ይላኩ'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0 self-end xs:self-center w-full xs:w-auto justify-end">
-                      <button
-                        type="button"
-                        onClick={handleCopyCartLink}
-                        className="px-2.5 py-1.5 bg-[#0052FF] hover:bg-blue-600 active:scale-95 text-white text-[11px] font-extrabold rounded-xl transition-all shadow-xs flex items-center gap-1 cursor-pointer"
-                      >
-                        {copiedSharedLink ? (
-                          <>
-                            <Check className="w-3.5 h-3.5 text-emerald-300" />
-                            <span>{language === 'en' ? 'Copied!' : 'ተቀድቷል!'}</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3.5 h-3.5" />
-                            <span>{language === 'en' ? 'Copy Link' : 'ሊንክ ቅዳ'}</span>
-                          </>
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsShareCartModalOpen(true)}
-                        className="p-1.5 bg-white dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 rounded-xl transition-all cursor-pointer"
-                        title="Share Options"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Cart Items */}
+                  {/* PRIMARY OBJECT: Ordered Cart Items */}
                   <div className="space-y-2.5 sm:space-y-3">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <Package className="w-3.5 h-3.5 text-[#0052FF]" />
+                        <span>{language === 'en' ? 'Primary Ordered Items' : 'ዋና የተመረጡ እቃዎች'} ({cart.reduce((a, b) => a + b.quantity, 0)})</span>
+                      </span>
+                      <span className="text-[9px] font-black uppercase tracking-wider text-[#0052FF] dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200/60 dark:border-blue-900/40 px-2 py-0.5 rounded-full">
+                        {language === 'en' ? 'Primary Selection' : 'ዋና ምርጫ'}
+                      </span>
+                    </div>
+
                     {cart.map((item) => {
                       const isRemoving = removingSkus.includes(item.sku);
                       const isRecentlyAdded = recentlyAddedSkus.includes(item.sku);
                       const isRecentlyUpdated = recentlyUpdatedSku === item.sku;
 
                       return (
-                        <div 
-                          key={item.sku} 
-                          className={`p-3 sm:p-4 rounded-2xl border flex gap-3 relative shadow-xs transition-all duration-300 transform-gpu ${
-                            isRemoving 
-                              ? 'opacity-0 scale-90 -translate-x-6 max-h-0 py-0 my-0 border-transparent overflow-hidden pointer-events-none' 
-                              : isRecentlyAdded
+                        <div
+                          key={item.sku}
+                          className={`p-3 sm:p-4 rounded-2xl border flex gap-3 relative shadow-xs transition-all duration-300 transform-gpu ${isRemoving
+                            ? 'opacity-0 scale-90 -translate-x-6 max-h-0 py-0 my-0 border-transparent overflow-hidden pointer-events-none'
+                            : isRecentlyAdded
                               ? 'bg-blue-50/90 dark:bg-blue-950/40 border-[#0052FF] shadow-md scale-[1.02] ring-2 ring-[#0052FF]/30 animate-in fade-in slide-in-from-right-6 duration-300'
                               : isRecentlyUpdated
-                              ? 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-400/60 scale-[1.01] shadow-xs'
-                              : 'bg-white dark:bg-zinc-850/80 border-gray-150 dark:border-zinc-800 hover:border-gray-250 dark:hover:border-zinc-700 animate-in fade-in slide-in-from-right-4 duration-250'
-                          }`}
+                                ? 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-400/60 scale-[1.01] shadow-xs'
+                                : 'bg-white dark:bg-zinc-850/80 border-gray-150 dark:border-zinc-800 hover:border-gray-250 dark:hover:border-zinc-700 animate-in fade-in slide-in-from-right-4 duration-250'
+                            }`}
                         >
-                          <LazyImage 
-                            src={item.product.image} 
-                            alt={item.product.nameEn} 
+                          <LazyImage
+                            src={item.product.image}
+                            alt={item.product.nameEn}
                             className="w-16 h-16 sm:w-18 sm:h-18 object-cover rounded-xl shrink-0 border border-gray-150 dark:border-zinc-800"
                             containerClassName="w-16 h-16 sm:w-18 sm:h-18 rounded-xl shrink-0"
                           />
@@ -5242,8 +5368,8 @@ export default function CustomerWeb({
                           </div>
 
                           {/* Absolute Top-Right Remove Button */}
-                          <button 
-                            onClick={() => handleRemoveFromCart(item.sku)} 
+                          <button
+                            onClick={() => handleRemoveFromCart(item.sku)}
                             title="Remove item"
                             className="absolute top-2.5 right-2.5 text-gray-400 dark:text-zinc-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all cursor-pointer"
                           >
@@ -5252,7 +5378,7 @@ export default function CustomerWeb({
 
                           {/* Bottom-Right Quantity Selector */}
                           <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1 border border-gray-200 dark:border-zinc-750 bg-gray-50 dark:bg-zinc-900 rounded-xl p-0.5">
-                            <button 
+                            <button
                               onClick={() => updateCartQty(item.sku, item.quantity - 1)}
                               className="w-6 h-6 flex items-center justify-center text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-800 font-bold rounded-lg text-xs transition-colors cursor-pointer"
                             >
@@ -5261,7 +5387,7 @@ export default function CustomerWeb({
                             <span className={`text-xs font-black w-5 text-center text-gray-950 dark:text-white font-mono transition-transform ${isRecentlyUpdated ? 'scale-125 text-[#0052FF]' : ''}`}>
                               {item.quantity}
                             </span>
-                            <button 
+                            <button
                               onClick={() => updateCartQty(item.sku, item.quantity + 1)}
                               className="w-6 h-6 flex items-center justify-center text-gray-600 dark:text-zinc-300 hover:bg-gray-200 dark:hover:bg-zinc-800 font-bold rounded-lg text-xs transition-colors cursor-pointer"
                             >
@@ -5273,12 +5399,56 @@ export default function CustomerWeb({
                     })}
                   </div>
 
+                  {/* SECONDARY OBJECTS: Delivery threshold incentives, promo coupons, and share tools */}
+                  <div className="space-y-3 pt-3 border-t border-gray-200/80 dark:border-zinc-800">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-zinc-500 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                        <span>{language === 'en' ? 'Offers & Shipping Perks' : 'ልዩ ጥቅሞች እና ማጓጓዣ'}</span>
+                      </span>
+                    </div>
+
+                    {/* Free Express Shipping Progress Bar */}
+                    {(() => {
+                      const freeShippingThreshold = 25000;
+                      const amountLeft = Math.max(0, freeShippingThreshold - cartSubtotal);
+                      const progress = Math.min(100, Math.round((cartSubtotal / freeShippingThreshold) * 100));
+                      return (
+                        <div className="bg-gradient-to-r from-amber-500/10 via-blue-500/10 to-indigo-500/10 dark:from-amber-500/20 dark:via-blue-500/20 dark:to-indigo-500/20 p-3 rounded-2xl border border-blue-200/60 dark:border-blue-800/50 shadow-2xs space-y-2">
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="font-extrabold text-gray-900 dark:text-zinc-100 flex items-center gap-1.5 text-[11px] sm:text-xs">
+                              <Truck className="w-4 h-4 text-[#0052FF] shrink-0" />
+                              {amountLeft > 0 ? (
+                                language === 'en' ? (
+                                  <span>Add <span className="font-mono text-[#0052FF] dark:text-blue-400 font-black">{amountLeft.toLocaleString()} ETB</span> for FREE Express Shipping</span>
+                                ) : (
+                                  <span>ነፃ ኤክስፕረስ ማጓጓዣ ለማግኘት <span className="font-mono text-[#0052FF] font-black">{amountLeft.toLocaleString()} ብር</span> ጨምሩ</span>
+                                )
+                              ) : (
+                                language === 'en' ? '🎉 You unlocked FREE Kasma Express Shipping!' : '🎉 ነፃ የካስማ ኤክስፕረስ ማጓጓዣ አግኝተዋል!'
+                              )}
+                            </span>
+                            <span className="text-[10px] font-mono font-black text-[#0052FF] dark:text-blue-400 shrink-0 ml-1">
+                              {progress}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden p-0.5">
+                            <div
+                              className="bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 h-full rounded-full transition-all duration-500 shadow-xs"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
                   {/* Promo Code Input & Discount Coupons Block */}
                   <div className="bg-white dark:bg-zinc-900 p-3 sm:p-3.5 rounded-2xl border border-gray-150 dark:border-zinc-800 space-y-2.5 shadow-xs">
                     <span className="text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-wider block">
                       {language === 'en' ? '🏷️ PROMO CODE / DISCOUNT COUPON' : '🏷️ የቅናሽ ኩፖን ኮድ'}
                     </span>
-                    
+
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -5330,8 +5500,8 @@ export default function CustomerWeb({
                             const isEligible = !promo.minSubtotal || cartSubtotal >= promo.minSubtotal;
                             const minSub = promo.minSubtotal || 0;
                             return (
-                              <div 
-                                key={promo.code} 
+                              <div
+                                key={promo.code}
                                 onClick={() => {
                                   if (isEligible && !appliedPromo) {
                                     setPromoCodeInput(promo.code);
@@ -5345,13 +5515,12 @@ export default function CustomerWeb({
                                     );
                                   }
                                 }}
-                                className={`p-2 rounded-xl border transition-all text-left text-[11px] flex justify-between items-center ${
-                                  appliedPromo?.code === promo.code
-                                    ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
-                                    : isEligible
+                                className={`p-2 rounded-xl border transition-all text-left text-[11px] flex justify-between items-center ${appliedPromo?.code === promo.code
+                                  ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
+                                  : isEligible
                                     ? 'bg-gray-50 dark:bg-zinc-950 hover:bg-gray-100 dark:hover:bg-zinc-850 border-gray-150 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:text-black cursor-pointer'
                                     : 'bg-gray-50/40 dark:bg-zinc-950/20 border-gray-100 dark:border-zinc-850 text-gray-400 dark:text-zinc-600 cursor-not-allowed opacity-60'
-                                }`}
+                                  }`}
                               >
                                 <div className="min-w-0 pr-1">
                                   <span className="font-mono font-black border border-dashed border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-1.5 py-0.5 rounded text-[9px] mr-1 text-gray-950 dark:text-white">
@@ -5392,14 +5561,14 @@ export default function CustomerWeb({
                             if (!defaultVariant) return null;
                             const itemPrice = (product.price || 0) + (defaultVariant.priceOffset || 0);
                             return (
-                              <div 
+                              <div
                                 key={product.id}
                                 className="flex items-center justify-between p-2 rounded-xl border border-gray-150 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950/60 hover:bg-gray-100/70 dark:hover:bg-zinc-850/70 transition-all gap-2"
                               >
                                 <div className="flex items-center gap-2.5 min-w-0">
-                                  <img 
-                                    src={product.image} 
-                                    alt={product.nameEn} 
+                                  <img
+                                    src={product.image}
+                                    alt={product.nameEn}
                                     referrerPolicy="no-referrer"
                                     className="w-10 h-10 object-cover rounded-lg shrink-0 border border-gray-150 dark:border-zinc-800"
                                   />
@@ -5473,7 +5642,7 @@ export default function CustomerWeb({
                   </div>
                 </div>
 
-                <button 
+                <button
                   id="cart-drawer-checkout-btn"
                   onClick={() => {
                     setIsCartOpen(false);
@@ -5506,11 +5675,11 @@ export default function CustomerWeb({
 
       {/* Wishlist Center Modal */}
       {isWishlistOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-5 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
           onClick={() => setIsWishlistOpen(false)}
         >
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
             className="bg-white dark:bg-zinc-900 w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] rounded-3xl flex flex-col shadow-2xl relative animate-in zoom-in-95 duration-200 border border-gray-150 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 overflow-hidden"
           >
@@ -5530,8 +5699,8 @@ export default function CustomerWeb({
                   </p>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsWishlistOpen(false)} 
+              <button
+                onClick={() => setIsWishlistOpen(false)}
                 className="text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full p-1.5 w-8 h-8 flex items-center justify-center transition-all cursor-pointer font-bold text-sm"
                 title={language === 'en' ? 'Close' : 'ዝጋ'}
               >
@@ -5539,64 +5708,126 @@ export default function CustomerWeb({
               </button>
             </div>
 
-            <div className="flex-grow overflow-y-auto p-5 space-y-4">
+            <div className="flex-grow overflow-y-auto overflow-x-hidden p-4 sm:p-5 space-y-3 sm:space-y-4">
               {favorites.length === 0 ? (
-                <div className="h-full flex flex-col justify-center items-center text-center text-gray-400 dark:text-zinc-500">
-                  <Heart className="w-16 h-16 text-gray-200 dark:text-zinc-800 mb-2" />
-                  <p className="font-bold">{language === 'en' ? 'Your wishlist is empty' : 'ምኞት ዝርዝርዎ ባዶ ነው'}</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {language === 'en' ? 'Tap the heart icon on products to save them here.' : 'ምርቶችን እዚህ ለማስቀመጥ በምርቶቹ ላይ ያለውን የልብ ምልክት ይጫኑ።'}
+                <div className="h-full flex flex-col justify-center items-center text-center text-gray-400 dark:text-zinc-500 py-10 sm:py-14">
+                  <Heart className="w-16 h-16 text-gray-200 dark:text-zinc-800 mb-2 stroke-1" />
+                  <p className="font-bold text-sm text-gray-700 dark:text-zinc-300">
+                    {language === 'en' ? 'Your wishlist is empty' : 'ምኞት ዝርዝርዎ ባዶ ነው'}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1 max-w-xs">
+                    {language === 'en'
+                      ? 'Tap the heart icon on any product to save it here for later.'
+                      : 'ምርቶችን እዚህ ለማስቀመጥ በምርቶቹ ላይ ያለውን የልብ ምልክት ይጫኑ።'}
                   </p>
                 </div>
               ) : (
                 products
                   .filter((p) => favorites.includes(p.id))
                   .map((product) => {
-                    const defaultVariant = product.variants[0];
-                    const isOutOfStock = product.variants.every(v => v.onHand <= 0);
+                    const defaultVariant = product.variants?.find(v => (v.onHand ?? 0) > 0) || product.variants?.[0];
+                    const isOutOfStock = !product.variants?.length || product.variants.every(v => (v.onHand ?? 0) <= 0);
                     return (
-                      <div key={product.id} className="bg-white dark:bg-zinc-850 p-4 rounded-2xl border border-gray-150 dark:border-zinc-800 flex gap-3 relative shadow-xs">
-                        <LazyImage 
-                          src={product.image} 
-                          alt={product.nameEn} 
-                          className="w-16 h-16 object-cover rounded-xl shrink-0 border border-gray-100 dark:border-zinc-800"
-                          containerClassName="w-16 h-16 rounded-xl shrink-0"
-                        />
-                        <div className="flex-grow min-w-0 flex flex-col justify-between">
+                      <div
+                        key={product.id}
+                        className="bg-white dark:bg-zinc-850 p-3.5 sm:p-4 rounded-2xl border border-gray-150 dark:border-zinc-800 flex items-center gap-3 relative shadow-xs hover:border-gray-250 dark:hover:border-zinc-700 transition-all"
+                      >
+                        {/* Thumbnail image container strictly bounded to prevent flex blowout */}
+                        <div
+                          onClick={() => {
+                            setIsWishlistOpen(false);
+                            if (setSelectedProduct) setSelectedProduct(product);
+                          }}
+                          className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 border border-gray-150 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-900 cursor-pointer hover:opacity-90 transition-opacity"
+                          title={language === 'en' ? 'View details' : 'ዝርዝር ይመልከቱ'}
+                        >
+                          <LazyImage
+                            src={product.image}
+                            alt={product.nameEn}
+                            className="w-full h-full object-cover"
+                            containerClassName="w-full h-full"
+                          />
+                        </div>
+
+                        {/* Product Info & Actions */}
+                        <div className="flex-1 min-w-0 pr-7 flex flex-col justify-between">
                           <div>
-                            <p className="text-[9px] text-gray-400 dark:text-zinc-500 font-bold uppercase tracking-wider">{product.brand}</p>
-                            <h5 className="font-bold text-gray-950 dark:text-white text-xs truncate">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-[11px] sm:text-xs text-gray-500 dark:text-zinc-400 font-extrabold uppercase tracking-wider truncate">
+                                {product.brand}
+                              </p>
+                              {isOutOfStock ? (
+                                <span className="text-[10px] sm:text-xs font-bold text-rose-500 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded leading-none">
+                                  {language === 'en' ? 'Out of Stock' : 'አልቋል'}
+                                </span>
+                              ) : (
+                                <span className="text-[10px] sm:text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded leading-none">
+                                  {language === 'en' ? 'In Stock' : 'አለ'}
+                                </span>
+                              )}
+                            </div>
+
+                            <h5
+                              onClick={() => {
+                                setIsWishlistOpen(false);
+                                if (setSelectedProduct) setSelectedProduct(product);
+                              }}
+                              className="font-bold text-gray-950 dark:text-white text-xs sm:text-sm truncate hover:text-[#0052FF] cursor-pointer transition-colors"
+                              title={language === 'en' ? product.nameEn : product.nameAm}
+                            >
                               {language === 'en' ? product.nameEn : product.nameAm}
                             </h5>
-                            <p className="text-xs font-semibold text-kasma-gold font-mono mt-1">{product.price.toLocaleString()} ETB</p>
+
+                            <div className="flex items-baseline gap-1 mt-1">
+                              <span className="text-sm sm:text-base font-black font-mono text-gray-950 dark:text-white">
+                                {product.price.toLocaleString()}
+                              </span>
+                              <span className="text-[10.5px] sm:text-xs font-bold text-[#0052FF] dark:text-blue-400 font-mono">
+                                ETB
+                              </span>
+                            </div>
                           </div>
 
                           {/* Quick Add To Cart inside wishlist */}
-                          <button
-                            disabled={isOutOfStock}
-                            onClick={() => {
-                              if (defaultVariant) {
-                                addToCart(product, defaultVariant);
-                              }
-                            }}
-                            className={`mt-2 py-1.5 px-3 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
-                              isOutOfStock
-                                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 border-zinc-200 dark:border-zinc-750 cursor-not-allowed'
-                                : 'bg-black dark:bg-white text-white dark:text-black hover:opacity-90 border-transparent'
-                            }`}
-                          >
-                            <ShoppingCart className="w-3 h-3" />
-                            <span>{isOutOfStock ? (language === 'en' ? 'Out of Stock' : 'ክምችት አልቋል') : (language === 'en' ? 'Add To Cart' : 'ወደ ጋሪ አስገባ')}</span>
-                          </button>
+                          <div className="pt-2">
+                            <button
+                              type="button"
+                              disabled={isOutOfStock}
+                              onClick={() => {
+                                if (defaultVariant) {
+                                  addToCart(product, defaultVariant);
+                                  showToast(
+                                    language === 'en'
+                                      ? `Added ${product.nameEn} to cart!`
+                                      : `${product.nameAm} ወደ ጋሪ ታክሏል!`,
+                                    'success'
+                                  );
+                                }
+                              }}
+                              className={`py-1.5 px-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-xs active:scale-95 ${
+                                isOutOfStock
+                                  ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-750 cursor-not-allowed'
+                                  : 'bg-[#0052FF] hover:bg-blue-600 text-white'
+                              }`}
+                            >
+                              <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
+                              <span>
+                                {isOutOfStock
+                                  ? (language === 'en' ? 'Out of Stock' : 'ክምችት አልቋል')
+                                  : (language === 'en' ? 'Add To Cart' : 'ወደ ጋሪ አስገባ')}
+                              </span>
+                            </button>
+                          </div>
                         </div>
 
                         {/* Remove button */}
-                        <button 
-                          onClick={(e) => handleToggleFavorite(product.id, e)} 
-                          className="absolute top-4 right-4 text-gray-400 hover:text-rose-500 transition-colors text-xs cursor-pointer"
+                        <button
+                          type="button"
+                          onClick={(e) => handleToggleFavorite(product.id, e)}
+                          className="absolute top-3 right-3 text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 p-1.5 rounded-full transition-all cursor-pointer"
                           title={language === 'en' ? 'Remove from Wishlist' : 'ከምኞት ዝርዝር አስወግድ'}
                         >
-                          ✕
+                          <X className="w-4 h-4" />
                         </button>
                       </div>
                     );
@@ -5606,35 +5837,84 @@ export default function CustomerWeb({
 
             {favorites.length > 0 && (
               <div className="p-4 sm:p-5 bg-gray-50 dark:bg-zinc-950 border-t border-gray-150 dark:border-zinc-800 shrink-0">
-                <button 
+                <button
+                  type="button"
                   onClick={() => {
-                    // Add all available wishlisted items to cart
+                    // Add all available wishlisted items to cart in a single batch
                     const wishlistProducts = products.filter(p => favorites.includes(p.id));
+                    if (wishlistProducts.length === 0) return;
+
+                    let tempCart = [...cart];
                     let addedCount = 0;
+                    const newlyAddedSkus: string[] = [];
+                    const addedProductIds: string[] = [];
+
                     wishlistProducts.forEach(product => {
-                      const defaultVariant = product.variants[0];
-                      const isOutOfStock = product.variants.every(v => v.onHand <= 0);
+                      const defaultVariant = product.variants?.find(v => (v.onHand ?? 0) > 0) || product.variants?.[0];
+                      const isOutOfStock = !product.variants?.length || product.variants.every(v => (v.onHand ?? 0) <= 0);
+
                       if (defaultVariant && !isOutOfStock) {
-                        addToCart(product, defaultVariant);
-                        addedCount++;
+                        const existingIndex = tempCart.findIndex(
+                          item => item.product.id === product.id && item.sku === defaultVariant.sku
+                        );
+                        const currentQtyInCart = existingIndex > -1 ? tempCart[existingIndex].quantity : 0;
+
+                        if (currentQtyInCart + 1 <= defaultVariant.onHand) {
+                          if (existingIndex > -1) {
+                            tempCart[existingIndex] = {
+                              ...tempCart[existingIndex],
+                              quantity: tempCart[existingIndex].quantity + 1
+                            };
+                          } else {
+                            tempCart.push({
+                              product,
+                              sku: defaultVariant.sku,
+                              variantName: defaultVariant.name,
+                              quantity: 1,
+                              price: product.price + defaultVariant.priceOffset
+                            });
+                          }
+                          addedCount++;
+                          newlyAddedSkus.push(defaultVariant.sku);
+                          addedProductIds.push(product.id);
+                        }
                       }
                     });
-                    
+
                     if (addedCount > 0) {
+                      setCart(tempCart);
+                      if (addedProductIds.length > 0) {
+                        setFavorites(prev => prev.filter(id => !addedProductIds.includes(id)));
+                      }
+
+                      if (newlyAddedSkus.length > 0) {
+                        setRecentlyAddedSkus(prev => [...prev, ...newlyAddedSkus]);
+                        setTimeout(() => {
+                          setRecentlyAddedSkus(prev => prev.filter(s => !newlyAddedSkus.includes(s)));
+                        }, 1200);
+                      }
+
                       setIsWishlistOpen(false);
                       setIsCartOpen(true);
+                      showToast(
+                        language === 'en'
+                          ? `Added ${addedCount} wishlist item${addedCount > 1 ? 's' : ''} to cart!`
+                          : `${addedCount} እቃዎች ወደ ጋሪ ታክለዋል!`,
+                        'success'
+                      );
                     } else {
                       showToast(
                         language === 'en'
-                          ? 'No items could be added (out of stock).'
+                          ? 'No items could be added (all items out of stock or max quantity reached).'
                           : 'ምንም ምርት ማከል አልተቻለም (ክምችት አልቋል)።',
                         'warning'
                       );
                     }
                   }}
-                  className="w-full bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold py-3.5 rounded-full transition-all shadow-xs text-center block cursor-pointer"
+                  className="w-full bg-rose-500 hover:bg-rose-600 active:scale-98 text-white text-xs sm:text-sm font-extrabold py-3.5 rounded-full transition-all shadow-md text-center flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  {language === 'en' ? 'Add All To Cart 🚀' : 'ሁሉንም ወደ ጋሪ አስገባ 🚀'}
+                  <ShoppingCart className="w-4 h-4 shrink-0" />
+                  <span>{language === 'en' ? 'Add All To Cart 🚀' : 'ሁሉንም ወደ ጋሪ አስገባ 🚀'}</span>
                 </button>
               </div>
             )}
@@ -5644,12 +5924,12 @@ export default function CustomerWeb({
 
       {/* Price Alerts Center Modal */}
       {isPriceAlertsOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-3 sm:p-5 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
           onClick={() => setIsPriceAlertsOpen(false)}
         >
           {/* Modal Body */}
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-lg max-h-[90vh] sm:max-h-[85vh] bg-white dark:bg-zinc-900 rounded-3xl flex flex-col shadow-2xl border border-gray-150 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 overflow-hidden transition-all"
           >
@@ -5664,14 +5944,14 @@ export default function CustomerWeb({
                     {language === 'en' ? 'Price Watch List' : 'የዋጋ ክትትል ዝርዝር'}
                   </h3>
                   <p className="text-[9px] text-gray-400 dark:text-zinc-500 font-medium">
-                    {language === 'en' 
-                      ? 'Monitored items with target prices' 
+                    {language === 'en'
+                      ? 'Monitored items with target prices'
                       : 'የተመረጡ እቃዎች ከዒላማ ዋጋ ጋር'}
                   </p>
                 </div>
               </div>
-              <button 
-                onClick={() => setIsPriceAlertsOpen(false)} 
+              <button
+                onClick={() => setIsPriceAlertsOpen(false)}
                 className="text-gray-400 hover:text-gray-950 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full p-1.5 w-8 h-8 flex items-center justify-center transition-all cursor-pointer font-bold text-sm"
                 title={language === 'en' ? 'Close' : 'ዝጋ'}
               >
@@ -5691,8 +5971,8 @@ export default function CustomerWeb({
                       {language === 'en' ? 'No Price Alerts Configured' : 'ምንም የዋጋ ማንቂያ አልተዋቀረም'}
                     </h4>
                     <p className="text-xs text-gray-400 dark:text-zinc-500 max-w-xs leading-relaxed">
-                      {language === 'en' 
-                        ? 'Tap the bell icon on any product card or quick view to get notified of price drops!' 
+                      {language === 'en'
+                        ? 'Tap the bell icon on any product card or quick view to get notified of price drops!'
                         : 'ዋጋ ሲቀንስ ማንቂያ ለማግኘት በማንኛውም ምርት ካርድ ወይም ፈጣን እይታ ላይ የደወል ምልክቱን ይጫኑ!'}
                     </p>
                   </div>
@@ -5702,22 +5982,22 @@ export default function CustomerWeb({
                   {priceAlerts.map(alert => {
                     const product = products.find(p => p.id === alert.productId);
                     if (!product) return null;
-                    
+
                     const percentOfBase = Math.round((alert.thresholdPrice / product.price) * 100);
                     const isBelowThreshold = product.price <= alert.thresholdPrice;
 
                     return (
-                      <div 
+                      <div
                         key={alert.productId}
                         className="p-4 bg-gray-50/50 dark:bg-zinc-950/30 rounded-2xl border border-gray-150 dark:border-zinc-800/40 relative flex flex-col gap-3 group transition-all"
                       >
                         <div className="flex gap-3">
                           {/* Product Image with Shimmer */}
                           <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-800 border border-gray-150 dark:border-zinc-850 shrink-0">
-                            <LazyImage 
-                              src={product.image} 
-                              alt={product.nameEn} 
-                              className="w-full h-full object-cover" 
+                            <LazyImage
+                              src={product.image}
+                              alt={product.nameEn}
+                              className="w-full h-full object-cover"
                               containerClassName="w-full h-full"
                             />
                           </div>
@@ -5730,7 +6010,7 @@ export default function CustomerWeb({
                             <p className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">
                               {product.brand}
                             </p>
-                            
+
                             {/* Current vs Target Price Indicator */}
                             <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                               <div>
@@ -5823,7 +6103,7 @@ export default function CustomerWeb({
       {isCheckoutOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 sm:p-4 backdrop-blur-xs overflow-y-auto">
           <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-lg max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden shadow-2xl border border-gray-100 dark:border-zinc-800 relative animate-in fade-in zoom-in-95 duration-200 my-auto">
-            
+
             {/* Header */}
             <div className="p-4 sm:p-5 bg-white dark:bg-zinc-900 text-gray-900 dark:text-zinc-100 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center shrink-0">
               <div>
@@ -5831,8 +6111,8 @@ export default function CustomerWeb({
                 <p className="text-[10px] text-gray-400 dark:text-zinc-400 mt-0.5">{language === 'en' ? 'Powered by Kasma Gateway Services' : 'በካስማ የክፍያ አገልግሎት የሚሰራ'}</p>
               </div>
               {paymentStep !== 'GATEWAY' && paymentStep !== 'OTP' && (
-                <button 
-                  onClick={closeCheckoutFlow} 
+                <button
+                  onClick={closeCheckoutFlow}
                   className="text-gray-400 hover:text-black dark:text-zinc-400 dark:hover:text-white font-bold p-1 rounded-full transition-colors cursor-pointer"
                 >
                   ✕
@@ -5844,6 +6124,30 @@ export default function CustomerWeb({
             <div className="p-4 sm:p-6 overflow-y-auto flex-1 touch-pan-y overscroll-contain space-y-4">
               {paymentStep === 'FORM' && (
                 <form onSubmit={handleCheckoutSubmit} className="space-y-4">
+                  {/* Primary Order Overview */}
+                  <div className="bg-blue-50/60 dark:bg-blue-950/30 rounded-2xl p-3 border border-blue-200/60 dark:border-blue-900/40 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#0052FF] dark:text-blue-400 flex items-center gap-1.5">
+                        <Package className="w-3.5 h-3.5" />
+                        <span>{language === 'en' ? 'Primary Order Items' : 'ዋና የተመረጡ እቃዎች'} ({cart.reduce((a, b) => a + b.quantity, 0)})</span>
+                      </span>
+                      <span className="text-xs font-mono font-black text-gray-900 dark:text-white">
+                        {cartSubtotal.toLocaleString()} ETB
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                      {cart.map((it) => (
+                        <div key={it.sku} className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 px-2 py-1 rounded-xl border border-gray-150 dark:border-zinc-800 shrink-0 shadow-2xs">
+                          <img src={it.product.image} alt={it.product.nameEn} className="w-6 h-6 object-cover rounded-md" />
+                          <div className="text-[9px] max-w-[120px] truncate">
+                            <span className="font-bold text-gray-900 dark:text-white truncate block">{language === 'en' ? it.product.nameEn : it.product.nameAm}</span>
+                            <span className="text-gray-400 font-mono">x{it.quantity} • {(it.price * it.quantity).toLocaleString()} ETB</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-2">
                     <h4 className="font-bold text-gray-900 dark:text-zinc-200 text-[10px] uppercase tracking-widest flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 text-[#0052FF]" />
@@ -5931,8 +6235,8 @@ export default function CustomerWeb({
                           </span>
                         </div>
                         <span className="font-mono text-[#0052FF] text-[11px] shrink-0">
-                          {language === 'en' 
-                            ? (SUB_CITIES.find(sc => sc.id === selectedSubCity)?.timeEn || '1-2 Hours') 
+                          {language === 'en'
+                            ? (SUB_CITIES.find(sc => sc.id === selectedSubCity)?.timeEn || '1-2 Hours')
                             : (SUB_CITIES.find(sc => sc.id === selectedSubCity)?.timeAm || 'ከ1-2 ሰዓት')}
                         </span>
                       </div>
@@ -5951,8 +6255,8 @@ export default function CustomerWeb({
                     <input
                       type="text"
                       required
-                      placeholder={language === 'en' 
-                        ? 'e.g. Behind Edna Mall, Near Bole Medhanialem Church, Beside CBE Atlas Branch' 
+                      placeholder={language === 'en'
+                        ? 'e.g. Behind Edna Mall, Near Bole Medhanialem Church, Beside CBE Atlas Branch'
                         : 'ለምሳሌ፡ ከኤድና ሞል ጀርባ፣ ከመድኃኔዓለም ቤተክርስቲያን አጠገብ፣ ከአትላስ ሲቢኢ ቅርንጫፍ ጎን'}
                       value={customerLandmark}
                       onChange={(e) => setCustomerLandmark(e.target.value)}
@@ -5990,11 +6294,10 @@ export default function CustomerWeb({
                       type="button"
                       id="payment-method-telebirr"
                       onClick={() => setPaymentMethod('TELEBIRR')}
-                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
-                        paymentMethod === 'TELEBIRR' 
-                          ? 'border-[#004C61] bg-[#004C61]/10 dark:bg-[#004C61]/25 ring-2 ring-[#004C61]/30 shadow-xs' 
-                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
-                      }`}
+                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${paymentMethod === 'TELEBIRR'
+                        ? 'border-[#004C61] bg-[#004C61]/10 dark:bg-[#004C61]/25 ring-2 ring-[#004C61]/30 shadow-xs'
+                        : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
+                        }`}
                     >
                       <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#003B4A] via-[#005B73] to-[#00A3E0] text-white font-mono font-black text-xs flex items-center justify-center shadow-xs border border-white/30">
                         <span className="text-[#FFD23F] font-black">t</span>
@@ -6009,11 +6312,10 @@ export default function CustomerWeb({
                       type="button"
                       id="payment-method-bank"
                       onClick={() => setPaymentMethod('BANK')}
-                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
-                        paymentMethod === 'BANK' 
-                          ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/40 ring-2 ring-indigo-600/30 shadow-xs' 
-                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
-                      }`}
+                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${paymentMethod === 'BANK'
+                        ? 'border-indigo-600 bg-indigo-50/70 dark:bg-indigo-950/40 ring-2 ring-indigo-600/30 shadow-xs'
+                        : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
+                        }`}
                     >
                       <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-900 via-blue-900 to-indigo-950 text-white font-mono font-black text-xs flex items-center justify-center shadow-xs border border-white/20">
                         <Building2 className="w-4 h-4 text-amber-300" />
@@ -6027,11 +6329,10 @@ export default function CustomerWeb({
                       type="button"
                       id="payment-method-cod"
                       onClick={() => setPaymentMethod('COD')}
-                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
-                        paymentMethod === 'COD' 
-                          ? 'border-[#229ED9] bg-[#229ED9]/10 dark:bg-[#229ED9]/25 ring-2 ring-[#229ED9]/30 shadow-xs' 
-                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
-                      }`}
+                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${paymentMethod === 'COD'
+                        ? 'border-[#229ED9] bg-[#229ED9]/10 dark:bg-[#229ED9]/25 ring-2 ring-[#229ED9]/30 shadow-xs'
+                        : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
+                        }`}
                     >
                       <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#229ED9] via-sky-600 to-blue-700 text-white font-black text-xs flex items-center justify-center shadow-xs border border-white/30">
                         <Truck className="w-4 h-4 text-white" />
@@ -6045,11 +6346,10 @@ export default function CustomerWeb({
                       type="button"
                       id="payment-method-cbe"
                       onClick={() => setPaymentMethod('CBE_BIRR')}
-                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
-                        paymentMethod === 'CBE_BIRR' 
-                          ? 'border-purple-800 bg-purple-50 dark:bg-purple-950/30 ring-2 ring-purple-600/30 shadow-xs' 
-                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
-                      }`}
+                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${paymentMethod === 'CBE_BIRR'
+                        ? 'border-purple-800 bg-purple-50 dark:bg-purple-950/30 ring-2 ring-purple-600/30 shadow-xs'
+                        : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
+                        }`}
                     >
                       <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-950 via-purple-900 to-indigo-950 text-amber-300 font-mono font-black text-[9px] flex items-center justify-center shadow-xs border border-amber-400/40">
                         CBE
@@ -6063,11 +6363,10 @@ export default function CustomerWeb({
                       type="button"
                       id="payment-method-chapa"
                       onClick={() => setPaymentMethod('CHAPA')}
-                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${
-                        paymentMethod === 'CHAPA' 
-                          ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-emerald-600/30 shadow-xs' 
-                          : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
-                      }`}
+                      className={`p-2.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 cursor-pointer ${paymentMethod === 'CHAPA'
+                        ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/30 ring-2 ring-emerald-600/30 shadow-xs'
+                        : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/60'
+                        }`}
                     >
                       <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-800 via-teal-700 to-emerald-500 text-white font-mono font-black text-xs flex items-center justify-center shadow-xs border border-white/30">
                         <span className="text-[#00FF9D] tracking-tighter font-extrabold">Ch</span>
@@ -6197,607 +6496,597 @@ export default function CustomerWeb({
               {paymentStep === 'GATEWAY' && (
                 <div className="py-2 space-y-5 text-left">
                   <div className="space-y-4">
-                      {/* Mode Selector Tabs: QR Code vs Direct Push / USSD vs Bank Transfer Slip */}
-                      <div className="flex bg-gray-100 dark:bg-zinc-800 p-1 rounded-2xl border border-gray-200/70 dark:border-zinc-700">
-                        <button
-                          type="button"
-                          id="tab-qr-code"
-                          onClick={() => setGatewayPaymentTab('QR')}
-                          className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                            gatewayPaymentTab === 'QR'
-                              ? 'bg-white dark:bg-zinc-900 text-gray-950 dark:text-white shadow-xs border border-gray-200/80 dark:border-zinc-700 font-black'
-                              : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
+                    {/* Mode Selector Tabs: QR Code vs Direct Push / USSD vs Bank Transfer Slip */}
+                    <div className="flex bg-gray-100 dark:bg-zinc-800 p-1 rounded-2xl border border-gray-200/70 dark:border-zinc-700">
+                      <button
+                        type="button"
+                        id="tab-qr-code"
+                        onClick={() => setGatewayPaymentTab('QR')}
+                        className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${gatewayPaymentTab === 'QR'
+                          ? 'bg-white dark:bg-zinc-900 text-gray-950 dark:text-white shadow-xs border border-gray-200/80 dark:border-zinc-700 font-black'
+                          : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
                           }`}
-                        >
-                          <QrCode className="w-3.5 h-3.5 text-[#0052FF]" />
-                          <span>{language === 'en' ? 'Scan QR' : 'የQR ኮድ'}</span>
-                        </button>
-                        <button
-                          type="button"
-                          id="tab-direct-mobile"
-                          onClick={() => setGatewayPaymentTab('DIRECT')}
-                          className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                            gatewayPaymentTab === 'DIRECT'
-                              ? 'bg-white dark:bg-zinc-900 text-gray-950 dark:text-white shadow-xs border border-gray-200/80 dark:border-zinc-700 font-black'
-                              : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
+                      >
+                        <QrCode className="w-3.5 h-3.5 text-[#0052FF]" />
+                        <span>{language === 'en' ? 'Scan QR' : 'የQR ኮድ'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        id="tab-direct-mobile"
+                        onClick={() => setGatewayPaymentTab('DIRECT')}
+                        className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${gatewayPaymentTab === 'DIRECT'
+                          ? 'bg-white dark:bg-zinc-900 text-gray-950 dark:text-white shadow-xs border border-gray-200/80 dark:border-zinc-700 font-black'
+                          : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
                           }`}
-                        >
-                          <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>{language === 'en' ? 'Direct Mobile' : 'የስልክ ክፍያ'}</span>
-                        </button>
-                        <button
-                          type="button"
-                          id="tab-bank-slip-upload"
-                          onClick={() => setGatewayPaymentTab('BANK_RECEIPT')}
-                          className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                            gatewayPaymentTab === 'BANK_RECEIPT'
-                              ? 'bg-white dark:bg-zinc-900 text-gray-950 dark:text-white shadow-xs border border-gray-200/80 dark:border-zinc-700 font-black'
-                              : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
+                      >
+                        <Smartphone className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>{language === 'en' ? 'Direct Mobile' : 'የስልክ ክፍያ'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        id="tab-bank-slip-upload"
+                        onClick={() => setGatewayPaymentTab('BANK_RECEIPT')}
+                        className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${gatewayPaymentTab === 'BANK_RECEIPT'
+                          ? 'bg-white dark:bg-zinc-900 text-gray-950 dark:text-white shadow-xs border border-gray-200/80 dark:border-zinc-700 font-black'
+                          : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
                           }`}
-                        >
-                          <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                          <span>{language === 'en' ? 'Bank & Receipt' : 'ባንክ እና ደረሰኝ'}</span>
-                          <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 text-[8.5px] px-1 py-0.2 rounded-full font-bold">Upload</span>
-                        </button>
-                      </div>
+                      >
+                        <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>{language === 'en' ? 'Bank & Receipt' : 'ባንክ እና ደረሰኝ'}</span>
+                        <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 text-[8.5px] px-1 py-0.2 rounded-full font-bold">Upload</span>
+                      </button>
+                    </div>
 
-                      {gatewayPaymentTab === 'QR' ? (
-                        <div className="space-y-4">
-                          {/* Brand Header Banner */}
-                          <div className={`p-4 rounded-2xl text-white shadow-xs relative overflow-hidden ${
-                            paymentMethod === 'TELEBIRR'
-                              ? 'bg-gradient-to-r from-[#004C61] via-[#00607A] to-[#0D1F2D]'
-                              : paymentMethod === 'CBE_BIRR'
-                              ? 'bg-gradient-to-r from-purple-950 via-purple-900 to-indigo-950'
-                              : 'bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-950'
+                    {gatewayPaymentTab === 'QR' ? (
+                      <div className="space-y-4">
+                        {/* Brand Header Banner */}
+                        <div className={`p-4 rounded-2xl text-white shadow-xs relative overflow-hidden ${paymentMethod === 'TELEBIRR'
+                          ? 'bg-gradient-to-r from-[#004C61] via-[#00607A] to-[#0D1F2D]'
+                          : paymentMethod === 'CBE_BIRR'
+                            ? 'bg-gradient-to-r from-purple-950 via-purple-900 to-indigo-950'
+                            : 'bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-950'
                           }`}>
-                            <div className="flex justify-between items-center relative z-10">
-                              <div className="flex items-center gap-2.5">
-                                <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center border border-white/20 shrink-0">
-                                  <QrCode className="w-5 h-5 text-white" />
-                                </div>
-                                <div>
-                                  <div className="flex items-center gap-1.5">
-                                    <h4 className="font-black text-sm text-white uppercase tracking-wider">
-                                      {paymentMethod === 'TELEBIRR' 
-                                        ? 'telebirr Quick QR Pay' 
-                                        : paymentMethod === 'CBE_BIRR'
+                          <div className="flex justify-between items-center relative z-10">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-xs flex items-center justify-center border border-white/20 shrink-0">
+                                <QrCode className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-1.5">
+                                  <h4 className="font-black text-sm text-white uppercase tracking-wider">
+                                    {paymentMethod === 'TELEBIRR'
+                                      ? 'telebirr Quick QR Pay'
+                                      : paymentMethod === 'CBE_BIRR'
                                         ? 'CBE Birr Instant QR Pay'
                                         : 'Chapa Unified Gateway'}
-                                    </h4>
-                                    <span className="bg-white/20 text-white text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold">API CONNECTED</span>
-                                  </div>
-                                  <p className="text-[10px] text-white/80">
-                                    {paymentMethod === 'TELEBIRR' 
-                                      ? (language === 'en' ? 'Scan with ethio telecom telebirr SuperApp' : 'በቴሌብር ሞባይል አፕ ስካን ያድርጉ')
-                                      : paymentMethod === 'CBE_BIRR'
+                                  </h4>
+                                  <span className="bg-white/20 text-white text-[9px] px-1.5 py-0.5 rounded-md font-mono font-bold">API CONNECTED</span>
+                                </div>
+                                <p className="text-[10px] text-white/80">
+                                  {paymentMethod === 'TELEBIRR'
+                                    ? (language === 'en' ? 'Scan with ethio telecom telebirr SuperApp' : 'በቴሌብር ሞባይል አፕ ስካን ያድርጉ')
+                                    : paymentMethod === 'CBE_BIRR'
                                       ? (language === 'en' ? 'Commercial Bank of Ethiopia (CBE Birr via Chapa/ArifPay)' : 'በሲቢኢ ብር ሞባይል አፕ ወይም *847# ስካን ያድርጉ')
                                       : (language === 'en' ? 'Supports Telebirr, CBE Birr & Debit Cards' : 'በቴሌብር፣ ሲቢኢ ብር እና ባንክ ካርዶች የሚሰራ')
-                                    }
-                                  </p>
-                                </div>
+                                  }
+                                </p>
                               </div>
-                              <div className="text-right font-mono">
-                                <span className="text-[9px] text-white/70 block uppercase font-bold">{language === 'en' ? 'Total Amount' : 'ጠቅላላ ዋጋ'}</span>
-                                <span className="text-base font-black text-white">{cartTotal.toLocaleString()} ETB</span>
+                            </div>
+                            <div className="text-right font-mono">
+                              <span className="text-[9px] text-white/70 block uppercase font-bold">{language === 'en' ? 'Total Amount' : 'ጠቅላላ ዋጋ'}</span>
+                              <span className="text-base font-black text-white">{cartTotal.toLocaleString()} ETB</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Interactive QR Display Card */}
+                        <div className="bg-gray-50/70 dark:bg-zinc-800/50 border border-gray-200/80 dark:border-zinc-700/70 rounded-3xl p-5 text-center space-y-4 relative overflow-hidden">
+                          {/* Visual Payment Provider Partner Icons Strip */}
+                          <div className="bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-gray-200/80 dark:border-zinc-800 space-y-2 shadow-2xs">
+                            <div className="flex items-center justify-between text-[10px] font-black uppercase text-gray-400 tracking-wider">
+                              <span>{language === 'en' ? 'Active Gateway Rails' : 'ገቢር የክፍያ መንገዶች'}</span>
+                              <span className="text-emerald-600 font-bold flex items-center gap-1">
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                <span>Chapa / ArifPay Integrated</span>
+                              </span>
+                            </div>
+
+                            <div className="flex items-center justify-center gap-2 flex-wrap pt-0.5">
+                              {/* Telebirr Visual Provider Badge */}
+                              <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all ${paymentMethod === 'TELEBIRR'
+                                ? 'bg-[#004C61]/10 border-[#004C61] ring-1 ring-[#004C61]/30 text-[#004C61] font-black'
+                                : 'bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 opacity-70'
+                                }`}>
+                                <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-[#003B4A] via-[#005B73] to-[#00A3E0] text-white font-mono font-black text-[10px] flex items-center justify-center shrink-0 border border-white/20">
+                                  <span className="text-[#FFD23F] font-black">t</span>
+                                  <span className="text-white font-black">b</span>
+                                </div>
+                                <span className="text-[11px] font-extrabold tracking-tight">telebirr</span>
+                                {paymentMethod === 'TELEBIRR' && (
+                                  <span className="w-1.5 h-1.5 rounded-full bg-[#004C61] animate-pulse" />
+                                )}
+                              </div>
+
+                              {/* CBE Birr Partner Badge */}
+                              <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all ${paymentMethod === 'CBE_BIRR'
+                                ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-800 ring-1 ring-purple-600/30 text-purple-900 dark:text-purple-300 font-black'
+                                : 'bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 opacity-70'
+                                }`}>
+                                <div className="w-5 h-5 rounded-lg bg-purple-900 text-amber-400 font-mono font-black text-[8px] flex items-center justify-center shrink-0 border border-purple-700">
+                                  CBE
+                                </div>
+                                <span className="text-[11px] font-extrabold tracking-tight">CBE Birr</span>
+                                {paymentMethod === 'CBE_BIRR' && (
+                                  <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
+                                )}
+                              </div>
+
+                              {/* Chapa Visual Provider Badge */}
+                              <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all ${paymentMethod === 'CHAPA'
+                                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-600 ring-1 ring-emerald-600/30 text-emerald-800 dark:text-emerald-300 font-black'
+                                : 'bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 opacity-70'
+                                }`}>
+                                <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-emerald-800 via-teal-700 to-emerald-500 text-white font-mono font-black text-[10px] flex items-center justify-center shrink-0 border border-white/20">
+                                  <span className="text-[#00FF9D] tracking-tighter font-black">Ch</span>
+                                </div>
+                                <span className="text-[11px] font-extrabold tracking-tight">Chapa</span>
+                                {paymentMethod === 'CHAPA' && (
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                                )}
+                              </div>
+
+                              {/* Visa / Mastercard Cards Badge */}
+                              <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-[10.5px] font-bold">
+                                <CreditCard className="w-3.5 h-3.5 text-blue-600" />
+                                <span>Cards</span>
                               </div>
                             </div>
                           </div>
 
-                          {/* Interactive QR Display Card */}
-                          <div className="bg-gray-50/70 dark:bg-zinc-800/50 border border-gray-200/80 dark:border-zinc-700/70 rounded-3xl p-5 text-center space-y-4 relative overflow-hidden">
-                            {/* Visual Payment Provider Partner Icons Strip */}
-                            <div className="bg-white dark:bg-zinc-900 p-3 rounded-2xl border border-gray-200/80 dark:border-zinc-800 space-y-2 shadow-2xs">
-                              <div className="flex items-center justify-between text-[10px] font-black uppercase text-gray-400 tracking-wider">
-                                <span>{language === 'en' ? 'Active Gateway Rails' : 'ገቢር የክፍያ መንገዶች'}</span>
-                                <span className="text-emerald-600 font-bold flex items-center gap-1">
-                                  <ShieldCheck className="w-3.5 h-3.5" />
-                                  <span>Chapa / ArifPay Integrated</span>
-                                </span>
-                              </div>
-
-                              <div className="flex items-center justify-center gap-2 flex-wrap pt-0.5">
-                                {/* Telebirr Visual Provider Badge */}
-                                <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all ${
-                                  paymentMethod === 'TELEBIRR'
-                                    ? 'bg-[#004C61]/10 border-[#004C61] ring-1 ring-[#004C61]/30 text-[#004C61] font-black'
-                                    : 'bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 opacity-70'
-                                }`}>
-                                  <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-[#003B4A] via-[#005B73] to-[#00A3E0] text-white font-mono font-black text-[10px] flex items-center justify-center shrink-0 border border-white/20">
-                                    <span className="text-[#FFD23F] font-black">t</span>
-                                    <span className="text-white font-black">b</span>
-                                  </div>
-                                  <span className="text-[11px] font-extrabold tracking-tight">telebirr</span>
-                                  {paymentMethod === 'TELEBIRR' && (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-[#004C61] animate-pulse" />
-                                  )}
-                                </div>
-
-                                {/* CBE Birr Partner Badge */}
-                                <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all ${
-                                  paymentMethod === 'CBE_BIRR'
-                                    ? 'bg-purple-50 dark:bg-purple-950/40 border-purple-800 ring-1 ring-purple-600/30 text-purple-900 dark:text-purple-300 font-black'
-                                    : 'bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 opacity-70'
-                                }`}>
-                                  <div className="w-5 h-5 rounded-lg bg-purple-900 text-amber-400 font-mono font-black text-[8px] flex items-center justify-center shrink-0 border border-purple-700">
-                                    CBE
-                                  </div>
-                                  <span className="text-[11px] font-extrabold tracking-tight">CBE Birr</span>
-                                  {paymentMethod === 'CBE_BIRR' && (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-pulse" />
-                                  )}
-                                </div>
-
-                                {/* Chapa Visual Provider Badge */}
-                                <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition-all ${
-                                  paymentMethod === 'CHAPA'
-                                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-600 ring-1 ring-emerald-600/30 text-emerald-800 dark:text-emerald-300 font-black'
-                                    : 'bg-gray-50 dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 opacity-70'
-                                }`}>
-                                  <div className="w-5 h-5 rounded-lg bg-gradient-to-br from-emerald-800 via-teal-700 to-emerald-500 text-white font-mono font-black text-[10px] flex items-center justify-center shrink-0 border border-white/20">
-                                    <span className="text-[#00FF9D] tracking-tighter font-black">Ch</span>
-                                  </div>
-                                  <span className="text-[11px] font-extrabold tracking-tight">Chapa</span>
-                                  {paymentMethod === 'CHAPA' && (
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                                  )}
-                                </div>
-
-                                {/* Visa / Mastercard Cards Badge */}
-                                <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-[10.5px] font-bold">
-                                  <CreditCard className="w-3.5 h-3.5 text-blue-600" />
-                                  <span>Cards</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Scanning beam visual effect */}
-                            <div className="relative inline-block p-4 bg-white rounded-2xl shadow-sm border border-gray-200/90 group">
-                              {/* Generated SVG QR Code */}
-                              <QRCodeSVG
-                                value={activePaymentSession?.qrPayload || (paymentMethod === 'TELEBIRR'
-                                  ? `telebirr://pay?merchant=KASMA_ENTERPRISE&amount=${cartTotal}&ref=${qrReferenceTx}&phone=${encodeURIComponent(customerPhone)}`
-                                  : paymentMethod === 'CBE_BIRR'
+                          {/* Scanning beam visual effect */}
+                          <div className="relative inline-block p-4 bg-white rounded-2xl shadow-sm border border-gray-200/90 group">
+                            {/* Generated SVG QR Code */}
+                            <QRCodeSVG
+                              value={activePaymentSession?.qrPayload || (paymentMethod === 'TELEBIRR'
+                                ? `telebirr://pay?merchant=KASMA_ENTERPRISE&amount=${cartTotal}&ref=${qrReferenceTx}&phone=${encodeURIComponent(customerPhone)}`
+                                : paymentMethod === 'CBE_BIRR'
                                   ? `cbebirr://pay?merchant=KASMA_SHOP&amount=${cartTotal}&ref=${qrReferenceTx}`
                                   : `https://checkout.chapa.co/pay/ch_tx_${qrReferenceTx}?amount=${cartTotal}&currency=ETB&email=getchze1221%40gmail.com`
-                                )}
-                                size={185}
-                                level="H"
-                                includeMargin={true}
-                                fgColor={paymentMethod === 'TELEBIRR' ? '#004C61' : paymentMethod === 'CBE_BIRR' ? '#3B0764' : '#047857'}
-                                bgColor="#FFFFFF"
-                              />
+                              )}
+                              size={185}
+                              level="H"
+                              includeMargin={true}
+                              fgColor={paymentMethod === 'TELEBIRR' ? '#004C61' : paymentMethod === 'CBE_BIRR' ? '#3B0764' : '#047857'}
+                              bgColor="#FFFFFF"
+                            />
 
-                              {/* Center Brand Badge */}
-                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div className="w-9 h-9 bg-white rounded-full shadow-md border-2 border-gray-800 flex items-center justify-center p-1">
-                                  {paymentMethod === 'TELEBIRR' ? (
-                                    <span className="text-[10px] font-black text-[#004C61] tracking-tighter">tb</span>
-                                  ) : paymentMethod === 'CBE_BIRR' ? (
-                                    <span className="text-[9px] font-black text-purple-900 tracking-tighter">CBE</span>
-                                  ) : (
-                                    <span className="text-[10px] font-black text-emerald-700 tracking-tighter">Ch</span>
-                                  )}
-                                </div>
+                            {/* Center Brand Badge */}
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <div className="w-9 h-9 bg-white rounded-full shadow-md border-2 border-gray-800 flex items-center justify-center p-1">
+                                {paymentMethod === 'TELEBIRR' ? (
+                                  <span className="text-[10px] font-black text-[#004C61] tracking-tighter">tb</span>
+                                ) : paymentMethod === 'CBE_BIRR' ? (
+                                  <span className="text-[9px] font-black text-purple-900 tracking-tighter">CBE</span>
+                                ) : (
+                                  <span className="text-[10px] font-black text-emerald-700 tracking-tighter">Ch</span>
+                                )}
                               </div>
                             </div>
+                          </div>
 
-                            {/* Pulse indicator */}
-                            <div className="flex items-center justify-center gap-2 text-xs text-gray-600 dark:text-zinc-300 font-semibold bg-white/90 dark:bg-zinc-900 py-1.5 px-3 rounded-full border border-gray-200/60 dark:border-zinc-700 max-w-xs mx-auto shadow-2xs">
-                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                              <span className="text-[11px] truncate">
-                                {language === 'en' ? 'Awaiting camera scan / mobile authorization...' : 'የስልክ ስካን / ፈቃድ በመጠባበቅ ላይ...'}
+                          {/* Pulse indicator */}
+                          <div className="flex items-center justify-center gap-2 text-xs text-gray-600 dark:text-zinc-300 font-semibold bg-white/90 dark:bg-zinc-900 py-1.5 px-3 rounded-full border border-gray-200/60 dark:border-zinc-700 max-w-xs mx-auto shadow-2xs">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                            <span className="text-[11px] truncate">
+                              {language === 'en' ? 'Awaiting camera scan / mobile authorization...' : 'የስልክ ስካን / ፈቃድ በመጠባበቅ ላይ...'}
+                            </span>
+                          </div>
+
+                          {/* QR Details Chips */}
+                          <div className="grid grid-cols-2 gap-2 text-[11px] bg-white dark:bg-zinc-900 p-2.5 rounded-xl border border-gray-200/70 dark:border-zinc-800 text-left">
+                            <div>
+                              <span className="text-gray-400 block text-[9px] uppercase font-bold">{language === 'en' ? 'Merchant / Rail' : 'የነጋዴ ስም'}</span>
+                              <span className="font-extrabold text-gray-900 dark:text-white truncate block">
+                                {paymentMethod === 'CBE_BIRR' ? 'KASMA CBE BIRR PAY' : 'KASMA SHOP ENTERPRISE'}
                               </span>
                             </div>
-
-                            {/* QR Details Chips */}
-                            <div className="grid grid-cols-2 gap-2 text-[11px] bg-white dark:bg-zinc-900 p-2.5 rounded-xl border border-gray-200/70 dark:border-zinc-800 text-left">
-                              <div>
-                                <span className="text-gray-400 block text-[9px] uppercase font-bold">{language === 'en' ? 'Merchant / Rail' : 'የነጋዴ ስም'}</span>
-                                <span className="font-extrabold text-gray-900 dark:text-white truncate block">
-                                  {paymentMethod === 'CBE_BIRR' ? 'KASMA CBE BIRR PAY' : 'KASMA SHOP ENTERPRISE'}
-                                </span>
-                              </div>
-                              <div>
-                                <span className="text-gray-400 block text-[9px] uppercase font-bold">{language === 'en' ? 'Transaction Ref' : 'መለያ ቁጥር'}</span>
-                                <span className="font-mono font-black text-[#0052FF] dark:text-blue-400 truncate block">
-                                  {activePaymentSession?.txRef || qrReferenceTx}
-                                </span>
-                              </div>
+                            <div>
+                              <span className="text-gray-400 block text-[9px] uppercase font-bold">{language === 'en' ? 'Transaction Ref' : 'መለያ ቁጥር'}</span>
+                              <span className="font-mono font-black text-[#0052FF] dark:text-blue-400 truncate block">
+                                {activePaymentSession?.txRef || qrReferenceTx}
+                              </span>
                             </div>
+                          </div>
 
-                            {/* Quick Link & Copy Actions */}
-                            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                          {/* Quick Link & Copy Actions */}
+                          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const payload = activePaymentSession?.checkoutUrl || activePaymentSession?.directPaymentUrl || (paymentMethod === 'TELEBIRR'
+                                  ? `telebirr://pay?merchant=KASMA_ENTERPRISE&amount=${cartTotal}&ref=${qrReferenceTx}`
+                                  : paymentMethod === 'CBE_BIRR'
+                                    ? `https://checkout.chapa.co/pay/cbe_${qrReferenceTx}?amount=${cartTotal}&currency=ETB`
+                                    : `https://checkout.chapa.co/pay/ch_tx_${qrReferenceTx}?amount=${cartTotal}`);
+                                navigator.clipboard.writeText(payload);
+                                setCopiedQrLink(true);
+                                showToast(
+                                  language === 'en' ? 'Payment Session Link copied to clipboard!' : 'የክፍያ ሊንኩ ተቀድቷል!',
+                                  'success'
+                                );
+                                setTimeout(() => setCopiedQrLink(false), 2500);
+                              }}
+                              className="px-3.5 py-1.5 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 hover:bg-gray-100 text-gray-700 dark:text-zinc-200 text-[10px] font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                            >
+                              {copiedQrLink ? (
+                                <>
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                  <span>{language === 'en' ? 'Copied!' : 'ተቀድቷል!'}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3.5 h-3.5 text-gray-500" />
+                                  <span>{language === 'en' ? 'Copy Pay Link' : 'ሊንኩን ቅዳ'}</span>
+                                </>
+                              )}
+                            </button>
+
+                            {/* Dial USSD Button */}
+                            {(paymentMethod === 'TELEBIRR' || paymentMethod === 'CBE_BIRR') && (
                               <button
                                 type="button"
                                 onClick={() => {
-                                  const payload = activePaymentSession?.checkoutUrl || activePaymentSession?.directPaymentUrl || (paymentMethod === 'TELEBIRR'
-                                    ? `telebirr://pay?merchant=KASMA_ENTERPRISE&amount=${cartTotal}&ref=${qrReferenceTx}`
-                                    : paymentMethod === 'CBE_BIRR'
+                                  const ussd = paymentMethod === 'TELEBIRR' ? '*127#' : '*847#';
+                                  navigator.clipboard.writeText(ussd);
+                                  showToast(
+                                    language === 'en' ? `USSD ${ussd} copied! Dial in your Phone App.` : `USSD ${ussd} ተቀድቷል! በስልክዎ ይደውሉ`,
+                                    'info'
+                                  );
+                                }}
+                                className="px-3.5 py-1.5 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-300 text-[10px] font-mono font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                              >
+                                <Phone className="w-3.5 h-3.5 text-purple-600" />
+                                <span>Dial {paymentMethod === 'TELEBIRR' ? '*127#' : '*847#'}</span>
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const link = activePaymentSession?.checkoutUrl || activePaymentSession?.directPaymentUrl || (paymentMethod === 'TELEBIRR'
+                                  ? `https://telebirr.ethiotelecom.et/checkout?ref=${qrReferenceTx}&amount=${cartTotal}`
+                                  : paymentMethod === 'CBE_BIRR'
                                     ? `https://checkout.chapa.co/pay/cbe_${qrReferenceTx}?amount=${cartTotal}&currency=ETB`
                                     : `https://checkout.chapa.co/pay/ch_tx_${qrReferenceTx}?amount=${cartTotal}`);
-                                  navigator.clipboard.writeText(payload);
-                                  setCopiedQrLink(true);
-                                  showToast(
-                                    language === 'en' ? 'Payment Session Link copied to clipboard!' : 'የክፍያ ሊንኩ ተቀድቷል!',
-                                    'success'
-                                  );
-                                  setTimeout(() => setCopiedQrLink(false), 2500);
-                                }}
-                                className="px-3.5 py-1.5 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 hover:bg-gray-100 text-gray-700 dark:text-zinc-200 text-[10px] font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                              >
-                                {copiedQrLink ? (
-                                  <>
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                    <span>{language === 'en' ? 'Copied!' : 'ተቀድቷል!'}</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="w-3.5 h-3.5 text-gray-500" />
-                                    <span>{language === 'en' ? 'Copy Pay Link' : 'ሊንኩን ቅዳ'}</span>
-                                  </>
-                                )}
-                              </button>
+                                window.open(link, '_blank');
+                              }}
+                              className="px-3.5 py-1.5 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 hover:bg-gray-100 text-gray-700 dark:text-zinc-200 text-[10px] font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5 text-gray-500" />
+                              <span>{language === 'en' ? 'Open App Checkout' : 'በአፕሊኬሽን ክፈት'}</span>
+                            </button>
+                          </div>
+                        </div>
 
-                              {/* Dial USSD Button */}
-                              {(paymentMethod === 'TELEBIRR' || paymentMethod === 'CBE_BIRR') && (
+                        {/* Instructions */}
+                        <div className="bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 p-3.5 rounded-2xl text-[11px] text-amber-950 dark:text-amber-200 space-y-1.5">
+                          <div className="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-300">
+                            <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+                            <span>{language === 'en' ? 'Payment Authorization Steps:' : 'የክፍያ ማረጋገጫ ቅደም-ተከተል፡'}</span>
+                          </div>
+                          <ol className="list-decimal list-inside space-y-1 text-amber-900/80 dark:text-amber-200/80 font-medium text-[10.5px] leading-relaxed">
+                            <li>
+                              {paymentMethod === 'TELEBIRR'
+                                ? (language === 'en' ? 'Open Telebirr SuperApp and approve the push notification prompt, or dial *127#.' : 'የቴሌብር አፕሊኬሽን ይክፈቱ ወይም በስልክዎ *127# ይደውሉ።')
+                                : paymentMethod === 'CBE_BIRR'
+                                  ? (language === 'en' ? 'Open CBE Birr app or dial *847# on your mobile phone to approve the payment.' : 'የሲቢኢ ብር አፕሊኬሽን ይክፈቱ ወይም በስልክዎ *847# በመደወል ያረጋግጡ።')
+                                  : (language === 'en' ? 'Scan QR or proceed on Chapa hosted checkout.' : 'በስክሪኑ ላይ ያለውን የQR ኮድ ስካን ያድርጉ ወይም ጫፓን ይጠቀሙ።')}
+                            </li>
+                            <li>
+                              {language === 'en'
+                                ? `Confirm total amount of ${cartTotal.toLocaleString()} ETB, then click "Verify with Payment Gateway API" below.`
+                                : `የ${cartTotal.toLocaleString()} ብር ክፍያውን ካረጋገጡ በኋላ ከታች ያለውን "በክፍያ ጌትዌይ አረጋግጥ" ይጫኑ።`}
+                            </li>
+                          </ol>
+                        </div>
+                      </div>
+                    ) : (
+                      /* DIRECT PUSH & USSD MODE */
+                      <div className="space-y-4">
+                        {paymentMethod === 'TELEBIRR' ? (
+                          <div className="space-y-4 text-center">
+                            <div className="bg-[#2563EB]/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
+                              <Phone className="w-8 h-8 text-[#2563EB] animate-pulse" />
+                            </div>
+                            <div>
+                              <h4 className="font-extrabold text-[#2563EB] text-lg">telebirr Direct Push Gateway</h4>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Secure instant connection to ethio telecom mobile payment system.
+                              </p>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-2xl border border-gray-200 dark:border-zinc-700 text-left text-xs space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Merchant Name:</span>
+                                <span className="font-bold">KASMA SHOP LTD</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Payer Phone:</span>
+                                <span className="font-bold font-mono">{customerPhone}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">USSD Direct Code:</span>
+                                <span className="font-mono font-bold text-[#0052FF]">*127# (Option 3: Pay Merchant)</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Amount (ETB):</span>
+                                <span className="font-bold text-black dark:text-white font-mono">{cartTotal.toLocaleString()} ETB</span>
+                              </div>
+                            </div>
+                          </div>
+                        ) : paymentMethod === 'CBE_BIRR' ? (
+                          <div className="space-y-4 text-center">
+                            <div className="bg-purple-100 dark:bg-purple-950/50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto border border-purple-200">
+                              <Building2 className="w-8 h-8 text-purple-700 animate-pulse" />
+                            </div>
+                            <div>
+                              <h4 className="font-extrabold text-purple-900 dark:text-purple-300 text-lg">CBE Birr Instant Direct Gateway</h4>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Commercial Bank of Ethiopia payment rail via Chapa/ArifPay API.
+                              </p>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-2xl border border-gray-200 dark:border-zinc-700 text-left text-xs space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">CBE Birr Merchant:</span>
+                                <span className="font-bold">KASMA SHOP LTD (CBE Pay)</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Payer Phone:</span>
+                                <span className="font-bold font-mono">{customerPhone}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">CBE USSD Code:</span>
+                                <span className="font-mono font-bold text-purple-700">*847# (Pay Bill / Merchant)</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Total Payable:</span>
+                                <span className="font-black text-purple-900 dark:text-purple-300 font-mono">{cartTotal.toLocaleString()} ETB</span>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-4 text-center">
+                            <div className="bg-emerald-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto border border-emerald-100">
+                              <CreditCard className="w-8 h-8 text-emerald-600 animate-pulse" />
+                            </div>
+                            <div>
+                              <h4 className="font-extrabold text-emerald-700 text-lg">Chapa (ጫፓ) Gateway</h4>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Supports CBE Birr, Awash Bank, and international credit cards.
+                              </p>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-2xl border border-gray-200 dark:border-zinc-700 text-left text-xs space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Chapa Reference:</span>
+                                <span className="font-mono font-semibold">{activePaymentSession?.txRef || qrReferenceTx}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Total Amount:</span>
+                                <span className="font-black text-emerald-700 font-mono">{cartTotal.toLocaleString()} ETB</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">Customer Delivery:</span>
+                                <span className="font-semibold">{selectedSubCity} • {customerLandmark}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* BANK RECEIPT & SCREENSHOT UPLOAD TAB */}
+                    {gatewayPaymentTab === 'BANK_RECEIPT' && (
+                      <div className="space-y-4 text-left animate-fade-in">
+                        {/* Bank Accounts Header */}
+                        <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-900 via-blue-900 to-slate-900 text-white shadow-xs space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="p-1.5 rounded-xl bg-white/15">
+                                <Building2 className="w-4 h-4 text-amber-300" />
+                              </span>
+                              <div>
+                                <h4 className="font-black text-sm text-white">
+                                  {language === 'en' ? 'Direct Ethiopian Bank Transfer' : 'የኢትዮጵያ የባንክ ሂሳቦች'}
+                                </h4>
+                                <p className="text-[10px] text-blue-200">
+                                  {language === 'en' ? 'Transfer via CBE Mobile, CBE Birr, BoA, or Telebirr' : 'በባንክ አፕ ወይም በቴሌብር በቀጥታ ይክፈሉ'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right font-mono">
+                              <span className="text-[9px] text-blue-200 block uppercase font-bold">{language === 'en' ? 'Total Payable' : 'ጠቅላላ ክፍያ'}</span>
+                              <span className="text-base font-black text-white">{cartTotal.toLocaleString()} ETB</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bank Selector Cards */}
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedBank('CBE')}
+                            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${selectedBank === 'CBE'
+                              ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/50 ring-2 ring-purple-500/30'
+                              : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
+                              }`}
+                          >
+                            <span className="font-black text-xs text-purple-900 dark:text-purple-300 block">CBE</span>
+                            <span className="text-[9px] text-gray-500 dark:text-zinc-400">Commercial Bank</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedBank('BOA')}
+                            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${selectedBank === 'BOA'
+                              ? 'border-amber-600 bg-amber-50 dark:bg-amber-950/50 ring-2 ring-amber-500/30'
+                              : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
+                              }`}
+                          >
+                            <span className="font-black text-xs text-amber-900 dark:text-amber-300 block">Abyssinia</span>
+                            <span className="text-[9px] text-gray-500 dark:text-zinc-400">Bank of Abyssinia</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedBank('AWASH')}
+                            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${selectedBank === 'AWASH'
+                              ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/50 ring-2 ring-blue-500/30'
+                              : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
+                              }`}
+                          >
+                            <span className="font-black text-xs text-blue-900 dark:text-blue-300 block">Awash</span>
+                            <span className="text-[9px] text-gray-500 dark:text-zinc-400">Awash Bank</span>
+                          </button>
+                        </div>
+
+                        {/* Account Detail Box */}
+                        <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-800/60 border border-gray-200/80 dark:border-zinc-700 space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <div>
+                              <span className="text-[9px] font-bold uppercase text-gray-400 block">
+                                {selectedBank === 'CBE' ? 'Commercial Bank of Ethiopia (CBE)' : selectedBank === 'BOA' ? 'Bank of Abyssinia' : 'Awash International Bank'}
+                              </span>
+                              <span className="font-mono font-black text-sm text-gray-900 dark:text-white">
+                                {selectedBank === 'CBE' ? '1000123456789' : selectedBank === 'BOA' ? '88392019' : '01320495820100'}
+                              </span>
+                              <span className="text-[10px] text-gray-500 dark:text-zinc-400 block">
+                                Account Holder: <strong className="text-gray-800 dark:text-zinc-200">Kasma Tech Shop Enterprise</strong>
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const acc = selectedBank === 'CBE' ? '1000123456789' : selectedBank === 'BOA' ? '88392019' : '01320495820100';
+                                navigator.clipboard.writeText(acc);
+                                showToast(language === 'en' ? `Account #${acc} copied to clipboard!` : `የሂሳብ ቁጥር ${acc} ተቀድቷል!`, 'success');
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-200 hover:bg-gray-100 text-[10px] font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
+                            >
+                              <Copy className="w-3.5 h-3.5 text-gray-500" />
+                              <span>{language === 'en' ? 'Copy Account #' : 'ቁጥሩን ቅዳ'}</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Screenshot Upload Widget */}
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest flex items-center justify-between">
+                            <span className="flex items-center gap-1.5">
+                              <Upload className="w-3.5 h-3.5 text-blue-600" />
+                              <span>{language === 'en' ? 'Upload Payment Screenshot / Transfer Slip *' : 'የክፍያ ደረሰኝ ስክሪንሾት ይጫኑ *'}</span>
+                            </span>
+                            {paymentScreenshot && (
+                              <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>Receipt Attached</span>
+                              </span>
+                            )}
+                          </label>
+
+                          <input
+                            type="file"
+                            id="payment-screenshot-file-input"
+                            accept="image/*"
+                            onChange={handleScreenshotFileChange}
+                            className="hidden"
+                          />
+
+                          {paymentScreenshot ? (
+                            <div className="p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800 flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <img
+                                  src={paymentScreenshot}
+                                  alt="Payment Screenshot Preview"
+                                  className="w-14 h-14 object-cover rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-2xs shrink-0 bg-white"
+                                />
+                                <div className="min-w-0">
+                                  <p className="font-bold text-xs text-emerald-950 dark:text-emerald-200 truncate">
+                                    {paymentScreenshotName || 'payment_receipt.png'}
+                                  </p>
+                                  <p className="text-[10px] text-emerald-700 dark:text-emerald-400">
+                                    {language === 'en' ? 'Screenshot verified & ready for review' : 'ደረሰኙ ለፍተሻ ተዘጋጅቷል'}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => document.getElementById('payment-screenshot-file-input')?.click()}
+                                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-emerald-300 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 cursor-pointer"
+                                >
+                                  {language === 'en' ? 'Change' : 'ቀይር'}
+                                </button>
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    const ussd = paymentMethod === 'TELEBIRR' ? '*127#' : '*847#';
-                                    navigator.clipboard.writeText(ussd);
-                                    showToast(
-                                      language === 'en' ? `USSD ${ussd} copied! Dial in your Phone App.` : `USSD ${ussd} ተቀድቷል! በስልክዎ ይደውሉ`,
-                                      'info'
-                                    );
+                                    setPaymentScreenshot(null);
+                                    setPaymentScreenshotName('');
                                   }}
-                                  className="px-3.5 py-1.5 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-300 text-[10px] font-mono font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                  className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
+                                  title="Remove"
                                 >
-                                  <Phone className="w-3.5 h-3.5 text-purple-600" />
-                                  <span>Dial {paymentMethod === 'TELEBIRR' ? '*127#' : '*847#'}</span>
+                                  <X className="w-4 h-4" />
                                 </button>
-                              )}
-
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const link = activePaymentSession?.checkoutUrl || activePaymentSession?.directPaymentUrl || (paymentMethod === 'TELEBIRR'
-                                    ? `https://telebirr.ethiotelecom.et/checkout?ref=${qrReferenceTx}&amount=${cartTotal}`
-                                    : paymentMethod === 'CBE_BIRR'
-                                    ? `https://checkout.chapa.co/pay/cbe_${qrReferenceTx}?amount=${cartTotal}&currency=ETB`
-                                    : `https://checkout.chapa.co/pay/ch_tx_${qrReferenceTx}?amount=${cartTotal}`);
-                                  window.open(link, '_blank');
-                                }}
-                                className="px-3.5 py-1.5 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 hover:bg-gray-100 text-gray-700 dark:text-zinc-200 text-[10px] font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5 text-gray-500" />
-                                <span>{language === 'en' ? 'Open App Checkout' : 'በአፕሊኬሽን ክፈት'}</span>
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Instructions */}
-                          <div className="bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-900/40 p-3.5 rounded-2xl text-[11px] text-amber-950 dark:text-amber-200 space-y-1.5">
-                            <div className="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-300">
-                              <Zap className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-                              <span>{language === 'en' ? 'Payment Authorization Steps:' : 'የክፍያ ማረጋገጫ ቅደም-ተከተል፡'}</span>
-                            </div>
-                            <ol className="list-decimal list-inside space-y-1 text-amber-900/80 dark:text-amber-200/80 font-medium text-[10.5px] leading-relaxed">
-                              <li>
-                                {paymentMethod === 'TELEBIRR'
-                                  ? (language === 'en' ? 'Open Telebirr SuperApp and approve the push notification prompt, or dial *127#.' : 'የቴሌብር አፕሊኬሽን ይክፈቱ ወይም በስልክዎ *127# ይደውሉ።')
-                                  : paymentMethod === 'CBE_BIRR'
-                                  ? (language === 'en' ? 'Open CBE Birr app or dial *847# on your mobile phone to approve the payment.' : 'የሲቢኢ ብር አፕሊኬሽን ይክፈቱ ወይም በስልክዎ *847# በመደወል ያረጋግጡ።')
-                                  : (language === 'en' ? 'Scan QR or proceed on Chapa hosted checkout.' : 'በስክሪኑ ላይ ያለውን የQR ኮድ ስካን ያድርጉ ወይም ጫፓን ይጠቀሙ።')}
-                              </li>
-                              <li>
-                                {language === 'en'
-                                  ? `Confirm total amount of ${cartTotal.toLocaleString()} ETB, then click "Verify with Payment Gateway API" below.`
-                                  : `የ${cartTotal.toLocaleString()} ብር ክፍያውን ካረጋገጡ በኋላ ከታች ያለውን "በክፍያ ጌትዌይ አረጋግጥ" ይጫኑ።`}
-                              </li>
-                            </ol>
-                          </div>
-                        </div>
-                      ) : (
-                        /* DIRECT PUSH & USSD MODE */
-                        <div className="space-y-4">
-                          {paymentMethod === 'TELEBIRR' ? (
-                            <div className="space-y-4 text-center">
-                              <div className="bg-[#2563EB]/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto">
-                                <Phone className="w-8 h-8 text-[#2563EB] animate-pulse" />
-                              </div>
-                              <div>
-                                <h4 className="font-extrabold text-[#2563EB] text-lg">telebirr Direct Push Gateway</h4>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Secure instant connection to ethio telecom mobile payment system.
-                                </p>
-                              </div>
-                              <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-2xl border border-gray-200 dark:border-zinc-700 text-left text-xs space-y-2">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-500">Merchant Name:</span>
-                                  <span className="font-bold">KASMA SHOP LTD</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-500">Payer Phone:</span>
-                                  <span className="font-bold font-mono">{customerPhone}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-500">USSD Direct Code:</span>
-                                  <span className="font-mono font-bold text-[#0052FF]">*127# (Option 3: Pay Merchant)</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-500">Amount (ETB):</span>
-                                  <span className="font-bold text-black dark:text-white font-mono">{cartTotal.toLocaleString()} ETB</span>
-                                </div>
-                              </div>
-                            </div>
-                          ) : paymentMethod === 'CBE_BIRR' ? (
-                            <div className="space-y-4 text-center">
-                              <div className="bg-purple-100 dark:bg-purple-950/50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto border border-purple-200">
-                                <Building2 className="w-8 h-8 text-purple-700 animate-pulse" />
-                              </div>
-                              <div>
-                                <h4 className="font-extrabold text-purple-900 dark:text-purple-300 text-lg">CBE Birr Instant Direct Gateway</h4>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Commercial Bank of Ethiopia payment rail via Chapa/ArifPay API.
-                                </p>
-                              </div>
-                              <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-2xl border border-gray-200 dark:border-zinc-700 text-left text-xs space-y-2">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-500">CBE Birr Merchant:</span>
-                                  <span className="font-bold">KASMA SHOP LTD (CBE Pay)</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-500">Payer Phone:</span>
-                                  <span className="font-bold font-mono">{customerPhone}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-500">CBE USSD Code:</span>
-                                  <span className="font-mono font-bold text-purple-700">*847# (Pay Bill / Merchant)</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-500">Total Payable:</span>
-                                  <span className="font-black text-purple-900 dark:text-purple-300 font-mono">{cartTotal.toLocaleString()} ETB</span>
-                                </div>
                               </div>
                             </div>
                           ) : (
-                            <div className="space-y-4 text-center">
-                              <div className="bg-emerald-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto border border-emerald-100">
-                                <CreditCard className="w-8 h-8 text-emerald-600 animate-pulse" />
+                            <div
+                              onClick={() => document.getElementById('payment-screenshot-file-input')?.click()}
+                              className="border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-[#0052FF] p-4 rounded-2xl text-center space-y-2 cursor-pointer bg-gray-50/50 dark:bg-zinc-900/50 transition-all hover:bg-blue-50/20"
+                            >
+                              <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] flex items-center justify-center mx-auto">
+                                <Upload className="w-5 h-5" />
                               </div>
                               <div>
-                                <h4 className="font-extrabold text-emerald-700 text-lg">Chapa (ጫፓ) Gateway</h4>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Supports CBE Birr, Awash Bank, and international credit cards.
+                                <p className="text-xs font-bold text-gray-800 dark:text-zinc-200">
+                                  {language === 'en' ? 'Click to upload payment screenshot (JPEG/PNG)' : 'የደረሰኝ ስክሪንሾት ለመጫን እዚህ ይጫኑ'}
                                 </p>
-                              </div>
-                              <div className="bg-gray-50 dark:bg-zinc-800 p-4 rounded-2xl border border-gray-200 dark:border-zinc-700 text-left text-xs space-y-2">
-                                <div className="flex justify-between">
-                                  <span className="text-gray-500">Chapa Reference:</span>
-                                  <span className="font-mono font-semibold">{activePaymentSession?.txRef || qrReferenceTx}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-500">Total Amount:</span>
-                                  <span className="font-black text-emerald-700 font-mono">{cartTotal.toLocaleString()} ETB</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span className="text-gray-500">Customer Delivery:</span>
-                                  <span className="font-semibold">{selectedSubCity} • {customerLandmark}</span>
-                                </div>
+                                <p className="text-[10px] text-gray-400">
+                                  {language === 'en' ? 'Take a screenshot of your CBE / Telebirr confirmation SMS or app' : 'ከስልክዎ ወይም ከአፕሊኬሽኑ የተገኘውን ማረጋገጫ ያያይዙ'}
+                                </p>
                               </div>
                             </div>
                           )}
-                        </div>
-                      )}
 
-                      {/* BANK RECEIPT & SCREENSHOT UPLOAD TAB */}
-                      {gatewayPaymentTab === 'BANK_RECEIPT' && (
-                        <div className="space-y-4 text-left animate-fade-in">
-                          {/* Bank Accounts Header */}
-                          <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-900 via-blue-900 to-slate-900 text-white shadow-xs space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <span className="p-1.5 rounded-xl bg-white/15">
-                                  <Building2 className="w-4 h-4 text-amber-300" />
-                                </span>
-                                <div>
-                                  <h4 className="font-black text-sm text-white">
-                                    {language === 'en' ? 'Direct Ethiopian Bank Transfer' : 'የኢትዮጵያ የባንክ ሂሳቦች'}
-                                  </h4>
-                                  <p className="text-[10px] text-blue-200">
-                                    {language === 'en' ? 'Transfer via CBE Mobile, CBE Birr, BoA, or Telebirr' : 'በባንክ አፕ ወይም በቴሌብር በቀጥታ ይክፈሉ'}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="text-right font-mono">
-                                <span className="text-[9px] text-blue-200 block uppercase font-bold">{language === 'en' ? 'Total Payable' : 'ጠቅላላ ክፍያ'}</span>
-                                <span className="text-base font-black text-white">{cartTotal.toLocaleString()} ETB</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Bank Selector Cards */}
-                          <div className="grid grid-cols-3 gap-2">
+                          {/* Demo screenshot shortcut for rapid test */}
+                          <div className="flex items-center justify-between pt-1">
                             <button
                               type="button"
-                              onClick={() => setSelectedBank('CBE')}
-                              className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                                selectedBank === 'CBE'
-                                  ? 'border-purple-600 bg-purple-50 dark:bg-purple-950/50 ring-2 ring-purple-500/30'
-                                  : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
-                              }`}
+                              id="demo-attach-screenshot-btn"
+                              onClick={handleUseDemoScreenshot}
+                              className="text-[10px] font-bold text-[#0052FF] hover:underline flex items-center gap-1 cursor-pointer"
                             >
-                              <span className="font-black text-xs text-purple-900 dark:text-purple-300 block">CBE</span>
-                              <span className="text-[9px] text-gray-500 dark:text-zinc-400">Commercial Bank</span>
+                              <Sparkles className="w-3 h-3 text-amber-500" />
+                              <span>{language === 'en' ? '⚡ 1-Click Attach Sample Receipt (Demo)' : '⚡ የናሙና ደረሰኝ በ1-ጠቅታ አያይዝ'}</span>
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedBank('BOA')}
-                              className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                                selectedBank === 'BOA'
-                                  ? 'border-amber-600 bg-amber-50 dark:bg-amber-950/50 ring-2 ring-amber-500/30'
-                                  : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
-                              }`}
-                            >
-                              <span className="font-black text-xs text-amber-900 dark:text-amber-300 block">Abyssinia</span>
-                              <span className="text-[9px] text-gray-500 dark:text-zinc-400">Bank of Abyssinia</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedBank('AWASH')}
-                              className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                                selectedBank === 'AWASH'
-                                  ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/50 ring-2 ring-blue-500/30'
-                                  : 'border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900'
-                              }`}
-                            >
-                              <span className="font-black text-xs text-blue-900 dark:text-blue-300 block">Awash</span>
-                              <span className="text-[9px] text-gray-500 dark:text-zinc-400">Awash Bank</span>
-                            </button>
-                          </div>
-
-                          {/* Account Detail Box */}
-                          <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-zinc-800/60 border border-gray-200/80 dark:border-zinc-700 space-y-2">
-                            <div className="flex items-center justify-between text-xs">
-                              <div>
-                                <span className="text-[9px] font-bold uppercase text-gray-400 block">
-                                  {selectedBank === 'CBE' ? 'Commercial Bank of Ethiopia (CBE)' : selectedBank === 'BOA' ? 'Bank of Abyssinia' : 'Awash International Bank'}
-                                </span>
-                                <span className="font-mono font-black text-sm text-gray-900 dark:text-white">
-                                  {selectedBank === 'CBE' ? '1000123456789' : selectedBank === 'BOA' ? '88392019' : '01320495820100'}
-                                </span>
-                                <span className="text-[10px] text-gray-500 dark:text-zinc-400 block">
-                                  Account Holder: <strong className="text-gray-800 dark:text-zinc-200">Kasma Tech Shop Enterprise</strong>
-                                </span>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const acc = selectedBank === 'CBE' ? '1000123456789' : selectedBank === 'BOA' ? '88392019' : '01320495820100';
-                                  navigator.clipboard.writeText(acc);
-                                  showToast(language === 'en' ? `Account #${acc} copied to clipboard!` : `የሂሳብ ቁጥር ${acc} ተቀድቷል!`, 'success');
-                                }}
-                                className="px-3 py-1.5 rounded-xl bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-200 hover:bg-gray-100 text-[10px] font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
-                              >
-                                <Copy className="w-3.5 h-3.5 text-gray-500" />
-                                <span>{language === 'en' ? 'Copy Account #' : 'ቁጥሩን ቅዳ'}</span>
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Screenshot Upload Widget */}
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest flex items-center justify-between">
-                              <span className="flex items-center gap-1.5">
-                                <Upload className="w-3.5 h-3.5 text-blue-600" />
-                                <span>{language === 'en' ? 'Upload Payment Screenshot / Transfer Slip *' : 'የክፍያ ደረሰኝ ስክሪንሾት ይጫኑ *'}</span>
-                              </span>
-                              {paymentScreenshot && (
-                                <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                  <CheckCircle2 className="w-3 h-3" />
-                                  <span>Receipt Attached</span>
-                                </span>
-                              )}
-                            </label>
-
-                            <input
-                              type="file"
-                              id="payment-screenshot-file-input"
-                              accept="image/*"
-                              onChange={handleScreenshotFileChange}
-                              className="hidden"
-                            />
-
-                            {paymentScreenshot ? (
-                              <div className="p-3 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800 flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <img
-                                    src={paymentScreenshot}
-                                    alt="Payment Screenshot Preview"
-                                    className="w-14 h-14 object-cover rounded-xl border border-emerald-200 dark:border-emerald-800 shadow-2xs shrink-0 bg-white"
-                                  />
-                                  <div className="min-w-0">
-                                    <p className="font-bold text-xs text-emerald-950 dark:text-emerald-200 truncate">
-                                      {paymentScreenshotName || 'payment_receipt.png'}
-                                    </p>
-                                    <p className="text-[10px] text-emerald-700 dark:text-emerald-400">
-                                      {language === 'en' ? 'Screenshot verified & ready for review' : 'ደረሰኙ ለፍተሻ ተዘጋጅቷል'}
-                                    </p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                  <button
-                                    type="button"
-                                    onClick={() => document.getElementById('payment-screenshot-file-input')?.click()}
-                                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-zinc-900 border border-emerald-300 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 cursor-pointer"
-                                  >
-                                    {language === 'en' ? 'Change' : 'ቀይር'}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setPaymentScreenshot(null);
-                                      setPaymentScreenshotName('');
-                                    }}
-                                    className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
-                                    title="Remove"
-                                  >
-                                    <X className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div
-                                onClick={() => document.getElementById('payment-screenshot-file-input')?.click()}
-                                className="border-2 border-dashed border-gray-300 dark:border-zinc-700 hover:border-[#0052FF] p-4 rounded-2xl text-center space-y-2 cursor-pointer bg-gray-50/50 dark:bg-zinc-900/50 transition-all hover:bg-blue-50/20"
-                              >
-                                <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] flex items-center justify-center mx-auto">
-                                  <Upload className="w-5 h-5" />
-                                </div>
-                                <div>
-                                  <p className="text-xs font-bold text-gray-800 dark:text-zinc-200">
-                                    {language === 'en' ? 'Click to upload payment screenshot (JPEG/PNG)' : 'የደረሰኝ ስክሪንሾት ለመጫን እዚህ ይጫኑ'}
-                                  </p>
-                                  <p className="text-[10px] text-gray-400">
-                                    {language === 'en' ? 'Take a screenshot of your CBE / Telebirr confirmation SMS or app' : 'ከስልክዎ ወይም ከአፕሊኬሽኑ የተገኘውን ማረጋገጫ ያያይዙ'}
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Demo screenshot shortcut for rapid test */}
-                            <div className="flex items-center justify-between pt-1">
-                              <button
-                                type="button"
-                                id="demo-attach-screenshot-btn"
-                                onClick={handleUseDemoScreenshot}
-                                className="text-[10px] font-bold text-[#0052FF] hover:underline flex items-center gap-1 cursor-pointer"
-                              >
-                                <Sparkles className="w-3 h-3 text-amber-500" />
-                                <span>{language === 'en' ? '⚡ 1-Click Attach Sample Receipt (Demo)' : '⚡ የናሙና ደረሰኝ በ1-ጠቅታ አያይዝ'}</span>
-                              </button>
-                              <span className="text-[9px] text-gray-400">Min. 300x300px image</span>
-                            </div>
-                          </div>
-
-                          {/* Reference Number input */}
-                          <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest">
-                              {language === 'en' ? 'Bank Transfer Reference / Transaction ID' : 'የባንክ መለያ ቁጥር (Transaction Ref)'}
-                            </label>
-                            <input
-                              type="text"
-                              id="bank-reference-input"
-                              placeholder="e.g. FT2610294820 or CBE-984210"
-                              value={bankReference}
-                              onChange={(e) => setBankReference(e.target.value)}
-                              className="w-full border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded-xl px-3 py-2 text-xs font-mono font-bold text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
-                            />
+                            <span className="text-[9px] text-gray-400">Min. 300x300px image</span>
                           </div>
                         </div>
-                      )}
-                    </div>
+
+                        {/* Reference Number input */}
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest">
+                            {language === 'en' ? 'Bank Transfer Reference / Transaction ID' : 'የባንክ መለያ ቁጥር (Transaction Ref)'}
+                          </label>
+                          <input
+                            type="text"
+                            id="bank-reference-input"
+                            placeholder="e.g. FT2610294820 or CBE-984210"
+                            value={bankReference}
+                            onChange={(e) => setBankReference(e.target.value)}
+                            className="w-full border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 rounded-xl px-3 py-2 text-xs font-mono font-bold text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Shared Gateway Action Footer Buttons */}
                   <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
@@ -6905,8 +7194,8 @@ export default function CustomerWeb({
                   <div className="space-y-1">
                     <h4 className="font-bold text-gray-950 dark:text-white text-base">{language === 'en' ? 'Payment Confirmed Successfully!' : 'ክፍያዎ በስኬት ተጠናቋል!'}</h4>
                     <p className="text-xs text-gray-400 leading-relaxed">
-                      {language === 'en' 
-                        ? 'Your payment was authorized and processed securely. Order is logged into system dispatch queues.' 
+                      {language === 'en'
+                        ? 'Your payment was authorized and processed securely. Order is logged into system dispatch queues.'
                         : 'ክፍያዎ ተረጋግጧል፤ ትዕዛዝዎ ወደ ስርጭት ሂደት ገብቷል።'}
                     </p>
                   </div>
@@ -7095,8 +7384,8 @@ export default function CustomerWeb({
                         {language === 'en' ? '📲 Telegram Receipt & Live Tracking Dispatched!' : '📲 የቴሌግራም ደረሰኝ እና የትራንስፖርት መከታተያ ተልኳል!'}
                       </span>
                       <p className="text-gray-600 dark:text-zinc-400 text-[11px] leading-tight">
-                        {language === 'en' 
-                          ? `Order #${lastPlacedOrderId || 'latest'} receipt & live dispatch link sent to your Telegram via @KasmaShopBot.` 
+                        {language === 'en'
+                          ? `Order #${lastPlacedOrderId || 'latest'} receipt & live dispatch link sent to your Telegram via @KasmaShopBot.`
                           : `የትዕዛዝ #${lastPlacedOrderId || 'እነሆ'} ማረጋገጫ በቴሌግራም ቦት @KasmaShopBot ተልኳል።`}
                       </p>
                     </div>
@@ -7150,7 +7439,7 @@ export default function CustomerWeb({
       {isOrderStatusOpen && (
         <div className="order-status-modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
           <div className="bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 md:p-8 space-y-6 text-left relative">
-            
+
             {/* Close button */}
             <button
               onClick={() => setIsOrderStatusOpen(false)}
@@ -7168,8 +7457,8 @@ export default function CustomerWeb({
                 </h3>
               </div>
               <p className="text-xs text-gray-400">
-                {language === 'en' 
-                  ? 'Enter your Kasma order reference number to view real-time transit telemetry.' 
+                {language === 'en'
+                  ? 'Enter your Kasma order reference number to view real-time transit telemetry.'
                   : 'ትዕዛዝዎ የደረሰበትን ደረጃ ለማወቅ የእቃ መለያ ቁጥሩን ያስገቡ።'}
               </p>
             </div>
@@ -7211,12 +7500,12 @@ export default function CustomerWeb({
                       {allOrders.length} {language === 'en' ? 'Orders Found' : 'ትዕዛዞች'}
                     </span>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {allOrders.slice(0, 4).map((ord) => {
                       const isSelected = trackOrderId === ord.id;
                       const isOfflinePending = offlineOrders.some(o => o.id === ord.id);
-                      
+
                       // Calculate step progress percentage for simple visualization
                       let progressPercent = 0;
                       let stepName = language === 'en' ? 'Processing' : 'በዝግጅት ላይ';
@@ -7245,11 +7534,10 @@ export default function CustomerWeb({
                             setTrackedOrder(ord);
                             setHasSearchedOrder(true);
                           }}
-                          className={`w-full p-3.5 rounded-2xl text-left border transition-all space-y-3 cursor-pointer ${
-                            isSelected
-                              ? 'border-kasma-blue bg-kasma-blue/[0.03] dark:bg-kasma-blue/[0.01] ring-1.5 ring-kasma-blue shadow-sm'
-                              : 'border-gray-150 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-850/30 hover:border-gray-300 dark:hover:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-850/50'
-                          }`}
+                          className={`w-full p-3.5 rounded-2xl text-left border transition-all space-y-3 cursor-pointer ${isSelected
+                            ? 'border-kasma-blue bg-kasma-blue/[0.03] dark:bg-kasma-blue/[0.01] ring-1.5 ring-kasma-blue shadow-sm'
+                            : 'border-gray-150 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-850/30 hover:border-gray-300 dark:hover:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-850/50'
+                            }`}
                         >
                           <div className="flex justify-between items-start">
                             <div className="space-y-0.5">
@@ -7265,19 +7553,18 @@ export default function CustomerWeb({
                               <p className="font-mono font-extrabold text-[11px] text-gray-950 dark:text-white">
                                 {ord.total.toLocaleString()} ETB
                               </p>
-                              <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
-                                isOfflinePending ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+                              <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${isOfflinePending ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
                                 ord.status === 'DELIVERED' ? 'bg-green-500/10 text-green-600 dark:text-green-400' :
-                                ord.status === 'SHIPPED' ? 'bg-kasma-blue/10 text-kasma-blue dark:text-blue-400' :
-                                ord.status === 'CANCELLED' ? 'bg-red-500/10 text-red-600' :
-                                'bg-amber-500/10 text-kasma-gold'
-                              }`}>
+                                  ord.status === 'SHIPPED' ? 'bg-kasma-blue/10 text-kasma-blue dark:text-blue-400' :
+                                    ord.status === 'CANCELLED' ? 'bg-red-500/10 text-red-600' :
+                                      'bg-amber-500/10 text-kasma-gold'
+                                }`}>
                                 {isOfflinePending ? (language === 'en' ? 'Offline Pending' : 'ከመስመር ውጭ በመጠባበቅ ላይ') :
-                                 ord.status === 'DELIVERED' ? (language === 'en' ? 'Delivered' : 'ደርሷል') :
-                                 ord.status === 'SHIPPED' ? (language === 'en' ? 'In Transit' : 'በጉዞ ላይ') :
-                                 ord.status === 'PROCESSING' ? (language === 'en' ? 'Processing' : 'በዝግጅት ላይ') :
-                                 ord.status === 'CANCELLED' ? (language === 'en' ? 'Cancelled' : 'ተሰርዟል') :
-                                 (language === 'en' ? 'Paid' : 'ተከፍሏል')}
+                                  ord.status === 'DELIVERED' ? (language === 'en' ? 'Delivered' : 'ደርሷል') :
+                                    ord.status === 'SHIPPED' ? (language === 'en' ? 'In Transit' : 'በጉዞ ላይ') :
+                                      ord.status === 'PROCESSING' ? (language === 'en' ? 'Processing' : 'በዝግጅት ላይ') :
+                                        ord.status === 'CANCELLED' ? (language === 'en' ? 'Cancelled' : 'ተሰርዟል') :
+                                          (language === 'en' ? 'Paid' : 'ተከፍሏል')}
                               </span>
                             </div>
                           </div>
@@ -7289,9 +7576,9 @@ export default function CustomerWeb({
                               <span className="text-kasma-blue font-black font-mono">{stepName}</span>
                             </div>
                             <div className="h-1 w-full bg-gray-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-kasma-blue rounded-full transition-all duration-500 ease-out" 
-                                style={{ width: `${progressPercent}%` }} 
+                              <div
+                                className="h-full bg-kasma-blue rounded-full transition-all duration-500 ease-out"
+                                style={{ width: `${progressPercent}%` }}
                               />
                             </div>
                             <div className="flex justify-between text-[7.5px] text-gray-400 font-bold uppercase tracking-widest">
@@ -7313,7 +7600,7 @@ export default function CustomerWeb({
               <div className="border-t border-gray-150 dark:border-zinc-800 pt-5 space-y-6">
                 {trackedOrder ? (
                   <div className="space-y-6">
-                    
+
                     {/* Compact Summary Cards */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50/50 dark:bg-zinc-850 p-4 rounded-2xl border border-gray-150/40 dark:border-zinc-800/40 text-xs">
                       <div className="space-y-0.5">
@@ -7356,8 +7643,8 @@ export default function CustomerWeb({
                                   {language === 'en' ? 'Offline Cache Active' : 'ከመስመር ውጭ ካሽ ገቢር ነው'}
                                 </p>
                                 <p>
-                                  {language === 'en' 
-                                    ? 'This order was placed while connection was simulated offline. It is safely cached in your local browser and will start tracking once synchronization is forced or connection is restored.' 
+                                  {language === 'en'
+                                    ? 'This order was placed while connection was simulated offline. It is safely cached in your local browser and will start tracking once synchronization is forced or connection is restored.'
                                     : 'ይህ ትዕዛዝ የተላለፈው ከመስመር ውጭ ሁነታ ላይ በነበሩበት ጊዜ ነው። በአሳሽዎ ውስጥ በሰላም የተቀመጠ ሲሆን አመሳስል ሲጫኑ ወደ ስርጭት ሂደት ይገባል።'}
                                 </p>
                               </div>
@@ -7377,10 +7664,10 @@ export default function CustomerWeb({
                         )}
 
                         {/* Dedicated Interactive Tracking Visualizer Component */}
-                        <OrderTrackingVisualizer 
-                          order={trackedOrder} 
-                          language={language} 
-                          onStatusChange={handleUpdateTrackedOrderStatus} 
+                        <OrderTrackingVisualizer
+                          order={trackedOrder}
+                          language={language}
+                          onStatusChange={handleUpdateTrackedOrderStatus}
                         />
 
                         {/* Live Delivery Dispatch Status Widget */}
@@ -7395,7 +7682,7 @@ export default function CustomerWeb({
                               <span>{language === 'en' ? 'Live Dispatch' : 'ገቢር'}</span>
                             </span>
                           </div>
-                          
+
                           <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-950 border border-gray-150 dark:border-zinc-850 flex items-center justify-between text-xs">
                             <div>
                               <p className="font-bold text-gray-900 dark:text-zinc-100">
@@ -7418,137 +7705,134 @@ export default function CustomerWeb({
 
                         {/* Beautiful Telemetry Timeline Progress Indicator */}
                         <div className="space-y-4">
-                        <h4 className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
-                          {language === 'en' ? 'Real-Time Transit Progress' : 'የጭነት መከታተያ ሂደት'}
-                        </h4>
-                        
-                        <div className="relative pl-6 border-l-2 border-gray-150 dark:border-zinc-800 space-y-6">
-                          
-                          {/* Step 1: Placed */}
-                          <div className="relative">
-                            <span className="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-green-500 border-4 border-white dark:border-zinc-900 flex items-center justify-center shadow-xs" />
-                            <div className="space-y-1">
-                              <p className="text-xs font-black text-gray-900 dark:text-white flex items-center gap-2">
-                                <span>{language === 'en' ? 'Order Placed' : 'ትዕዛዝ ተመዝግቧል'}</span>
-                                <span className="bg-green-500/10 text-green-600 dark:text-green-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
-                                  {language === 'en' ? 'Completed' : 'ተጠናቋል'}
-                                </span>
-                              </p>
-                              <p className="text-[11px] text-gray-400">
-                                {language === 'en' ? 'Payment was successfully verified and order is queued for processing.' : 'ክፍያው ተረጋግጦ ትዕዛዙ ለመዘጋጀት ተመዝግቧል።'}
-                              </p>
-                              <p className="text-[9px] text-gray-400/80 font-mono">
-                                {new Date(trackedOrder.createdAt).toLocaleString()}
-                              </p>
+                          <h4 className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                            {language === 'en' ? 'Real-Time Transit Progress' : 'የጭነት መከታተያ ሂደት'}
+                          </h4>
+
+                          <div className="relative pl-6 border-l-2 border-gray-150 dark:border-zinc-800 space-y-6">
+
+                            {/* Step 1: Placed */}
+                            <div className="relative">
+                              <span className="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-green-500 border-4 border-white dark:border-zinc-900 flex items-center justify-center shadow-xs" />
+                              <div className="space-y-1">
+                                <p className="text-xs font-black text-gray-900 dark:text-white flex items-center gap-2">
+                                  <span>{language === 'en' ? 'Order Placed' : 'ትዕዛዝ ተመዝግቧል'}</span>
+                                  <span className="bg-green-500/10 text-green-600 dark:text-green-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
+                                    {language === 'en' ? 'Completed' : 'ተጠናቋል'}
+                                  </span>
+                                </p>
+                                <p className="text-[11px] text-gray-400">
+                                  {language === 'en' ? 'Payment was successfully verified and order is queued for processing.' : 'ክፍያው ተረጋግጦ ትዕዛዙ ለመዘጋጀት ተመዝግቧል።'}
+                                </p>
+                                <p className="text-[9px] text-gray-400/80 font-mono">
+                                  {new Date(trackedOrder.createdAt).toLocaleString()}
+                                </p>
+                              </div>
                             </div>
+
+                            {/* Step 2: Processing */}
+                            {(() => {
+                              const isCompleted = ['PROCESSING', 'SHIPPED', 'DELIVERED'].includes(trackedOrder.status);
+                              const isActive = trackedOrder.status === 'PAID';
+                              return (
+                                <div className="relative">
+                                  <span className={`absolute -left-[31px] top-0.5 w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 flex items-center justify-center shadow-xs ${isCompleted ? 'bg-green-500' : isActive ? 'bg-kasma-blue animate-pulse' : 'bg-gray-200 dark:bg-zinc-800'
+                                    }`} />
+                                  <div className="space-y-1">
+                                    <p className="text-xs font-black text-gray-900 dark:text-white flex items-center gap-2">
+                                      <span>{language === 'en' ? 'Processing & Packaging' : 'ዝግጅት እና ማሸግ'}</span>
+                                      {isCompleted ? (
+                                        <span className="bg-green-500/10 text-green-600 dark:text-green-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
+                                          {language === 'en' ? 'Completed' : 'ተጠናቋል'}
+                                        </span>
+                                      ) : isActive ? (
+                                        <span className="bg-kasma-blue/15 text-kasma-blue dark:text-blue-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded animate-pulse">
+                                          {language === 'en' ? 'In Progress' : 'በዝግጅት ላይ'}
+                                        </span>
+                                      ) : (
+                                        <span className="bg-gray-100 dark:bg-zinc-800 text-gray-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
+                                          {language === 'en' ? 'Pending' : 'በጥበቃ ላይ'}
+                                        </span>
+                                      )}
+                                    </p>
+                                    <p className="text-[11px] text-gray-400">
+                                      {language === 'en' ? 'Merchant is packing the products and preparing secure delivery stickers.' : 'ሻጩ እቃውን በማዘጋጀት እና ጥራት ባለው ማሸጊያ እያዘጋጀው ነው።'}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* Step 3: Shipped */}
+                            {(() => {
+                              const isCompleted = ['SHIPPED', 'DELIVERED'].includes(trackedOrder.status);
+                              const isActive = trackedOrder.status === 'PROCESSING';
+                              return (
+                                <div className="relative">
+                                  <span className={`absolute -left-[31px] top-0.5 w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 flex items-center justify-center shadow-xs ${isCompleted ? 'bg-green-500' : isActive ? 'bg-kasma-blue animate-pulse' : 'bg-gray-200 dark:bg-zinc-800'
+                                    }`} />
+                                  <div className="space-y-1">
+                                    <p className="text-xs font-black text-gray-900 dark:text-white flex items-center gap-2">
+                                      <span>{language === 'en' ? 'Dispatched & In Transit' : 'በጉዞ ላይ'}</span>
+                                      {isCompleted ? (
+                                        <span className="bg-green-500/10 text-green-600 dark:text-green-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
+                                          {language === 'en' ? 'Completed' : 'ተጠናቋል'}
+                                        </span>
+                                      ) : isActive ? (
+                                        <span className="bg-kasma-blue/15 text-kasma-blue dark:text-blue-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded animate-pulse">
+                                          {language === 'en' ? 'In Progress' : 'በጉዞ ላይ'}
+                                        </span>
+                                      ) : (
+                                        <span className="bg-gray-100 dark:bg-zinc-800 text-gray-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
+                                          {language === 'en' ? 'Pending' : 'በጥበቃ ላይ'}
+                                        </span>
+                                      )}
+                                    </p>
+                                    <p className="text-[11px] text-gray-400">
+                                      {language === 'en' ? 'Shipment was dispatched and is currently in transit with Kasma Express.' : 'ዕቃው በካስማ የትራንስፖርት አገልግሎት ተጭኖ ወደ መድረሻው በመጓዝ ላይ ይገኛል።'}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* Step 4: Arrived */}
+                            {(() => {
+                              const isCompleted = trackedOrder.status === 'DELIVERED';
+                              const isActive = trackedOrder.status === 'SHIPPED';
+                              return (
+                                <div className="relative">
+                                  <span className={`absolute -left-[31px] top-0.5 w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 flex items-center justify-center shadow-xs ${isCompleted ? 'bg-green-500' : isActive ? 'bg-kasma-blue animate-pulse' : 'bg-gray-200 dark:bg-zinc-800'
+                                    }`} />
+                                  <div className="space-y-1">
+                                    <p className="text-xs font-black text-gray-900 dark:text-white flex items-center gap-2">
+                                      <span>{language === 'en' ? 'Safely Arrived & Delivered' : 'በስኬት ደርሷል'}</span>
+                                      {isCompleted ? (
+                                        <span className="bg-green-500/10 text-green-600 dark:text-green-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
+                                          {language === 'en' ? 'Delivered' : 'ደርሷል'}
+                                        </span>
+                                      ) : isActive ? (
+                                        <span className="bg-kasma-blue/15 text-kasma-blue dark:text-blue-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded animate-pulse">
+                                          {language === 'en' ? 'Out For Delivery' : 'ለመድረስ ጥቂት ቀርቷል'}
+                                        </span>
+                                      ) : (
+                                        <span className="bg-gray-100 dark:bg-zinc-800 text-gray-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
+                                          {language === 'en' ? 'Pending' : 'በጥበቃ ላይ'}
+                                        </span>
+                                      )}
+                                    </p>
+                                    <p className="text-[11px] text-gray-400">
+                                      {language === 'en' ? 'The courier has successfully delivered the parcel to your designated address.' : 'መልዕክተኛው እቃውን በተፈለገው አድራሻ ላይ በጥንቃቄ አስረክቧል።'}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
                           </div>
-
-                          {/* Step 2: Processing */}
-                          {(() => {
-                            const isCompleted = ['PROCESSING', 'SHIPPED', 'DELIVERED'].includes(trackedOrder.status);
-                            const isActive = trackedOrder.status === 'PAID';
-                            return (
-                              <div className="relative">
-                                <span className={`absolute -left-[31px] top-0.5 w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 flex items-center justify-center shadow-xs ${
-                                  isCompleted ? 'bg-green-500' : isActive ? 'bg-kasma-blue animate-pulse' : 'bg-gray-200 dark:bg-zinc-800'
-                                }`} />
-                                <div className="space-y-1">
-                                  <p className="text-xs font-black text-gray-900 dark:text-white flex items-center gap-2">
-                                    <span>{language === 'en' ? 'Processing & Packaging' : 'ዝግጅት እና ማሸግ'}</span>
-                                    {isCompleted ? (
-                                      <span className="bg-green-500/10 text-green-600 dark:text-green-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
-                                        {language === 'en' ? 'Completed' : 'ተጠናቋል'}
-                                      </span>
-                                    ) : isActive ? (
-                                      <span className="bg-kasma-blue/15 text-kasma-blue dark:text-blue-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded animate-pulse">
-                                        {language === 'en' ? 'In Progress' : 'በዝግጅት ላይ'}
-                                      </span>
-                                    ) : (
-                                      <span className="bg-gray-100 dark:bg-zinc-800 text-gray-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
-                                        {language === 'en' ? 'Pending' : 'በጥበቃ ላይ'}
-                                      </span>
-                                    )}
-                                  </p>
-                                  <p className="text-[11px] text-gray-400">
-                                    {language === 'en' ? 'Merchant is packing the products and preparing secure delivery stickers.' : 'ሻጩ እቃውን በማዘጋጀት እና ጥራት ባለው ማሸጊያ እያዘጋጀው ነው።'}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })()}
-
-                          {/* Step 3: Shipped */}
-                          {(() => {
-                            const isCompleted = ['SHIPPED', 'DELIVERED'].includes(trackedOrder.status);
-                            const isActive = trackedOrder.status === 'PROCESSING';
-                            return (
-                              <div className="relative">
-                                <span className={`absolute -left-[31px] top-0.5 w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 flex items-center justify-center shadow-xs ${
-                                  isCompleted ? 'bg-green-500' : isActive ? 'bg-kasma-blue animate-pulse' : 'bg-gray-200 dark:bg-zinc-800'
-                                }`} />
-                                <div className="space-y-1">
-                                  <p className="text-xs font-black text-gray-900 dark:text-white flex items-center gap-2">
-                                    <span>{language === 'en' ? 'Dispatched & In Transit' : 'በጉዞ ላይ'}</span>
-                                    {isCompleted ? (
-                                      <span className="bg-green-500/10 text-green-600 dark:text-green-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
-                                        {language === 'en' ? 'Completed' : 'ተጠናቋል'}
-                                      </span>
-                                    ) : isActive ? (
-                                      <span className="bg-kasma-blue/15 text-kasma-blue dark:text-blue-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded animate-pulse">
-                                        {language === 'en' ? 'In Progress' : 'በጉዞ ላይ'}
-                                      </span>
-                                    ) : (
-                                      <span className="bg-gray-100 dark:bg-zinc-800 text-gray-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
-                                        {language === 'en' ? 'Pending' : 'በጥበቃ ላይ'}
-                                      </span>
-                                    )}
-                                  </p>
-                                  <p className="text-[11px] text-gray-400">
-                                    {language === 'en' ? 'Shipment was dispatched and is currently in transit with Kasma Express.' : 'ዕቃው በካስማ የትራንስፖርት አገልግሎት ተጭኖ ወደ መድረሻው በመጓዝ ላይ ይገኛል።'}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })()}
-
-                          {/* Step 4: Arrived */}
-                          {(() => {
-                            const isCompleted = trackedOrder.status === 'DELIVERED';
-                            const isActive = trackedOrder.status === 'SHIPPED';
-                            return (
-                              <div className="relative">
-                                <span className={`absolute -left-[31px] top-0.5 w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 flex items-center justify-center shadow-xs ${
-                                  isCompleted ? 'bg-green-500' : isActive ? 'bg-kasma-blue animate-pulse' : 'bg-gray-200 dark:bg-zinc-800'
-                                }`} />
-                                <div className="space-y-1">
-                                  <p className="text-xs font-black text-gray-900 dark:text-white flex items-center gap-2">
-                                    <span>{language === 'en' ? 'Safely Arrived & Delivered' : 'በስኬት ደርሷል'}</span>
-                                    {isCompleted ? (
-                                      <span className="bg-green-500/10 text-green-600 dark:text-green-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
-                                        {language === 'en' ? 'Delivered' : 'ደርሷል'}
-                                      </span>
-                                    ) : isActive ? (
-                                      <span className="bg-kasma-blue/15 text-kasma-blue dark:text-blue-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded animate-pulse">
-                                        {language === 'en' ? 'Out For Delivery' : 'ለመድረስ ጥቂት ቀርቷል'}
-                                      </span>
-                                    ) : (
-                                      <span className="bg-gray-100 dark:bg-zinc-800 text-gray-400 text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded">
-                                        {language === 'en' ? 'Pending' : 'በጥበቃ ላይ'}
-                                      </span>
-                                    )}
-                                  </p>
-                                  <p className="text-[11px] text-gray-400">
-                                    {language === 'en' ? 'The courier has successfully delivered the parcel to your designated address.' : 'መልዕክተኛው እቃውን በተፈለገው አድራሻ ላይ በጥንቃቄ አስረክቧል።'}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })()}
-
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
                     {/* Order Items List Breakdown */}
                     <div className="space-y-3">
@@ -7559,9 +7843,9 @@ export default function CustomerWeb({
                         {trackedOrder.items.map((item, idx) => (
                           <div key={idx} className="p-3.5 flex items-center justify-between text-xs hover:bg-gray-50/50 dark:hover:bg-zinc-850/50 transition-colors">
                             <div className="flex items-center gap-3">
-                              <img 
-                                src={item.product.image} 
-                                alt={item.product.nameEn} 
+                              <img
+                                src={item.product.image}
+                                alt={item.product.nameEn}
                                 className="w-10 h-10 rounded-xl object-cover border border-gray-100 dark:border-zinc-800 shrink-0"
                               />
                               <div className="text-left space-y-0.5">
@@ -7590,8 +7874,8 @@ export default function CustomerWeb({
                       {language === 'en' ? 'Order Reference Not Found' : 'የትዕዛዝ መለያ ቁጥሩ አልተገኘም'}
                     </p>
                     <p className="text-[11px] text-gray-400 max-w-sm mx-auto leading-relaxed">
-                      {language === 'en' 
-                        ? 'We could not match that reference code to our delivery records. Please double-check spelling or try again.' 
+                      {language === 'en'
+                        ? 'We could not match that reference code to our delivery records. Please double-check spelling or try again.'
                         : 'ያስገቡት የትዕዛዝ መለያ ቁጥር አልተገኘም። እባክዎን በትክክል መጻፉን ያረጋግጡ ወይም እንደገና ይሞክሩ።'}
                     </p>
                   </div>
@@ -7629,7 +7913,7 @@ export default function CustomerWeb({
               </p>
             </div>
           </div>
-          
+
           <div className="flex -space-x-2 shrink-0 overflow-hidden">
             {comparedProductIds.map(pId => {
               const prod = products.find(p => p.id === pId);
@@ -7637,7 +7921,7 @@ export default function CustomerWeb({
               return (
                 <div key={pId} className="w-8 h-8 rounded-full border border-white dark:border-zinc-900 overflow-hidden relative group shrink-0">
                   <img src={prod.image} alt={prod.nameEn} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-                  <button 
+                  <button
                     onClick={() => setComparedProductIds(comparedProductIds.filter(id => id !== pId))}
                     className="absolute inset-0 bg-rose-600/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[8px] font-black cursor-pointer"
                   >
@@ -7670,7 +7954,7 @@ export default function CustomerWeb({
       {isCompareModalOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white dark:bg-zinc-900 rounded-3xl max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative border border-gray-150 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 transition-colors p-6 md:p-8">
-            <button 
+            <button
               onClick={() => setIsCompareModalOpen(false)}
               className="absolute top-4 right-4 bg-gray-50 hover:bg-gray-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-gray-500 dark:text-zinc-400 rounded-full p-2 text-sm font-bold w-9 h-9 flex items-center justify-center z-50 transition-all border border-gray-150 dark:border-zinc-800 cursor-pointer"
               title="Close Comparison"
@@ -7687,8 +7971,8 @@ export default function CustomerWeb({
                   {language === 'en' ? 'Product Comparison Matrix' : 'የምርቶች ማነጻጸሪያ ማትሪክስ'}
                 </h3>
                 <p className="text-xs text-gray-400 dark:text-zinc-500 font-medium">
-                  {language === 'en' 
-                    ? 'Review technical specifications and prices side-by-side' 
+                  {language === 'en'
+                    ? 'Review technical specifications and prices side-by-side'
                     : 'ዝርዝር መግለጫዎችን እና ዋጋዎችን ጎን ለጎን ያነጻጽሩ'}
                 </p>
               </div>
@@ -7994,7 +8278,7 @@ export default function CustomerWeb({
                             <Eye className="w-3.5 h-3.5 text-[#0052FF]" />
                             <span>{language === 'en' ? 'Quick View' : 'ፈጣን እይታ'}</span>
                           </button>
-                          
+
                           <button
                             onClick={() => {
                               const defaultVariant = prod.variants[0];
@@ -8021,15 +8305,14 @@ export default function CustomerWeb({
       {/* Floating Toast Notification Feed */}
       <div className="fixed top-5 left-4 right-4 sm:left-auto sm:right-5 z-[9999] flex flex-col gap-2 max-w-sm w-auto pointer-events-none">
         {toasts.map(t => (
-          <div 
-            key={t.id} 
-            className={`p-4 rounded-xl border shadow-xl flex items-center justify-between text-xs pointer-events-auto transition-all duration-300 transform translate-x-0 ${
-              t.type === 'success' 
-                ? 'bg-zinc-950 border-zinc-800 text-white' 
-                : t.type === 'warning'
-                ? 'bg-white border-zinc-200 text-zinc-900 font-semibold' 
+          <div
+            key={t.id}
+            className={`p-4 rounded-xl border shadow-xl flex items-center justify-between text-xs pointer-events-auto transition-all duration-300 transform translate-x-0 ${t.type === 'success'
+              ? 'bg-zinc-950 border-zinc-800 text-white'
+              : t.type === 'warning'
+                ? 'bg-white border-zinc-200 text-zinc-900 font-semibold'
                 : 'bg-zinc-50 border-zinc-200 text-zinc-900'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-2">
               <span className="text-base leading-none">
@@ -8037,7 +8320,7 @@ export default function CustomerWeb({
               </span>
               <p className="font-medium leading-relaxed">{t.message}</p>
             </div>
-            <button 
+            <button
               onClick={() => setToasts(prev => prev.filter(item => item.id !== t.id))}
               className="ml-3 font-bold hover:opacity-80 opacity-50 shrink-0 cursor-pointer"
             >
@@ -8062,7 +8345,7 @@ export default function CustomerWeb({
                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                 <span>{language === 'en' ? 'Someone just purchased' : 'አንድ ደንበኛ ገዝቷል'}</span>
               </div>
-              <button 
+              <button
                 onClick={() => setActiveSocialProof(prev => prev ? { ...prev, show: false } : null)}
                 className="text-gray-400 hover:text-gray-700 dark:hover:text-white text-[11px] font-bold p-0.5 cursor-pointer leading-none shrink-0"
                 title={language === 'en' ? 'Close' : 'ዝጋ'}
@@ -8158,7 +8441,7 @@ export default function CustomerWeb({
       />
 
       {/* MOBILE BOTTOM NAVIGATION TAB BAR */}
-      <nav 
+      <nav
         id="mobile-bottom-nav-bar"
         className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-gray-200/80 dark:border-zinc-800 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-2 py-1 flex items-center justify-around select-none min-h-[56px]"
       >
@@ -8175,11 +8458,10 @@ export default function CustomerWeb({
             setSelectedCategory('all');
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] relative ${
-            !isProfileOpen && !isMyOrdersOpen && !isCartOpen && !isWishlistOpen && !isFlashDealsOpen && !selectedProduct
-              ? 'text-[#0052FF] dark:text-blue-400 font-black bg-blue-50/80 dark:bg-blue-950/60 scale-102 before:absolute before:-top-1 before:w-6 before:h-1 before:bg-[#0052FF] before:rounded-full'
-              : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium'
-          }`}
+          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] relative ${!isProfileOpen && !isMyOrdersOpen && !isCartOpen && !isWishlistOpen && !isFlashDealsOpen && !selectedProduct
+            ? 'text-[#0052FF] dark:text-blue-400 font-black bg-blue-50/80 dark:bg-blue-950/60 scale-102 before:absolute before:-top-1 before:w-6 before:h-1 before:bg-[#0052FF] before:rounded-full'
+            : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium'
+            }`}
         >
           <Home className="w-5 h-5 mb-0.5 stroke-[2.2px]" />
           <span className="text-[10px] tracking-tight">{language === 'en' ? 'Home' : 'ዋና ገጽ'}</span>
@@ -8219,11 +8501,10 @@ export default function CustomerWeb({
             setIsWishlistOpen(false);
             setIsFlashDealsOpen(true);
           }}
-          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] relative ${
-            isFlashDealsOpen
-              ? 'text-amber-500 dark:text-amber-400 font-black bg-amber-50/80 dark:bg-amber-950/60 scale-102 before:absolute before:-top-1 before:w-6 before:h-1 before:bg-amber-500 before:rounded-full'
-              : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium'
-          }`}
+          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] relative ${isFlashDealsOpen
+            ? 'text-amber-500 dark:text-amber-400 font-black bg-amber-50/80 dark:bg-amber-950/60 scale-102 before:absolute before:-top-1 before:w-6 before:h-1 before:bg-amber-500 before:rounded-full'
+            : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium'
+            }`}
         >
           <Flame className="w-5 h-5 mb-0.5 text-amber-500 fill-amber-500/20 animate-pulse stroke-[2.2px]" />
           <span className="text-[10px] tracking-tight">{language === 'en' ? 'Deals' : 'ቅናሾች'}</span>
@@ -8233,11 +8514,10 @@ export default function CustomerWeb({
         <button
           type="button"
           onClick={() => setIsCartOpen(true)}
-          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] relative ${
-            isCartOpen
-              ? 'text-[#0052FF] dark:text-blue-400 font-black bg-blue-50/80 dark:bg-blue-950/60 scale-102 before:absolute before:-top-1 before:w-6 before:h-1 before:bg-[#0052FF] before:rounded-full'
-              : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium'
-          }`}
+          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] relative ${isCartOpen
+            ? 'text-[#0052FF] dark:text-blue-400 font-black bg-blue-50/80 dark:bg-blue-950/60 scale-102 before:absolute before:-top-1 before:w-6 before:h-1 before:bg-[#0052FF] before:rounded-full'
+            : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium'
+            }`}
         >
           <div className="relative">
             <ShoppingCart className="w-5 h-5 mb-0.5 stroke-[2.2px]" />
@@ -8254,11 +8534,10 @@ export default function CustomerWeb({
         <button
           type="button"
           onClick={() => setIsProfileOpen(true)}
-          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] relative ${
-            isProfileOpen
-              ? 'text-[#0052FF] dark:text-blue-400 font-black bg-blue-50/80 dark:bg-blue-950/60 scale-102 before:absolute before:-top-1 before:w-6 before:h-1 before:bg-[#0052FF] before:rounded-full'
-              : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium'
-          }`}
+          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] relative ${isProfileOpen
+            ? 'text-[#0052FF] dark:text-blue-400 font-black bg-blue-50/80 dark:bg-blue-950/60 scale-102 before:absolute before:-top-1 before:w-6 before:h-1 before:bg-[#0052FF] before:rounded-full'
+            : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium'
+            }`}
         >
           <div className="relative">
             <User className="w-5 h-5 mb-0.5 stroke-[2.2px]" />
@@ -8291,8 +8570,8 @@ export default function CustomerWeb({
                       {language === 'en' ? 'Share Shopping Cart' : 'የገበያ ጋሪዎን ያጋሩ'}
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-zinc-400">
-                      {language === 'en' 
-                        ? `Unique link with ${cart.length} item${cart.length > 1 ? 's' : ''}` 
+                      {language === 'en'
+                        ? `Unique link with ${cart.length} item${cart.length > 1 ? 's' : ''}`
                         : `${cart.length} እቃዎችን የያዘ ልዩ ሊንክ`}
                     </p>
                   </div>
@@ -8436,8 +8715,8 @@ export default function CustomerWeb({
               {/* Signals Grid */}
               <div className="py-4 space-y-3">
                 <p className="text-xs text-gray-600 dark:text-zinc-300 font-semibold">
-                  {language === 'en' 
-                    ? 'Our backend recommendation engine continuously scores items using the following signals:' 
+                  {language === 'en'
+                    ? 'Our backend recommendation engine continuously scores items using the following signals:'
                     : 'የስርዓቱ ስልተ-ቀመር ምርቶችን ለመምረጥ የሚከተሉትን ምልክቶች ይጠቀማል፡'}
                 </p>
 
@@ -8556,7 +8835,7 @@ export default function CustomerWeb({
       {/* Floating WhatsApp Support Button with Delayed Fade-in & Optimized Clearance */}
       <AnimatePresence>
         {showWhatsAppButton && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 12 }}
@@ -8601,6 +8880,15 @@ export default function CustomerWeb({
           setIsAuthModalOpen(false);
           setIsCheckoutOpen(true);
         }}
+      />
+
+      {/* Product Share Modal */}
+      <ShareProductModal
+        product={sharingProduct}
+        isOpen={!!sharingProduct}
+        onClose={() => setSharingProduct(null)}
+        language={language}
+        showToast={showToast}
       />
 
     </div>

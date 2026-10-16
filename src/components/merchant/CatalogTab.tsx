@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Product, Variant, Merchant } from '../../types';
+import { INITIAL_CATEGORIES } from '../../mockData';
 import { 
   Plus, 
   Trash2, 
@@ -35,7 +36,12 @@ import {
   RefreshCw,
   Star,
   Flame,
-  Zap
+  Zap,
+  Cpu,
+  ShieldCheck,
+  HardDrive,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import CsvProductImportModal from './CsvProductImportModal';
@@ -56,6 +62,7 @@ interface CatalogTabProps {
   onAddAuditLog: (actor: string, action: string, details: string, severity: 'INFO' | 'WARNING' | 'CRITICAL') => void;
   language: 'en' | 'am';
   onNavigateToTab: (tab: 'DASHBOARD' | 'CATALOG' | 'FLASH_DEALS' | 'STOCK' | 'PAYOUT' | 'KYC') => void;
+  onDeleteProduct?: (productId: string) => Promise<{ success: boolean; error?: string } | boolean | void>;
 }
 
 export default function CatalogTab({
@@ -65,7 +72,8 @@ export default function CatalogTab({
   onBulkUpdateProducts,
   onAddAuditLog,
   language,
-  onNavigateToTab
+  onNavigateToTab,
+  onDeleteProduct
 }: CatalogTabProps) {
   // Navigation: Sub-tabs within Catalog
   const [catalogSubTab, setCatalogSubTab] = useState<'LIST' | 'CREATE'>('LIST');
@@ -90,26 +98,43 @@ export default function CatalogTab({
   const [bulkStatusTarget, setBulkStatusTarget] = useState<'APPROVED' | 'PENDING_APPROVAL' | 'REJECTED'>('APPROVED');
   const [bulkPricePct, setBulkPricePct] = useState<number>(-10);
   const [bulkFlatPrice, setBulkFlatPrice] = useState<number>(1000);
-  const [bulkCategoryTarget, setBulkCategoryTarget] = useState<string>('traditional');
-  const [bulkStockThreshold, setBulkStockThreshold] = useState<number>(5);
+  const [bulkCategoryTarget, setBulkCategoryTarget] = useState<string>('computers');
+  const [bulkStockThreshold, setBulkStockThreshold] = useState<number>(3);
   const [bulkFeaturedTarget, setBulkFeaturedTarget] = useState<boolean>(true);
 
   // QR Generation State
   const [selectedQrProduct, setSelectedQrProduct] = useState<Product | null>(null);
   const [selectedPrintVariant, setSelectedPrintVariant] = useState<{ product: Product; variant: Variant } | null>(null);
 
-  // New Product Form State
+  // New Product Form State - Real Tech Products (MVP 1 Ready)
   const [nameEn, setNameEn] = useState('');
   const [nameAm, setNameAm] = useState('');
   const [descEn, setDescEn] = useState('');
   const [descAm, setDescAm] = useState('');
-  const [price, setPrice] = useState(1000);
-  const [category, setCategory] = useState('traditional');
+  const [price, setPrice] = useState(15000);
+  const [category, setCategory] = useState('computers');
   const [brand, setBrand] = useState('');
-  const [image, setImage] = useState('https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=600&q=80');
-  const [lowStockThreshold, setLowStockThreshold] = useState(5);
+  const [condition, setCondition] = useState<'SEALED' | 'BRAND_NEW' | 'OPEN_BOX' | 'CERTIFIED_REFURBISHED'>('SEALED');
+  const [warrantyMonths, setWarrantyMonths] = useState<number>(12);
+  const [image, setImage] = useState('https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80');
+  const [lowStockThreshold, setLowStockThreshold] = useState(3);
+  
+  // Tech Specs State
+  const [showSpecsSection, setShowSpecsSection] = useState(false);
+  const [specsCpu, setSpecsCpu] = useState('');
+  const [specsRam, setSpecsRam] = useState('');
+  const [specsStorage, setSpecsStorage] = useState('');
+  const [specsGpu, setSpecsGpu] = useState('');
+  const [specsDisplay, setSpecsDisplay] = useState('');
+  const [specsBattery, setSpecsBattery] = useState('');
+  const [specsOs, setSpecsOs] = useState('');
+  const [specsCamera, setSpecsCamera] = useState('');
+  const [specsPorts, setSpecsPorts] = useState('');
+  const [specsCharging, setSpecsCharging] = useState('');
+  const [specsConnectivity, setSpecsConnectivity] = useState('');
+
   const [variantsList, setVariantsList] = useState<{ sku: string; name: string; priceOffset: number; onHand: number; }[]>([
-    { sku: '', name: 'Standard Option', priceOffset: 0, onHand: 10 }
+    { sku: '', name: 'Base Specification', priceOffset: 0, onHand: 5 }
   ]);
 
   const [toasts, setToasts] = useState<{ id: string; message: string; type: 'success' | 'warning' }[]>([]);
@@ -335,13 +360,68 @@ export default function CatalogTab({
     setVariantsList(variantsList.map((item, i) => i === index ? { ...item, [field]: val } : item));
   };
 
+  const handleDeleteProductClick = async (product: Product) => {
+    const confirmMsg = language === 'en'
+      ? `Are you sure you want to permanently delete "${product.nameEn}"? This demo/item will be removed from your catalog.`
+      : `እርግጠኛ ነዎት "${product.nameAm || product.nameEn}" ን በቋሚነት መሰረዝ ይፈልጋሉ?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    if (onDeleteProduct) {
+      await onDeleteProduct(product.id);
+    }
+    showLocalToast(
+      language === 'en' ? `Deleted "${product.nameEn}"` : `"${product.nameAm || product.nameEn}" ተሰርዟል`,
+      'success'
+    );
+    onAddAuditLog(
+      `${currentMerchant.storeName} (Merchant)`,
+      'PRODUCT_DELETED',
+      `Deleted product "${product.nameEn}" (${product.id}) from merchant catalog.`,
+      'WARNING'
+    );
+  };
+
+  const handleBulkDeleteSelected = async () => {
+    if (selectedProductIds.length === 0) return;
+    const confirmMsg = language === 'en'
+      ? `Are you sure you want to delete all ${selectedProductIds.length} selected items? All demo items will be completely removed.`
+      : `እርግጠኛ ነዎት የተመረጡትን ${selectedProductIds.length} እቃዎች በሙሉ መሰረዝ ይፈልጋሉ?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setBulkIsSubmitting(true);
+    try {
+      if (onDeleteProduct) {
+        for (const id of selectedProductIds) {
+          await onDeleteProduct(id);
+        }
+      }
+      showLocalToast(
+        language === 'en'
+          ? `Successfully deleted ${selectedProductIds.length} selected products!`
+          : `የተመረጡት ${selectedProductIds.length} ምርቶች በተሳካ ሁኔታ ተሰርዘዋል!`,
+        'success'
+      );
+      onAddAuditLog(
+        `${currentMerchant.storeName} (Merchant)`,
+        'BULK_PRODUCTS_DELETED',
+        `Bulk deleted ${selectedProductIds.length} items from merchant catalog.`,
+        'WARNING'
+      );
+      setSelectedProductIds([]);
+    } catch (err: any) {
+      showLocalToast(`Bulk deletion error: ${err.message}`, 'warning');
+    } finally {
+      setBulkIsSubmitting(false);
+    }
+  };
+
   const handleCreateProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameEn || !nameAm || !brand) {
       showLocalToast(
         language === 'en'
-          ? 'Please fill out both English and Amharic titles, and artisan/brand name.'
-          : 'እባክዎን የእንግሊዝኛ እና የአማርኛ አርዕስት እንዲሁም የአምራች ስም ያስገቡ።',
+          ? 'Please fill out both English and Amharic titles, and brand name.'
+          : 'እባክዎን የእንግሊዝኛ እና የአማርኛ አርዕስት እንዲሁም የምርት ስም ያስገቡ።',
         'warning'
       );
       return;
@@ -362,12 +442,32 @@ export default function CatalogTab({
       return;
     }
 
+    const conditionTextEn = condition === 'SEALED' ? 'Factory Sealed' : condition === 'BRAND_NEW' ? 'Brand New' : condition === 'OPEN_BOX' ? 'Open Box' : 'Certified Refurbished';
+    const conditionTextAm = condition === 'SEALED' ? 'በፋብሪካው የታሸገ' : condition === 'BRAND_NEW' ? 'አዲስ' : condition === 'OPEN_BOX' ? 'ክፍት ሳጥን' : 'የታደሰ';
+    const warrantyTextEn = warrantyMonths > 0 ? `${warrantyMonths} Months Official Warranty` : 'No Warranty Included';
+    const warrantyTextAm = warrantyMonths > 0 ? `የ${warrantyMonths} ወራት ኦፊሴላዊ ዋስትና` : 'ዋስትና የለውም';
+
+    const hasSpecs = !!(specsCpu || specsRam || specsStorage || specsGpu || specsDisplay || specsBattery || specsOs || specsCamera || specsPorts || specsCharging || specsConnectivity);
+    const specs = hasSpecs ? {
+      ...(specsCpu ? { cpu: specsCpu } : {}),
+      ...(specsRam ? { ram: specsRam } : {}),
+      ...(specsStorage ? { storage: specsStorage } : {}),
+      ...(specsGpu ? { gpu: specsGpu } : {}),
+      ...(specsDisplay ? { display: specsDisplay } : {}),
+      ...(specsBattery ? { battery: specsBattery } : {}),
+      ...(specsOs ? { os: specsOs } : {}),
+      ...(specsCamera ? { camera: specsCamera } : {}),
+      ...(specsPorts ? { ports: specsPorts } : {}),
+      ...(specsCharging ? { charging: specsCharging } : {}),
+      ...(specsConnectivity ? { connectivity: specsConnectivity } : {})
+    } : undefined;
+
     const newProduct: Product = {
       id: `p-${Date.now()}`,
       nameEn,
       nameAm,
-      descriptionEn: descEn || 'No description provided.',
-      descriptionAm: descAm || 'መግለጫ አልተሰጠም።',
+      descriptionEn: descEn || 'Authentic tech product listed by merchant.',
+      descriptionAm: descAm || 'በነጋዴ የቀረበ እውነተኛ የቴክኖሎጂ ምርት።',
       price: Number(price),
       category,
       brand,
@@ -376,14 +476,21 @@ export default function CatalogTab({
       status: 'PENDING_APPROVAL',
       lowStockThreshold: Number(lowStockThreshold),
       merchantId: currentMerchant.id,
-      merchantName: currentMerchant.storeName
+      merchantName: currentMerchant.storeName,
+      condition,
+      conditionTextEn,
+      conditionTextAm,
+      warrantyMonths,
+      warrantyTextEn,
+      warrantyTextAm,
+      specs
     };
 
     onAddProduct(newProduct);
     onAddAuditLog(
       `${currentMerchant.storeName} (Merchant)`,
       'PRODUCT_CREATED_PENDING',
-      `Submitted new product "${nameEn}" with SKU code sequence [${validVariants.map(v => v.sku).join(', ')}] for Admin review.`,
+      `Submitted new product "${nameEn}" with SKU sequence [${validVariants.map(v => v.sku).join(', ')}] for Admin review.`,
       'INFO'
     );
 
@@ -392,9 +499,23 @@ export default function CatalogTab({
     setNameAm('');
     setDescEn('');
     setDescAm('');
-    setPrice(1000);
+    setPrice(15000);
     setBrand('');
-    setVariantsList([{ sku: '', name: 'Standard Option', priceOffset: 0, onHand: 10 }]);
+    setCondition('SEALED');
+    setWarrantyMonths(12);
+    setSpecsCpu('');
+    setSpecsRam('');
+    setSpecsStorage('');
+    setSpecsGpu('');
+    setSpecsDisplay('');
+    setSpecsBattery('');
+    setSpecsOs('');
+    setSpecsCamera('');
+    setSpecsPorts('');
+    setSpecsCharging('');
+    setSpecsConnectivity('');
+    setShowSpecsSection(false);
+    setVariantsList([{ sku: '', name: 'Base Specification', priceOffset: 0, onHand: 5 }]);
     setCatalogSubTab('LIST');
     alert(
       language === 'en'
@@ -409,10 +530,14 @@ export default function CatalogTab({
   };
 
   const demoImages = [
-    { name: 'Pottery Clay', url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=300&q=80' },
-    { name: 'Ethiopian Coffee', url: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80' },
-    { name: 'Saba Tilet Apparel', url: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=300&q=80' },
-    { name: 'Organic Spices', url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=300&q=80' },
+    { name: 'MacBooks & Laptops', url: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Smartphones & Tablets', url: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Audio & Headphones', url: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Smartwatches', url: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Gaming Consoles', url: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Cameras & Security', url: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Chargers & Power', url: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Earbuds & Wireless', url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80' }
   ];
 
   return (
@@ -493,11 +618,12 @@ export default function CatalogTab({
                   onChange={e => setCategoryFilter(e.target.value)}
                   className="border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none text-gray-800 dark:text-zinc-200"
                 >
-                  <option value="ALL">Category: All</option>
-                  <option value="traditional">Traditional & Cultural</option>
-                  <option value="staples">Food Staples & Coffee</option>
-                  <option value="electronics">Electronics & Gadgets</option>
-                  <option value="apparel">Fashion & Apparel</option>
+                  <option value="ALL">Category: All ({INITIAL_CATEGORIES.length} Categories)</option>
+                  {INITIAL_CATEGORIES.map(cat => (
+                    <option key={cat.id} value={cat.id}>
+                      {language === 'en' ? cat.nameEn : cat.nameAm}
+                    </option>
+                  ))}
                 </select>
 
                 {/* Status Selector */}
@@ -685,6 +811,14 @@ export default function CatalogTab({
                             >
                               {p.status === 'APPROVED' ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                             </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteProductClick(p)}
+                              title={language === 'en' ? 'Delete listing' : 'እቃውን ሰርዝ'}
+                              className="p-1.5 rounded-lg border border-red-200 dark:border-red-900/40 text-red-500 hover:text-white hover:bg-red-600 transition-all cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -786,7 +920,7 @@ export default function CatalogTab({
                     </div>
 
                     {/* Advanced Batch Operations Button */}
-                    <div className="sm:border-l border-zinc-800 sm:pl-3.5">
+                    <div className="sm:border-l border-zinc-800 sm:pl-3.5 flex items-center gap-2">
                       <button
                         onClick={() => setIsBulkModalOpen(true)}
                         disabled={bulkIsSubmitting}
@@ -794,6 +928,17 @@ export default function CatalogTab({
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                         <span>{language === 'en' ? 'Advanced Batch Operations' : 'አጠቃላይ ማሻሻያ ስቱዲዮ'}</span>
+                      </button>
+
+                      {/* Bulk Delete Selected (MVP 1 Demo Cleanup) */}
+                      <button
+                        onClick={handleBulkDeleteSelected}
+                        disabled={bulkIsSubmitting}
+                        className="px-3.5 py-1.5 bg-red-950/80 hover:bg-red-600 border border-red-500/40 hover:border-red-600 text-red-200 hover:text-white font-black text-[10px] rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
+                        title={language === 'en' ? 'Delete all selected demo/real products' : 'የተመረጡትን ሰርዝ'}
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-red-400 group-hover:text-white" />
+                        <span>{language === 'en' ? 'Delete Selected' : 'የተመረጡትን ሰርዝ'}</span>
                       </button>
                     </div>
                   </div>
@@ -858,7 +1003,7 @@ export default function CatalogTab({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Handmade Painted Jebena Pot"
+                  placeholder='e.g. Apple MacBook Pro 16" M3 Max or Samsung Galaxy S24 Ultra'
                   value={nameEn}
                   onChange={e => setNameEn(e.target.value)}
                   className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-zinc-900 text-gray-900 dark:text-white transition-all font-semibold"
@@ -872,7 +1017,7 @@ export default function CatalogTab({
                 <input
                   type="text"
                   required
-                  placeholder="ምሳሌ፡ በእጅ የተቀባ ባህላዊ የሸክላ ጀበና"
+                  placeholder='ምሳሌ፡ አፕል ማክቡክ ፕሮ 16" ወይም ሳምሰንግ ጋላክሲ S24 አልትራ'
                   value={nameAm}
                   onChange={e => setNameAm(e.target.value)}
                   className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-zinc-900 text-gray-900 dark:text-white transition-all font-semibold"
@@ -887,7 +1032,7 @@ export default function CatalogTab({
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="Detail the materials used, historical craft significance, care directions, and dimensions..."
+                  placeholder="Detail technical specifications, hardware condition, battery health, and warranty coverage..."
                   value={descEn}
                   onChange={e => setDescEn(e.target.value)}
                   className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-zinc-900 text-gray-900 dark:text-white transition-all leading-relaxed"
@@ -899,7 +1044,7 @@ export default function CatalogTab({
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="ስለ ምርቱ አሰራር፣ ጥራት፣ መጠን እና አጠቃቀም ዝርዝር መረጃዎችን ያስገቡ..."
+                  placeholder="ስለ ቴክኒካል ዝርዝር መረጃ፣ የባትሪ ቆይታ፣ የምርት ሁኔታ እና የዋስትና ዝርዝር ያስገቡ..."
                   value={descAm}
                   onChange={e => setDescAm(e.target.value)}
                   className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-zinc-900 text-gray-900 dark:text-white transition-all leading-relaxed"
@@ -913,7 +1058,7 @@ export default function CatalogTab({
             <div className="flex items-center gap-2 border-b border-gray-100 dark:border-zinc-800 pb-2">
               <Tag className="w-4 h-4 text-[#C5A059]" />
               <h4 className="font-bold text-xs text-gray-900 dark:text-white uppercase tracking-wider">
-                2. {language === 'en' ? 'Pricing & Warehousing Config' : 'የዋጋ እና የክምችት ማዋቀሪያ'}
+                2. {language === 'en' ? 'Pricing & Category Taxonomies' : 'የዋጋ እና የምድብ ማዋቀሪያ'}
               </h4>
             </div>
 
@@ -934,28 +1079,29 @@ export default function CatalogTab({
 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
-                  {language === 'en' ? 'Category' : 'ምድብ'}
+                  {language === 'en' ? 'Tech Category' : 'የቴክኖሎጂ ምድብ'}
                 </label>
                 <select
                   value={category}
                   onChange={e => setCategory(e.target.value)}
                   className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-zinc-900 text-gray-900 dark:text-white transition-all font-bold"
                 >
-                  <option value="traditional">Traditional & Cultural</option>
-                  <option value="staples">Food Staples & Coffee</option>
-                  <option value="electronics">Electronics & Gadgets</option>
-                  <option value="apparel">Fashion & Apparel</option>
+                  {INITIAL_CATEGORIES.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {language === 'en' ? c.nameEn : c.nameAm}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
-                  {language === 'en' ? 'Brand / Artisan Store' : 'የአምራች/ባለሙያ ስም'}
+                  {language === 'en' ? 'Brand / Manufacturer' : 'የአምራች/ብራንድ ስም'}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Awassa Clay Works"
+                  placeholder="e.g. Apple, Samsung, Sony, Dell, Lenovo, HP, Anker, Bose"
                   value={brand}
                   onChange={e => setBrand(e.target.value)}
                   className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-zinc-900 text-gray-900 dark:text-white transition-all font-bold"
@@ -975,6 +1121,175 @@ export default function CatalogTab({
                 />
               </div>
             </div>
+          </div>
+
+          {/* Condition & Official Warranty Pass Section */}
+          <div className="bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 rounded-2xl p-6 space-y-4 shadow-xs">
+            <div className="flex items-center gap-2 border-b border-gray-100 dark:border-zinc-800 pb-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              <h4 className="font-bold text-xs text-gray-900 dark:text-white uppercase tracking-wider">
+                3. {language === 'en' ? 'Item Condition & Digital Warranty Coverage' : 'የምርት ሁኔታ እና ይፋዊ ዋስትና'}
+              </h4>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                  {language === 'en' ? 'Hardware Condition Grade' : 'የእቃው ሁኔታ'}
+                </label>
+                <select
+                  value={condition}
+                  onChange={e => setCondition(e.target.value as any)}
+                  className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-zinc-900 text-gray-900 dark:text-white transition-all font-bold"
+                >
+                  <option value="SEALED">{language === 'en' ? 'Factory Sealed (Original Box)' : 'በፋብሪካው የታሸገ (ኦሪጅናል ሳጥን)'}</option>
+                  <option value="BRAND_NEW">{language === 'en' ? 'Brand New (Unused)' : 'አዲስ (ያልተከፈተ)'}</option>
+                  <option value="OPEN_BOX">{language === 'en' ? 'Open Box (Inspected)' : 'ክፍት ሳጥን (የተረጋገጠ)'}</option>
+                  <option value="CERTIFIED_REFURBISHED">{language === 'en' ? 'Certified Refurbished (Grade A)' : 'የታደሰ / ሪፈርቢሽድ'}</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                  {language === 'en' ? 'Official Warranty Pass Term' : 'የዋስትና ጊዜ (ዲጂታል ካርድ)'}
+                </label>
+                <select
+                  value={warrantyMonths}
+                  onChange={e => setWarrantyMonths(Number(e.target.value))}
+                  className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-zinc-900 text-gray-900 dark:text-white transition-all font-bold"
+                >
+                  <option value={0}>{language === 'en' ? 'No Warranty Included' : 'ዋስትና የለውም'}</option>
+                  <option value={6}>{language === 'en' ? '6 Months Official Warranty' : 'የ6 ወራት ኦፊሴላዊ ዋስትና'}</option>
+                  <option value={12}>{language === 'en' ? '12 Months Official Warranty' : 'የ12 ወራት ኦፊሴላዊ ዋስትና'}</option>
+                  <option value={18}>{language === 'en' ? '18 Months Official Warranty' : 'የ18 ወራት ኦፊሴላዊ ዋስትና'}</option>
+                  <option value={24}>{language === 'en' ? '24 Months Official Warranty' : 'የ24 ወራት ኦፊሴላዊ ዋስትና'}</option>
+                  <option value={36}>{language === 'en' ? '36 Months Official Warranty' : 'የ36 ወራት ኦፊሴላዊ ዋስትና'}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Technical Specifications Accordion (Optional for Tech Hardware) */}
+          <div className="bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 rounded-2xl p-6 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-zinc-800 pb-2">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-indigo-500" />
+                <h4 className="font-bold text-xs text-gray-900 dark:text-white uppercase tracking-wider">
+                  4. {language === 'en' ? 'Technical Specifications (Hardware & Specs)' : 'የቴክኒካል ዝርዝር መረጃ (ሲፒዩ፣ ራም፣ ስክሪን)'}
+                </h4>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSpecsSection(!showSpecsSection)}
+                className="text-xs font-bold text-[#0052FF] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>{showSpecsSection ? (language === 'en' ? 'Collapse Specs' : 'አሳንስ') : (language === 'en' ? 'Configure Specs' : 'ዝርዝር አስገባ')}</span>
+                {showSpecsSection ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
+            {showSpecsSection && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Processor (CPU)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Apple M3 Max 14-Core or Intel i9-13900H"
+                    value={specsCpu}
+                    onChange={e => setSpecsCpu(e.target.value)}
+                    className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">System Memory (RAM)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 36GB Unified Memory or 32GB DDR5"
+                    value={specsRam}
+                    onChange={e => setSpecsRam(e.target.value)}
+                    className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Internal Storage</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 1TB PCIe NVMe SSD or 512GB UFS 4.0"
+                    value={specsStorage}
+                    onChange={e => setSpecsStorage(e.target.value)}
+                    className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Graphics / GPU</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. NVIDIA RTX 4070 8GB or 30-Core Apple GPU"
+                    value={specsGpu}
+                    onChange={e => setSpecsGpu(e.target.value)}
+                    className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Display Screen</label>
+                  <input
+                    type="text"
+                    placeholder='e.g. 16.2" Liquid Retina XDR 120Hz or 6.8" AMOLED'
+                    value={specsDisplay}
+                    onChange={e => setSpecsDisplay(e.target.value)}
+                    className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Battery & Endurance</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 100Wh (Up to 22h battery life) or 5,000 mAh"
+                    value={specsBattery}
+                    onChange={e => setSpecsBattery(e.target.value)}
+                    className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Operating System (OS)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. macOS Sonoma, Windows 11 Pro, Android 14"
+                    value={specsOs}
+                    onChange={e => setSpecsOs(e.target.value)}
+                    className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Camera System</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 200MP Quad-Lens or 1080p FaceTime HD"
+                    value={specsCamera}
+                    onChange={e => setSpecsCamera(e.target.value)}
+                    className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ports & Connectivity</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 3x Thunderbolt 4, HDMI 2.1, Wi-Fi 6E, 5G"
+                    value={specsPorts}
+                    onChange={e => setSpecsPorts(e.target.value)}
+                    className="w-full border border-gray-200 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3 py-2 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Media & Upload Section */}
@@ -1048,7 +1363,7 @@ export default function CatalogTab({
                         {language === 'en' ? (nameEn || 'Untitled Product') : (nameAm || 'ያልተሰየመ ምርት')}
                       </p>
                       <p className="text-[10px] text-gray-400 dark:text-zinc-500 truncate font-semibold">
-                        {brand || 'Artisan Brand'}
+                        {brand || 'Apple / Samsung / Sony'}
                       </p>
                       <div className="flex justify-between items-center pt-1 border-t border-gray-100/60 dark:border-zinc-850/40">
                         <span className="text-[#0052FF] font-black text-xs font-mono">{price.toLocaleString()} ETB</span>
@@ -1089,7 +1404,7 @@ export default function CatalogTab({
                     <input
                       type="text"
                       required
-                      placeholder="e.g. JB-BROWN"
+                      placeholder="e.g. MBP16-M3M-SLV"
                       value={row.sku}
                       onChange={e => updateVariantRow(idx, 'sku', e.target.value)}
                       className="w-full border border-gray-250 dark:border-zinc-700 bg-white dark:bg-zinc-900 rounded-xl px-3 py-2 text-xs uppercase font-mono font-bold text-gray-900 dark:text-white focus:outline-none focus:border-black"
@@ -1101,7 +1416,7 @@ export default function CatalogTab({
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Medium Brown / Saba Design"
+                      placeholder="e.g. Space Black 36GB / 1TB SSD"
                       value={row.name}
                       onChange={e => updateVariantRow(idx, 'name', e.target.value)}
                       className="w-full border border-gray-250 dark:border-zinc-700 bg-white dark:bg-zinc-900 rounded-xl px-3 py-2 text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:border-black"
@@ -1756,10 +2071,11 @@ export default function CatalogTab({
                       onChange={e => setBulkCategoryTarget(e.target.value)}
                       className="w-full max-w-sm border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-[#0052FF]"
                     >
-                      <option value="traditional">Traditional & Cultural Apparel</option>
-                      <option value="staples">Food Staples & Ethiopian Coffee</option>
-                      <option value="electronics">Electronics & Smart Devices</option>
-                      <option value="apparel">Fashion & Leather Goods</option>
+                      {INITIAL_CATEGORIES.map(cat => (
+                        <option key={cat.id} value={cat.id}>
+                          {language === 'en' ? cat.nameEn : cat.nameAm}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 )}

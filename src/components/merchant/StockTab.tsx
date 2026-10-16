@@ -1070,7 +1070,7 @@ export default function StockTab({
                   </label>
                   <textarea
                     rows={5}
-                    placeholder="sku,quantity_offset&#10;JB-BROWN,15&#10;JB-SMALL,-3"
+                    placeholder="sku,quantity_offset&#10;MBP16-M3M-SLV,15&#10;S24U-TIT-512,-3"
                     value={csvText}
                     onChange={e => setCsvText(e.target.value)}
                     className="w-full border border-gray-250 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-850/20 rounded-xl px-3.5 py-2.5 text-xs font-mono focus:outline-none focus:border-black text-gray-900 dark:text-white"

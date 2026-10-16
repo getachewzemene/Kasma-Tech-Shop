@@ -202,6 +202,7 @@ interface ShopContextType {
     notes?: string;
   }) => Promise<{ success: boolean; flashDeal?: FlashDealNomination; error?: string }>;
   cancelFlashDeal: (merchantId: string, dealId: string) => Promise<{ success: boolean; error?: string }>;
+  deleteProduct: (productId: string) => Promise<boolean>;
 }
 
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
@@ -901,6 +902,31 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch {}
   }, [getAdminAuthHeaders, showToast]);
 
+  const deleteProduct = useCallback(async (id: string): Promise<boolean> => {
+    setProducts(prev => prev.filter(p => p.id !== id));
+    try {
+      const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`/api/products/${id}`, {
+        method: 'DELETE',
+        headers
+      });
+      if (res.ok) {
+        showToast('Product listing deleted', 'info');
+        await refreshState(true);
+        return true;
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || 'Failed to delete product', 'warning');
+        return false;
+      }
+    } catch {
+      showToast('Product removed locally', 'info');
+      return true;
+    }
+  }, [showToast, refreshState]);
+
   const approveMerchantKyc = useCallback(async (merchantId: string) => {
     setMerchants(prev => prev.map(m => m.id === merchantId ? { ...m, kycStatus: 'APPROVED', status: 'ACTIVE' } : m));
     try {
@@ -1321,7 +1347,8 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         getOrderWarranties,
         flashDeals,
         nominateFlashDeal,
-        cancelFlashDeal
+        cancelFlashDeal,
+        deleteProduct
       }}
     >
       {children}

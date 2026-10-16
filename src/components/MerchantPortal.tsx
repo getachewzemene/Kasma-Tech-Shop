@@ -102,6 +102,7 @@ interface MerchantPortalProps {
     notes?: string;
   }) => Promise<{ success: boolean; flashDeal?: FlashDealNomination; error?: string }>;
   onCancelFlashDeal?: (merchantId: string, dealId: string) => Promise<{ success: boolean; error?: string }>;
+  onDeleteProduct?: (productId: string) => Promise<{ success: boolean; error?: string } | boolean | void>;
 }
 
 export default function MerchantPortal({
@@ -122,7 +123,8 @@ export default function MerchantPortal({
   onOrderUpdated,
   flashDeals,
   onNominateFlashDeal,
-  onCancelFlashDeal
+  onCancelFlashDeal,
+  onDeleteProduct
 }: MerchantPortalProps) {
   // Active merchant (Default to authenticated session or first merchant)
   const [selectedMerchantId, setSelectedMerchantId] = useState<string>(() => {
@@ -993,7 +995,7 @@ export default function MerchantPortal({
       <main className="flex-1 flex flex-col min-w-0">
         
         {/* Top Header Workspace Controls */}
-        <header className="h-14 lg:h-16 bg-white dark:bg-zinc-950 border-b border-gray-150 dark:border-zinc-900 px-4 sm:px-8 flex items-center justify-between shrink-0">
+        <header className="sticky top-0 z-30 h-14 lg:h-16 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md border-b border-gray-150 dark:border-zinc-900 px-4 sm:px-8 flex items-center justify-between shrink-0 shadow-2xs">
           
           {/* Desktop Toggle Button & Breadcrumbs / Profile summary */}
           <div className="flex items-center gap-3 text-xs font-bold text-gray-500">
@@ -1207,6 +1209,7 @@ export default function MerchantPortal({
                   onAddAuditLog={onAddAuditLog}
                   language={language}
                   onNavigateToTab={setActiveTab}
+                  onDeleteProduct={onDeleteProduct}
                 />
               )}
 

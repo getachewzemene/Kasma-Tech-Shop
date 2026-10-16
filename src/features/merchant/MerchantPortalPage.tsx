@@ -17,7 +17,8 @@ export const MerchantPortalPage: React.FC = () => {
     refreshState,
     flashDeals,
     nominateFlashDeal,
-    cancelFlashDeal
+    cancelFlashDeal,
+    deleteProduct
   } = useShop();
 
   const [stockLogs, setStockLogs] = useState<any[]>([]);
@@ -189,6 +190,19 @@ export const MerchantPortalPage: React.FC = () => {
       showToast('Product draft submitted for admin approval', 'success');
     } catch (err: any) {
       showToast(err.message || 'Failed to save product draft', 'error');
+    }
+  };
+
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      const ok = await deleteProduct(productId);
+      if (ok) {
+        await refreshState();
+      }
+      return ok;
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete product', 'error');
+      return false;
     }
   };
 
@@ -484,6 +498,7 @@ export const MerchantPortalPage: React.FC = () => {
         flashDeals={flashDeals}
         onNominateFlashDeal={nominateFlashDeal}
         onCancelFlashDeal={cancelFlashDeal}
+        onDeleteProduct={handleDeleteProduct}
       />
     </div>
   );

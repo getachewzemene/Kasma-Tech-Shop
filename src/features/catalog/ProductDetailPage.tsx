@@ -376,15 +376,20 @@ export const ProductDetailPage: React.FC = () => {
           </div>
 
           {/* Pricing Box */}
-          <div className="p-4 rounded-2xl bg-gray-50 dark:bg-zinc-900/80 border border-gray-150 dark:border-zinc-800 space-y-1">
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-zinc-100">
-                {unitPrice.toLocaleString()} ETB
-              </span>
-              <span className="text-xs text-gray-500 line-through">
+          <div className="p-4 sm:p-5 rounded-2xl bg-gray-50 dark:bg-zinc-900/80 border border-gray-150 dark:border-zinc-800 space-y-1.5">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <div className="flex items-baseline gap-1.5 whitespace-nowrap">
+                <span className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-zinc-100 font-mono tracking-tight">
+                  {unitPrice.toLocaleString()}
+                </span>
+                <span className="text-xs sm:text-sm font-black font-mono text-[#0052FF] dark:text-blue-400 uppercase">
+                  ETB
+                </span>
+              </div>
+              <span className="text-xs text-gray-500 line-through font-mono whitespace-nowrap">
                 {Math.round(unitPrice * 1.12).toLocaleString()} ETB
               </span>
-              <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400">
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
                 Save 12%
               </span>
             </div>
@@ -453,71 +458,74 @@ export const ProductDetailPage: React.FC = () => {
 
           {/* Quantity Selector & Action Buttons */}
           <div className="space-y-3 pt-2">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
               {/* Quantity Counter */}
-              <div className="flex items-center border border-gray-200 dark:border-zinc-800 rounded-xl bg-gray-50 dark:bg-zinc-900 p-1">
+              <div className="flex items-center justify-between sm:justify-start border border-gray-200 dark:border-zinc-800 rounded-xl bg-gray-50 dark:bg-zinc-900 p-1 shrink-0 h-11 sm:h-12">
                 <button
                   type="button"
                   onClick={() => setSelectedQuantity(Math.max(1, selectedQuantity - 1))}
                   disabled={selectedQuantity <= 1 || isOutOfStock}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-gray-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 transition-colors disabled:opacity-40 cursor-pointer"
+                  className="w-9 h-full rounded-lg flex items-center justify-center font-bold text-gray-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 transition-colors disabled:opacity-40 cursor-pointer text-base"
                 >
                   -
                 </button>
-                <span className="w-10 text-center font-bold text-xs text-gray-900 dark:text-zinc-100">
+                <span className="w-10 text-center font-bold font-mono text-sm text-gray-900 dark:text-zinc-100">
                   {selectedQuantity}
                 </span>
                 <button
                   type="button"
                   onClick={() => setSelectedQuantity(Math.min(onHand, selectedQuantity + 1))}
                   disabled={selectedQuantity >= onHand || isOutOfStock}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-gray-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 transition-colors disabled:opacity-40 cursor-pointer"
+                  className="w-9 h-full rounded-lg flex items-center justify-center font-bold text-gray-600 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-800 transition-colors disabled:opacity-40 cursor-pointer text-base"
                 >
                   +
                 </button>
               </div>
 
-              {/* Add to Cart */}
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                disabled={isOutOfStock}
-                className="flex-1 py-3 px-4 rounded-xl bg-gray-100 dark:bg-zinc-900 hover:bg-gray-200 dark:hover:bg-zinc-800 text-gray-900 dark:text-zinc-100 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                <span>{language === 'en' ? 'Add to Cart' : 'ወደ ጋሪ ጨምር'}</span>
-              </button>
+              {/* Action Buttons Group */}
+              <div className="grid grid-cols-2 sm:flex sm:flex-1 items-center gap-2 sm:gap-2.5 min-w-0">
+                {/* Add to Cart */}
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={isOutOfStock}
+                  className="h-11 sm:h-12 flex-1 px-3 sm:px-4 rounded-xl bg-white dark:bg-zinc-850 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-900 dark:text-zinc-100 text-xs sm:text-sm font-black uppercase tracking-wider border border-gray-250 dark:border-zinc-700 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 whitespace-nowrap shadow-xs active:scale-[0.98]"
+                >
+                  <ShoppingBag className="w-4 h-4 shrink-0 text-gray-700 dark:text-zinc-300" />
+                  <span className="truncate">{language === 'en' ? 'Add to Cart' : 'ወደ ጋሪ ጨምር'}</span>
+                </button>
 
-              {/* Instant Buy Now */}
-              <button
-                type="button"
-                onClick={handleInstantBuy}
-                disabled={isOutOfStock}
-                className="flex-1 py-3 px-4 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
-              >
-                <Zap className="w-4 h-4" />
-                <span>{language === 'en' ? 'Instant Buy' : 'ወዲያውኑ ግዛ'}</span>
-              </button>
+                {/* Instant Buy Now */}
+                <button
+                  type="button"
+                  onClick={handleInstantBuy}
+                  disabled={isOutOfStock}
+                  className="h-11 sm:h-12 flex-1 px-3 sm:px-4 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white text-xs sm:text-sm font-black uppercase tracking-wider shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 whitespace-nowrap active:scale-[0.98]"
+                >
+                  <Zap className="w-4 h-4 fill-current text-amber-300 shrink-0" />
+                  <span className="truncate">{language === 'en' ? 'Instant Buy' : 'ወዲያውኑ ግዛ'}</span>
+                </button>
 
-              {/* Compare Tech Specs Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  toggleCompare(product.id);
-                  setIsCompareModalOpen(true);
-                }}
-                className={`py-3 px-3.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs ${
-                  comparedProductIds.includes(product.id)
-                    ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-400 text-[#0052FF] dark:text-blue-300'
-                    : 'bg-white dark:bg-zinc-850 hover:bg-gray-50 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-200'
-                }`}
-                title={language === 'en' ? 'Side-by-Side Tech Specs Compare' : 'ጎን ለጎን ዝርዝር መግለጫ ማነጻጸሪያ'}
-              >
-                <Scale className="w-4 h-4 text-[#0052FF]" />
-                <span className="hidden sm:inline">
-                  {language === 'en' ? 'Compare Specs' : 'አነጻጽር'}
-                </span>
-              </button>
+                {/* Compare Tech Specs Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    toggleCompare(product.id);
+                    setIsCompareModalOpen(true);
+                  }}
+                  className={`h-11 sm:h-12 col-span-2 sm:col-span-auto px-3 sm:px-3.5 rounded-xl border text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap ${
+                    comparedProductIds.includes(product.id)
+                      ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-400 text-[#0052FF] dark:text-blue-300'
+                      : 'bg-white dark:bg-zinc-850 hover:bg-gray-50 border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-200'
+                  }`}
+                  title={language === 'en' ? 'Side-by-Side Tech Specs Compare' : 'ጎን ለጎን ዝርዝር መግለጫ ማነጻጸሪያ'}
+                >
+                  <Scale className="w-4 h-4 text-[#0052FF] shrink-0" />
+                  <span>
+                    {language === 'en' ? 'Compare' : 'አነጻጽር'}
+                  </span>
+                </button>
+              </div>
             </div>
 
             {/* 1-Click "Chat with Seller on Telegram" Button */}

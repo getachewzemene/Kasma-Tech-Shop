@@ -30,6 +30,34 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'SEN-MT4-SLV', name: 'Metallic Silver', priceOffset: 0, onHand: 3, reserved: 0 }
     ],
     featured: true,
+    rating: 4.9,
+    reviewsCount: 128,
+    reviews: [
+          {
+                "id": "rev-p8-1",
+                "rating": 5,
+                "comment": "Outstanding soundstage and ANC. The copper black finish looks exquisite.",
+                "reviewerName": "Yonas Tadesse",
+                "createdAt": "2026-09-12",
+                "verifiedPurchase": true
+          },
+          {
+                "id": "rev-p8-2",
+                "rating": 5,
+                "comment": "Crystal clear call quality and fast delivery to Bole. Original sealed box.",
+                "reviewerName": "Hana Kebede",
+                "createdAt": "2026-09-28",
+                "verifiedPurchase": true
+          },
+          {
+                "id": "rev-p8-3",
+                "rating": 5,
+                "comment": "Best wireless earbuds for lossless audio. Battery easily lasts all day.",
+                "reviewerName": "Ermias Berhanu",
+                "createdAt": "2026-10-04",
+                "verifiedPurchase": true
+          }
+    ],
     condition: 'SEALED',
     conditionTextEn: 'Factory Sealed',
     conditionTextAm: 'በፋብሪካው የታሸገ',
@@ -56,6 +84,25 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'SS-ANP-WHT', name: 'White Edition', priceOffset: 1200, onHand: 12, reserved: 1 }
     ],
     featured: true,
+    rating: 4.8,
+    reviews: [
+          {
+                "id": "rev-p1-1",
+                "rating": 5,
+                "comment": "Hot-swappable dual batteries mean zero gaming downtime. Super comfortable cushions.",
+                "reviewerName": "Dawit Mengistu",
+                "createdAt": "2026-08-20",
+                "verifiedPurchase": true
+          },
+          {
+                "id": "rev-p1-2",
+                "rating": 4,
+                "comment": "Active Noise Cancellation works very well. Simultaneous Bluetooth is very handy.",
+                "reviewerName": "Kalkidan Assefa",
+                "createdAt": "2026-09-15",
+                "verifiedPurchase": true
+          }
+    ],
     condition: 'SEALED',
     conditionTextEn: 'Factory Sealed',
     conditionTextAm: 'በፋብሪካው የታሸገ',
@@ -82,6 +129,34 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'SNY-XM5-SLV', name: 'Platinum Silver', priceOffset: 500, onHand: 4, reserved: 0 }
     ],
     featured: true,
+    rating: 4.9,
+    reviewsCount: 245,
+    reviews: [
+          {
+                "id": "rev-p2-1",
+                "rating": 5,
+                "comment": "Noticeably smaller and more ergonomic than the XM4. The noise cancellation is class-leading.",
+                "reviewerName": "Michael Girma",
+                "createdAt": "2026-09-02",
+                "verifiedPurchase": true
+          },
+          {
+                "id": "rev-p2-2",
+                "rating": 5,
+                "comment": "Fast pairing with Sony Headphones app. Packaging was 100% genuine sealed.",
+                "reviewerName": "Selamawit W.",
+                "createdAt": "2026-09-22",
+                "verifiedPurchase": true
+          },
+          {
+                "id": "rev-p2-3",
+                "rating": 4,
+                "comment": "LDAC high-res audio is crisp and deep bass. Very happy with purchase.",
+                "reviewerName": "Amanuel Tesfaye",
+                "createdAt": "2026-10-08",
+                "verifiedPurchase": true
+          }
+    ],
     condition: 'BRAND_NEW',
     conditionTextEn: 'Brand New',
     conditionTextAm: 'አዲስ (ያልተከፈተ)',
@@ -107,6 +182,26 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'AWU2-49', name: '49mm Titanium Case', priceOffset: 0, onHand: 15, reserved: 2 }
     ],
     featured: true,
+    rating: 5,
+    reviewsCount: 194,
+    reviews: [
+          {
+                "id": "rev-p3-1",
+                "rating": 5,
+                "comment": "Screen is incredibly bright under Addis midday sun. Solid 3-day battery life.",
+                "reviewerName": "Henok Alemu",
+                "createdAt": "2026-08-30",
+                "verifiedPurchase": true
+          },
+          {
+                "id": "rev-p3-2",
+                "rating": 5,
+                "comment": "Aerospace-grade titanium is scratch proof. Verified warranty with Kasma certificate.",
+                "reviewerName": "Blen Hailu",
+                "createdAt": "2026-09-18",
+                "verifiedPurchase": true
+          }
+    ],
     condition: 'SEALED',
     conditionTextEn: 'Factory Sealed',
     conditionTextAm: 'በፋብሪካው የታሸገ',
@@ -133,6 +228,26 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'MS-STN3-BRW', name: 'Vintage Brown', priceOffset: 1200, onHand: 6, reserved: 0 }
     ],
     featured: true,
+    rating: 4.7,
+    reviewsCount: 86,
+    reviews: [
+          {
+                "id": "rev-p4-1",
+                "rating": 5,
+                "comment": "Room-filling analog warmth and iconic retro look. Connects effortlessly via Bluetooth 5.2.",
+                "reviewerName": "Tewodros Kassaye",
+                "createdAt": "2026-09-10",
+                "verifiedPurchase": true
+          },
+          {
+                "id": "rev-p4-2",
+                "rating": 4,
+                "comment": "Heavy build with premium leather finish. Sounds great across all genres.",
+                "reviewerName": "Lidya Solomon",
+                "createdAt": "2026-10-01",
+                "verifiedPurchase": true
+          }
+    ],
     condition: 'BRAND_NEW',
     conditionTextEn: 'Brand New',
     conditionTextAm: 'አዲስ',
@@ -149,7 +264,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 14800,
     category: 'cameras',
     brand: 'Hikvision',
-    image: 'https://images.unsplash.com/photo-1557862921-37829c790f19?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=800&q=80',
     lowStockThreshold: 4,
     merchantId: 'm4',
     merchantName: 'Abyssinia Electronics',
@@ -158,6 +273,26 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'HK-PTZ-4K', name: '4K Outdoor PTZ Camera', priceOffset: 0, onHand: 14, reserved: 0 }
     ],
     featured: true,
+    rating: 4.6,
+    reviewsCount: 52,
+    reviews: [
+          {
+                "id": "rev-p5-1",
+                "rating": 5,
+                "comment": "4K clarity and AI human detection send accurate alerts to phone app.",
+                "reviewerName": "Dr. Getachew Z.",
+                "createdAt": "2026-09-05",
+                "verifiedPurchase": true
+          },
+          {
+                "id": "rev-p5-2",
+                "rating": 4,
+                "comment": "Color night vision works well in low light. Solid waterproof metal casing.",
+                "reviewerName": "Samuel Fikre",
+                "createdAt": "2026-09-25",
+                "verifiedPurchase": true
+          }
+    ],
     condition: 'BRAND_NEW',
     conditionTextEn: 'Brand New',
     conditionTextAm: 'አዲስ',
@@ -184,6 +319,26 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'BSE-QCU-WHT', name: 'White Smoke', priceOffset: 1500, onHand: 2, reserved: 0 }
     ],
     featured: true,
+    rating: 4.8,
+    reviewsCount: 173,
+    reviews: [
+          {
+                "id": "rev-p6-1",
+                "rating": 5,
+                "comment": "Bose immersive audio makes music sound like a live concert. Extremely soft ear pads.",
+                "reviewerName": "Rahel Desta",
+                "createdAt": "2026-08-14",
+                "verifiedPurchase": true
+          },
+          {
+                "id": "rev-p6-2",
+                "rating": 4,
+                "comment": "Open box was essentially brand new. Great savings and warranty intact.",
+                "reviewerName": "Natnael Wolde",
+                "createdAt": "2026-09-20",
+                "verifiedPurchase": true
+          }
+    ],
     condition: 'OPEN_BOX',
     conditionTextEn: 'Open Box',
     conditionTextAm: 'ክፍት ሳጥን',
@@ -210,6 +365,26 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'S24U-TIT-GRY', name: 'Titanium Gray 512GB', priceOffset: 3000, onHand: 2, reserved: 0 }
     ],
     featured: true,
+    rating: 4.9,
+    reviewsCount: 310,
+    reviews: [
+          {
+                "id": "rev-p7-1",
+                "rating": 5,
+                "comment": "Galaxy AI circle-to-search and live call translate are game changers. Gorilla Armor screen cuts all glare.",
+                "reviewerName": "Nebiyu Kassa",
+                "createdAt": "2026-09-01",
+                "verifiedPurchase": true
+          },
+          {
+                "id": "rev-p7-2",
+                "rating": 5,
+                "comment": "200MP camera zoom is unbelievable. Fast telebirr payment and prompt doorstep inspection.",
+                "reviewerName": "Frehiwot Belay",
+                "createdAt": "2026-09-19",
+                "verifiedPurchase": true
+          }
+    ],
     condition: 'SEALED',
     conditionTextEn: 'Factory Sealed',
     conditionTextAm: 'በፋብሪካው የታሸገ',
@@ -406,6 +581,26 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'ANK-PM-BLK', name: 'Anker Prime Matte Black', priceOffset: 0, onHand: 3, reserved: 0 }
     ],
     featured: true,
+    rating: 4.8,
+    reviewsCount: 142,
+    reviews: [
+          {
+                "id": "rev-p9-1",
+                "rating": 5,
+                "comment": "Charges my MacBook and phone at 200W simultaneously. Essential for power cuts in Addis.",
+                "reviewerName": "Eyob Zeleke",
+                "createdAt": "2026-09-14",
+                "verifiedPurchase": true
+          },
+          {
+                "id": "rev-p9-2",
+                "rating": 5,
+                "comment": "Smart digital screen gives exact remaining battery and wattage per port. Very compact.",
+                "reviewerName": "Meron Alemayehu",
+                "createdAt": "2026-10-07",
+                "verifiedPurchase": true
+          }
+    ],
     condition: 'BRAND_NEW',
     conditionTextEn: 'Brand New',
     conditionTextAm: 'አዲስ',

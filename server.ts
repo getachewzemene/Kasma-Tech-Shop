@@ -775,6 +775,19 @@ async function startServer() {
     res.json(rejected);
   });
 
+  app.delete('/api/products/:id', requireMerchant, (req: AuthRequest, res) => {
+    try {
+      const deleted = ProductService.deleteProduct(req.params.id);
+      if (!deleted) {
+        res.status(404).json({ error: 'Product not found.' });
+        return;
+      }
+      res.json({ success: true, message: 'Product deleted successfully.' });
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || 'Server error deleting product.' });
+    }
+  });
+
   app.put('/api/products/:id/seo', requireAdmin, (req: AuthRequest, res) => {
     const updated = ProductService.updateProductSeo(req.params.id, req.body);
     if (!updated) {

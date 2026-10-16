@@ -119,13 +119,37 @@ export class Database {
               this.products.push({ ...initP });
             } else {
               const prod = this.products.find(p => p.id === initP.id);
-              if (prod && initP.specs) {
-                prod.specs = initP.specs;
+              if (prod) {
+                if (initP.specs) prod.specs = initP.specs;
+                if (initP.rating && !prod.rating) prod.rating = initP.rating;
+                if (initP.reviewsCount && !prod.reviewsCount) prod.reviewsCount = initP.reviewsCount;
+                if (initP.reviews && (!prod.reviews || prod.reviews.length === 0)) {
+                  prod.reviews = initP.reviews;
+                }
               }
             }
           });
 
+          const defaultRatings: Record<string, { rating: number; reviewsCount: number }> = {
+            p8: { rating: 4.9, reviewsCount: 128 },
+            p1: { rating: 4.8, reviewsCount: 115 },
+            p2: { rating: 4.8, reviewsCount: 245 },
+            p3: { rating: 4.9, reviewsCount: 194 },
+            p4: { rating: 4.7, reviewsCount: 86 },
+            p5: { rating: 4.6, reviewsCount: 52 },
+            p6: { rating: 4.8, reviewsCount: 173 },
+            p7: { rating: 4.9, reviewsCount: 310 },
+            p10: { rating: 4.9, reviewsCount: 280 },
+            p11: { rating: 5.0, reviewsCount: 96 },
+            p12: { rating: 4.7, reviewsCount: 64 },
+            p13: { rating: 4.8, reviewsCount: 88 },
+            p9: { rating: 4.8, reviewsCount: 142 }
+          };
+
           this.products = this.products.map(p => {
+            const rInfo = defaultRatings[p.id];
+            const rating = rInfo ? rInfo.rating : (p.rating || 4.8);
+            const reviewsCount = rInfo ? rInfo.reviewsCount : (p.reviewsCount || 65);
             let condition = p.condition;
             if (!condition || condition === 'BRAND_NEW_SEALED') {
               condition = (p.category === 'mobiles' || p.category === 'smartwatches' || p.category === 'gaming' || p.category === 'computers') ? 'SEALED' : 'BRAND_NEW';
@@ -135,6 +159,8 @@ export class Database {
             const warrantyMonths = p.warrantyMonths || (p.category === 'mobiles' || p.category === 'cameras' || p.category === 'smartwatches' || p.category === 'computers' ? 24 : 12);
             return {
               ...p,
+              rating,
+              reviewsCount,
               condition,
               conditionTextEn,
               conditionTextAm,
@@ -312,6 +338,23 @@ export class ProductService {
     db.save();
     CloudSqlProductService.saveProduct(product).catch(() => {});
     return product;
+  }
+
+  public static deleteProduct(productId: string): boolean {
+    const idx = db.products.findIndex(p => p.id === productId);
+    if (idx === -1) return false;
+
+    const prod = db.products[idx];
+    db.products.splice(idx, 1);
+    db.logAudit(
+      'Merchant / Admin',
+      'PRODUCT_DELETED',
+      `Permanently deleted product listing: "${prod.nameEn}" (${productId}).`,
+      'WARNING'
+    );
+    db.save();
+    CloudSqlProductService.deleteProduct(productId).catch(() => {});
+    return true;
   }
 
   public static updateProductSeo(productId: string, updates: Partial<Product>): Product | null {

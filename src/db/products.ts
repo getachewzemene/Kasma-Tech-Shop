@@ -97,6 +97,14 @@ export class PostgresService {
     }
   }
 
+  public static async deleteProduct(id: string): Promise<void> {
+    try {
+      await db.delete(products).where(eq(products.id, id));
+    } catch (error) {
+      console.error('Error deleting product from PostgreSQL:', error);
+    }
+  }
+
   // 2. MERCHANTS
   public static async getAllMerchants(): Promise<Merchant[]> {
     try {

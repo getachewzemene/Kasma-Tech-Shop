@@ -204,12 +204,12 @@ export const DeliveryTimeEstimator: React.FC<DeliveryTimeEstimatorProps> = ({ la
           </p>
 
           {/* Carrier & Delivery Fee */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[10px] sm:text-[11px] opacity-90 font-medium pt-1.5 border-t border-black/10 dark:border-white/10 min-w-0">
+          <div className="flex items-center justify-between gap-2 text-[10px] sm:text-[11px] opacity-90 font-medium pt-1.5 border-t border-black/10 dark:border-white/10 min-w-0">
             <span className="flex items-center gap-1.5 min-w-0 truncate">
               <ShieldCheck className="w-3.5 h-3.5 shrink-0 opacity-75 text-emerald-600 dark:text-emerald-400" />
               <span className="truncate">{language === 'en' ? selectedOption.carrierEn : selectedOption.carrierAm}</span>
             </span>
-            <span className="font-bold font-mono text-xs text-gray-900 dark:text-zinc-100 shrink-0 self-start sm:self-auto">
+            <span className="font-bold font-mono text-xs text-gray-900 dark:text-zinc-100 shrink-0 whitespace-nowrap">
               {selectedOption.feeEtb === 0
                 ? (language === 'en' ? 'FREE Delivery' : 'ነፃ ማድረሻ')
                 : `${selectedOption.feeEtb.toLocaleString()} ETB`}

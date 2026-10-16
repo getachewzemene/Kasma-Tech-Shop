@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Product, Variant, Merchant } from '../../types';
+import { INITIAL_CATEGORIES } from '../../mockData';
 import {
   FileSpreadsheet,
   UploadCloud,
@@ -35,6 +36,17 @@ interface ParsedProductRow {
   image: string;
   descEn: string;
   descAm: string;
+  condition: 'SEALED' | 'BRAND_NEW' | 'OPEN_BOX' | 'CERTIFIED_REFURBISHED';
+  warrantyMonths: number;
+  specs?: {
+    ram?: string;
+    cpu?: string;
+    gpu?: string;
+    storage?: string;
+    display?: string;
+    battery?: string;
+    os?: string;
+  };
   errors: string[];
   selected: boolean;
 }
@@ -117,21 +129,23 @@ export default function CsvProductImportModal({
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Sample CSV Download Generator
+  // Sample CSV Download Generator for Real Tech Products (MVP 1 Ready)
   const handleDownloadSampleCSV = () => {
-    const headers = 'Name (EN),Name (AM),Category,Brand,Base Price (ETB),Low Stock Threshold,SKU,Variant Name,Stock On Hand,Image URL,Description (EN),Description (AM)\n';
+    const headers = 'Name (EN),Name (AM),Category,Brand,Base Price (ETB),Low Stock Threshold,SKU,Variant Name,Stock On Hand,Condition,Warranty Months,Image URL,Description (EN),Description (AM),RAM,CPU,Storage,Display\n';
     const sampleRows = [
-      `"Saba Tilet Dress","የሳባ ጥለት ቀሚስ","apparel","${currentMerchant.storeName}",4500,5,"SABA-DRS-M","Medium Size",15,"https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80","Handcrafted traditional Saba tilet cotton dress","በእጅ የተሰራ የሳባ ጥለት የጥጥ ቀሚስ"`,
-      `"Yirgacheffe Specialty Coffee","ይርጋጨፌ ልዩ ቡና","staples","${currentMerchant.storeName}",1200,10,"YIRGA-500G","500g Roasted Beans",30,"https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80","Grade 1 washed Yirgacheffe arabica beans","ደረጃ 1 የታጠበ ይርጋጨፌ አረቢካ ቡና"`,
-      `"Ethiopian Clay Jebena","የሸክላ ጀበና","traditional","${currentMerchant.storeName}",850,3,"JEB-STD","Standard Clay Pot",12,"https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=600&q=80","Authentic clay coffee pot handcrafted in Gondar","በጎንደር በእጅ የተሰራ የሸክላ ጀበና"`,
-      `"Organic Korarima Spices","ኦርጋኒክ ኮረሪማ","staples","${currentMerchant.storeName}",450,8,"KOR-100G","100g Pack",20,"https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=600&q=80","Aromatic Ethiopian cardamom spices","መዓዛ ያለው የኢትዮጵያ ኮረሪማ ቅመም"`
+      `"Apple MacBook Pro 16\\" M3 Max","አፕል ማክቡክ ፕሮ 16\\" M3 Max","computers","Apple",185000,2,"MBP16-M3M-SLV","Silver 36GB / 1TB SSD",5,"SEALED",24,"https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80","Flagship Apple Silicon M3 Max laptop with 16.2 Liquid Retina XDR display, 36GB unified memory, and 1TB high-speed SSD.","ከፍተኛ ብቃት ያለው አፕል ማክቡክ ፕሮ በM3 Max ቺፕ፣ 36ጂቢ ራም፣ 1ቲቢ ኤስኤስዲ እና 16.2 ኢንች ሊኩዊድ ሬቲና ስክሪን።","36GB Unified","Apple M3 Max 14-Core","1TB PCIe SSD","16.2 Liquid Retina XDR"`,
+      `"Apple MacBook Pro 16\\" M3 Max","አፕል ማክቡክ ፕሮ 16\\" M3 Max","computers","Apple",187500,2,"MBP16-M3M-SPC","Space Black 36GB / 1TB SSD",4,"SEALED",24,"https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80","Flagship Apple Silicon M3 Max laptop with 16.2 Liquid Retina XDR display, 36GB unified memory, and 1TB high-speed SSD.","ከፍተኛ ብቃት ያለው አፕል ማክቡክ ፕሮ በM3 Max ቺፕ፣ 36ጂቢ ራም፣ 1ቲቢ ኤስኤስዲ እና 16.2 ኢንች ሊኩዊድ ሬቲና ስክሪን።","36GB Unified","Apple M3 Max 14-Core","1TB PCIe SSD","16.2 Liquid Retina XDR"`,
+      `"Samsung Galaxy S24 Ultra - 512GB","ሳምሰንግ ጋላክሲ S24 አልትራ 512GB","mobiles","Samsung",95000,3,"S24U-TIT-BLK","Titanium Black 512GB",8,"SEALED",24,"https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=600&q=80","Premium titanium flagship smartphone with Galaxy AI capabilities, 200MP quad camera system, and Snapdragon 8 Gen 3.","ፕሪሚየም የቲታኒየም ስማርት ስልክ ከጋላክሲ AI፣ 200MP ካሜራ፣ ኤስ-ፔን እና ስናፕድራገን 8 ጄን 3 ፕሮሰሰር ጋር።","12GB LPDDR5X","Snapdragon 8 Gen 3","512GB UFS 4.0","6.8 Dynamic AMOLED 2X"`,
+      `"Sony WF-1000XM5 Noise Cancelling Earbuds","ሶኒ WF-1000XM5 ገመድ አልባ ማዳመጫ","headphones","Sony",16500,4,"SNY-XM5-BLK","Matte Black",12,"BRAND_NEW",12,"https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80","Industry-leading noise cancelling wireless earbuds with spatial audio and crystal-clear call quality.","ምርጥ የድምጽ መከላከያ (Active Noise Cancellation) ያለው ሶኒ ገመድ አልባ ማዳመጫ ከፍተኛ የድምፅ ጥራት ያለው።","N/A","Integrated V2 Processor","N/A","N/A"`,
+      `"Apple Watch Ultra 2 GPS + Cellular","አፕል ዎች አልትራ 2 ስማርት ሰዓት","smartwatches","Apple",68000,3,"AWU2-49-TIT","49mm Titanium Case",6,"SEALED",24,"https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=600&q=80","Rugged aerospace titanium adventure smartwatch with dual-frequency precision GPS and 36-hour battery life.","ለስፖርትና ጀብዱ የተሰራ ጠንካራ የቲታኒየም ስማርት ሰዓት ከትክክለኛ ጂፒኤስ እና ረጅም ባትሪ ቆይታ ጋር።","N/A","Apple S9 SiP","64GB","49mm Sapphire OLED"`,
+      `"SteelSeries Arctis Nova Pro Wireless","ስቲልሲሪስ አርክቲክስ ኖቫ ፕሮ ገመድ አልባ ማዳመጫ","gaming","SteelSeries",19500,4,"SS-ANP-BLK","Charcoal Black",10,"SEALED",12,"https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80","Premium high-fidelity wireless gaming headset with active noise cancellation and hot-swappable dual battery system.","ምርጥ ጥራት ያለው የጌሚንግ ማዳመጫ ከግርግር መከላከያ እና ተለዋዋጭ ባትሪዎች ጋር።","N/A","High-Res Neodymium Drivers","N/A","OLED Base Station"`
     ].join('\n');
 
     const blob = new Blob([headers + sampleRows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `Kasma_Product_Import_Template_${currentMerchant.storeName.replace(/\s+/g, '_')}.csv`);
+    link.setAttribute('download', `Kasma_Tech_Product_Import_Template_${currentMerchant.storeName.replace(/\s+/g, '_')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -157,16 +171,34 @@ export default function CsvProductImportModal({
         map['lowStockThreshold'] = idx;
       } else if (normalized.includes('sku') || normalized.includes('skucode')) {
         map['sku'] = idx;
-      } else if (normalized.includes('variant') || normalized.includes('option') || normalized.includes('size')) {
+      } else if (normalized.includes('variant') || normalized.includes('option') || normalized.includes('size') || normalized.includes('color')) {
         map['variantName'] = idx;
       } else if (normalized.includes('stock') || normalized.includes('onhand') || normalized.includes('qty') || normalized.includes('inventory') || normalized.includes('quantity')) {
         map['stockOnHand'] = idx;
+      } else if (normalized.includes('condition') || normalized.includes('grade') || normalized.includes('state')) {
+        map['condition'] = idx;
+      } else if (normalized.includes('warranty') || normalized.includes('guarantee')) {
+        map['warrantyMonths'] = idx;
       } else if (normalized.includes('image') || normalized.includes('photo') || normalized.includes('picture') || normalized.includes('url')) {
         map['image'] = idx;
       } else if (normalized.includes('descen') || normalized === 'description' || normalized.includes('desc')) {
         map['descEn'] = idx;
       } else if (normalized.includes('descam') || normalized.includes('descriptionam') || normalized.includes('amharicdesc')) {
         map['descAm'] = idx;
+      } else if (normalized === 'ram' || normalized === 'memory') {
+        map['ram'] = idx;
+      } else if (normalized === 'cpu' || normalized === 'processor') {
+        map['cpu'] = idx;
+      } else if (normalized === 'storage' || normalized === 'disk' || normalized === 'ssd') {
+        map['storage'] = idx;
+      } else if (normalized === 'display' || normalized === 'screen') {
+        map['display'] = idx;
+      } else if (normalized === 'gpu' || normalized === 'graphics') {
+        map['gpu'] = idx;
+      } else if (normalized === 'battery') {
+        map['battery'] = idx;
+      } else if (normalized === 'os') {
+        map['os'] = idx;
       }
     });
     return map;
@@ -191,18 +223,60 @@ export default function CsvProductImportModal({
         const parsed: ParsedProductRow[] = dataRows.map((row, index) => {
           const getVal = (key: string) => (headerMap[key] !== undefined ? row[headerMap[key]] || '' : '');
 
-          const rawNameEn = getVal('nameEn') || `Imported Product #${index + 1}`;
+          const rawNameEn = getVal('nameEn') || `Imported Tech Product #${index + 1}`;
           const rawNameAm = getVal('nameAm') || rawNameEn;
-          const rawCategory = getVal('category').toLowerCase() || 'traditional';
+          
+          // Match against valid tech categories
+          const validCatIds = INITIAL_CATEGORIES.map(c => c.id);
+          const rawCatInput = getVal('category').toLowerCase().trim();
+          let rawCategory = 'computers';
+          if (validCatIds.includes(rawCatInput)) {
+            rawCategory = rawCatInput;
+          } else {
+            const foundCat = INITIAL_CATEGORIES.find(c => 
+              c.nameEn.toLowerCase().includes(rawCatInput) || 
+              c.id.includes(rawCatInput) ||
+              rawCatInput.includes(c.id)
+            );
+            if (foundCat) rawCategory = foundCat.id;
+          }
+
           const rawBrand = getVal('brand') || currentMerchant.storeName;
           const rawPrice = parseFloat(getVal('price')) || 0;
-          const rawThreshold = parseInt(getVal('lowStockThreshold'), 10) || 5;
+          const rawThreshold = parseInt(getVal('lowStockThreshold'), 10) || 3;
           const rawSku = getVal('sku').trim().toUpperCase() || `SKU-${Date.now().toString().slice(-4)}-${index + 1}`;
-          const rawVariantName = getVal('variantName') || 'Standard Option';
+          const rawVariantName = getVal('variantName') || 'Standard Spec';
           const rawStock = parseInt(getVal('stockOnHand'), 10) || 10;
-          const rawImage = getVal('image') || 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=600&q=80';
-          const rawDescEn = getVal('descEn') || 'Imported via CSV Batch Upload.';
-          const rawDescAm = getVal('descAm') || 'በCSV ተመዝግቦ ገቢ የተደረገ ምርት።';
+          
+          const rawConditionInput = getVal('condition').toUpperCase().trim();
+          let rawCondition: ParsedProductRow['condition'] = 'SEALED';
+          if (['SEALED', 'BRAND_NEW', 'OPEN_BOX', 'CERTIFIED_REFURBISHED'].includes(rawConditionInput)) {
+            rawCondition = rawConditionInput as any;
+          }
+
+          const rawWarranty = parseInt(getVal('warrantyMonths'), 10) || 12;
+          const rawRam = getVal('ram');
+          const rawCpu = getVal('cpu');
+          const rawStorage = getVal('storage');
+          const rawDisplay = getVal('display');
+          const rawGpu = getVal('gpu');
+          const rawBattery = getVal('battery');
+          const rawOs = getVal('os');
+
+          const hasSpecs = !!(rawRam || rawCpu || rawStorage || rawDisplay || rawGpu || rawBattery || rawOs);
+          const specs = hasSpecs ? {
+            ...(rawRam && rawRam !== 'N/A' ? { ram: rawRam } : {}),
+            ...(rawCpu && rawCpu !== 'N/A' ? { cpu: rawCpu } : {}),
+            ...(rawStorage && rawStorage !== 'N/A' ? { storage: rawStorage } : {}),
+            ...(rawDisplay && rawDisplay !== 'N/A' ? { display: rawDisplay } : {}),
+            ...(rawGpu && rawGpu !== 'N/A' ? { gpu: rawGpu } : {}),
+            ...(rawBattery && rawBattery !== 'N/A' ? { battery: rawBattery } : {}),
+            ...(rawOs && rawOs !== 'N/A' ? { os: rawOs } : {})
+          } : undefined;
+
+          const rawImage = getVal('image') || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80';
+          const rawDescEn = getVal('descEn') || 'Authentic tech product imported via CSV batch upload.';
+          const rawDescAm = getVal('descAm') || 'በCSV ተመዝግቦ ገቢ የተደረገ ትክክለኛ የቴክኖሎጂ ምርት።';
 
           const errors: string[] = [];
           if (!rawNameEn || rawNameEn.trim().length === 0) {
@@ -232,6 +306,9 @@ export default function CsvProductImportModal({
             image: rawImage,
             descEn: rawDescEn,
             descAm: rawDescAm,
+            condition: rawCondition,
+            warrantyMonths: rawWarranty,
+            specs,
             errors,
             selected: errors.length === 0
           };
@@ -365,6 +442,11 @@ export default function CsvProductImportModal({
         reserved: 0
       }));
 
+      const condition = mainRow.condition || 'SEALED';
+      const conditionTextEn = condition === 'SEALED' ? 'Factory Sealed' : condition === 'BRAND_NEW' ? 'Brand New' : condition === 'OPEN_BOX' ? 'Open Box' : 'Certified Refurbished';
+      const conditionTextAm = condition === 'SEALED' ? 'በፋብሪካው የታሸገ' : condition === 'BRAND_NEW' ? 'አዲስ' : condition === 'OPEN_BOX' ? 'ክፍት ሳጥን' : 'የታደሰ';
+      const warrantyMonths = mainRow.warrantyMonths || 12;
+
       const newProduct: Product = {
         id: `p-csv-${Date.now()}-${idx}`,
         nameEn: mainRow.nameEn,
@@ -380,6 +462,13 @@ export default function CsvProductImportModal({
         lowStockThreshold: mainRow.lowStockThreshold,
         merchantId: currentMerchant.id,
         merchantName: currentMerchant.storeName,
+        condition,
+        conditionTextEn,
+        conditionTextAm,
+        warrantyMonths,
+        warrantyTextEn: `${warrantyMonths} Months Official Warranty`,
+        warrantyTextAm: `የ${warrantyMonths} ወራት ኦፊሴላዊ ዋስትና`,
+        specs: mainRow.specs,
         createdAt: new Date().toISOString().split('T')[0]
       };
 
@@ -463,8 +552,8 @@ export default function CsvProductImportModal({
                       </h4>
                       <p className="text-[11px] text-gray-500 dark:text-zinc-400">
                         {language === 'en'
-                          ? 'Download our pre-formatted Kasma CSV template with Ethiopian product examples.'
-                          : 'አብነቱን አውርደው የእርስዎን ምርቶች በቀላሉ ይሙሉ'}
+                          ? 'Download our official Kasma Tech CSV template with real electronics, laptops, phones, specs, and warranty fields.'
+                          : 'የኤሌክትሮኒክስ፣ ላፕቶፕ፣ ሞባይል እና የቴክኒካል ዝርዝር የያዘውን ይፋዊ የካስማ CSV አብነት ያውርዱ'}
                       </p>
                     </div>
                   </div>
@@ -703,10 +792,9 @@ export default function CsvProductImportModal({
                                   onChange={(e) => handleUpdateParsedRow(row.id, 'category', e.target.value)}
                                   className="border border-gray-300 dark:border-zinc-700 rounded px-2 py-1 text-xs bg-white dark:bg-zinc-800"
                                 >
-                                  <option value="traditional">Traditional</option>
-                                  <option value="staples">Staples & Coffee</option>
-                                  <option value="apparel">Apparel</option>
-                                  <option value="electronics">Electronics</option>
+                                  {INITIAL_CATEGORIES.map(cat => (
+                                    <option key={cat.id} value={cat.id}>{language === 'en' ? cat.nameEn : cat.nameAm}</option>
+                                  ))}
                                 </select>
                               ) : (
                                 row.category

@@ -15,6 +15,7 @@ export interface Product {
   merchantName: string;
   merchantTelegram?: string;
   rating?: number;
+  reviewsCount?: number;
   featured?: boolean;
   createdAt?: string;
   reviews?: Review[];

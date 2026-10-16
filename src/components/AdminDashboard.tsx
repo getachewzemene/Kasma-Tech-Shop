@@ -1144,7 +1144,7 @@ export default function AdminDashboard({
       <main className="flex-1 flex flex-col min-w-0 bg-slate-50/50 dark:bg-zinc-950 overflow-y-auto">
         
         {/* Main Workspace Header */}
-        <header className="h-16 border-b border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 flex items-center justify-between shrink-0 shadow-2xs z-10">
+        <header className="sticky top-0 z-30 h-16 border-b border-slate-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md px-6 flex items-center justify-between shrink-0 shadow-2xs">
           
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">

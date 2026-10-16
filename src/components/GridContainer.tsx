@@ -34,7 +34,7 @@ export const GridContainer: React.FC<GridContainerProps> = ({
     : (colClasses[cols] || colClasses[4]);
 
   return (
-    <div className={`grid ${gridClass} ${gapClasses[gap]} w-full max-w-full min-w-0 ${className}`}>
+    <div className={`grid ${gridClass} ${gapClasses[gap]} items-stretch w-full max-w-full min-w-0 ${className}`}>
       {children}
     </div>
   );
@@ -50,7 +50,7 @@ export const CarouselContainer: React.FC<CarouselContainerProps> = ({
   className = ''
 }) => {
   return (
-    <div className={`flex gap-3 sm:gap-4 overflow-x-auto pb-4 pt-1 px-1 scrollbar-none scroll-smooth snap-x snap-mandatory w-full max-w-full min-w-0 ${className}`}>
+    <div className={`flex items-stretch gap-3 sm:gap-4 overflow-x-auto pb-4 pt-1 px-1 scrollbar-none scroll-smooth snap-x snap-mandatory w-full max-w-full min-w-0 ${className}`}>
       {children}
     </div>
   );
