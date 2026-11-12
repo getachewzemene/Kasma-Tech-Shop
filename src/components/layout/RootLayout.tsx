@@ -98,7 +98,7 @@ export const RootLayout: React.FC = () => {
       <PwaInstallPrompt language={language} />
 
       {/* Developer Real-Time Mobile Responsiveness Inspector (Dev Only) */}
-      <ResponsiveDeviceTester />
+      {import.meta.env.DEV && <ResponsiveDeviceTester />}
     </div>
   );
 };

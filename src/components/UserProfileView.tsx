@@ -93,6 +93,7 @@ const SUB_CITIES = [
   { id: 'yeka', nameEn: 'Yeka', nameAm: 'የካ' },
   { id: 'kirkos', nameEn: 'Kirkos', nameAm: 'ኪርቆስ' },
   { id: 'arada', nameEn: 'Arada', nameAm: 'አራዳ' },
+  { id: 'lideta', nameEn: 'Lideta', nameAm: 'ልደታ' },
   { id: 'lemi_kura', nameEn: 'Lemi Kura', nameAm: 'ለሚ ኩራ' },
   { id: 'nifas_silk', nameEn: 'Nifas Silk-Lafto', nameAm: 'ነፋስ ስልክ ላፍቶ' },
   { id: 'kolfe', nameEn: 'Kolfe Keranio', nameAm: 'ኮልፌ ቀራኒዮ' },

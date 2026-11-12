@@ -17,6 +17,7 @@ import {
   Flame, 
   ChevronDown, 
   Layers, 
+  Tv,
   Laptop, 
   Gamepad2, 
   Watch, 
@@ -114,6 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
       case 'mobiles': return Smartphone;
       case 'headphones': return Headphones;
       case 'cameras': return Camera;
+      case 'television': return Tv;
       case 'accessories': return Cpu;
       default: return Layers;
     }
@@ -630,6 +632,58 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                 </Link>
               </>
             )}
+
+            {/* Partner Portals Switcher Chips (Courier & Merchant) */}
+            <div className="pt-2 border-t border-slate-200/80 dark:border-zinc-800/80 space-y-1.5">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[10.5px] font-black uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+                  {language === 'en' ? 'Partner Portals' : 'የአጋሮች መግቢያ'}
+                </span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full border border-slate-200/80 dark:border-zinc-700/80">
+                  {language === 'en' ? 'Quick Switch' : 'ቀጥታ መግቢያ'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                {/* 🛵 Courier Portal Chip */}
+                <Link
+                  to="/courier"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent hover:from-amber-500/20 dark:from-amber-500/15 dark:to-transparent border border-amber-300/60 dark:border-amber-600/40 text-slate-800 dark:text-zinc-100 transition-all group active:scale-95 shadow-2xs"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 text-base shadow-xs group-hover:scale-110 transition-transform">
+                    🛵
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-black text-amber-700 dark:text-amber-300 truncate">
+                      {language === 'en' ? 'Courier Portal' : 'የአሽከርካሪ ፖርታል'}
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold truncate">
+                      {language === 'en' ? 'Dispatch & PINs' : 'ማድረስ እና ፒን'}
+                    </span>
+                  </div>
+                </Link>
+
+                {/* 🏪 Merchant Portal Chip */}
+                <Link
+                  to="/merchant"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-gradient-to-br from-blue-500/10 via-blue-500/5 to-transparent hover:from-blue-500/20 dark:from-blue-500/15 dark:to-transparent border border-blue-300/60 dark:border-blue-700/40 text-slate-800 dark:text-zinc-100 transition-all group active:scale-95 shadow-2xs"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[#0052FF]/15 text-[#0052FF] dark:text-blue-400 flex items-center justify-center shrink-0 text-base shadow-xs group-hover:scale-110 transition-transform">
+                    🏪
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-black text-[#0052FF] dark:text-blue-400 truncate">
+                      {language === 'en' ? 'Merchant Portal' : 'የነጋዴ ፖርታል'}
+                    </span>
+                    <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold truncate">
+                      {language === 'en' ? 'Store & Orders' : 'ሱቅ እና ትዕዛዞች'}
+                    </span>
+                  </div>
+                </Link>
+              </div>
+            </div>
 
 
             {/* Mobile App Preferences Section (Language & Theme) */}

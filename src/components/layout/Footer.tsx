@@ -24,7 +24,7 @@ import {
 type PolicyModalType = 'privacy' | 'terms' | 'refunds' | 'faq' | 'escrow' | 'shipping' | null;
 
 export const Footer: React.FC = () => {
-  const { language, cart, showToast } = useShop();
+  const { language, cart, showToast, setSelectedCategory } = useShop();
   const navigate = useNavigate();
 
   const [newsletterEmail, setNewsletterEmail] = useState('');
@@ -205,13 +205,13 @@ export const Footer: React.FC = () => {
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => { navigate('/'); setTimeout(() => { const el = document.getElementById('products-grid-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100); }} className="hover:text-[#0052FF] transition-colors cursor-pointer text-left block w-full">
+                  <button onClick={() => { setSelectedCategory('all'); navigate('/'); setTimeout(() => { const el = document.getElementById('products-grid-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100); }} className="hover:text-[#0052FF] transition-colors cursor-pointer text-left block w-full">
                     {language === 'en' ? 'Browse Electronics' : 'የኤሌክትሮኒክስ ምርቶች'}
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => { navigate('/'); setTimeout(() => { const el = document.getElementById('products-grid-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100); }} className="hover:text-[#0052FF] transition-colors cursor-pointer text-left block w-full">
-                    {language === 'en' ? 'Handcrafts & Agriculture' : 'የእጅ ጥበብ እና ግብርና'}
+                  <button onClick={() => { setSelectedCategory('gaming'); navigate('/'); setTimeout(() => { const el = document.getElementById('products-grid-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 100); }} className="hover:text-[#0052FF] transition-colors cursor-pointer text-left block w-full">
+                    {language === 'en' ? 'Gaming & Consoles' : 'የቪዲዮ ጌም ኮንሶሎች'}
                   </button>
                 </li>
               </ul>
@@ -376,6 +376,7 @@ export const Footer: React.FC = () => {
               <li>
                 <button 
                   onClick={() => {
+                    setSelectedCategory('all');
                     navigate('/');
                     setTimeout(() => {
                       const el = document.getElementById('products-grid-section');
@@ -390,6 +391,7 @@ export const Footer: React.FC = () => {
               <li>
                 <button 
                   onClick={() => {
+                    setSelectedCategory('gaming');
                     navigate('/');
                     setTimeout(() => {
                       const el = document.getElementById('products-grid-section');
@@ -398,7 +400,7 @@ export const Footer: React.FC = () => {
                   }} 
                   className="hover:text-[#0052FF] transition-colors cursor-pointer text-left block"
                 >
-                  {language === 'en' ? 'Handcrafts & Agriculture' : 'የእጅ ጥበብ እና ግብርና'}
+                  {language === 'en' ? 'Gaming & Consoles' : 'የቪዲዮ ጌም ኮንሶሎች'}
                 </button>
               </li>
             </ul>

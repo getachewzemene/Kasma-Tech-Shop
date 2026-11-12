@@ -7,7 +7,8 @@ export const INITIAL_CATEGORIES = [
   { id: 'mobiles', nameEn: 'Mobile & Tablets', nameAm: 'ሞባይል እና ታብሌቶች' },
   { id: 'headphones', nameEn: 'Headphones & Audio', nameAm: 'ጆሮ ማዳመጫ እና ኦዲዮ' },
   { id: 'accessories', nameEn: 'Accessories', nameAm: 'መለዋወጫዎች' },
-  { id: 'cameras', nameEn: 'Cameras & Security', nameAm: 'ካሜራ እና ሴኪውሪቲ' }
+  { id: 'cameras', nameEn: 'Cameras & Security', nameAm: 'ካሜራ እና ሴኪውሪቲ' },
+  { id: 'television', nameEn: 'TV & Video', nameAm: 'ቴሌቪዥን እና ቪዲዮ' }
 ];
 
 export const INITIAL_PRODUCTS: Product[] = [

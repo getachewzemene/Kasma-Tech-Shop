@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { generateCustomerReceiptPDF } from '../../lib/pdfGenerator';
+import { getOrderHandoverPin } from '../courier/courierTypes';
 
 export const OrderConfirmationPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +31,7 @@ export const OrderConfirmationPage: React.FC = () => {
   const [copiedPin, setCopiedPin] = useState(false);
 
   const order = orders.find(o => o.id === id) || orders[0];
-  const handoverPin = order?.handoverPin || order?.codVerificationPin || (order ? order.id.slice(-4) : '8492');
+  const handoverPin = order ? getOrderHandoverPin(order) : '8492';
 
   const handleCopyPin = () => {
     navigator.clipboard?.writeText(handoverPin);

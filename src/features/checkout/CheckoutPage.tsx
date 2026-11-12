@@ -404,6 +404,8 @@ export const CheckoutPage: React.FC = () => {
         coordinates ? `GPS: (${coordinates.lat.toFixed(5)}, ${coordinates.lng.toFixed(5)})` : ''
       ].filter(Boolean).join(', ');
 
+      const finalPin = verificationPin || String(Math.floor(1000 + Math.random() * 9000));
+
       const newOrder: Order = {
         id: orderId,
         customerId: `cust-${Date.now()}`,
@@ -425,7 +427,8 @@ export const CheckoutPage: React.FC = () => {
         channel: 'WEB',
         discountCode: appliedPromo?.code,
         discountAmount,
-        codVerificationPin: verificationPin,
+        handoverPin: finalPin,
+        codVerificationPin: finalPin,
         codPhoneConfirmed: isPhoneVerified,
       };
 
@@ -445,10 +448,10 @@ export const CheckoutPage: React.FC = () => {
       showToast(
         language === 'en'
           ? (paymentMethod === 'COD' 
-              ? `Order #${orderId} confirmed! Courier Verification PIN: ${verificationPin || '849201'}` 
+              ? `Order #${orderId} confirmed! Courier Verification PIN: ${finalPin}` 
               : `Order #${orderId} created! Proceeding to Chapa / Telebirr gateway...`)
           : (paymentMethod === 'COD'
-              ? `ትዕዛዝ #${orderId} ተረጋግጧል! የማረጋገጫ ፒን: ${verificationPin || '849201'}`
+              ? `ትዕዛዝ #${orderId} ተረጋግጧል! የማረጋገጫ ፒን: ${finalPin}`
               : `ትዕዛዝ #${orderId} ተፈጥሯል! ወደ ክፍያ ገጽ በመሸጋገር ላይ...`),
         'success'
       );

@@ -25,6 +25,7 @@ export const SUB_CITIES: SubCityOption[] = [
   { id: 'yeka', nameEn: 'Yeka', nameAm: 'የካ', fee: 120, timeEn: '1-2 Hours', timeAm: 'ከ1-2 ሰዓት', center: [9.0201, 38.7997] },
   { id: 'kirkos', nameEn: 'Kirkos', nameAm: 'ኪርቆስ', fee: 100, timeEn: '1-2 Hours', timeAm: 'ከ1-2 ሰዓት', center: [9.0182, 38.7663] },
   { id: 'arada', nameEn: 'Arada', nameAm: 'አራዳ', fee: 120, timeEn: '1-2 Hours', timeAm: 'ከ1-2 ሰዓት', center: [9.0345, 38.7518] },
+  { id: 'lideta', nameEn: 'Lideta', nameAm: 'ልደታ', fee: 110, timeEn: '1-2 Hours', timeAm: 'ከ1-2 ሰዓት', center: [9.0115, 38.7405] },
   { id: 'lemi_kura', nameEn: 'Lemi Kura', nameAm: 'ለሚ ኩራ', fee: 150, timeEn: '2-3 Hours', timeAm: 'ከ2-3 ሰዓት', center: [9.0235, 38.8350] },
   { id: 'nifas_silk', nameEn: 'Nifas Silk-Lafto', nameAm: 'ነፋስ ስልክ ላፍቶ', fee: 130, timeEn: '2-3 Hours', timeAm: 'ከ2-3 ሰዓት', center: [9.0018, 38.7360] },
   { id: 'kolfe', nameEn: 'Kolfe Keranio', nameAm: 'ኮልፌ ቀራኒዮ', fee: 140, timeEn: '2-3 Hours', timeAm: 'ከ2-3 ሰዓት', center: [9.0076, 38.7231] },
@@ -52,6 +53,11 @@ export const ADDIS_LANDMARKS: AddisLandmark[] = [
   { id: 'piassa', nameEn: 'Piassa De Gaulle / Taitu Hotel', nameAm: 'ፒያሳ ደጎል አደባባይ / ጣይቱ ሆቴል', subCityId: 'arada', lat: 9.0345, lng: 38.7518, category: 'square', hintEn: 'Churchill Ave & Gold Market area', hintAm: 'ቸርችል ጎዳና እና ወርቅ ተራ' },
   { id: 'arat_kilo', nameEn: '4 Kilo / AAU Science Campus & Parliament', nameAm: '4 ኪሎ / አአዩ ሳይንስ እና ፓርላማ', subCityId: 'arada', lat: 9.0356, lng: 38.7634, category: 'institution', hintEn: 'Near Ministry of Education & Palace', hintAm: 'ከትምህርት ሚኒስቴር እና ቤተመንግስት አጠገብ' },
   { id: 'sidist_kilo', nameEn: '6 Kilo / Yekatit 12 Monument', nameAm: '6 ኪሎ / የካቲት 12 ሀውልት', subCityId: 'arada', lat: 9.0440, lng: 38.7610, category: 'square', hintEn: 'Main AAU Campus Gate', hintAm: 'አዲስ አበባ ዩኒቨርሲቲ ዋናው ግቢ በር' },
+
+  // Lideta
+  { id: 'lideta_church', nameEn: 'Lideta Maryam / Balcha Hospital', nameAm: 'ልደታ ማርያም / ባልቻ ሆስፒታል', subCityId: 'lideta', lat: 9.0115, lng: 38.7405, category: 'church', hintEn: 'Near Balcha Hospital & Federal High Court', hintAm: 'ከባልቻ ሆስፒታል እና ከልደታ ፍርድ ቤት አጠገብ' },
+  { id: 'sengatera', nameEn: 'Sengatera / Financial District', nameAm: 'ሰንጋተራ / የባንኮች ማዕከል', subCityId: 'lideta', lat: 9.0150, lng: 38.7480, category: 'commercial', hintEn: 'Near Hibret Bank HQ & AAU School of Commerce', hintAm: 'ከሕብረት ባንክ ዋና መ/ቤት እና ኮሜርስ አጠገብ' },
+  { id: 'lideta_condominium', nameEn: 'Lideta Condominiums / Abinet', nameAm: 'ልደታ ኮንዶሚኒየም / አቢኔት', subCityId: 'lideta', lat: 9.0185, lng: 38.7365, category: 'residential', hintEn: 'Near Abinet Square & Geja Sefer', hintAm: 'ከአቢኔት አደባባይ እና ገጃ ሰፈር አጠገብ' },
 
   // Yeka
   { id: 'megenagna', nameEn: 'Megenagna Diaspora Square / Zefmesh Mall', nameAm: 'መገናኛ ዲያስፖራ አደባባይ / ዘፍመሽ ሞል', subCityId: 'yeka', lat: 9.0201, lng: 38.7997, category: 'mall', hintEn: 'Hub for transport to CMC and Ayat', hintAm: 'የሲኤምሲ እና አያት መጓጓዣ መናኸሪያ' },

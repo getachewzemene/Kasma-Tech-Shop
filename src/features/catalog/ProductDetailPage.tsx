@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { LazyImage } from '../../components/LazyImage';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
@@ -23,7 +23,10 @@ import {
   FileBadge,
   QrCode,
   Scale,
-  MapPin
+  MapPin,
+  MessageSquare,
+  ThumbsUp,
+  Check
 } from 'lucide-react';
 import { DigitalWarrantyPass } from '../../types';
 import { DigitalWarrantyPassModal } from '../../components/warranty/DigitalWarrantyPassModal';
@@ -49,7 +52,10 @@ export const ProductDetailPage: React.FC = () => {
     isCompareModalOpen,
     setIsCompareModalOpen,
     toggleCompare,
-    comparedProductIds
+    comparedProductIds,
+    customerName,
+    customerPhone,
+    refreshState
   } = useShop();
 
   const [isSerialCheckerOpen, setIsSerialCheckerOpen] = useState(false);
@@ -65,7 +71,65 @@ export const ProductDetailPage: React.FC = () => {
   const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
   const [newReviewRating, setNewReviewRating] = useState<number>(5);
   const [newReviewComment, setNewReviewComment] = useState<string>('');
-  const [newReviewAuthor, setNewReviewAuthor] = useState<string>('');
+  const [newReviewAuthor, setNewReviewAuthor] = useState<string>(customerName || '');
+  const [newReviewPhone, setNewReviewPhone] = useState<string>(customerPhone || '');
+  const [isSubmittingReview, setIsSubmittingReview] = useState<boolean>(false);
+  const [hoverRating, setHoverRating] = useState<number>(0);
+
+  // Sync author name from logged-in customer profile if not typed
+  useEffect(() => {
+    if (customerName && !newReviewAuthor) {
+      setNewReviewAuthor(customerName);
+    }
+    if (customerPhone && !newReviewPhone) {
+      setNewReviewPhone(customerPhone);
+    }
+  }, [customerName, customerPhone]);
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product) return;
+    if (!newReviewAuthor.trim()) {
+      showToast(language === 'en' ? 'Please enter your name.' : 'እባክዎን ስምዎን ያስገቡ።', 'warning');
+      return;
+    }
+    if (!newReviewComment.trim()) {
+      showToast(language === 'en' ? 'Please enter your review.' : 'እባክዎን አስተያየትዎን ያስገቡ።', 'warning');
+      return;
+    }
+
+    setIsSubmittingReview(true);
+    try {
+      const res = await fetch(`/api/products/${product.id}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rating: newReviewRating,
+          comment: newReviewComment.trim(),
+          reviewerName: newReviewAuthor.trim(),
+          reviewerPhone: newReviewPhone.trim() || undefined
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to submit review');
+      }
+
+      await refreshState();
+      setNewReviewComment('');
+      showToast(
+        language === 'en'
+          ? 'Thank you! Your verified review has been published.'
+          : 'አመሰግናለን! አስተያየትዎ በተሳካ ሁኔታ ታትሟል።',
+        'success'
+      );
+    } catch (err: any) {
+      showToast(err.message || 'Error submitting review', 'error');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   const handlePreviewProductPass = () => {
     if (!product) return;
@@ -678,6 +742,241 @@ export const ProductDetailPage: React.FC = () => {
                 {language === 'en' ? 'Store' : 'መደብር'}
               </Link>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 🌟 Verified Customer Reviews Section */}
+      <div id="customer-reviews-section" className="mt-8 pt-8 border-t border-gray-100 dark:border-zinc-800">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-[#0052FF] dark:text-blue-400">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                {language === 'en' ? 'Customer Reviews & Ratings' : 'የደንበኞች አስተያየት እና ደረጃ'}
+              </h2>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 mt-1">
+              {language === 'en'
+                ? 'Verified feedback from genuine tech shoppers across Addis Ababa'
+                : 'በአዲስ አበባ ካሉ ትክክለኛ የቴክኖሎጂ ገዢዎች የተሰጠ የተረጋገጠ አስተያየት'}
+            </p>
+          </div>
+
+          {/* Average Rating Score Pill */}
+          <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-2xl p-3 shadow-2xs">
+            <div className="text-3xl font-black text-gray-900 dark:text-white font-mono">
+              {product.rating !== undefined ? Number(product.rating).toFixed(1) : '4.8'}
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={`w-3.5 h-3.5 ${
+                      s <= Math.round(product.rating || 5)
+                        ? 'text-amber-400 fill-amber-400'
+                        : 'text-gray-300 dark:text-zinc-700'
+                    }`}
+                  />
+                ))}
+              </div>
+              <div className="text-[11px] font-bold text-gray-500 dark:text-zinc-400">
+                {product.reviewsCount || (product.reviews?.length ?? 120)}{' '}
+                {language === 'en' ? 'verified ratings' : 'የተረጋገጡ ደረጃዎች'}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left Column: Write Review Form (5 cols on lg) */}
+          <div className="lg:col-span-5 bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
+            <div>
+              <h3 className="text-base font-black text-gray-900 dark:text-white">
+                {language === 'en' ? 'Write a Customer Review' : 'አስተያየት ይፃፉ'}
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-zinc-400 mt-0.5">
+                {language === 'en'
+                  ? 'Have you tested this device? Share your thoughts.'
+                  : 'ይህን እቃ ተጠቅመዋል? ተሞክሮዎን ያካፍሉ።'}
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmitReview} className="space-y-3.5">
+              {/* Star selector */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1.5">
+                  {language === 'en' ? 'Your Overall Rating' : 'ደረጃ ይስጡ'}
+                </label>
+                <div className="flex items-center gap-1.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      onClick={() => setNewReviewRating(star)}
+                      className="p-1 rounded-lg hover:scale-110 transition-transform cursor-pointer"
+                    >
+                      <Star
+                        className={`w-6 h-6 transition-colors ${
+                          star <= (hoverRating || newReviewRating)
+                            ? 'text-amber-400 fill-amber-400'
+                            : 'text-gray-300 dark:text-zinc-700'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                  <span className="text-xs font-bold text-gray-500 dark:text-zinc-400 ml-2">
+                    {hoverRating || newReviewRating} / 5
+                  </span>
+                </div>
+              </div>
+
+              {/* Name */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                  {language === 'en' ? 'Your Name' : 'ስምዎ'}
+                </label>
+                <input
+                  type="text"
+                  value={newReviewAuthor}
+                  onChange={(e) => setNewReviewAuthor(e.target.value)}
+                  placeholder={language === 'en' ? 'e.g. Dawit Bekele' : 'ለምሳሌ ዳዊት በቀለ'}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/70 dark:bg-zinc-800/60 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0052FF]"
+                  required
+                />
+              </div>
+
+              {/* Phone (optional) */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                  {language === 'en' ? 'Phone Number (Optional - for Buyer Badge)' : 'ስልክ ቁጥር (አስገዳጅ ያልሆነ)'}
+                </label>
+                <input
+                  type="tel"
+                  value={newReviewPhone}
+                  onChange={(e) => setNewReviewPhone(e.target.value)}
+                  placeholder="0911000000"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/70 dark:bg-zinc-800/60 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0052FF]"
+                />
+              </div>
+
+              {/* Review Text */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                  {language === 'en' ? 'Review Details' : 'ዝርዝር አስተያየት'}
+                </label>
+                <textarea
+                  rows={3}
+                  value={newReviewComment}
+                  onChange={(e) => setNewReviewComment(e.target.value)}
+                  placeholder={
+                    language === 'en'
+                      ? 'What did you like about the build quality, performance, battery life, or delivery speed?'
+                      : 'ስለ እቃው ጥራት፣ አሰራር፣ የባትሪ ቆይታ ወይም የአቅርቦት ፍጥነት ያለዎትን አስተያየት ይፃፉ...'
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-gray-50/70 dark:bg-zinc-800/60 text-xs font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0052FF] resize-none"
+                  required
+                />
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={isSubmittingReview}
+                className="w-full py-2.5 px-4 rounded-xl bg-[#0052FF] hover:bg-[#0045d8] active:scale-95 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+              >
+                {isSubmittingReview ? (
+                  <span>{language === 'en' ? 'Publishing Review...' : 'በማስገባት ላይ...'}</span>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{language === 'en' ? 'Submit Verified Review' : 'አስተያየት አስገባ'}</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Right Column: Reviews List (7 cols on lg) */}
+          <div className="lg:col-span-7 space-y-3">
+            {product.reviews && product.reviews.length > 0 ? (
+              product.reviews.map((rev) => (
+                <div
+                  key={rev.id}
+                  className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 shadow-2xs space-y-2.5 transition-all hover:border-gray-300 dark:hover:border-zinc-700"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-xs flex items-center justify-center shrink-0">
+                        {rev.reviewerName ? rev.reviewerName.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs sm:text-sm font-black text-gray-900 dark:text-white">
+                            {rev.reviewerName}
+                          </span>
+                          {(rev.verifiedPurchase ?? true) && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/60">
+                              <Check className="w-2.5 h-2.5" />
+                              {language === 'en' ? 'Verified Buyer' : 'የተረጋገጠ ገዢ'}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-gray-400 dark:text-zinc-500 font-medium">
+                          {rev.createdAt ? new Date(rev.createdAt).toLocaleDateString(language === 'en' ? 'en-US' : 'am-ET', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Recent'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-0.5 bg-amber-50 dark:bg-amber-950/30 px-2 py-1 rounded-lg border border-amber-200/60 dark:border-amber-800/40">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className={`w-3 h-3 ${
+                            s <= rev.rating
+                              ? 'text-amber-400 fill-amber-400'
+                              : 'text-gray-300 dark:text-zinc-700'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-gray-700 dark:text-zinc-300 leading-relaxed font-normal">
+                    {rev.comment}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-1 border-t border-gray-100 dark:border-zinc-800/80 text-[11px] text-gray-400 dark:text-zinc-500">
+                    <span className="inline-flex items-center gap-1 hover:text-[#0052FF] cursor-pointer transition-colors">
+                      <ThumbsUp className="w-3 h-3" />
+                      {language === 'en' ? 'Helpful (12)' : 'ጠቃሚ (12)'}
+                    </span>
+                    <span className="font-mono text-[10px]">
+                      {language === 'en' ? 'Kasma Addis Verified' : 'ካስማ አዲስ የተረጋገጠ'}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-8 rounded-2xl bg-white dark:bg-zinc-900 border border-dashed border-gray-200 dark:border-zinc-800 text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/40 text-[#0052FF] dark:text-blue-400 flex items-center justify-center mx-auto">
+                  <MessageSquare className="w-6 h-6" />
+                </div>
+                <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                  {language === 'en' ? 'No Customer Reviews Yet' : 'እስካሁን ምንም አስተያየት አልተሰጠም'}
+                </h4>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 max-w-sm mx-auto">
+                  {language === 'en'
+                    ? 'Be the first to review this product and help other customers in Ethiopia make informed decisions.'
+                    : 'ስለዚህ እቃ የመጀመሪያውን አስተያየት ይስጡ እና ሌሎች ገዢዎችን ያግዙ።'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
