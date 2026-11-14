@@ -16,7 +16,9 @@ import {
   Copy,
   Check,
   Lock,
-  KeyRound
+  KeyRound,
+  Send,
+  MessageCircle
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { generateCustomerReceiptPDF } from '../../lib/pdfGenerator';
@@ -37,6 +39,38 @@ export const OrderConfirmationPage: React.FC = () => {
     navigator.clipboard?.writeText(handoverPin);
     setCopiedPin(true);
     setTimeout(() => setCopiedPin(false), 2000);
+  };
+
+  const getOrderShareText = () => {
+    if (!order) return '';
+    const itemsList = order.items
+      .map(i => `• ${i.product.nameEn} (${i.variantName || 'Standard'}) x${i.quantity} — ${(i.price * i.quantity).toLocaleString()} ETB`)
+      .join('\n');
+    const paymentDesc = order.paymentMethod === 'COD' 
+      ? 'Cash on Delivery (በዕቃ ርክክብ ጊዜ የሚከፈል)' 
+      : `Bank Transfer / Telebirr ${order.paymentReference ? `(Ref: ${order.paymentReference})` : ''}`;
+
+    return `🛍️ KASMA TECH SHOP — ORDER #${order.id}
+👤 Customer: ${order.customerName} (📞 ${order.customerPhone})
+📍 Destination: ${order.shippingAddress}
+💳 Payment: ${paymentDesc}
+🔢 Handover PIN: ${handoverPin}
+
+📦 Items Ordered:
+${itemsList}
+
+💰 Total Amount: ${order.total.toLocaleString()} ETB
+🚚 Track Live: ${window.location.origin}/tracking/${order.id}`;
+  };
+
+  const handleSendTelegram = () => {
+    const text = encodeURIComponent(getOrderShareText());
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(`${window.location.origin}/tracking/${order?.id || id}`)}&text=${text}`, '_blank');
+  };
+
+  const handleSendWhatsApp = () => {
+    const text = encodeURIComponent(getOrderShareText());
+    window.open(`https://wa.me/251911234567?text=${text}`, '_blank');
   };
 
   return (
@@ -195,8 +229,18 @@ export const OrderConfirmationPage: React.FC = () => {
               {order?.deliveryPersonnel?.eta || '35-45 Minutes (Express Courier)'}
             </p>
             <p className="text-[11px] text-gray-400">
-              Payment Rail: <span className="font-semibold text-gray-700 dark:text-zinc-300">{order?.paymentMethod || 'TELEBIRR'}</span>
+              Payment Rail:{' '}
+              <span className="font-semibold text-gray-700 dark:text-zinc-300">
+                {order?.paymentMethod === 'COD' 
+                  ? (language === 'en' ? 'Cash on Delivery (COD)' : 'በዕቃ ርክክብ ጊዜ (COD)') 
+                  : (language === 'en' ? `Bank Transfer ${order?.paymentReference ? `(Ref: ${order.paymentReference})` : ''}` : `የባንክ ዝውውር ${order?.paymentReference ? `(${order.paymentReference})` : ''}`)}
+              </span>
             </p>
+            {order?.paymentReceipt && (
+              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5">
+                ✓ {language === 'en' ? 'Transfer Screenshot Attached' : 'የዝውውር ደረሰኝ ተያይዟል'}
+              </span>
+            )}
           </div>
         </div>
 
@@ -284,6 +328,26 @@ export const OrderConfirmationPage: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="pt-4 space-y-3">
+          {/* Instant Multi-Channel Sharing (Telegram & WhatsApp) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              onClick={handleSendTelegram}
+              className="py-3 px-4 rounded-xl bg-[#229ED9] hover:bg-[#1E88E5] text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+            >
+              <Send className="w-4 h-4" />
+              <span>{language === 'en' ? 'Send Order to Telegram' : 'ትዕዛዙን በቴሌግራም ላክ'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleSendWhatsApp}
+              className="py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>{language === 'en' ? 'Send Order to WhatsApp' : 'ትዕዛዙን በዋትስአፕ ላክ'}</span>
+            </button>
+          </div>
+
           <button
             type="button"
             onClick={() => order && generateCustomerReceiptPDF(order, { language })}

@@ -92,6 +92,8 @@ export const orders = pgTable('orders', {
   channel: text('channel').default('WEB').notNull(), // 'WEB' | 'TELEGRAM_MINI_APP' | 'MOBILE'
   discountCode: text('discount_code'),
   discountAmount: real('discount_amount').default(0),
+  paymentReceipt: text('payment_receipt'),
+  paymentReference: text('payment_reference'),
   createdAt: timestamp('created_at').defaultNow(),
 });
 

@@ -317,6 +317,20 @@ export default function OrdersTab({
                     <span className="text-[11px] font-semibold text-gray-400">
                       {order.paymentMethod} {order.paymentMethod === 'COD' ? '(Cash on Delivery)' : '✅'}
                     </span>
+                    {order.paymentReceipt && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const w = window.open('');
+                          w?.document.write(`<title>Payment Receipt #${order.id}</title><img src="${order.paymentReceipt}" style="max-width:100%;height:auto;margin:auto;display:block;" />`);
+                        }}
+                        className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300 border border-purple-200 hover:bg-purple-200 cursor-pointer flex items-center gap-1"
+                        title="View Attached Bank Receipt"
+                      >
+                        <span>🧾 {language === 'en' ? 'View Bank Receipt' : 'ደረሰኝ ተመልከት'}</span>
+                        {order.paymentReference && <span className="font-mono text-[9px] opacity-80">({order.paymentReference})</span>}
+                      </button>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2 text-xs text-gray-400">

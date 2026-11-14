@@ -196,6 +196,8 @@ export class PostgresService {
         channel: (r.channel as any) || 'WEB',
         discountCode: r.discountCode || undefined,
         discountAmount: r.discountAmount || 0,
+        paymentReceipt: r.paymentReceipt || undefined,
+        paymentReference: r.paymentReference || undefined,
         createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString(),
       }));
     } catch (error) {
@@ -228,12 +230,16 @@ export class PostgresService {
           channel: o.channel || 'WEB',
           discountCode: o.discountCode || null,
           discountAmount: o.discountAmount || 0,
+          paymentReceipt: o.paymentReceipt || null,
+          paymentReference: o.paymentReference || null,
         })
         .onConflictDoUpdate({
           target: orders.id,
           set: {
             orderStatus: o.status || 'PROCESSING',
             paymentStatus: o.status === 'PAID' ? 'COMPLETED' : 'PENDING',
+            paymentReceipt: o.paymentReceipt || null,
+            paymentReference: o.paymentReference || null,
           },
         });
     } catch (error) {

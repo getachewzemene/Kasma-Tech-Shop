@@ -6,19 +6,19 @@ import { SUB_CITIES } from '../../constants/locations';
 import { Order } from '../../types';
 import { AddisLocationPicker } from '../../components/checkout/AddisLocationPicker';
 import { GoogleIcon, FacebookIcon } from '../../components/checkout/CheckoutAuthModal';
-import { 
-  ShieldCheck, 
-  Truck, 
-  MapPin, 
-  Phone, 
-  User, 
-  CheckCircle, 
-  AlertCircle, 
-  Lock, 
-  ArrowLeft, 
-  CreditCard, 
-  Building, 
-  Sparkles, 
+import {
+  ShieldCheck,
+  Truck,
+  MapPin,
+  Phone,
+  User,
+  CheckCircle,
+  AlertCircle,
+  Lock,
+  ArrowLeft,
+  CreditCard,
+  Building,
+  Sparkles,
   Smartphone,
   Navigation,
   CheckCircle2,
@@ -26,26 +26,31 @@ import {
   Mail,
   Eye,
   EyeOff,
-  ArrowRight
+  ArrowRight,
+  Upload,
+  Copy,
+  Check,
+  FileText,
+  Image as ImageIcon
 } from 'lucide-react';
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const { 
-    cart, 
-    cartSubtotal, 
-    discountAmount, 
-    appliedPromo, 
-    language, 
-    customerName, 
-    customerPhone, 
-    customerEmail, 
+  const {
+    cart,
+    cartSubtotal,
+    discountAmount,
+    appliedPromo,
+    language,
+    customerName,
+    customerPhone,
+    customerEmail,
     isCustomerLoggedIn,
     loginCustomer,
     loginWithSocial,
     logoutCustomer,
-    addOrder, 
-    showToast 
+    addOrder,
+    showToast
   } = useShop();
 
   const [name, setName] = useState(customerName || '');
@@ -56,8 +61,53 @@ export const CheckoutPage: React.FC = () => {
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>({ lat: 8.9953, lng: 38.7885 });
   const [gateNotes, setGateNotes] = useState('');
   const [specificAddress, setSpecificAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<'TELEBIRR' | 'CBE_BIRR' | 'CHAPA' | 'COD'>('TELEBIRR');
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'BANK_TRANSFER'>('COD');
+  const [selectedBank, setSelectedBank] = useState<'CBE' | 'TELEBIRR' | 'AWASH'>('CBE');
+  const [receiptFile, setReceiptFile] = useState<string | null>(null);
+  const [receiptFileName, setReceiptFileName] = useState<string>('');
+  const [paymentReference, setPaymentReference] = useState<string>('');
+  const [copiedBankAcc, setCopiedBankAcc] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const KASMA_ACCOUNTS = [
+    { id: 'CBE', nameEn: 'Commercial Bank of Ethiopia (CBE)', nameAm: 'የኢትዮጵያ ንግድ ባንክ (CBE)', account: '1000 1234 56789', holder: 'Kasma Tech Shop Enterprise' },
+    { id: 'TELEBIRR', nameEn: 'Telebirr SuperApp / Wallet', nameAm: 'ቴሌብር (Telebirr)', account: '0911 234 567', holder: 'Kasma Tech Shop Enterprise' },
+    { id: 'AWASH', nameEn: 'Awash Bank', nameAm: 'አዋሽ ባንክ (Awash Bank)', account: '0130 4567 89012', holder: 'Kasma Tech Shop Enterprise' },
+  ];
+
+  const handleReceiptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast(language === 'en' ? 'Please upload an image receipt (JPEG/PNG/WebP).' : 'እባክዎን የፎቶ ደረሰኝ ያስገቡ።', 'warning');
+      return;
+    }
+    setReceiptFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      const result = uploadEvent.target?.result as string;
+      setReceiptFile(result);
+      showToast(language === 'en' ? 'Payment receipt attached successfully!' : 'የክፍያ ደረሰኝ በተሳካ ሁኔታ ተያይዟል!', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUseDemoReceipt = () => {
+    const demoSvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%230F172A"/><rect x="20" y="20" width="360" height="260" rx="16" fill="%231E293B" stroke="%2338BDF8" stroke-width="2"/><text x="40" y="60" fill="%2338BDF8" font-family="sans-serif" font-weight="bold" font-size="16">CBE BIRR / TELEBIRR TRANSFER</text><text x="40" y="95" fill="%2394A3B8" font-family="sans-serif" font-size="12">Payer: ${name.trim() || 'Customer'} (${phone.trim()})</text><text x="40" y="125" fill="%2394A3B8" font-family="sans-serif" font-size="12">Recipient: Kasma Tech Shop Enterprise</text><text x="40" y="155" fill="%2334D399" font-family="sans-serif" font-weight="bold" font-size="15">Amount: ${orderTotal.toLocaleString()} ETB</text><text x="40" y="185" fill="%23E2E8F0" font-family="monospace" font-size="13">Ref: TX-${selectedBank}-${Date.now().toString().slice(-6)}</text><text x="40" y="215" fill="%23A855F7" font-family="sans-serif" font-size="11">Status: SUCCESSFUL / VERIFIED</text><circle cx="340" cy="60" r="16" fill="%2310B981"/><path d="M333 60l5 5 10-10" stroke="white" stroke-width="3" fill="none"/></svg>`;
+    setReceiptFile(demoSvg);
+    setReceiptFileName(`${selectedBank.toLowerCase()}_transfer_receipt.png`);
+    if (!paymentReference) {
+      setPaymentReference(`FT${Date.now().toString().slice(-8)}`);
+    }
+    showToast(language === 'en' ? 'Demo transfer receipt attached!' : 'የናሙና ክፍያ ደረሰኝ ተያይዟል!', 'info');
+  };
+
+  const handleCopyAccount = (acc: string, bankLabel: string) => {
+    navigator.clipboard?.writeText(acc);
+    setCopiedBankAcc(acc);
+    setTimeout(() => setCopiedBankAcc(null), 2000);
+    showToast(language === 'en' ? `${bankLabel} account copied: ${acc}` : `${bankLabel} ሂሳብ ቁጥር ተገልብጧል: ${acc}`, 'success');
+  };
 
   // Inline Checkout Sign-In Gate State (when unauthenticated)
   const [authTab, setAuthTab] = useState<'SMS_OTP' | 'PASSWORD' | 'REGISTER'>('SMS_OTP');
@@ -312,8 +362,8 @@ export const CheckoutPage: React.FC = () => {
 
     if (!isCustomerLoggedIn) {
       showToast(
-        language === 'en' 
-          ? 'Please sign in with Google, Facebook, or your Ethiopian mobile number first.' 
+        language === 'en'
+          ? 'Please sign in with Google, Facebook, or your Ethiopian mobile number first.'
           : 'እባክዎ በመጀመሪያ በጉግል፣ በፌስቡክ ወይም በስልክ ቁጥርዎ ይግቡ።',
         'warning'
       );
@@ -333,9 +383,9 @@ export const CheckoutPage: React.FC = () => {
 
     if (!cleanLandmark) {
       showToast(
-        language === 'en' 
-          ? 'Known Landmark / Area is required for Ethiopian delivery (e.g. Behind Edna Mall, Near Medhanialem Church).' 
-          : 'እባክዎን የሚታወቅ መለያ ቦታ ያስገቡ (ለምሳሌ፡ ከኤድና ሞል ጀርባ፣ ከመድኃኔዓለም ቤተክርስቲያን አጠገብ)።', 
+        language === 'en'
+          ? 'Known Landmark / Area is required for Ethiopian delivery (e.g. Behind Edna Mall, Near Medhanialem Church).'
+          : 'እባክዎን የሚታወቅ መለያ ቦታ ያስገቡ (ለምሳሌ፡ ከኤድና ሞል ጀርባ፣ ከመድኃኔዓለም ቤተክርስቲያን አጠገብ)።',
         'warning'
       );
       return;
@@ -415,9 +465,11 @@ export const CheckoutPage: React.FC = () => {
         subtotal: cartSubtotal,
         shippingFee,
         total: orderTotal,
-        status: paymentMethod === 'COD' ? 'PROCESSING' : 'PENDING_PAYMENT',
+        status: paymentMethod === 'COD' ? 'PROCESSING' : (receiptFile ? 'PROCESSING' : 'PENDING_PAYMENT'),
         paymentMethod,
         paymentId: txRef,
+        paymentReceipt: receiptFile || undefined,
+        paymentReference: paymentReference.trim() || undefined,
         shippingAddress: formattedAddress,
         subCity: selectedSubCity.nameEn,
         landmark: cleanLandmark,
@@ -447,455 +499,452 @@ export const CheckoutPage: React.FC = () => {
 
       showToast(
         language === 'en'
-          ? (paymentMethod === 'COD' 
-              ? `Order #${orderId} confirmed! Courier Verification PIN: ${finalPin}` 
-              : `Order #${orderId} created! Proceeding to Chapa / Telebirr gateway...`)
+          ? (paymentMethod === 'COD'
+            ? `Order #${orderId} confirmed! Courier Verification PIN: ${finalPin}`
+          : `Order #${orderId} placed! Transfer receipt attached for review.`)
           : (paymentMethod === 'COD'
-              ? `ትዕዛዝ #${orderId} ተረጋግጧል! የማረጋገጫ ፒን: ${finalPin}`
-              : `ትዕዛዝ #${orderId} ተፈጥሯል! ወደ ክፍያ ገጽ በመሸጋገር ላይ...`),
-        'success'
+  ? `ትዕዛዝ #${orderId} ተረጋግጧል! የማረጋገጫ ፒን: ${finalPin}`
+              : `ትዕዛዝ #${orderId} በክፍያ ደረሰኝ ተልኳል!`),
+'success'
       );
 
-      navigate(`/order-confirmation/${orderId}${chapaCheckoutUrl ? `?checkoutUrl=${encodeURIComponent(chapaCheckoutUrl)}&txRef=${txRef}` : ''}`);
+navigate(`/order-confirmation/${orderId}`);
     } catch (err: any) {
-      showToast(err.message || 'Failed to place order', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
+  showToast(err.message || 'Failed to place order', 'error');
+} finally {
+  setIsSubmitting(false);
+}
   };
 
-  return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs text-gray-500">
-        <Link to="/cart" className="hover:text-[#0052FF] font-medium flex items-center gap-1">
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>{language === 'en' ? 'Back to Cart' : 'ወደ ጋሪ ተመለስ'}</span>
-        </Link>
-        <span>/</span>
-        <span className="text-gray-900 dark:text-zinc-100 font-bold">
-          {language === 'en' ? 'Secure Checkout' : 'ክፍያ መፈጸሚያ'}
-        </span>
-      </nav>
+return (
+  <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    {/* Breadcrumb */}
+    <nav className="flex items-center gap-2 text-xs text-gray-500">
+      <Link to="/cart" className="hover:text-[#0052FF] font-medium flex items-center gap-1">
+        <ArrowLeft className="w-3.5 h-3.5" />
+        <span>{language === 'en' ? 'Back to Cart' : 'ወደ ጋሪ ተመለስ'}</span>
+      </Link>
+      <span>/</span>
+      <span className="text-gray-900 dark:text-zinc-100 font-bold">
+        {language === 'en' ? 'Secure Checkout' : 'ክፍያ መፈጸሚያ'}
+      </span>
+    </nav>
 
-      <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: If Not Logged In, Render Checkout Authentication Gate */}
-        {!isCustomerLoggedIn ? (
-          <div className="lg:col-span-7 space-y-6">
-            <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 shadow-sm space-y-6">
-              
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-[#0052FF] flex items-center justify-center shrink-0 shadow-xs">
-                  <Lock className="w-6 h-6" />
+    <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* Left Column: If Not Logged In, Render Checkout Authentication Gate */}
+      {!isCustomerLoggedIn ? (
+        <div className="lg:col-span-7 space-y-6">
+          <div className="p-6 sm:p-8 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 shadow-sm space-y-6">
+
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/50 text-[#0052FF] flex items-center justify-center shrink-0 shadow-xs">
+                <Lock className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#0052FF] bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-900/60">
+                    {language === 'en' ? 'Step 1 of 2: Customer Identity' : 'ደረጃ 1 ከ 2፡ የማንነት ማረጋገጫ'}
+                  </span>
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#0052FF] bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-900/60">
-                      {language === 'en' ? 'Step 1 of 2: Customer Identity' : 'ደረጃ 1 ከ 2፡ የማንነት ማረጋገጫ'}
+                <h2 className="text-xl font-black text-gray-900 dark:text-zinc-100 mt-1">
+                  {language === 'en' ? 'Sign In to Complete Your Order' : 'ትዕዛዝዎን ለማጠናቀቅ እባክዎ ይግቡ'}
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                  {language === 'en'
+                    ? 'Please sign in with Google, Facebook, or your Ethiopian mobile number to unlock 1-click Addis courier dispatch, SMS delivery tracking, and digital warranty protection.'
+                    : 'የአዲስ አበባ ፈጣን ማጓጓዣ፣ የቀጥታ ክትትል እና የዲጂታል ዋስትና ለማግኘት በጉግል፣ በፌስቡክ ወይም በስልክ ቁጥርዎ ይግቡ።'}
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Demo Buyer Shortcut: Abebe Kebede (No-Click Barrier) */}
+            <button
+              type="button"
+              id="demo-abebe-buyer-login"
+              onClick={() => {
+                loginCustomer('+251911223344', 'Abebe Kebede', 'abebe@gmail.com');
+                showToast(
+                  language === 'en' ? 'Welcome Abebe! Fast-tracked to checkout.' : 'እንኳን ደህና መጡ አበበ! ወደ ክፍያ ገጽ በመሸጋገር ላይ።',
+                  'success'
+                );
+              }}
+              className="w-full py-3 px-3.5 rounded-2xl bg-gradient-to-r from-blue-600/10 via-[#0052FF]/10 to-indigo-600/15 hover:from-blue-600/20 hover:to-indigo-600/25 border border-blue-500/30 text-gray-900 dark:text-zinc-100 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-xs active:scale-[0.99] group"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="w-8 h-8 rounded-xl bg-[#0052FF] text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                </span>
+                <div className="text-left">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-black text-xs text-[#0052FF] dark:text-blue-400">
+                      {language === 'en' ? '⚡ 1-Tap Fast Sign In as Abebe' : '⚡ በ1-ጠቅታ እንደ አበበ (ገዢ) ይግቡ'}
+                    </span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold uppercase">
+                      Buyer
                     </span>
                   </div>
-                  <h2 className="text-xl font-black text-gray-900 dark:text-zinc-100 mt-1">
-                    {language === 'en' ? 'Sign In to Complete Your Order' : 'ትዕዛዝዎን ለማጠናቀቅ እባክዎ ይግቡ'}
-                  </h2>
-                  <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 leading-relaxed">
-                    {language === 'en' 
-                      ? 'Please sign in with Google, Facebook, or your Ethiopian mobile number to unlock 1-click Addis courier dispatch, SMS delivery tracking, and digital warranty protection.'
-                      : 'የአዲስ አበባ ፈጣን ማጓጓዣ፣ የቀጥታ ክትትል እና የዲጂታል ዋስትና ለማግኘት በጉግል፣ በፌስቡክ ወይም በስልክ ቁጥርዎ ይግቡ።'}
-                  </p>
+                  <span className="block text-[10px] text-gray-500 dark:text-zinc-400 font-medium">
+                    Abebe Kebede • +251 91 122 3344 • abebe@gmail.com
+                  </span>
                 </div>
               </div>
+              <ArrowRight className="w-4 h-4 text-[#0052FF] shrink-0 group-hover:translate-x-0.5 transition-transform" />
+            </button>
 
-              {/* Quick Demo Buyer Shortcut: Abebe Kebede (No-Click Barrier) */}
+            {/* Fast Social Sign-In: Google & Facebook */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <button
                 type="button"
-                id="demo-abebe-buyer-login"
-                onClick={() => {
-                  loginCustomer('+251911223344', 'Abebe Kebede', 'abebe@gmail.com');
-                  showToast(
-                    language === 'en' ? 'Welcome Abebe! Fast-tracked to checkout.' : 'እንኳን ደህና መጡ አበበ! ወደ ክፍያ ገጽ በመሸጋገር ላይ።',
-                    'success'
-                  );
+                onClick={async () => {
+                  setIsSubmitting(true);
+                  try {
+                    await loginWithSocial('google', {
+                      name: 'Google Customer',
+                      email: 'shopper@gmail.com',
+                      phone: '+251 91 188 9900'
+                    });
+                  } finally {
+                    setIsSubmitting(false);
+                  }
                 }}
-                className="w-full py-3 px-3.5 rounded-2xl bg-gradient-to-r from-blue-600/10 via-[#0052FF]/10 to-indigo-600/15 hover:from-blue-600/20 hover:to-indigo-600/25 border border-blue-500/30 text-gray-900 dark:text-zinc-100 font-bold text-xs flex items-center justify-between transition-all cursor-pointer shadow-xs active:scale-[0.99] group"
+                disabled={isSubmitting}
+                className="py-3 px-4 rounded-xl border border-gray-250 dark:border-zinc-750 hover:border-gray-400 dark:hover:border-zinc-600 bg-white dark:bg-zinc-850 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-100 font-bold text-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xs disabled:opacity-60"
               >
-                <div className="flex items-center gap-2.5">
-                  <span className="w-8 h-8 rounded-xl bg-[#0052FF] text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                    <Sparkles className="w-4 h-4 text-amber-300" />
-                  </span>
-                  <div className="text-left">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-black text-xs text-[#0052FF] dark:text-blue-400">
-                        {language === 'en' ? '⚡ 1-Tap Fast Sign In as Abebe' : '⚡ በ1-ጠቅታ እንደ አበበ (ገዢ) ይግቡ'}
-                      </span>
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold uppercase">
-                        Buyer
-                      </span>
-                    </div>
-                    <span className="block text-[10px] text-gray-500 dark:text-zinc-400 font-medium">
-                      Abebe Kebede • +251 91 122 3344 • abebe@gmail.com
-                    </span>
-                  </div>
-                </div>
-                <ArrowRight className="w-4 h-4 text-[#0052FF] shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                <GoogleIcon className="w-4.5 h-4.5 shrink-0" />
+                <span>{language === 'en' ? 'Continue with Google' : 'በጉግል (Google) ቀጥል'}</span>
               </button>
 
-              {/* Fast Social Sign-In: Google & Facebook */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setIsSubmitting(true);
-                    try {
-                      await loginWithSocial('google', {
-                        name: 'Google Customer',
-                        email: 'shopper@gmail.com',
-                        phone: '+251 91 188 9900'
-                      });
-                    } finally {
-                      setIsSubmitting(false);
-                    }
-                  }}
-                  disabled={isSubmitting}
-                  className="py-3 px-4 rounded-xl border border-gray-250 dark:border-zinc-750 hover:border-gray-400 dark:hover:border-zinc-600 bg-white dark:bg-zinc-850 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-800 dark:text-zinc-100 font-bold text-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xs disabled:opacity-60"
-                >
-                  <GoogleIcon className="w-4.5 h-4.5 shrink-0" />
-                  <span>{language === 'en' ? 'Continue with Google' : 'በጉግል (Google) ቀጥል'}</span>
-                </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsSubmitting(true);
+                  try {
+                    await loginWithSocial('facebook', {
+                      name: 'Facebook Customer',
+                      email: 'shopper@facebook.com',
+                      phone: '+251 92 233 4455'
+                    });
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+                disabled={isSubmitting}
+                className="py-3 px-4 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold text-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xs disabled:opacity-60"
+              >
+                <FacebookIcon className="w-4.5 h-4.5 shrink-0" />
+                <span>{language === 'en' ? 'Continue with Facebook' : 'በፌስቡክ (Facebook) ቀጥል'}</span>
+              </button>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setIsSubmitting(true);
-                    try {
-                      await loginWithSocial('facebook', {
-                        name: 'Facebook Customer',
-                        email: 'shopper@facebook.com',
-                        phone: '+251 92 233 4455'
-                      });
-                    } finally {
-                      setIsSubmitting(false);
-                    }
-                  }}
-                  disabled={isSubmitting}
-                  className="py-3 px-4 rounded-xl bg-[#1877F2] hover:bg-[#166fe5] text-white font-bold text-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xs disabled:opacity-60"
-                >
-                  <FacebookIcon className="w-4.5 h-4.5 shrink-0" />
-                  <span>{language === 'en' ? 'Continue with Facebook' : 'በፌስቡክ (Facebook) ቀጥል'}</span>
-                </button>
-              </div>
+            <div className="relative flex items-center justify-center">
+              <div className="border-t border-gray-200 dark:border-zinc-800 w-full" />
+              <span className="bg-white dark:bg-zinc-900 px-3 text-[10px] font-black uppercase text-gray-400 tracking-wider absolute">
+                {language === 'en' ? 'or sign in with Ethiopian phone / email' : 'ወይም በስልክ / ኢሜይል'}
+              </span>
+            </div>
 
-              <div className="relative flex items-center justify-center">
-                <div className="border-t border-gray-200 dark:border-zinc-800 w-full" />
-                <span className="bg-white dark:bg-zinc-900 px-3 text-[10px] font-black uppercase text-gray-400 tracking-wider absolute">
-                  {language === 'en' ? 'or sign in with Ethiopian phone / email' : 'ወይም በስልክ / ኢሜይል'}
-                </span>
-              </div>
-
-              {/* Direct Auth Tabs */}
-              <div className="flex rounded-xl bg-gray-100 dark:bg-zinc-800 p-1 gap-1">
-                <button
-                  type="button"
-                  onClick={() => setAuthTab('SMS_OTP')}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                    authTab === 'SMS_OTP'
-                      ? 'bg-white dark:bg-zinc-900 text-[#0052FF] shadow-xs'
-                      : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
+            {/* Direct Auth Tabs */}
+            <div className="flex rounded-xl bg-gray-100 dark:bg-zinc-800 p-1 gap-1">
+              <button
+                type="button"
+                onClick={() => setAuthTab('SMS_OTP')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${authTab === 'SMS_OTP'
+                    ? 'bg-white dark:bg-zinc-900 text-[#0052FF] shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
                   }`}
-                >
-                  <Smartphone className="w-3.5 h-3.5" />
-                  <span>{language === 'en' ? 'Phone SMS' : 'በስልክ ኮድ'}</span>
-                </button>
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>{language === 'en' ? 'Phone SMS' : 'በስልክ ኮድ'}</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setAuthTab('PASSWORD')}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                    authTab === 'PASSWORD'
-                      ? 'bg-white dark:bg-zinc-900 text-[#0052FF] shadow-xs'
-                      : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
+              <button
+                type="button"
+                onClick={() => setAuthTab('PASSWORD')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${authTab === 'PASSWORD'
+                    ? 'bg-white dark:bg-zinc-900 text-[#0052FF] shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
                   }`}
-                >
-                  <KeyRound className="w-3.5 h-3.5" />
-                  <span>{language === 'en' ? 'Password' : 'የምስጢር ቃል'}</span>
-                </button>
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+                <span>{language === 'en' ? 'Password' : 'የምስጢር ቃል'}</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setAuthTab('REGISTER')}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                    authTab === 'REGISTER'
-                      ? 'bg-white dark:bg-zinc-900 text-[#0052FF] shadow-xs'
-                      : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
+              <button
+                type="button"
+                onClick={() => setAuthTab('REGISTER')}
+                className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${authTab === 'REGISTER'
+                    ? 'bg-white dark:bg-zinc-900 text-[#0052FF] shadow-xs'
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200'
                   }`}
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>{language === 'en' ? 'Sign Up' : 'ተመዝገብ'}</span>
-                </button>
-              </div>
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>{language === 'en' ? 'Sign Up' : 'ተመዝገብ'}</span>
+              </button>
+            </div>
 
-              {/* Sub-tab 1: Phone SMS OTP */}
-              {authTab === 'SMS_OTP' && (
-                <div className="space-y-4">
-                  {!authOtpSent ? (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
-                          {language === 'en' ? 'Ethiopian Mobile Number (09... or 07...)' : 'የኢትዮጵያ ስልክ ቁጥር'}
-                        </label>
-                        <div className="relative flex items-center">
-                          <span className="absolute left-3 text-xs font-black text-gray-500 dark:text-zinc-400">
-                            🇪🇹
-                          </span>
-                          <input
-                            type="tel"
-                            value={authPhone}
-                            onChange={(e) => setAuthPhone(e.target.value)}
-                            placeholder="+251 91 123 4567"
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-mono font-bold text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleAuthSendOtp}
-                        disabled={isSubmitting}
-                        className="w-full py-3 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-                      >
-                        <span>{language === 'en' ? 'Send SMS Verification Code' : 'የማረጋገጫ ኮድ ላክ'}</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="p-3 bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-xs flex items-center justify-between">
-                        <div>
-                          <p className="font-bold text-blue-900 dark:text-blue-200">
-                            {language === 'en' ? 'Code dispatched to:' : 'ኮድ የተላከበት:'}
-                          </p>
-                          <p className="font-mono text-xs text-blue-700 dark:text-blue-300 font-bold">{authPhone}</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setAuthOtpSent(false)}
-                          className="text-[11px] font-bold text-[#0052FF] hover:underline cursor-pointer"
-                        >
-                          {language === 'en' ? 'Change' : 'ቀይር'}
-                        </button>
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
-                          {language === 'en' ? 'Enter SMS Code' : 'የኤስኤምኤስ ኮዱን ያስገቡ'}
-                        </label>
+            {/* Sub-tab 1: Phone SMS OTP */}
+            {authTab === 'SMS_OTP' && (
+              <div className="space-y-4">
+                {!authOtpSent ? (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                        {language === 'en' ? 'Ethiopian Mobile Number (09... or 07...)' : 'የኢትዮጵያ ስልክ ቁጥር'}
+                      </label>
+                      <div className="relative flex items-center">
+                        <span className="absolute left-3 text-xs font-black text-gray-500 dark:text-zinc-400">
+                          🇪🇹
+                        </span>
                         <input
-                          type="text"
-                          maxLength={6}
-                          value={authOtpInput}
-                          onChange={(e) => setAuthOtpInput(e.target.value)}
-                          placeholder="123456"
-                          autoFocus
-                          className="w-full text-center tracking-[0.5em] text-lg font-mono font-black py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                          type="tel"
+                          value={authPhone}
+                          onChange={(e) => setAuthPhone(e.target.value)}
+                          placeholder="+251 91 123 4567"
+                          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-mono font-bold text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
                         />
                       </div>
+                    </div>
 
+                    <button
+                      type="button"
+                      onClick={handleAuthSendOtp}
+                      disabled={isSubmitting}
+                      className="w-full py-3 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                    >
+                      <span>{language === 'en' ? 'Send SMS Verification Code' : 'የማረጋገጫ ኮድ ላክ'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl text-xs flex items-center justify-between">
+                      <div>
+                        <p className="font-bold text-blue-900 dark:text-blue-200">
+                          {language === 'en' ? 'Code dispatched to:' : 'ኮድ የተላከበት:'}
+                        </p>
+                        <p className="font-mono text-xs text-blue-700 dark:text-blue-300 font-bold">{authPhone}</p>
+                      </div>
                       <button
                         type="button"
-                        onClick={handleAuthVerifyOtp}
-                        disabled={isSubmitting}
-                        className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                        onClick={() => setAuthOtpSent(false)}
+                        className="text-[11px] font-bold text-[#0052FF] hover:underline cursor-pointer"
                       >
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>{language === 'en' ? 'Verify & Continue to Checkout' : 'አረጋግጥ እና ወደ ክፍያ ቀጥል'}</span>
+                        {language === 'en' ? 'Change' : 'ቀይር'}
                       </button>
-
-                      <div className="text-center">
-                        <button
-                          type="button"
-                          disabled={authCountdown > 0 || isSubmitting}
-                          onClick={() => handleAuthSendOtp()}
-                          className="text-[11px] font-bold text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200 disabled:opacity-40 cursor-pointer"
-                        >
-                          {authCountdown > 0
-                            ? `${language === 'en' ? 'Resend code in' : 'ኮድ በድጋሚ ለመላክ'} ${authCountdown}s`
-                            : (language === 'en' ? 'Didn\'t receive code? Resend SMS' : 'ኮዱ አልደረሰዎትም? በድጋሚ ይላኩ')}
-                        </button>
-                      </div>
                     </div>
-                  )}
-                </div>
-              )}
 
-              {/* Sub-tab 2: Password Sign In */}
-              {authTab === 'PASSWORD' && (
-                <div className="space-y-3.5">
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
-                      {language === 'en' ? 'Email or Mobile Phone' : 'ኢሜይል ወይም ስልክ ቁጥር'}
-                    </label>
-                    <div className="relative flex items-center">
-                      <Mail className="w-4 h-4 absolute left-3 text-gray-400" />
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                        {language === 'en' ? 'Enter SMS Code' : 'የኤስኤምኤስ ኮዱን ያስገቡ'}
+                      </label>
                       <input
                         type="text"
-                        value={authEmail}
-                        onChange={(e) => setAuthEmail(e.target.value)}
-                        placeholder="customer@kasma.et or 0911234567"
-                        className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                        maxLength={6}
+                        value={authOtpInput}
+                        onChange={(e) => setAuthOtpInput(e.target.value)}
+                        placeholder="123456"
+                        autoFocus
+                        className="w-full text-center tracking-[0.5em] text-lg font-mono font-black py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
-                      {language === 'en' ? 'Password' : 'የምስጢር ቃል'}
-                    </label>
-                    <div className="relative flex items-center">
-                      <Lock className="w-4 h-4 absolute left-3 text-gray-400" />
-                      <input
-                        type={authShowPassword ? 'text' : 'password'}
-                        value={authPassword}
-                        onChange={(e) => setAuthPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
-                      />
+                    <button
+                      type="button"
+                      onClick={handleAuthVerifyOtp}
+                      disabled={isSubmitting}
+                      className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>{language === 'en' ? 'Verify & Continue to Checkout' : 'አረጋግጥ እና ወደ ክፍያ ቀጥል'}</span>
+                    </button>
+
+                    <div className="text-center">
                       <button
                         type="button"
-                        onClick={() => setAuthShowPassword(!authShowPassword)}
-                        className="absolute right-3 text-gray-400 hover:text-gray-600"
+                        disabled={authCountdown > 0 || isSubmitting}
+                        onClick={() => handleAuthSendOtp()}
+                        className="text-[11px] font-bold text-gray-500 hover:text-gray-900 dark:hover:text-zinc-200 disabled:opacity-40 cursor-pointer"
                       >
-                        {authShowPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {authCountdown > 0
+                          ? `${language === 'en' ? 'Resend code in' : 'ኮድ በድጋሚ ለመላክ'} ${authCountdown}s`
+                          : (language === 'en' ? 'Didn\'t receive code? Resend SMS' : 'ኮዱ አልደረሰዎትም? በድጋሚ ይላኩ')}
                       </button>
                     </div>
                   </div>
+                )}
+              </div>
+            )}
 
-                  <button
-                    type="button"
-                    onClick={handleAuthPasswordLogin}
-                    disabled={isSubmitting}
-                    className="w-full py-3 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-                  >
-                    <span>{language === 'en' ? 'Sign In & Continue to Checkout' : 'ይግቡ እና ወደ ክፍያ ቀጥል'}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-
-              {/* Sub-tab 3: Register */}
-              {authTab === 'REGISTER' && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
-                      {language === 'en' ? 'Full Name' : 'ሙሉ ስም'}
-                    </label>
+            {/* Sub-tab 2: Password Sign In */}
+            {authTab === 'PASSWORD' && (
+              <div className="space-y-3.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                    {language === 'en' ? 'Email or Mobile Phone' : 'ኢሜይል ወይም ስልክ ቁጥር'}
+                  </label>
+                  <div className="relative flex items-center">
+                    <Mail className="w-4 h-4 absolute left-3 text-gray-400" />
                     <input
                       type="text"
-                      value={authRegName}
-                      onChange={(e) => setAuthRegName(e.target.value)}
-                      placeholder="e.g. Abebe Bikila"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      placeholder="customer@kasma.et or 0911234567"
+                      className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
                     />
                   </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
-                      {language === 'en' ? 'Mobile Phone' : 'ስልክ ቁጥር'}
-                    </label>
-                    <input
-                      type="tel"
-                      value={authRegPhone}
-                      onChange={(e) => setAuthRegPhone(e.target.value)}
-                      placeholder="+251 91 123 4567"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-mono font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
-                      {language === 'en' ? 'Email (Optional)' : 'ኢሜይል (አስፈላጊ ከሆነ)'}
-                    </label>
-                    <input
-                      type="email"
-                      value={authRegEmail}
-                      onChange={(e) => setAuthRegEmail(e.target.value)}
-                      placeholder="abebe@example.et"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
-                      {language === 'en' ? 'Password (min. 6 characters)' : 'የምስጢር ቃል ይፍጠሩ'}
-                    </label>
-                    <input
-                      type="password"
-                      value={authRegPassword}
-                      onChange={(e) => setAuthRegPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleAuthRegister}
-                    disabled={isSubmitting}
-                    className="w-full py-3 rounded-xl bg-black dark:bg-white text-white dark:text-black font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-                  >
-                    <span>{language === 'en' ? 'Create Account & Continue' : 'መለያ ፍጠር እና ቀጥል'}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
                 </div>
-              )}
 
-              <div className="pt-2 border-t border-gray-150 dark:border-zinc-800 text-[10px] text-gray-400 flex items-center justify-center gap-3">
-                <span className="flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                  <span>{language === 'en' ? '256-Bit SSL Encrypted' : 'ደህንነቱ የተጠበቀ'}</span>
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Truck className="w-3.5 h-3.5 text-blue-500" />
-                  <span>Addis Ababa Courier Network</span>
-                </span>
-              </div>
-
-            </div>
-          </div>
-        ) : (
-          <div className="lg:col-span-7 space-y-6">
-            
-            {/* Authenticated Customer Banner */}
-            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between text-xs shadow-xs">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
-                  ✓
-                </div>
                 <div>
-                  <p className="font-extrabold text-emerald-950 dark:text-emerald-100">
-                    {language === 'en' ? 'Signed In As' : 'የገቡበት መለያ'}: {name || customerName} ({phone || customerPhone})
-                  </p>
-                  <p className="text-[10.5px] text-emerald-700 dark:text-emerald-300 font-medium">
-                    {language === 'en' ? 'Verified Account • Digital Warranty Active' : 'የተረጋገጠ መለያ • ዲጂታል ዋስትና ነቅቷል'}
-                  </p>
+                  <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                    {language === 'en' ? 'Password' : 'የምስጢር ቃል'}
+                  </label>
+                  <div className="relative flex items-center">
+                    <Lock className="w-4 h-4 absolute left-3 text-gray-400" />
+                    <input
+                      type={authShowPassword ? 'text' : 'password'}
+                      value={authPassword}
+                      onChange={(e) => setAuthPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setAuthShowPassword(!authShowPassword)}
+                      className="absolute right-3 text-gray-400 hover:text-gray-600"
+                    >
+                      {authShowPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={handleAuthPasswordLogin}
+                  disabled={isSubmitting}
+                  className="w-full py-3 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                >
+                  <span>{language === 'en' ? 'Sign In & Continue to Checkout' : 'ይግቡ እና ወደ ክፍያ ቀጥል'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={logoutCustomer}
-                className="text-xs font-bold text-gray-500 hover:text-rose-600 transition-colors cursor-pointer"
-              >
-                {language === 'en' ? 'Switch Account' : 'መለያ ቀይር'}
-              </button>
+            )}
+
+            {/* Sub-tab 3: Register */}
+            {authTab === 'REGISTER' && (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                    {language === 'en' ? 'Full Name' : 'ሙሉ ስም'}
+                  </label>
+                  <input
+                    type="text"
+                    value={authRegName}
+                    onChange={(e) => setAuthRegName(e.target.value)}
+                    placeholder="e.g. Abebe Bikila"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                    {language === 'en' ? 'Mobile Phone' : 'ስልክ ቁጥር'}
+                  </label>
+                  <input
+                    type="tel"
+                    value={authRegPhone}
+                    onChange={(e) => setAuthRegPhone(e.target.value)}
+                    placeholder="+251 91 123 4567"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-mono font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                    {language === 'en' ? 'Email (Optional)' : 'ኢሜይል (አስፈላጊ ከሆነ)'}
+                  </label>
+                  <input
+                    type="email"
+                    value={authRegEmail}
+                    onChange={(e) => setAuthRegEmail(e.target.value)}
+                    placeholder="abebe@example.et"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 mb-1">
+                    {language === 'en' ? 'Password (min. 6 characters)' : 'የምስጢር ቃል ይፍጠሩ'}
+                  </label>
+                  <input
+                    type="password"
+                    value={authRegPassword}
+                    onChange={(e) => setAuthRegPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-zinc-750 bg-gray-50/50 dark:bg-zinc-800/50 text-xs sm:text-sm font-medium text-gray-900 dark:text-zinc-100 outline-none focus:border-[#0052FF]"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAuthRegister}
+                  disabled={isSubmitting}
+                  className="w-full py-3 rounded-xl bg-black dark:bg-white text-white dark:text-black font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                >
+                  <span>{language === 'en' ? 'Create Account & Continue' : 'መለያ ፍጠር እና ቀጥል'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            <div className="pt-2 border-t border-gray-150 dark:border-zinc-800 text-[10px] text-gray-400 flex items-center justify-center gap-3">
+              <span className="flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span>{language === 'en' ? '256-Bit SSL Encrypted' : 'ደህንነቱ የተጠበቀ'}</span>
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1">
+                <Truck className="w-3.5 h-3.5 text-blue-500" />
+                <span>Addis Ababa Courier Network</span>
+              </span>
             </div>
 
-            {/* Section 1: Customer Contact */}
-            <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 space-y-4 shadow-sm">
-              <div className="flex items-center gap-2">
-                <User className="w-4 h-4 text-[#0052FF]" />
-                <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
-                  {language === 'en' ? '1. Recipient Information' : '1. የተቀባይ መረጃ'}
-                </h2>
+          </div>
+        </div>
+      ) : (
+        <div className="lg:col-span-7 space-y-6">
+
+          {/* Authenticated Customer Banner */}
+          <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between text-xs shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
+                ✓
               </div>
+              <div>
+                <p className="font-extrabold text-emerald-950 dark:text-emerald-100">
+                  {language === 'en' ? 'Signed In As' : 'የገቡበት መለያ'}: {name || customerName} ({phone || customerPhone})
+                </p>
+                <p className="text-[10.5px] text-emerald-700 dark:text-emerald-300 font-medium">
+                  {language === 'en' ? 'Verified Account • Digital Warranty Active' : 'የተረጋገጠ መለያ • ዲጂታል ዋስትና ነቅቷል'}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={logoutCustomer}
+              className="text-xs font-bold text-gray-500 hover:text-rose-600 transition-colors cursor-pointer"
+            >
+              {language === 'en' ? 'Switch Account' : 'መለያ ቀይር'}
+            </button>
+          </div>
+
+          {/* Section 1: Customer Contact */}
+          <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4 text-[#0052FF]" />
+              <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                {language === 'en' ? '1. Recipient Information' : '1. የተቀባይ መረጃ'}
+              </h2>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -1007,264 +1056,348 @@ export const CheckoutPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-[#0052FF]" />
               <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
-                {language === 'en' ? '3. Select Ethiopian Payment Rail' : '3. የክፍያ መንገድ ይምረጡ'}
+                {language === 'en' ? '3. Select Ethiopian Payment Method' : '3. የክፍያ መንገድ ይምረጡ'}
               </h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {/* Telebirr */}
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('TELEBIRR')}
-                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
-                  paymentMethod === 'TELEBIRR'
-                    ? 'border-[#0052FF] bg-blue-50/60 dark:bg-blue-950/40 ring-2 ring-[#0052FF]/30'
-                    : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-black text-sm text-[#0052FF]">telebirr</span>
-                    <span className="text-[10px] font-bold bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 px-1.5 py-0.5 rounded">
-                      SuperApp / *127#
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-1">
-                    Instant push prompt & mobile PIN authorization.
-                  </p>
-                </div>
-              </button>
-
-              {/* CBE Birr */}
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('CBE_BIRR')}
-                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
-                  paymentMethod === 'CBE_BIRR'
-                    ? 'border-[#7E1D8D] bg-purple-50/60 dark:bg-purple-950/40 ring-2 ring-purple-600/30'
-                    : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-black text-sm text-[#7E1D8D]">CBE Birr</span>
-                    <span className="text-[10px] font-bold bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 px-1.5 py-0.5 rounded">
-                      *847# / Mobile
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-1">
-                    Commercial Bank of Ethiopia direct payment rails.
-                  </p>
-                </div>
-              </button>
-
-              {/* Chapa */}
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('CHAPA')}
-                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
-                  paymentMethod === 'CHAPA'
-                    ? 'border-emerald-600 bg-emerald-50/60 dark:bg-emerald-950/40 ring-2 ring-emerald-600/30'
-                    : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-black text-sm text-emerald-600">Chapa Pay</span>
-                    <span className="text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 rounded">
-                      Awash / Bank Cards
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-1">
-                    Unified card and domestic Ethiopian banking checkout.
-                  </p>
-                </div>
-              </button>
-
               {/* Cash On Delivery */}
               <button
                 type="button"
                 onClick={() => setPaymentMethod('COD')}
                 className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
                   paymentMethod === 'COD'
-                    ? 'border-zinc-900 dark:border-zinc-100 bg-zinc-100 dark:bg-zinc-800 ring-2 ring-black/20'
+                    ? 'border-[#0052FF] bg-blue-50/60 dark:bg-blue-950/40 ring-2 ring-[#0052FF]/30'
                     : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300'
                 }`}
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="font-black text-sm text-gray-900 dark:text-zinc-100">Cash on Delivery</span>
-                    <span className="text-[10px] font-bold bg-zinc-200 dark:bg-zinc-700 text-gray-800 dark:text-zinc-200 px-1.5 py-0.5 rounded">
-                      COD PIN
+                    <span className="font-black text-sm text-gray-900 dark:text-zinc-100 flex items-center gap-1.5">
+                      <span>💵</span>
+                      <span>{language === 'en' ? 'Cash on Delivery (COD)' : 'በዕቃ ርክክብ ጊዜ የሚከፈል'}</span>
+                    </span>
+                    <span className="text-[10px] font-bold bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 px-2 py-0.5 rounded-full">
+                      {language === 'en' ? 'Courier PIN' : 'የመልዕክተኛ ፒን'}
                     </span>
                   </div>
                   <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-1">
-                    Pay in cash or Telebirr upon receiving package.
+                    {language === 'en' 
+                      ? 'Pay in cash or Telebirr upon physical delivery by Kasma courier in Addis Ababa.' 
+                      : 'እቃው በአዲስ አበባ ባሉበት ቦታ ሲደርስ በጥሬ ገንዘብ ወይም በቴሌብር ይክፈሉ።'}
+                  </p>
+                </div>
+              </button>
+
+              {/* Bank Transfer & Telebirr Manual with Receipt Upload */}
+              <button
+                type="button"
+                onClick={() => setPaymentMethod('BANK_TRANSFER')}
+                className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+                  paymentMethod === 'BANK_TRANSFER'
+                    ? 'border-emerald-600 bg-emerald-50/60 dark:bg-emerald-950/40 ring-2 ring-emerald-600/30'
+                    : 'border-gray-200 dark:border-zinc-800 hover:border-gray-300'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-black text-sm text-gray-900 dark:text-zinc-100 flex items-center gap-1.5">
+                      <span>🏦</span>
+                      <span>{language === 'en' ? 'Bank Transfer / Telebirr' : 'የባንክ ዝውውር / ቴሌብር'}</span>
+                    </span>
+                    <span className="text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">
+                      {language === 'en' ? 'Receipt Upload' : 'ደረሰኝ ማያያዣ'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-gray-500 dark:text-zinc-400 mt-1">
+                    {language === 'en' 
+                      ? 'Transfer to our CBE, Awash, or Telebirr account and attach screenshot.' 
+                      : 'ወደ CBE፣ አዋሽ ወይም ቴሌብር አካውንታችን ልከው ደረሰኝ ያያይዙ።'}
                   </p>
                 </div>
               </button>
             </div>
 
-            {paymentMethod === 'COD' && (
-              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 space-y-3">
-                <div className="flex items-start gap-2.5">
-                  <Smartphone className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
-                  <div>
-                    <p className="font-bold">
-                      {language === 'en' ? 'Cash on Delivery Phone Verification' : 'የስልክ ቁጥር ማረጋገጫ'}
-                    </p>
-                    <p className="text-[11px] opacity-90 mt-0.5">
-                      {language === 'en'
-                        ? 'To protect against fake orders, verify your Ethiopian mobile number via SMS OTP. A 6-digit handover PIN will be issued for delivery.'
-                        : 'የውሸት ትዕዛዞችን ለመከላከል ስልክዎን በኤስኤምኤስ ያረጋግጡ። ርክክብ ሲፈጸም የሚያሳውቁት ባለ 6-አሃዝ ፒን ይላክልዎታል።'}
-                    </p>
+        {/* Bank Transfer Receipt Upload Panel */}
+        {paymentMethod === 'BANK_TRANSFER' && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/60 text-xs space-y-4">
+            <div>
+                <h4 className="font-black text-xs uppercase tracking-wider text-emerald-900 dark:text-emerald-200">
+                  {language === 'en' ? 'Official Payment Accounts' : 'ኦፊሴላዊ የክፍያ አካውንቶች'}
+                </h4>
+                <p className="text-[11px] text-emerald-700/80 dark:text-emerald-300/80 mt-0.5">
+                  {language === 'en'
+                    ? 'Transfer the exact order total to any of the accounts below, then attach your transaction receipt.'
+                    : 'የትዕዛዝዎን ጠቅላላ ሂሳብ ከታች ባሉት አካውንቶች ዝውውር አድርገው ደረሰኝ ያያይዙ።'}
+                </p>
+            </div>
+
+              {/* Account Selection Pills */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {KASMA_ACCOUNTS.map((acc) => (
+                  <div
+                    key={acc.id}
+                    onClick={() => setSelectedBank(acc.id as any)}
+                    className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${selectedBank === acc.id
+                        ? 'border-emerald-600 bg-white dark:bg-zinc-900 shadow-xs ring-1 ring-emerald-500'
+                        : 'border-emerald-200 dark:border-emerald-900/40 bg-white/60 dark:bg-zinc-900/40 hover:bg-white dark:hover:bg-zinc-900'
+                      }`}
+                  >
+                    <span className="font-bold text-[11px] text-gray-900 dark:text-zinc-100 block">
+                      {language === 'en' ? acc.nameEn : acc.nameAm}
+                    </span>
+                    <div className="flex items-center justify-between mt-1.5 font-mono text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                      <span>{acc.account}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyAccount(acc.account, acc.nameEn);
+                        }}
+                        className="p-1 rounded hover:bg-emerald-100 dark:hover:bg-emerald-900 text-gray-500 hover:text-emerald-700 cursor-pointer"
+                        title="Copy account number"
+                      >
+                        {copiedBankAcc === acc.account ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+                    <span className="text-[10px] text-gray-400 block mt-0.5 truncate">{acc.holder}</span>
                   </div>
+                ))}
+              </div>
+
+              {/* Reference Number & Receipt Upload */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-emerald-200/60 dark:border-emerald-900/40">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 uppercase mb-1">
+                    {language === 'en' ? 'Bank FT / Telebirr Txn ID:' : 'የዝውውር ማረጋገጫ ቁጥር (FT ቁጥር)፡'}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. FT2409817492 or TB849201"
+                    value={paymentReference}
+                    onChange={(e) => setPaymentReference(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs font-mono font-bold text-gray-900 dark:text-white uppercase focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
                 </div>
 
-                {/* Inline OTP Verification Widget */}
-                {isPhoneVerified ? (
-                  <div className="p-2.5 rounded-xl bg-emerald-100/70 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-bold flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                      <span>{language === 'en' ? `Phone Verified: ${phone}` : `ስልክ ተረጋግጧል: ${phone}`}</span>
-                    </div>
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100">
-                      AUTHENTICATED
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-[11px] font-bold text-gray-700 dark:text-zinc-300 uppercase">
+                      {language === 'en' ? 'Attach Payment Screenshot:' : 'የክፍያ ደረሰኝ ስክሪንሾት ያያይዙ፡'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleUseDemoReceipt}
+                      className="text-[10px] font-bold text-emerald-600 hover:underline cursor-pointer"
+                    >
+                      {language === 'en' ? 'Use Demo Receipt' : 'የናሙና ደረሰኝ ተጠቀም'}
+                    </button>
+                  </div>
+
+                  <label className="flex items-center justify-center gap-2 px-3 py-2 border-2 border-dashed border-emerald-300 dark:border-emerald-800 rounded-xl cursor-pointer hover:bg-emerald-100/50 dark:hover:bg-emerald-950/40 transition-colors bg-white dark:bg-zinc-900">
+                    <Upload className="w-4 h-4 text-emerald-600" />
+                    <span className="text-xs font-bold text-gray-700 dark:text-zinc-300 truncate">
+                      {receiptFileName || (language === 'en' ? 'Choose Screenshot Image' : 'ደረሰኝ ፎቶ ይምረጡ')}
                     </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleReceiptUpload}
+                    />
+                  </label>
+                </div>
+              </div>
+
+          {/* Receipt Preview Thumbnail */}
+          {receiptFile && (
+            <div className="p-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2.5">
+                <img src={receiptFile} alt="Receipt preview" className="w-10 h-10 object-cover rounded-lg border border-gray-200" />
+                <div>
+                  <span className="font-bold text-gray-900 dark:text-zinc-100 block text-xs">{receiptFileName}</span>
+                  <span className="text-[10px] text-emerald-600 font-bold">✓ {language === 'en' ? 'Receipt attached & ready' : 'ደረሰኝ ተያይዟል'}</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setReceiptFile(null);
+                  setReceiptFileName('');
+                }}
+                className="text-xs text-rose-500 hover:underline font-bold cursor-pointer"
+              >
+                {language === 'en' ? 'Remove' : 'አስወግድ'}
+              </button>
+            </div>
+          )}
+        </div>
+            )}
+
+        {/* Cash on Delivery Notice */}
+        {paymentMethod === 'COD' && (
+          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 space-y-3">
+            <div className="flex items-start gap-2.5">
+              <Smartphone className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+              <div>
+                <p className="font-bold">
+                  {language === 'en' ? 'Cash on Delivery Phone Verification' : 'የስልክ ቁጥር ማረጋገጫ'}
+                </p>
+                <p className="text-[11px] opacity-90 mt-0.5">
+                  {language === 'en'
+                    ? 'To protect against fake orders, verify your Ethiopian mobile number via SMS OTP. A 6-digit handover PIN will be issued for delivery.'
+                    : 'የውሸት ትዕዛዞችን ለመከላከል ስልክዎን በኤስኤምኤስ ያረጋግጡ። ርክክብ ሲፈጸም የሚያሳውቁት ባለ 6-አሃዝ ፒን ይላክልዎታል።'}
+                </p>
+              </div>
+            </div>
+
+            {/* Inline OTP Verification Widget */}
+            {isPhoneVerified ? (
+              <div className="p-2.5 rounded-xl bg-emerald-100/70 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-bold flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>{language === 'en' ? `Phone Verified: ${phone}` : `ስልክ ተረጋግጧል: ${phone}`}</span>
+                </div>
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100">
+                  AUTHENTICATED
+                </span>
+              </div>
+            ) : (
+              <div className="p-3 rounded-xl bg-white dark:bg-zinc-900 border border-amber-200 dark:border-amber-900/60 space-y-2">
+                {!codOtpSent ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-gray-600 dark:text-zinc-400 font-medium">
+                      {language === 'en' ? 'Click below to receive a 6-digit SMS code:' : 'ባለ 6-አሃዝ ኮድ በኤስኤምኤስ ለመቀበል ይጫኑ:'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleSendCodOtp}
+                      disabled={isSendingCodOtp}
+                      className="px-3 py-1.5 bg-[#0052FF] hover:bg-blue-600 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50 shrink-0"
+                    >
+                      <Smartphone className="w-3.5 h-3.5" />
+                      <span>{isSendingCodOtp ? (language === 'en' ? 'Sending...' : 'በመላክ ላይ...') : (language === 'en' ? 'Send SMS Code' : 'ኮድ ላክ')}</span>
+                    </button>
                   </div>
                 ) : (
-                  <div className="p-3 rounded-xl bg-white dark:bg-zinc-900 border border-amber-200 dark:border-amber-900/60 space-y-2">
-                    {!codOtpSent ? (
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] text-gray-600 dark:text-zinc-400 font-medium">
-                          {language === 'en' ? 'Click below to receive a 6-digit SMS code:' : 'ባለ 6-አሃዝ ኮድ በኤስኤምኤስ ለመቀበል ይጫኑ:'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleSendCodOtp}
-                          disabled={isSendingCodOtp}
-                          className="px-3 py-1.5 bg-[#0052FF] hover:bg-blue-600 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50 shrink-0"
-                        >
-                          <Smartphone className="w-3.5 h-3.5" />
-                          <span>{isSendingCodOtp ? (language === 'en' ? 'Sending...' : 'በመላክ ላይ...') : (language === 'en' ? 'Send SMS Code' : 'ኮድ ላክ')}</span>
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-gray-700 dark:text-zinc-300">
-                            {language === 'en' ? 'Enter 6-digit code sent to your phone:' : 'የተላከውን ባለ 6-አሃዝ ኮድ ያስገቡ:'}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={handleSendCodOtp}
-                            disabled={isSendingCodOtp}
-                            className="text-[10px] font-bold text-[#0052FF] hover:underline cursor-pointer"
-                          >
-                            {language === 'en' ? 'Resend SMS' : 'እንደገና ላክ'}
-                          </button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            maxLength={6}
-                            placeholder="• • • • • •"
-                            value={codOtpInput}
-                            onChange={(e) => setCodOtpInput(e.target.value)}
-                            className="flex-1 px-3 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-xl text-xs font-mono font-bold tracking-widest text-center text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0052FF]"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleVerifyCodOtp}
-                            disabled={isVerifyingCodOtp}
-                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs cursor-pointer shadow-xs disabled:opacity-50"
-                          >
-                            {isVerifyingCodOtp ? '...' : (language === 'en' ? 'Verify PIN' : 'አረጋግጥ')}
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-gray-700 dark:text-zinc-300">
+                        {language === 'en' ? 'Enter 6-digit code sent to your phone:' : 'የተላከውን ባለ 6-አሃዝ ኮድ ያስገቡ:'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleSendCodOtp}
+                        disabled={isSendingCodOtp}
+                        className="text-[10px] font-bold text-[#0052FF] hover:underline cursor-pointer"
+                      >
+                        {language === 'en' ? 'Resend SMS' : 'እንደገና ላክ'}
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        maxLength={6}
+                        placeholder="• • • • • •"
+                        value={codOtpInput}
+                        onChange={(e) => setCodOtpInput(e.target.value)}
+                        className="flex-1 px-3 py-2 bg-gray-50 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-xl text-xs font-mono font-bold tracking-widest text-center text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0052FF]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyCodOtp}
+                        disabled={isVerifyingCodOtp}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs cursor-pointer shadow-xs disabled:opacity-50"
+                      >
+                        {isVerifyingCodOtp ? '...' : (language === 'en' ? 'Verify PIN' : 'አረጋግጥ')}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
+  </div>
+)}
 
-        {/* Right Column: Order Confirmation Summary */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 space-y-5 shadow-sm">
-            <h2 className="text-sm font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
-              {language === 'en' ? 'Checkout Summary' : 'የትዕዛዝ ማጠቃለያ'}
-            </h2>
+{/* Right Column: Order Confirmation Summary */ }
+<div className="lg:col-span-5 space-y-4">
+  <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 space-y-5 shadow-sm">
+    <h2 className="text-sm font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+      {language === 'en' ? 'Checkout Summary' : 'የትዕዛዝ ማጠቃለያ'}
+    </h2>
 
-            {/* Line items preview */}
-            <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
-              {cart.map(item => (
-                <div key={item.sku} className="flex items-center justify-between text-xs gap-3">
-                  <div className="flex items-center gap-2.5 truncate">
-                    <LazyImage src={item.product.image} alt="" className="w-9 h-9 rounded-lg object-cover" containerClassName="w-9 h-9 rounded-lg bg-gray-100 shrink-0" />
-                    <div className="truncate">
-                      <p className="font-bold text-gray-900 dark:text-zinc-100 truncate">{item.product.nameEn}</p>
-                      <p className="text-[10px] text-gray-400">Qty: {item.quantity} • {item.variantName}</p>
-                    </div>
-                  </div>
-                  <span className="font-black shrink-0 text-gray-900 dark:text-zinc-100">
-                    {(item.price * item.quantity).toLocaleString()} ETB
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="border-t border-gray-150 dark:border-zinc-800 pt-4 space-y-2 text-xs">
-              <div className="flex justify-between text-gray-600 dark:text-zinc-400">
-                <span>{language === 'en' ? 'Items Subtotal' : 'የእቃዎች ድምር'}</span>
-                <span className="font-bold text-gray-900 dark:text-zinc-100">{cartSubtotal.toLocaleString()} ETB</span>
-              </div>
-              <div className="flex justify-between text-gray-600 dark:text-zinc-400">
-                <span>{selectedSubCity.nameEn} {language === 'en' ? 'Courier Dispatch' : 'ማጓጓዣ'}</span>
-                <span className="font-bold text-gray-900 dark:text-zinc-100">+{shippingFee} ETB</span>
-              </div>
-              {discountAmount > 0 && (
-                <div className="flex justify-between text-emerald-600 font-bold">
-                  <span>{language === 'en' ? 'Promo Discount' : 'ቅናሽ'}</span>
-                  <span>-{discountAmount.toLocaleString()} ETB</span>
-                </div>
-              )}
-              <div className="border-t border-gray-150 dark:border-zinc-800 pt-3 flex justify-between text-base font-black text-gray-900 dark:text-zinc-100">
-                <span>{language === 'en' ? 'Final Total' : 'ጠቅላላ ክፍያ'}</span>
-                <span className="text-[#0052FF]">{orderTotal.toLocaleString()} ETB</span>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`w-full py-4 px-6 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${
-                !isCustomerLoggedIn
-                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                  : 'bg-[#0052FF] hover:bg-blue-600 text-white'
-              }`}
-            >
-              <Lock className="w-4 h-4" />
-              <span>
-                {!isCustomerLoggedIn
-                  ? (language === 'en' ? 'Sign In to Complete Order' : 'ትዕዛዙን ለማጠናቀቅ መጀመሪያ ይግቡ')
-                  : isSubmitting
-                    ? (language === 'en' ? 'Authorizing Transaction...' : 'ክፍያው እየተረጋገጠ ነው...')
-                    : (language === 'en' ? `Confirm & Place Order (${orderTotal.toLocaleString()} ETB)` : `ትዕዛዙን አረጋግጥ (${orderTotal.toLocaleString()} ብር)`)}
-              </span>
-            </button>
-
-            <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400 dark:text-zinc-500">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Kasma Escrow Protected • 100% Guaranteed</span>
+    {/* Line items preview */}
+    <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+      {cart.map(item => (
+        <div key={item.sku} className="flex items-center justify-between text-xs gap-3">
+          <div className="flex items-center gap-2.5 truncate">
+            <LazyImage src={item.product.image} alt="" className="w-9 h-9 rounded-lg object-cover" containerClassName="w-9 h-9 rounded-lg bg-gray-100 shrink-0" />
+            <div className="truncate">
+              <p className="font-bold text-gray-900 dark:text-zinc-100 truncate">{item.product.nameEn}</p>
+              <p className="text-[10px] text-gray-400">Qty: {item.quantity} • {item.variantName}</p>
             </div>
           </div>
+          <span className="font-black shrink-0 text-gray-900 dark:text-zinc-100">
+            {(item.price * item.quantity).toLocaleString()} ETB
+          </span>
         </div>
-      </form>
+      ))}
     </div>
+
+    <div className="border-t border-gray-150 dark:border-zinc-800 pt-4 space-y-2 text-xs">
+      <div className="flex justify-between text-gray-600 dark:text-zinc-400">
+        <span>{language === 'en' ? 'Items Subtotal' : 'የእቃዎች ድምር'}</span>
+        <span className="font-bold text-gray-900 dark:text-zinc-100">{cartSubtotal.toLocaleString()} ETB</span>
+      </div>
+      <div className="flex justify-between text-gray-600 dark:text-zinc-400">
+        <span>{selectedSubCity.nameEn} {language === 'en' ? 'Courier Dispatch' : 'ማጓጓዣ'}</span>
+        <span className="font-bold text-gray-900 dark:text-zinc-100">+{shippingFee} ETB</span>
+      </div>
+      {discountAmount > 0 && (
+        <div className="flex justify-between text-emerald-600 font-bold">
+          <span>{language === 'en' ? 'Promo Discount' : 'ቅናሽ'}</span>
+          <span>-{discountAmount.toLocaleString()} ETB</span>
+        </div>
+      )}
+      <div className="border-t border-gray-150 dark:border-zinc-800 pt-3 flex justify-between text-base font-black text-gray-900 dark:text-zinc-100">
+        <span>{language === 'en' ? 'Final Total' : 'ጠቅላላ ክፍያ'}</span>
+        <span className="text-[#0052FF]">{orderTotal.toLocaleString()} ETB</span>
+      </div>
+    </div>
+
+    {/* Submit Button */}
+    <button
+      type="submit"
+      disabled={isSubmitting}
+      className={`w-full py-4 px-6 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 ${!isCustomerLoggedIn
+          ? 'bg-amber-600 hover:bg-amber-700 text-white'
+          : 'bg-[#0052FF] hover:bg-blue-600 text-white'
+        }`}
+    >
+      <Lock className="w-4 h-4" />
+      <span>
+        {!isCustomerLoggedIn
+          ? (language === 'en' ? 'Sign In to Complete Order' : 'ትዕዛዙን ለማጠናቀቅ መጀመሪያ ይግቡ')
+          : isSubmitting
+            ? (language === 'en' ? 'Authorizing Transaction...' : 'ክፍያው እየተረጋገጠ ነው...')
+            : (language === 'en' ? `Confirm & Place Order (${orderTotal.toLocaleString()} ETB)` : `ትዕዛዙን አረጋግጥ (${orderTotal.toLocaleString()} ብር)`)}
+      </span>
+    </button>
+
+    <div className="flex items-center justify-center gap-2 text-[11px] text-gray-400 dark:text-zinc-500">
+      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+      <span>Kasma Escrow Protected • 100% Guaranteed</span>
+    </div>
+  </div>
+</div>
+      </form >
+    </div >
   );
 };

@@ -101,7 +101,9 @@ export async function sendOrderAlertToTelegram(
   appUrl: string = process.env.APP_URL || 'http://localhost:3000'
 ): Promise<TelegramDispatchResult> {
   const isCOD = order.paymentMethod === 'COD';
-  const paymentBadge = isCOD ? '💵 Cash on Delivery (COD)' : `💳 ${order.paymentMethod} (Prepaid Verified ✅)`;
+  const paymentBadge = isCOD 
+    ? '💵 Cash on Delivery (COD)' 
+    : `🏦 ${order.paymentMethod} ${order.paymentReference ? `(Ref: <code>${order.paymentReference}</code>)` : ''} ${order.paymentReceipt ? '🧾 Receipt Attached ✅' : ''}`;
   
   const itemsText = order.items
     .map(i => `  • <b>${i.product.nameEn}</b> (${i.variantName || 'Standard'}) x${i.quantity} — <code>${(i.price * i.quantity).toLocaleString()} ETB</code>`)

@@ -98,7 +98,7 @@ export class Database {
 
         // Dynamic compliance auto-migration to enforce only electronic tech products
         const hasLegacy = this.products.some(p => 
-          !['computers', 'smartwatches', 'gaming', 'mobiles', 'headphones', 'accessories', 'cameras'].includes(p.category)
+          !['computers', 'smartwatches', 'gaming', 'mobiles', 'headphones', 'accessories', 'cameras', 'television'].includes(p.category)
         );
         if (hasLegacy || this.products.length === 0) {
           console.log('[AUTO-MIGRATION] Legacy non-electronic products detected. Purging database state and resetting to pure tech catalog.');

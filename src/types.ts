@@ -133,6 +133,8 @@ export interface Order {
   status: 'PENDING_PAYMENT' | 'PAID' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
   paymentMethod: 'TELEBIRR' | 'CHAPA' | 'COD' | 'CBE_BIRR' | 'BANK_TRANSFER' | 'BANK';
   paymentId?: string;
+  paymentReceipt?: string;
+  paymentReference?: string;
   shippingAddress: string;
   subCity?: string;
   landmark?: string;
