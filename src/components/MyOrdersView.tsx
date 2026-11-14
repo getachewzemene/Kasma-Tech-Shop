@@ -30,7 +30,9 @@ import {
   Star,
   FileBadge,
   Download,
-  Wrench
+  Wrench,
+  XCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { Order, Product, CartItem, DigitalWarrantyPass, WarrantyClaim } from '../types';
 import { useShop } from '../context/ShopContext';
@@ -76,11 +78,27 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
   const [trackingViewMode, setTrackingViewMode] = useState<'SPLIT' | 'TIMELINE' | 'MAP'>('SPLIT');
   const [selectedReceiptOrder, setSelectedReceiptOrder] = useState<Order | null>(null);
   const [reviewingOrder, setReviewingOrder] = useState<Order | null>(null);
+  const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
+  const [cancelReason, setCancelReason] = useState('Ordered wrong model/variant');
+  const [isCancelling, setIsCancelling] = useState(false);
   const [selectedWarrantyPass, setSelectedWarrantyPass] = useState<DigitalWarrantyPass | null>(null);
   const [isPassModalOpen, setIsPassModalOpen] = useState(false);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
-  const { getOrderWarranties, submitWarrantyClaim } = useShop();
+  const { getOrderWarranties, submitWarrantyClaim, cancelOrder } = useShop();
+
+  const handleConfirmCancel = async () => {
+    if (!cancellingOrder) return;
+    setIsCancelling(true);
+    try {
+      const success = await cancelOrder(cancellingOrder.id, cancelReason);
+      if (success) {
+        setCancellingOrder(null);
+      }
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   // Combine online and offline orders
   const allOrders = useMemo(() => {
@@ -526,6 +544,18 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
                           <RotateCcw className="w-3.5 h-3.5 text-[#0052FF]" />
                           <span className="hidden sm:inline">{language === 'en' ? 'Buy Again' : 'በድጋሚ እዘዝ'}</span>
                         </button>
+
+                        {/* Cancel Order Button (Available only for PENDING_PAYMENT or PROCESSING) */}
+                        {(ord.status === 'PENDING_PAYMENT' || ord.status === 'PROCESSING') && (
+                          <button
+                            onClick={() => setCancellingOrder(ord)}
+                            className="px-3 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 text-xs font-black uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-95"
+                            title={language === 'en' ? 'Cancel this pending order' : 'ትዕዛዝ ሰርዝ'}
+                          >
+                            <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                            <span className="hidden sm:inline">{language === 'en' ? 'Cancel' : 'ሰርዝ'}</span>
+                          </button>
+                        )}
 
                         {/* Toggle Details Expand */}
                         <button
@@ -1364,6 +1394,84 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
           return await submitWarrantyClaim(claimData);
         }}
       />
+
+      {/* Customer Cancel Order Confirmation Modal */}
+      {cancellingOrder && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div className="flex items-start gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-white">
+                  {language === 'en' ? `Cancel Order #${cancellingOrder.id}?` : `ትዕዛዝ #${cancellingOrder.id} ይሰረዝ?`}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                  {language === 'en'
+                    ? 'Are you sure you want to cancel this order? Reserved items will be released back to store inventory, and escrow payment will be marked for refund.'
+                    : 'እርግጠኛ ነዎት ይህንን ትዕዛዝ መሰረዝ ይፈልጋሉ? የተያዘው እቃ ወደ መደብሩ ይመለሳል እንዲሁም ክፍያዎ ተመላሽ እንዲሆን ይመዘገባል።'}
+                </p>
+              </div>
+            </div>
+
+            {/* Reason selector */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-700 dark:text-zinc-300">
+                {language === 'en' ? 'Reason for Cancellation:' : 'የስረዛ ምክንያት፡'}
+              </label>
+              <select
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 cursor-pointer"
+              >
+                <option value="Ordered wrong model/variant">
+                  {language === 'en' ? 'Ordered wrong model / variant' : 'የተሳሳተ ሞዴል / ምርት መርጬ ነው'}
+                </option>
+                <option value="Wrong delivery address / sub-city">
+                  {language === 'en' ? 'Wrong delivery address / sub-city' : 'የማድረሻ አድራሻ / ክፍለ ከተማ ተሳስቻለሁ'}
+                </option>
+                <option value="Found alternative / changed mind">
+                  {language === 'en' ? 'Found alternative / changed mind' : 'ሌላ አማራጭ አግኝቻለሁ / ሃሳቤን ቀይሬያለሁ'}
+                </option>
+                <option value="Duplicate order placed">
+                  {language === 'en' ? 'Duplicate order placed' : 'ትዕዛዙ ተደግሟል'}
+                </option>
+                <option value="Other reason">
+                  {language === 'en' ? 'Other reason' : 'ሌላ ምክንያት'}
+                </option>
+              </select>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setCancellingOrder(null)}
+                disabled={isCancelling}
+                className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 text-xs font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                {language === 'en' ? 'Keep Order' : 'ይቅር'}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCancel}
+                disabled={isCancelling}
+                className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-all shadow-md shadow-rose-600/20 cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {isCancelling ? (
+                  <span>{language === 'en' ? 'Cancelling...' : 'በመሰረዝ ላይ...'}</span>
+                ) : (
+                  <>
+                    <XCircle className="w-4 h-4" />
+                    <span>{language === 'en' ? 'Confirm Cancellation' : 'አረጋግጥና ሰርዝ'}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

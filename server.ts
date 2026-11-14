@@ -1829,6 +1829,40 @@ With local logistics corridors from the Addis Ababa Bole terminal experiencing s
     res.json(OrderService.getOrders());
   });
 
+  // General & Admin Order Status Management (Persists status changes to database & db.json)
+  app.put('/api/orders/:id/status', (req, res) => {
+    try {
+      const { status, actor, trackingNotes, courierName, courierPhone, reason } = req.body || {};
+      const validStatuses: Order['status'][] = ['PENDING_PAYMENT', 'PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
+
+      if (!status || !validStatuses.includes(status)) {
+        res.status(400).json({ error: `Valid order status (${validStatuses.join(', ')}) is required.` });
+        return;
+      }
+
+      const result = OrderService.updateOrderStatus(req.params.id, status, {
+        actor: actor || 'Admin Management Engine',
+        trackingNotes,
+        courierName,
+        courierPhone,
+        reason
+      });
+
+      if (!result.success) {
+        res.status(404).json({ error: result.error || 'Order not found.' });
+        return;
+      }
+
+      res.json({
+        success: true,
+        order: result.order,
+        orders: db.orders
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || 'Failed to update order status.' });
+    }
+  });
+
   // Merchant Order Fulfillment Action (Pack, Ship, Deliver)
   app.put('/api/merchants/orders/:id/fulfillment', requireMerchant, (req: AuthRequest, res) => {
     try {

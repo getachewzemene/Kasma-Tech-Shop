@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { 
-  Product, 
-  Merchant, 
-  Order, 
+import {
+  Product,
+  Merchant,
+  Order,
   Review,
-  StockMovementLog, 
-  AuditLog, 
-  TelegramAlert, 
-  CartItem, 
-  PriceAlert, 
+  StockMovementLog,
+  AuditLog,
+  TelegramAlert,
+  CartItem,
+  PriceAlert,
   PromoCode,
   DeliveryAddress,
   SavedPaymentMethod,
@@ -20,13 +20,13 @@ import {
 } from '../types';
 import { createDigitalWarrantyPass } from '../lib/warrantyService';
 import { fetchWithSWR, getCachedData, CACHE_KEYS, DEFAULT_TTLS } from '../services/dataCache';
-import { 
-  INITIAL_CATEGORIES, 
-  INITIAL_PRODUCTS, 
-  INITIAL_MERCHANTS, 
+import {
+  INITIAL_CATEGORIES,
+  INITIAL_PRODUCTS,
+  INITIAL_MERCHANTS,
   INITIAL_ORDERS,
-  INITIAL_STOCK_LOGS, 
-  INITIAL_AUDIT_LOGS, 
+  INITIAL_STOCK_LOGS,
+  INITIAL_AUDIT_LOGS,
   INITIAL_TELEGRAM_ALERTS,
   INITIAL_FLASH_DEALS
 } from '../mockData';
@@ -121,7 +121,12 @@ interface ShopContextType {
   // Orders & Stock
   addOrder: (order: Order) => void;
   updateProductStock: (productId: string, sku: string, qtyChange: number, reason: string) => void;
-  updateOrderStatus: (orderId: string, newStatus: Order['status']) => void;
+  updateOrderStatus: (
+    orderId: string,
+    newStatus: Order['status'],
+    details?: { actor?: string; reason?: string; trackingNotes?: string; courierName?: string; courierPhone?: string }
+  ) => Promise<boolean>;
+  cancelOrder: (orderId: string, reason?: string) => Promise<boolean>;
   updateCourierOrderStatus: (
     orderId: string,
     newStatus: Order['status'],
@@ -151,13 +156,22 @@ interface ShopContextType {
   isCustomerLoggedIn: boolean;
   loginCustomer: (phone: string, name?: string, email?: string) => void;
   loginWithSocial: (
-    provider: 'google' | 'facebook', 
+    provider: 'google' | 'facebook',
     profile?: { name?: string; email?: string; phone?: string; avatarUrl?: string }
   ) => Promise<{ success: boolean; user?: any }>;
   logoutCustomer: () => void;
   addresses: DeliveryAddress[];
   addAddress: (addr: Omit<DeliveryAddress, 'id'>) => void;
   deleteAddress: (id: string) => void;
+  setDefaultAddress: (id: string) => void;
+  paymentMethods: SavedPaymentMethod[];
+  addPaymentMethod: (pm: Omit<SavedPaymentMethod, 'id'>) => void;
+  deletePaymentMethod: (id: string) => void;
+  setDefaultPaymentMethod: (id: string) => void;
+  kasmaPoints: number;
+  pointsLogs: KasmaPointsLog[];
+  addPoints: (amount: number, reasonEn: string, reasonAm: string, type?: 'EARNED' | 'REDEEMED' | 'BONUS') => void;
+  redeemReward: (reward: KasmaPointsReward) => void;
 
   // Admin / Merchant Approvals
   approveProduct: (id: string) => Promise<void>;
@@ -214,7 +228,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (cached.data?.products && Array.isArray(cached.data.products) && cached.data.products.length > 0) {
         return cached.data.products;
       }
-    } catch {}
+    } catch { }
     return INITIAL_PRODUCTS;
   });
   const [merchants, setMerchants] = useState<Merchant[]>(INITIAL_MERCHANTS);
@@ -286,7 +300,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     try {
       localStorage.setItem('kasma_price_alerts', JSON.stringify(priceAlerts));
-    } catch {}
+    } catch { }
   }, [priceAlerts]);
 
   // Offline Simulation & Data Sync
@@ -308,7 +322,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     try {
       localStorage.setItem('kasma_compared_products', JSON.stringify(comparedProductIds));
-    } catch {}
+    } catch { }
   }, [comparedProductIds]);
 
   // Promo Codes
@@ -356,18 +370,96 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const isLoggedIn = localStorage.getItem('kasma_customer_logged_in') === 'true';
     return isLoggedIn ? (localStorage.getItem('kasma_customer_email') || 'customer@kasma.et') : (localStorage.getItem('kasma_customer_email') || '');
   });
-  const [addresses, setAddresses] = useState<DeliveryAddress[]>([
-    {
-      id: 'addr-1',
-      label: 'HOME',
-      fullName: 'Getachew Zemene',
-      phone: '+251 91 123 4567',
-      subCity: 'Bole',
-      woreda: 'Woreda 03',
-      streetAddress: 'Around Edna Mall, House 204',
-      isDefault: true
-    }
-  ]);
+  const [addresses, setAddresses] = useState<DeliveryAddress[]>(() => {
+    try {
+      const saved = localStorage.getItem('kasma_addresses');
+      if (saved) return JSON.parse(saved);
+    } catch { }
+    return [
+      {
+        id: 'addr-1',
+        label: 'HOME',
+        fullName: 'Getachew Zemene',
+        phone: '+251 91 123 4567',
+        subCity: 'Bole',
+        woreda: 'Woreda 03',
+        streetAddress: 'Around Edna Mall, House 204',
+        isDefault: true
+      },
+      {
+        id: 'addr-2',
+        label: 'OFFICE',
+        fullName: 'Getachew Zemene (Tech Hub)',
+        phone: '+251 91 123 4567',
+        subCity: 'Kirkos',
+        woreda: 'Woreda 01',
+        streetAddress: 'Kazanchis Commercial Building, 5th Floor',
+        isDefault: false
+      }
+    ];
+  });
+
+  const [paymentMethods, setPaymentMethods] = useState<SavedPaymentMethod[]>(() => {
+    try {
+      const saved = localStorage.getItem('kasma_payment_methods');
+      if (saved) return JSON.parse(saved);
+    } catch { }
+    return [
+      {
+        id: 'pm-1',
+        type: 'TELEBIRR',
+        title: 'Primary Telebirr Wallet',
+        accountMasked: '+251 911 *** 344',
+        encryptedToken: 'enc_aes256_tb_9f82a10c44',
+        isDefault: true
+      },
+      {
+        id: 'pm-2',
+        type: 'BANK_CARD',
+        title: 'CBE Platinum Visa Card',
+        accountMasked: '4000 **** **** 8821',
+        encryptedToken: 'enc_aes256_cbe_8821a7f0',
+        isDefault: false,
+        expiryDate: '12/28'
+      }
+    ];
+  });
+
+  const [kasmaPoints, setKasmaPoints] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('kasma_points');
+      if (saved !== null) {
+        const parsed = Number(saved);
+        if (!isNaN(parsed)) return parsed;
+      }
+    } catch { }
+    return 1450;
+  });
+
+  const [pointsLogs, setPointsLogs] = useState<KasmaPointsLog[]>(() => {
+    try {
+      const saved = localStorage.getItem('kasma_points_logs');
+      if (saved) return JSON.parse(saved);
+    } catch { }
+    return [
+      {
+        id: 'pl-1',
+        titleEn: 'Earned on Order #KS-8492 (+10% Cashback)',
+        titleAm: 'ከተዕዛዝ #KS-8492 የተገኘ ነጥብ (+10% ተመላሽ)',
+        points: 250,
+        timestamp: new Date(Date.now() - 86400000 * 2).toISOString(),
+        type: 'EARNED'
+      },
+      {
+        id: 'pl-2',
+        titleEn: 'Welcome Registration Bonus',
+        titleAm: 'የእንኳን ደህና መጡ የጉርሻ ነጥብ',
+        points: 1200,
+        timestamp: new Date(Date.now() - 86400000 * 7).toISOString(),
+        type: 'BONUS'
+      }
+    ];
+  });
 
   // Toasts
   const [toasts, setToasts] = useState<ToastNotification[]>([]);
@@ -384,14 +476,38 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     try {
       localStorage.setItem('kasma_cart', JSON.stringify(cart));
-    } catch {}
+    } catch { }
   }, [cart]);
 
   useEffect(() => {
     try {
       localStorage.setItem('kasma_favorites', JSON.stringify(favorites));
-    } catch {}
+    } catch { }
   }, [favorites]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('kasma_addresses', JSON.stringify(addresses));
+    } catch { }
+  }, [addresses]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('kasma_payment_methods', JSON.stringify(paymentMethods));
+    } catch { }
+  }, [paymentMethods]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('kasma_points', kasmaPoints.toString());
+    } catch { }
+  }, [kasmaPoints]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('kasma_points_logs', JSON.stringify(pointsLogs));
+    } catch { }
+  }, [pointsLogs]);
 
   useEffect(() => {
     try {
@@ -401,7 +517,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         document.documentElement.classList.remove('dark');
       }
-    } catch {}
+    } catch { }
   }, [theme]);
 
   // TMA auto-init
@@ -506,7 +622,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Cart operations
   const addToCart = useCallback((product: Product, variantSku?: string, qty = 1) => {
-    const selectedVariant = variantSku 
+    const selectedVariant = variantSku
       ? product.variants.find(v => v.sku === variantSku) || product.variants[0]
       : product.variants[0];
 
@@ -555,7 +671,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const exists = prev.includes(productId);
       const updated = exists ? prev.filter(id => id !== productId) : [...prev, productId];
       showToast(
-        exists 
+        exists
           ? (language === 'en' ? 'Removed from Wishlist' : 'ከምኞት ዝርዝር ተወግዷል')
           : (language === 'en' ? 'Saved to Wishlist' : 'ወደ ምኞት ዝርዝር ተቀምጧል'),
         'info'
@@ -693,12 +809,79 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         },
         body: JSON.stringify({ sku, change: qtyChange, reason })
       });
-    } catch {}
+    } catch { }
   }, [getMerchantAuthHeaders]);
 
-  const updateOrderStatus = useCallback((orderId: string, newStatus: Order['status']) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-  }, []);
+  const updateOrderStatus = useCallback(async (
+    orderId: string,
+    newStatus: Order['status'],
+    details?: { actor?: string; reason?: string; trackingNotes?: string; courierName?: string; courierPhone?: string }
+  ): Promise<boolean> => {
+    const now = new Date().toISOString();
+    setOrders(prev => prev.map(o => {
+      if (o.id !== orderId) return o;
+      return {
+        ...o,
+        status: newStatus,
+        packedAt: newStatus === 'PROCESSING' ? (o.packedAt || now) : o.packedAt,
+        shippedAt: newStatus === 'SHIPPED' ? (o.shippedAt || now) : o.shippedAt,
+        deliveredAt: newStatus === 'DELIVERED' ? (o.deliveredAt || now) : o.deliveredAt,
+        cancelledAt: newStatus === 'CANCELLED' ? (o.cancelledAt || now) : o.cancelledAt,
+        escrowStatus: newStatus === 'DELIVERED'
+          ? 'RELEASED_TO_MERCHANT'
+          : (newStatus === 'CANCELLED' ? 'REFUNDED_TO_BUYER' : o.escrowStatus),
+        trackingNotes: details?.trackingNotes || o.trackingNotes
+      };
+    }));
+
+    try {
+      const token = localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_auth_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          status: newStatus,
+          actor: details?.actor || 'Administrator',
+          reason: details?.reason,
+          trackingNotes: details?.trackingNotes,
+          courierName: details?.courierName,
+          courierPhone: details?.courierPhone
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to update order status');
+      }
+
+      showToast(
+        language === 'en'
+          ? `Order #${orderId} status updated to ${newStatus}`
+          : `የትዕዛዝ #${orderId} ሁኔታ ወደ ${newStatus} ተዘምኗል`,
+        'success'
+      );
+      return true;
+    } catch (err: any) {
+      console.warn('Backend order status update warning:', err);
+      showToast(
+        language === 'en'
+          ? `Status changed: ${newStatus}`
+          : `የትዕዛዝ ሁኔታ ተቀይሯል: ${newStatus}`,
+        'info'
+      );
+      return false;
+    }
+  }, [language, showToast]);
+
+  const cancelOrder = useCallback(async (orderId: string, reason?: string): Promise<boolean> => {
+    return await updateOrderStatus(orderId, 'CANCELLED', {
+      actor: customerName ? `Customer (${customerName})` : 'Customer Self-Service',
+      reason: reason || 'Customer requested order cancellation before courier dispatch'
+    });
+  }, [customerName, updateOrderStatus]);
 
   const updateCourierOrderStatus = useCallback(async (
     orderId: string,
@@ -752,16 +935,16 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           escrowReleasedAt: details?.escrowReleasedAt || (isDelivered ? now : undefined)
         })
       });
-    } catch {}
+    } catch { }
 
-    const statusMessage = 
+    const statusMessage =
       newStatus === 'DELIVERED'
-        ? (language === 'en' 
-            ? `Order #${orderId} delivered! PIN verified & escrow funds released to merchant.` 
-            : `ትዕዛዝ #${orderId} ደርሷል! ሚስጥር ቁጥር ተረጋግጦ ክፍያው ለነጋዴው ተለቋል።`)
+        ? (language === 'en'
+          ? `Order #${orderId} delivered! PIN verified & escrow funds released to merchant.`
+          : `ትዕዛዝ #${orderId} ደርሷል! ሚስጥር ቁጥር ተረጋግጦ ክፍያው ለነጋዴው ተለቋል።`)
         : newStatus === 'SHIPPED'
-        ? (language === 'en' ? `Order #${orderId} is out for delivery!` : `ትዕዛዝ #${orderId} በጉዞ ላይ ነው!`)
-        : (language === 'en' ? `Order #${orderId} updated to ${newStatus}` : `ትዕዛዝ #${orderId} ወደ ${newStatus} ተዘምኗል`);
+          ? (language === 'en' ? `Order #${orderId} is out for delivery!` : `ትዕዛዝ #${orderId} በጉዞ ላይ ነው!`)
+          : (language === 'en' ? `Order #${orderId} updated to ${newStatus}` : `ትዕዛዝ #${orderId} ወደ ${newStatus} ተዘምኗል`);
 
     showToast(statusMessage, 'success');
     return true;
@@ -781,22 +964,22 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const loginWithSocial = useCallback(async (
-    provider: 'google' | 'facebook', 
+    provider: 'google' | 'facebook',
     profile?: { name?: string; email?: string; phone?: string; avatarUrl?: string }
   ) => {
-    const defaultProfile = provider === 'google' 
+    const defaultProfile = provider === 'google'
       ? {
-          name: profile?.name || 'Google Customer',
-          email: profile?.email || 'customer@gmail.com',
-          phone: profile?.phone || '+251 91 188 9900',
-          avatarUrl: profile?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop'
-        }
+        name: profile?.name || 'Google Customer',
+        email: profile?.email || 'customer@gmail.com',
+        phone: profile?.phone || '+251 91 188 9900',
+        avatarUrl: profile?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop'
+      }
       : {
-          name: profile?.name || 'Facebook Customer',
-          email: profile?.email || 'customer@facebook.com',
-          phone: profile?.phone || '+251 92 233 4455',
-          avatarUrl: profile?.avatarUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'
-        };
+        name: profile?.name || 'Facebook Customer',
+        email: profile?.email || 'customer@facebook.com',
+        phone: profile?.phone || '+251 92 233 4455',
+        avatarUrl: profile?.avatarUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'
+      };
 
     const finalName = profile?.name || defaultProfile.name;
     const finalEmail = profile?.email || defaultProfile.email;
@@ -837,8 +1020,8 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('kasma_auth_provider', provider);
 
     showToast(
-      language === 'en' 
-        ? `Signed in successfully with ${provider === 'google' ? 'Google' : 'Facebook'}!` 
+      language === 'en'
+        ? `Signed in successfully with ${provider === 'google' ? 'Google' : 'Facebook'}!`
         : `በ${provider === 'google' ? 'ጉግል' : 'ፌስቡክ'} በተሳካ ሁኔታ ገብተዋል!`,
       'success'
     );
@@ -862,12 +1045,73 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addAddress = useCallback((addr: Omit<DeliveryAddress, 'id'>) => {
     const newAddr: DeliveryAddress = { ...addr, id: `addr-${Date.now()}` };
-    setAddresses(prev => [...prev, newAddr]);
+    if (newAddr.isDefault) {
+      setAddresses(prev => prev.map(a => ({ ...a, isDefault: false })).concat(newAddr));
+    } else {
+      setAddresses(prev => [...prev, newAddr]);
+    }
   }, []);
 
   const deleteAddress = useCallback((id: string) => {
     setAddresses(prev => prev.filter(a => a.id !== id));
+    showToast(language === 'en' ? 'Address removed' : 'አድራሻ ተሰርዟል', 'info');
+  }, [language, showToast]);
+
+  const setDefaultAddress = useCallback((id: string) => {
+    setAddresses(prev => prev.map(a => ({ ...a, isDefault: a.id === id })));
+    showToast(language === 'en' ? 'Default delivery address updated!' : 'ዋና የመድረሻ አድራሻ ተቀይሯል!', 'success');
+  }, [language, showToast]);
+
+  const addPaymentMethod = useCallback((pm: Omit<SavedPaymentMethod, 'id'>) => {
+    const newPm: SavedPaymentMethod = { ...pm, id: `pm-${Date.now()}` };
+    if (newPm.isDefault) {
+      setPaymentMethods(prev => prev.map(p => ({ ...p, isDefault: false })).concat(newPm));
+    } else {
+      setPaymentMethods(prev => [...prev, newPm]);
+    }
   }, []);
+
+  const deletePaymentMethod = useCallback((id: string) => {
+    setPaymentMethods(prev => prev.filter(p => p.id !== id));
+    showToast(language === 'en' ? 'Payment method removed' : 'የክፍያ መንገድ ተሰርዟል', 'info');
+  }, [language, showToast]);
+
+  const setDefaultPaymentMethod = useCallback((id: string) => {
+    setPaymentMethods(prev => prev.map(p => ({ ...p, isDefault: p.id === id })));
+    showToast(language === 'en' ? 'Default payment method set' : 'ዋና የክፍያ መንገድ ተዘጋጅቷል', 'success');
+  }, [language, showToast]);
+
+  const addPoints = useCallback((amount: number, reasonEn: string, reasonAm: string, type: 'EARNED' | 'REDEEMED' | 'BONUS' = 'EARNED') => {
+    setKasmaPoints(prev => Math.max(0, prev + amount));
+    const newLog: KasmaPointsLog = {
+      id: `pl-${Date.now()}`,
+      titleEn: reasonEn,
+      titleAm: reasonAm,
+      points: amount,
+      timestamp: new Date().toISOString(),
+      type
+    };
+    setPointsLogs(prev => [newLog, ...prev]);
+  }, []);
+
+  const redeemReward = useCallback((reward: KasmaPointsReward) => {
+    addPoints(-reward.pointsCost, `Redeemed ${reward.titleEn}`, `${reward.titleAm} ተወስዷል`, 'REDEEMED');
+    if (appliedPromo === null) {
+      setAppliedPromo({
+        code: reward.code,
+        type: reward.type === 'FLAT_DISCOUNT' ? 'FLAT' : 'FREE_SHIPPING',
+        value: reward.discountValue,
+        descriptionEn: reward.titleEn,
+        descriptionAm: reward.titleAm
+      });
+    }
+    showToast(
+      language === 'en'
+        ? `Claimed reward voucher: ${reward.code}!`
+        : `የጉርሻ ቫውቸር ተወስዷል: ${reward.code}!`,
+      'success'
+    );
+  }, [addPoints, appliedPromo, language, showToast]);
 
   // Admin Actions with RBAC Bearer Headers
   const approveProduct = useCallback(async (id: string) => {
@@ -883,7 +1127,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const err = await res.json();
         showToast(err.error || 'Failed to approve product', 'warning');
       }
-    } catch {}
+    } catch { }
   }, [getAdminAuthHeaders, showToast]);
 
   const rejectProduct = useCallback(async (id: string) => {
@@ -899,7 +1143,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const err = await res.json();
         showToast(err.error || 'Failed to reject product', 'warning');
       }
-    } catch {}
+    } catch { }
   }, [getAdminAuthHeaders, showToast]);
 
   const deleteProduct = useCallback(async (id: string): Promise<boolean> => {
@@ -940,7 +1184,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const err = await res.json();
         showToast(err.error || 'Failed to approve KYC', 'warning');
       }
-    } catch {}
+    } catch { }
   }, [getAdminAuthHeaders, showToast]);
 
   const toggleMerchantStatus = useCallback(async (merchantId: string) => {
@@ -959,7 +1203,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         },
         body: JSON.stringify({ status: nextStatus })
       });
-    } catch {}
+    } catch { }
   }, [getAdminAuthHeaders]);
 
   const approvePayout = useCallback(async (merchantId: string, payoutId: string) => {
@@ -981,7 +1225,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const err = await res.json();
         showToast(err.error || 'Failed to approve payout', 'warning');
       }
-    } catch {}
+    } catch { }
   }, [getAdminAuthHeaders, showToast]);
 
   // Post-Delivery Review Handler
@@ -1005,9 +1249,9 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     if (order.status !== 'DELIVERED') {
       showToast(
-        language === 'en' 
-          ? 'Reviews can only be submitted for completed orders in DELIVERED status.' 
-          : 'ግምገማ መስጠት የሚቻለው የደረሱ ትዕዛዞች ላይ ብቻ ነው።', 
+        language === 'en'
+          ? 'Reviews can only be submitted for completed orders in DELIVERED status.'
+          : 'ግምገማ መስጠት የሚቻለው የደረሱ ትዕዛዞች ላይ ብቻ ነው።',
         'warning'
       );
       return false;
@@ -1043,12 +1287,12 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const currentReviews = p.reviews || [];
           const updatedReviews = [newReview, ...currentReviews];
           const newAvg = Number((updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length).toFixed(1));
-            return {
-              ...p,
-              reviews: updatedReviews,
-              reviewsCount: (p.reviewsCount || currentReviews.length) + 1,
-              rating: newAvg
-            };
+          return {
+            ...p,
+            reviews: updatedReviews,
+            reviewsCount: (p.reviewsCount || currentReviews.length) + 1,
+            rating: newAvg
+          };
         }
         return p;
       });
@@ -1140,7 +1384,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setOrders(prev => prev.map(o => {
       if (o.id !== params.orderId) return o;
       const existingClaims = o.warrantyClaims || [];
-      const updatedWarranties = (o.warranties || []).map(w => 
+      const updatedWarranties = (o.warranties || []).map(w =>
         w.id === params.warrantyId ? { ...w, status: 'CLAIM_PENDING' as const } : w
       );
       return {
@@ -1317,6 +1561,7 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addOrder,
         updateProductStock,
         updateOrderStatus,
+        cancelOrder,
         updateCourierOrderStatus,
 
         toasts,
@@ -1335,6 +1580,15 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         addresses,
         addAddress,
         deleteAddress,
+        setDefaultAddress,
+        paymentMethods,
+        addPaymentMethod,
+        deletePaymentMethod,
+        setDefaultPaymentMethod,
+        kasmaPoints,
+        pointsLogs,
+        addPoints,
+        redeemReward,
 
         approveProduct,
         rejectProduct,
@@ -1358,15 +1612,14 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         {toasts.map(t => (
           <div
             key={t.id}
-            className={`pointer-events-auto px-4 py-3 rounded-2xl shadow-xl text-xs font-bold border flex items-center gap-2.5 transition-all transform animate-bounce-short ${
-              t.type === 'success'
+            className={`pointer-events-auto px-4 py-3 rounded-2xl shadow-xl text-xs font-bold border flex items-center gap-2.5 transition-all transform animate-bounce-short ${t.type === 'success'
                 ? 'bg-emerald-600 text-white border-emerald-500'
                 : t.type === 'warning'
-                ? 'bg-amber-500 text-black border-amber-400'
-                : t.type === 'error'
-                ? 'bg-rose-600 text-white border-rose-500'
-                : 'bg-zinc-900 text-white border-zinc-700'
-            }`}
+                  ? 'bg-amber-500 text-black border-amber-400'
+                  : t.type === 'error'
+                    ? 'bg-rose-600 text-white border-rose-500'
+                    : 'bg-zinc-900 text-white border-zinc-700'
+              }`}
           >
             <span>{t.message}</span>
           </div>

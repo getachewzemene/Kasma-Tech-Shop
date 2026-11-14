@@ -24,7 +24,9 @@ import {
   Check,
   Lock,
   Unlock,
-  KeyRound
+  KeyRound,
+  XCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { DigitalWarrantyPass, WarrantyClaim } from '../../types';
 import { generateCustomerReceiptPDF } from '../../lib/pdfGenerator';
@@ -37,12 +39,15 @@ import { getOrderHandoverPin } from '../courier/courierTypes';
 export const OrderTrackingPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
-  const { orders, language, getOrderWarranties, submitWarrantyClaim } = useShop();
+  const { orders, language, getOrderWarranties, submitWarrantyClaim, cancelOrder } = useShop();
 
   const [orderIdInput, setOrderIdInput] = useState(id || '');
   const [phoneInput, setPhoneInput] = useState('');
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('Ordered wrong model/variant');
+  const [isCancelling, setIsCancelling] = useState(false);
   const [selectedWarranty, setSelectedWarranty] = useState<DigitalWarrantyPass | null>(null);
   const [isWarrantyPassModalOpen, setIsWarrantyPassModalOpen] = useState(false);
   const [isWarrantyClaimModalOpen, setIsWarrantyClaimModalOpen] = useState(false);
@@ -56,6 +61,27 @@ export const OrderTrackingPage: React.FC = () => {
     navigator.clipboard?.writeText(trackingPin);
     setCopiedPin(true);
     setTimeout(() => setCopiedPin(false), 2000);
+  };
+
+  const canCancel = !!activeOrder && (activeOrder.status === 'PENDING_PAYMENT' || activeOrder.status === 'PROCESSING');
+
+  const handleCancelOrder = async () => {
+    if (!activeOrder) return;
+    setIsCancelling(true);
+    try {
+      const success = await cancelOrder(activeOrder.id, cancelReason);
+      if (success) {
+        setIsCancelModalOpen(false);
+        setActiveOrder(prev => prev ? {
+          ...prev,
+          status: 'CANCELLED',
+          cancelledAt: new Date().toISOString(),
+          escrowStatus: 'REFUNDED_TO_BUYER'
+        } : null);
+      }
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   // Perform search by Order ID and/or Phone
@@ -279,6 +305,8 @@ export const OrderTrackingPage: React.FC = () => {
                     ? 'bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300'
                     : activeOrder.status === 'PROCESSING'
                     ? 'bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300'
+                    : activeOrder.status === 'CANCELLED'
+                    ? 'bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60'
                     : 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300'
                 }`}>
                   {activeOrder.status}
@@ -292,17 +320,48 @@ export const OrderTrackingPage: React.FC = () => {
             <div className="flex flex-col sm:items-end gap-1.5">
               <span className="text-xs text-gray-400 block">{language === 'en' ? 'Total Settlement' : 'ጠቅላላ ክፍያ'}</span>
               <span className="text-xl font-black text-[#0052FF]">{activeOrder.total.toLocaleString()} ETB</span>
-              <button
-                type="button"
-                onClick={() => generateCustomerReceiptPDF(activeOrder, { language })}
-                className="mt-1 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-750 text-gray-800 dark:text-zinc-200 font-bold text-[11px] flex items-center gap-1.5 transition-all shadow-xs cursor-pointer group"
-                title="Download Tax Receipt & Warranty PDF"
-              >
-                <Download className="w-3.5 h-3.5 text-[#0052FF] group-hover:-translate-y-0.5 transition-transform" />
-                <span>{language === 'en' ? 'Tax Receipt & Warranty (PDF)' : 'የሽያጭ ደረሰኝ (PDF)'}</span>
-              </button>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => generateCustomerReceiptPDF(activeOrder, { language })}
+                  className="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-gray-50 dark:hover:bg-zinc-750 text-gray-800 dark:text-zinc-200 font-bold text-[11px] flex items-center gap-1.5 transition-all shadow-xs cursor-pointer group"
+                  title="Download Tax Receipt & Warranty PDF"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#0052FF] group-hover:-translate-y-0.5 transition-transform" />
+                  <span>{language === 'en' ? 'Receipt (PDF)' : 'ደረሰኝ (PDF)'}</span>
+                </button>
+
+                {canCancel && (
+                  <button
+                    type="button"
+                    onClick={() => setIsCancelModalOpen(true)}
+                    className="px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-300 font-bold text-[11px] flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
+                    title={language === 'en' ? 'Cancel this order' : 'ትዕዛዝ ሰርዝ'}
+                  >
+                    <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                    <span>{language === 'en' ? 'Cancel Order' : 'ትዕዛዝ ሰርዝ'}</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Cancelled Order Notice Banner */}
+          {activeOrder.status === 'CANCELLED' && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-200 flex items-start gap-3">
+              <XCircle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider">
+                  {language === 'en' ? 'Order Cancelled' : 'ትዕዛዙ ተሰርዟል'}
+                </h4>
+                <p className="text-xs text-rose-700/90 dark:text-rose-300/90 leading-relaxed">
+                  {language === 'en'
+                    ? `This order was cancelled on ${activeOrder.cancelledAt ? new Date(activeOrder.cancelledAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'recently'}. Reserved tech inventory has been returned to stock, and any held escrow funds are marked for refund.`
+                    : `ይህ ትዕዛዝ ተሰርዟል። የተያዙት እቃዎች ወደ መደብሩ የተመለሱ ሲሆን በእግድ የተያዘው ክፍያ ተመላሽ እንዲሆን ተመዝግቧል።`}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* 4-Digit Handover PIN & Escrow Protection Alert */}
           {(() => {
@@ -810,6 +869,84 @@ export const OrderTrackingPage: React.FC = () => {
           return await submitWarrantyClaim(claimData);
         }}
       />
+
+      {/* Customer Cancel Order Confirmation Modal */}
+      {isCancelModalOpen && activeOrder && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div className="flex items-start gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-white">
+                  {language === 'en' ? `Cancel Order #${activeOrder.id}?` : `ትዕዛዝ #${activeOrder.id} ይሰረዝ?`}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                  {language === 'en'
+                    ? 'Are you sure you want to cancel this order? Reserved items will be released back to the store, and your escrow payment will be marked for refund.'
+                    : 'እርግጠኛ ነዎት ይህንን ትዕዛዝ መሰረዝ ይፈልጋሉ? የተያዘው እቃ ወደ መደብሩ ይመለሳል እንዲሁም ክፍያዎ ተመላሽ እንዲሆን ይመዘገባል።'}
+                </p>
+              </div>
+            </div>
+
+            {/* Reason selector */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-700 dark:text-zinc-300">
+                {language === 'en' ? 'Reason for Cancellation:' : 'የስረዛ ምክንያት፡'}
+              </label>
+              <select
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 cursor-pointer"
+              >
+                <option value="Ordered wrong model/variant">
+                  {language === 'en' ? 'Ordered wrong model / variant' : 'የተሳሳተ ሞዴል / ምርት መርጬ ነው'}
+                </option>
+                <option value="Wrong delivery address / sub-city">
+                  {language === 'en' ? 'Wrong delivery address / sub-city' : 'የማድረሻ አድራሻ / ክፍለ ከተማ ተሳስቻለሁ'}
+                </option>
+                <option value="Found alternative / changed mind">
+                  {language === 'en' ? 'Found alternative / changed mind' : 'ሌላ አማራጭ አግኝቻለሁ / ሃሳቤን ቀይሬያለሁ'}
+                </option>
+                <option value="Duplicate order placed">
+                  {language === 'en' ? 'Duplicate order placed' : 'ትዕዛዙ ተደግሟል'}
+                </option>
+                <option value="Other reason">
+                  {language === 'en' ? 'Other reason' : 'ሌላ ምክንያት'}
+                </option>
+              </select>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsCancelModalOpen(false)}
+                disabled={isCancelling}
+                className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-zinc-700 text-xs font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              >
+                {language === 'en' ? 'Keep Order' : 'ይቅር'}
+              </button>
+              <button
+                type="button"
+                onClick={handleCancelOrder}
+                disabled={isCancelling}
+                className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-all shadow-md shadow-rose-600/20 cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {isCancelling ? (
+                  <span>{language === 'en' ? 'Cancelling...' : 'በመሰረዝ ላይ...'}</span>
+                ) : (
+                  <>
+                    <XCircle className="w-4 h-4" />
+                    <span>{language === 'en' ? 'Confirm Cancellation' : 'አረጋግጥና ሰርዝ'}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

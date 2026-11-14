@@ -334,7 +334,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
             {/* 1. Cart Button (Always visible) */}
             <button
               type="button"
-              onClick={() => setIsCartOpen(true)}
+              onClick={() => {
+                if (location.pathname === '/') {
+                  setIsCartOpen(true);
+                } else {
+                  navigate('/cart');
+                }
+              }}
               className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-slate-600 hover:text-slate-950 dark:text-zinc-300 dark:hover:text-zinc-100 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
               title={language === 'en' ? 'Shopping Cart' : 'የገበያ ጋሪ'}
             >
@@ -514,7 +520,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               {/* Cart */}
               <button
                 type="button"
-                onClick={() => { setIsMobileMenuOpen(false); setIsCartOpen(true); }}
+                onClick={() => { 
+                  setIsMobileMenuOpen(false); 
+                  if (location.pathname === '/') {
+                    setIsCartOpen(true);
+                  } else {
+                    navigate('/cart');
+                  }
+                }}
                 className="flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/50 text-[#0052FF] dark:text-blue-400 cursor-pointer transition-transform active:scale-95"
               >
                 <div className="relative">

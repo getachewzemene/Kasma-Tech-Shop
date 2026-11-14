@@ -732,6 +732,97 @@ export class OrderService {
     return { success: true, order };
   }
 
+  // General & Admin Order Status Management (Full Lifecycle: PENDING_PAYMENT -> PAID -> PROCESSING -> SHIPPED -> DELIVERED -> CANCELLED -> REFUNDED)
+  public static updateOrderStatus(
+    orderId: string,
+    status: Order['status'],
+    details?: {
+      actor?: string;
+      trackingNotes?: string;
+      courierName?: string;
+      courierPhone?: string;
+      reason?: string;
+    }
+  ): { success: boolean; order?: Order; error?: string } {
+    const order = db.orders.find(o => o.id === orderId);
+    if (!order) {
+      return { success: false, error: 'Order not found.' };
+    }
+
+    const prevStatus = order.status;
+    order.status = status;
+    const now = new Date().toISOString();
+
+    if (status === 'PROCESSING') {
+      order.packedAt = order.packedAt || now;
+    } else if (status === 'SHIPPED') {
+      order.shippedAt = order.shippedAt || now;
+      if (details?.courierName) order.courierName = details.courierName;
+      if (details?.courierPhone) order.courierPhone = details.courierPhone;
+      if (details?.trackingNotes) order.trackingNotes = details.trackingNotes;
+    } else if (status === 'DELIVERED') {
+      order.deliveredAt = order.deliveredAt || now;
+      order.escrowStatus = 'RELEASED_TO_MERCHANT';
+      order.escrowReleasedAt = order.escrowReleasedAt || now;
+      order.deviceInspectionConfirmed = true;
+    } else if (status === 'CANCELLED') {
+      order.cancelledAt = order.cancelledAt || now;
+      if (order.escrowStatus === 'HELD_IN_ESCROW') {
+        order.escrowStatus = 'REFUNDED_TO_BUYER';
+      }
+
+      // Restock items if cancelling an active order
+      if (prevStatus !== 'CANCELLED' && prevStatus !== 'REFUNDED') {
+        for (const item of order.items) {
+          const prod = db.products.find(p => p.id === item.product.id);
+          if (prod) {
+            const variant = prod.variants.find(v => v.sku === item.sku);
+            if (variant) {
+              ProductService.adjustStock(
+                prod.id,
+                variant.sku,
+                item.quantity,
+                `Restock on Cancellation Order #${order.id}`,
+                details?.actor || 'Admin Management'
+              );
+            }
+          }
+        }
+      }
+    } else if (status === 'REFUNDED') {
+      order.escrowStatus = 'REFUNDED_TO_BUYER';
+    }
+
+    if (details?.trackingNotes) {
+      order.trackingNotes = details.trackingNotes;
+    }
+
+    db.save();
+    CloudSqlProductService.saveOrder(order).catch(() => {});
+
+    const actor = details?.actor || 'Admin Management';
+    db.logAudit(
+      actor,
+      `ORDER_STATUS_${status}`,
+      `Order #${order.id} status changed from ${prevStatus} to ${status}.${details?.reason ? ` Reason: ${details.reason}` : ''}`,
+      'INFO'
+    );
+
+    const alertType = 
+      status === 'SHIPPED' ? 'ORDER_SHIPPED' :
+      status === 'DELIVERED' ? 'ORDER_DELIVERED' :
+      status === 'PROCESSING' ? 'ORDER_PACKED' :
+      'SHIPPING_UPDATE';
+
+    db.logTelegramAlert(
+      alertType,
+      `📋 ORDER UPDATE: Order #${order.id} is now ${status}. Handled by: ${actor}.`,
+      order.id
+    );
+
+    return { success: true, order };
+  }
+
   // One-Click Platform Courier Dispatch Fleet Request
   public static requestDispatchFleet(
     orderId: string,

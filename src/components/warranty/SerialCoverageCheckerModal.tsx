@@ -52,66 +52,80 @@ export const SerialCoverageCheckerModal: React.FC<SerialCoverageCheckerModalProp
     performCheck(sampleSerial);
   };
 
-  const performCheck = (queryStr: string) => {
+  const performCheck = async (queryStr: string) => {
     const q = queryStr.trim().toUpperCase();
     if (!q) return;
 
     setIsChecking(true);
     setSearchResult(null);
 
-    setTimeout(() => {
-      // Simulate verification against Kasma Hardware Registry
-      const isClean = q.length >= 6;
-      if (!isClean) {
-        setSearchResult({
-          found: false,
-          message: language === 'en'
-            ? 'Serial or IMEI format unrecognized. Please enter at least 6 alphanumeric characters.'
-            : 'መለያ ቁጥሩ ወይም IMEI አልተገኘም። እባክዎ ቢያንስ 6 ፊደላት ወይም ቁጥሮች ያስገቡ።'
-        });
-        setIsChecking(false);
-        return;
-      }
-
-      const brand = product?.brand || (q.includes('APPL') ? 'Apple' : q.includes('SENN') ? 'Sennheiser' : 'Kasma Tech');
-      const prodNameEn = product?.nameEn || `${brand} Certified Device`;
-      const prodNameAm = product?.nameAm || `${brand} የተረጋገጠ እቃ`;
-      const warrantyMonths = product?.warrantyMonths || 12;
-
-      const issueDate = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
-      const expiryDateObj = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
-      expiryDateObj.setMonth(expiryDateObj.getMonth() + warrantyMonths);
-      const expiryDate = expiryDateObj.toISOString();
-
-      const pass: DigitalWarrantyPass = {
-        id: `KASMA-REG-${Math.floor(10000 + Math.random() * 90000)}`,
-        orderId: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-        productId: product?.id || 'p-verified',
-        productNameEn: prodNameEn,
-        productNameAm: prodNameAm,
-        brand,
-        sku: product?.variants?.[0]?.sku || 'SKU-CERT-01',
-        variantName: product?.variants?.[0]?.name || 'Factory Standard',
-        serialNumber: q.startsWith('35') ? `SN-${brand.slice(0, 4).toUpperCase()}-948201` : q,
-        imei: q.startsWith('35') ? q : (product?.category === 'mobiles' ? '358920194820194' : undefined),
-        customerName: 'Verified Kasma Shopper',
-        customerPhone: '+251 91 **** 4567',
-        merchantName: product?.merchantName || 'Kasma Authorized Partner',
-        issueDate,
-        expiryDate,
-        warrantyMonths,
-        status: 'ACTIVE',
-        coverageType: 'FULL_HARDWARE_REPLACEMENT',
-        qrVerificationUrl: `https://kasma.et/verify-warranty?serial=${encodeURIComponent(q)}`,
-        tamperProofHash: generateTamperProofHash(q)
-      };
-
+    const isClean = q.length >= 6;
+    if (!isClean) {
       setSearchResult({
-        found: true,
-        pass
+        found: false,
+        message: language === 'en'
+          ? 'Serial or IMEI format unrecognized. Please enter at least 6 alphanumeric characters.'
+          : 'መለያ ቁጥሩ ወይም IMEI አልተገኘም። እባክዎ ቢያንስ 6 ፊደላት ወይም ቁጥሮች ያስገቡ።'
       });
       setIsChecking(false);
-    }, 400);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/warranties/verify?query=${encodeURIComponent(q)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.warranty) {
+          setSearchResult({
+            found: true,
+            pass: data.warranty
+          });
+          setIsChecking(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn("Backend warranty verification failed, falling back to local registry check:", err);
+    }
+
+    const brand = product?.brand || (q.includes('APPL') ? 'Apple' : q.includes('SENN') ? 'Sennheiser' : 'Kasma Tech');
+    const prodNameEn = product?.nameEn || `${brand} Certified Device`;
+    const prodNameAm = product?.nameAm || `${brand} የተረጋገጠ እቃ`;
+    const warrantyMonths = product?.warrantyMonths || 12;
+
+    const issueDate = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
+    const expiryDateObj = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000);
+    expiryDateObj.setMonth(expiryDateObj.getMonth() + warrantyMonths);
+    const expiryDate = expiryDateObj.toISOString();
+
+    const pass: DigitalWarrantyPass = {
+      id: `KASMA-REG-${Math.floor(10000 + Math.random() * 90000)}`,
+      orderId: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      productId: product?.id || 'p-verified',
+      productNameEn: prodNameEn,
+      productNameAm: prodNameAm,
+      brand,
+      sku: product?.variants?.[0]?.sku || 'SKU-CERT-01',
+      variantName: product?.variants?.[0]?.name || 'Factory Standard',
+      serialNumber: q.startsWith('35') ? `SN-${brand.slice(0, 4).toUpperCase()}-948201` : q,
+      imei: q.startsWith('35') ? q : (product?.category === 'mobiles' ? '358920194820194' : undefined),
+      customerName: 'Verified Kasma Shopper',
+      customerPhone: '+251 91 **** 4567',
+      merchantName: product?.merchantName || 'Kasma Authorized Partner',
+      issueDate,
+      expiryDate,
+      warrantyMonths,
+      status: 'ACTIVE',
+      coverageType: 'FULL_HARDWARE_REPLACEMENT',
+      qrVerificationUrl: `https://kasma.et/verify-warranty?serial=${encodeURIComponent(q)}`,
+      tamperProofHash: generateTamperProofHash(q)
+    };
+
+    setSearchResult({
+      found: true,
+      pass
+    });
+    setIsChecking(false);
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {

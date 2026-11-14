@@ -13,7 +13,6 @@ import { OrderTrackingVisualizer } from './OrderTrackingVisualizer';
 import { LazyImage, ShimmerImage } from './LazyImage';
 import { Shimmer, ShimmerCircle, ProductCardSkeleton } from './Skeletons';
 import MyOrdersView from './MyOrdersView';
-import UserProfileView from './UserProfileView';
 import { FlashDealsView } from './FlashDealsView';
 import { ProductCard } from './ProductCard';
 import { SectionHeader } from './SectionHeader';
@@ -226,7 +225,8 @@ export default function CustomerWeb({
     isCustomerLoggedIn,
     customerName: authCustomerName,
     customerPhone: authCustomerPhone,
-    customerEmail: authCustomerEmail
+    customerEmail: authCustomerEmail,
+    addPoints
   } = useShop();
 
   const [internalSelectedCategory, setInternalSelectedCategory] = useState<string>('all');
@@ -694,157 +694,11 @@ export default function CustomerWeb({
   // Order Tracking & Flash Sales State
   const [isOrderStatusOpen, setIsOrderStatusOpen] = useState(false);
   const [isMyOrdersOpen, setIsMyOrdersOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [profileAuthMode, setProfileAuthMode] = useState<'SIGN_IN' | 'REGISTER'>('SIGN_IN');
   const [isFlashDealsOpen, setIsFlashDealsOpen] = useState(false);
   const [trackOrderId, setTrackOrderId] = useState('');
   const [trackedOrder, setTrackedOrder] = useState<Order | null>(null);
   const [hasSearchedOrder, setHasSearchedOrder] = useState(false);
   const [lastPlacedOrderId, setLastPlacedOrderId] = useState<string>('');
-
-  // User Profile & Vault State
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [addresses, setAddresses] = useState<DeliveryAddress[]>([
-    {
-      id: 'addr-1',
-      label: 'HOME',
-      fullName: 'Abebe Bikila',
-      phone: '+251911223344',
-      subCity: 'Bole',
-      woreda: 'Woreda 03',
-      streetAddress: 'Atlas Road, Near Skylight Hotel, House #402',
-      isDefault: true
-    },
-    {
-      id: 'addr-2',
-      label: 'OFFICE',
-      fullName: 'Abebe Bikila (Tech Hub)',
-      phone: '+251911223344',
-      subCity: 'Kirkos',
-      woreda: 'Woreda 01',
-      streetAddress: 'Kazanchis Commercial Building, 5th Floor',
-      isDefault: false
-    }
-  ]);
-
-  const [paymentMethods, setPaymentMethods] = useState<SavedPaymentMethod[]>([
-    {
-      id: 'pm-1',
-      type: 'TELEBIRR',
-      title: 'Primary Telebirr Wallet',
-      accountMasked: '+251 911 *** 344',
-      encryptedToken: 'enc_aes256_tb_9f82a10c44',
-      isDefault: true
-    },
-    {
-      id: 'pm-2',
-      type: 'BANK_CARD',
-      title: 'CBE Platinum Visa Card',
-      accountMasked: '4000 **** **** 8821',
-      encryptedToken: 'enc_aes256_cbe_8821a7f0',
-      isDefault: false,
-      expiryDate: '12/28'
-    }
-  ]);
-
-  const [kasmaPoints, setKasmaPoints] = useState<number>(1450);
-  const [pointsLogs, setPointsLogs] = useState<KasmaPointsLog[]>([
-    {
-      id: 'pl-1',
-      titleEn: 'Earned on Order #KS-8492 (+10% Cashback)',
-      titleAm: 'ከተዕዛዝ #KS-8492 የተገኘ ነጥብ (+10% ተመላሽ)',
-      points: 250,
-      timestamp: new Date(Date.now() - 86400000 * 2).toISOString(),
-      type: 'EARNED'
-    },
-    {
-      id: 'pl-2',
-      titleEn: 'Welcome Registration Bonus',
-      titleAm: 'የእንኳን ደህና መጡ የጉርሻ ነጥብ',
-      points: 1200,
-      timestamp: new Date(Date.now() - 86400000 * 7).toISOString(),
-      type: 'BONUS'
-    }
-  ]);
-
-  // Profile Handlers
-  const handleAddAddress = (addr: Omit<DeliveryAddress, 'id'>) => {
-    const newAddr: DeliveryAddress = {
-      ...addr,
-      id: `addr-${Date.now()}`
-    };
-    if (newAddr.isDefault) {
-      setAddresses(prev => prev.map(a => ({ ...a, isDefault: false })).concat(newAddr));
-    } else {
-      setAddresses(prev => [...prev, newAddr]);
-    }
-  };
-
-  const handleDeleteAddress = (id: string) => {
-    setAddresses(prev => prev.filter(a => a.id !== id));
-    showToast(language === 'en' ? 'Address removed' : 'አድራሻ ተሰርዟል', 'info');
-  };
-
-  const handleSetDefaultAddress = (id: string) => {
-    setAddresses(prev => prev.map(a => ({ ...a, isDefault: a.id === id })));
-    const found = addresses.find(a => a.id === id);
-    if (found) {
-      setShippingAddress(`[${found.subCity}] ${found.streetAddress}`);
-      setCustomerPhone(found.phone);
-      if (found.fullName) setCustomerName(found.fullName);
-    }
-    showToast(language === 'en' ? 'Default delivery address updated!' : 'ዋና የመድረሻ አድራሻ ተቀይሯል!', 'success');
-  };
-
-  const handleAddPaymentMethod = (pm: Omit<SavedPaymentMethod, 'id'>) => {
-    const newPm: SavedPaymentMethod = {
-      ...pm,
-      id: `pm-${Date.now()}`
-    };
-    if (newPm.isDefault) {
-      setPaymentMethods(prev => prev.map(p => ({ ...p, isDefault: false })).concat(newPm));
-    } else {
-      setPaymentMethods(prev => [...prev, newPm]);
-    }
-  };
-
-  const handleDeletePaymentMethod = (id: string) => {
-    setPaymentMethods(prev => prev.filter(p => p.id !== id));
-    showToast(language === 'en' ? 'Payment method removed' : 'የክፍያ መንገድ ተሰርዟል', 'info');
-  };
-
-  const handleSetDefaultPaymentMethod = (id: string) => {
-    setPaymentMethods(prev => prev.map(p => ({ ...p, isDefault: p.id === id })));
-    showToast(language === 'en' ? 'Default payment method set' : 'ዋና የክፍያ መንገድ ተዘጋጅቷል', 'success');
-  };
-
-  const handleAddPoints = (amount: number, reasonEn: string, reasonAm: string, type: 'EARNED' | 'REDEEMED' | 'BONUS' = 'EARNED') => {
-    setKasmaPoints(prev => Math.max(0, prev + amount));
-    const newLog: KasmaPointsLog = {
-      id: `pl-${Date.now()}`,
-      titleEn: reasonEn,
-      titleAm: reasonAm,
-      points: amount,
-      timestamp: new Date().toISOString(),
-      type
-    };
-    setPointsLogs(prev => [newLog, ...prev]);
-  };
-
-  const handleRedeemReward = (reward: KasmaPointsReward) => {
-    handleAddPoints(-reward.pointsCost, `Redeemed ${reward.titleEn}`, `${reward.titleAm} ተወስዷል`, 'REDEEMED');
-    if (appliedPromo === null) {
-      setAppliedPromo({
-        code: reward.code,
-        type: reward.type,
-        value: reward.discountValue,
-        descriptionEn: reward.titleEn,
-        descriptionAm: reward.titleAm
-      });
-      setPromoCodeInput(reward.code);
-      setPromoSuccessMessage(language === 'en' ? `Applied reward code: ${reward.code}` : `የጉርሻ ኮድ ሰርቷል: ${reward.code}`);
-    }
-  };
 
   const handleUpdateTrackedOrderStatus = (newStatus: Order['status']) => {
     if (trackedOrder) {
@@ -2156,7 +2010,7 @@ export default function CustomerWeb({
     // Award Kasma Points (1 Point per 10 ETB)
     const pointsEarned = Math.round(cartTotal / 10);
     if (pointsEarned > 0) {
-      handleAddPoints(
+      addPoints(
         pointsEarned,
         `Earned on Order #${newOrder.id}`,
         `ከተዕዛዝ #${newOrder.id} የተገኘ ነጥብ`,
@@ -3099,7 +2953,7 @@ export default function CustomerWeb({
             </h3>
           </div>
 
-          {isLoggedIn && (
+          {isCustomerLoggedIn && (
             <button
               onClick={() => {
                 setHasSearchedOrder(false);
@@ -8463,50 +8317,6 @@ export default function CustomerWeb({
         showToast={showToast}
       />
 
-      {/* User Profile Vault Modal View */}
-      <UserProfileView
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
-        language={language}
-        initialAuthMode={profileAuthMode}
-        isLoggedIn={isLoggedIn}
-        onLogin={(phone, name) => {
-          setIsLoggedIn(true);
-          if (phone) setCustomerPhone(phone);
-          if (name) setCustomerName(name);
-        }}
-        onLogout={() => {
-          setIsLoggedIn(false);
-        }}
-        onOpenMyOrders={() => setIsMyOrdersOpen(true)}
-        onOpenTrackShipment={() => {
-          setHasSearchedOrder(false);
-          setTrackedOrder(null);
-          setTrackOrderId('');
-          setIsOrderStatusOpen(true);
-        }}
-        customerName={customerName}
-        setCustomerName={setCustomerName}
-        customerPhone={customerPhone}
-        setCustomerPhone={setCustomerPhone}
-        customerEmail={customerEmail}
-        setCustomerEmail={setCustomerEmail}
-        addresses={addresses}
-        onAddAddress={handleAddAddress}
-        onDeleteAddress={handleDeleteAddress}
-        onSetDefaultAddress={handleSetDefaultAddress}
-        paymentMethods={paymentMethods}
-        onAddPaymentMethod={handleAddPaymentMethod}
-        onDeletePaymentMethod={handleDeletePaymentMethod}
-        onSetDefaultPaymentMethod={handleSetDefaultPaymentMethod}
-        kasmaPoints={kasmaPoints}
-        onAddPoints={handleAddPoints}
-        pointsLogs={pointsLogs}
-        onRedeemReward={handleRedeemReward}
-        showToast={showToast}
-        orders={orders}
-      />
-
       {/* Dedicated Flash Deals & Offers Hub Modal View */}
       <FlashDealsView
         isOpen={isFlashDealsOpen}
@@ -8524,115 +8334,6 @@ export default function CustomerWeb({
         showToast={showToast}
         flashDeals={flashDeals}
       />
-
-      {/* MOBILE BOTTOM NAVIGATION TAB BAR */}
-      <nav
-        id="mobile-bottom-nav-bar"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-gray-200/80 dark:border-zinc-800 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-2 py-1 flex items-center justify-around select-none min-h-[56px]"
-      >
-        {/* 1. HOME TAB */}
-        <button
-          type="button"
-          onClick={() => {
-            setIsProfileOpen(false);
-            setIsMyOrdersOpen(false);
-            setIsCartOpen(false);
-            setIsWishlistOpen(false);
-            setIsFlashDealsOpen(false);
-            setSelectedProduct(null);
-            setSelectedCategory('all');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] relative ${!isProfileOpen && !isMyOrdersOpen && !isCartOpen && !isWishlistOpen && !isFlashDealsOpen && !selectedProduct
-            ? 'text-[#0052FF] dark:text-blue-400 font-black bg-blue-50/80 dark:bg-blue-950/60 scale-102 before:absolute before:-top-1 before:w-6 before:h-1 before:bg-[#0052FF] before:rounded-full'
-            : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium'
-            }`}
-        >
-          <Home className="w-5 h-5 mb-0.5 stroke-[2.2px]" />
-          <span className="text-[10px] tracking-tight">{language === 'en' ? 'Home' : 'ዋና ገጽ'}</span>
-        </button>
-
-        {/* 2. SEARCH TAB */}
-        <button
-          type="button"
-          onClick={() => {
-            setIsProfileOpen(false);
-            setIsMyOrdersOpen(false);
-            setIsCartOpen(false);
-            setIsWishlistOpen(false);
-            setIsFlashDealsOpen(false);
-            setSelectedProduct(null);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            setTimeout(() => {
-              const searchInput = document.getElementById('mobile-search-input') || document.querySelector('input[type="text"]');
-              if (searchInput) {
-                (searchInput as HTMLInputElement).focus();
-              }
-            }, 100);
-          }}
-          className="flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium"
-        >
-          <Search className="w-5 h-5 mb-0.5 stroke-[2.2px]" />
-          <span className="text-[10px] tracking-tight">{language === 'en' ? 'Search' : 'ፈልግ'}</span>
-        </button>
-
-        {/* 3. DEALS / OFFERS TAB */}
-        <button
-          type="button"
-          onClick={() => {
-            setIsProfileOpen(false);
-            setIsMyOrdersOpen(false);
-            setIsCartOpen(false);
-            setIsWishlistOpen(false);
-            setIsFlashDealsOpen(true);
-          }}
-          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] relative ${isFlashDealsOpen
-            ? 'text-amber-500 dark:text-amber-400 font-black bg-amber-50/80 dark:bg-amber-950/60 scale-102 before:absolute before:-top-1 before:w-6 before:h-1 before:bg-amber-500 before:rounded-full'
-            : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium'
-            }`}
-        >
-          <Flame className="w-5 h-5 mb-0.5 text-amber-500 fill-amber-500/20 animate-pulse stroke-[2.2px]" />
-          <span className="text-[10px] tracking-tight">{language === 'en' ? 'Deals' : 'ቅናሾች'}</span>
-        </button>
-
-        {/* 4. CART TAB */}
-        <button
-          type="button"
-          onClick={() => setIsCartOpen(true)}
-          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] relative ${isCartOpen
-            ? 'text-[#0052FF] dark:text-blue-400 font-black bg-blue-50/80 dark:bg-blue-950/60 scale-102 before:absolute before:-top-1 before:w-6 before:h-1 before:bg-[#0052FF] before:rounded-full'
-            : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium'
-            }`}
-        >
-          <div className="relative">
-            <ShoppingCart className="w-5 h-5 mb-0.5 stroke-[2.2px]" />
-            {totalCartItems > 0 && (
-              <span className="absolute -top-1.5 -right-2 bg-[#FF3B30] text-white text-[9px] font-mono font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs border border-white dark:border-zinc-900 animate-bounce">
-                {totalCartItems > 99 ? '99+' : totalCartItems}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] tracking-tight">{language === 'en' ? 'Cart' : 'ጋሪ'}</span>
-        </button>
-
-        {/* 5. PROFILE / ACCOUNT TAB */}
-        <button
-          type="button"
-          onClick={() => setIsProfileOpen(true)}
-          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all cursor-pointer min-h-[48px] relative ${isProfileOpen
-            ? 'text-[#0052FF] dark:text-blue-400 font-black bg-blue-50/80 dark:bg-blue-950/60 scale-102 before:absolute before:-top-1 before:w-6 before:h-1 before:bg-[#0052FF] before:rounded-full'
-            : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200 font-medium'
-            }`}
-        >
-          <div className="relative">
-            <User className="w-5 h-5 mb-0.5 stroke-[2.2px]" />
-            {isLoggedIn && (
-              <span className="absolute -top-0.5 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-white dark:border-zinc-900 animate-pulse" />
-            )}
-          </div>
-          <span className="text-[10px] tracking-tight">{language === 'en' ? 'Profile' : 'መለያ'}</span>
-        </button>
-      </nav>
 
       {/* SHARE CART MODAL DIALOG */}
       <AnimatePresence>

@@ -152,6 +152,7 @@ export interface Order {
   packedAt?: string;
   shippedAt?: string;
   deliveredAt?: string;
+  cancelledAt?: string;
   reviewed?: boolean;
   reviewedAt?: string;
   orderReviews?: { productId: string; rating: number; comment: string; createdAt: string }[];
