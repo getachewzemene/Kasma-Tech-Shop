@@ -72,7 +72,7 @@ export const SerialCoverageCheckerModal: React.FC<SerialCoverageCheckerModalProp
     }
 
     try {
-      const res = await fetch(`/api/warranties/verify?query=${encodeURIComponent(q)}`);
+      const res = await fetch(`/api/warranties/verify?serial=${encodeURIComponent(q)}`);
       if (res.ok) {
         const data = await res.json();
         if (data.warranty) {

@@ -1,32 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { ThemeToggle } from '../ThemeToggle';
-import { 
-  ShoppingBag, 
-  Search, 
-  Truck, 
-  User, 
-  Heart, 
-  Menu, 
-  X, 
-  Bell, 
-  QrCode, 
-  Camera, 
-  Mic, 
-  Flame, 
-  ChevronDown, 
-  Layers, 
+import {
+  ShoppingBag,
+  Search,
+  Truck,
+  User,
+  Heart,
+  Menu,
+  X,
+  Bell,
+  QrCode,
+  Camera,
+  Mic,
+  Flame,
+  ChevronDown,
+  Layers,
   Tv,
-  Laptop, 
-  Gamepad2, 
-  Watch, 
-  Smartphone, 
-  Headphones, 
-  Cpu, 
-  Sparkles, 
-  Phone, 
-  Package, 
+  Laptop,
+  Gamepad2,
+  Watch,
+  Smartphone,
+  Headphones,
+  Cpu,
+  Sparkles,
+  Phone,
+  Package,
   LogIn
 } from 'lucide-react';
 import { isPwaStandalone, triggerPwaInstall } from '../../pwaRegister';
@@ -37,14 +37,15 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders }) => {
-  const { 
-    language, 
-    setLanguage, 
-    theme, 
-    setTheme, 
-    searchQuery, 
-    setSearchQuery, 
+  const {
+    language,
+    setLanguage,
+    theme,
+    setTheme,
+    searchQuery,
+    setSearchQuery,
     categories,
+    products,
     selectedCategory,
     setSelectedCategory,
     cartCount,
@@ -66,9 +67,117 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDeptDropdownOpen, setIsDeptDropdownOpen] = useState(false);
   const [isMobileCatsExpanded, setIsMobileCatsExpanded] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleVoiceSearch = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      showToast(
+        language === 'en'
+          ? 'Voice search is not supported in this browser.'
+          : 'የድምፅ ፍለጋ በዚህ ብሮውዘር አይደገፍም።',
+        'warning'
+      );
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = language === 'am' ? 'am-ET' : 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        showToast(
+          language === 'en' ? '🎙️ Listening... Speak now' : '🎙️ ድምፅዎን እያዳመጥን ነው...',
+          'info'
+        );
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results?.[0]?.[0]?.transcript;
+        if (transcript) {
+          setSearchQuery(transcript);
+          navigate(`/?search=${encodeURIComponent(transcript)}`);
+          showToast(
+            language === 'en' ? `Recognized: "${transcript}"` : `የተሰማው፡ "${transcript}"`,
+            'success'
+          );
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        setIsListening(false);
+        if (event.error !== 'no-speech') {
+          showToast(
+            language === 'en' ? `Voice search error: ${event.error}` : 'የድምፅ ፍለጋ አልተሳካም',
+            'warning'
+          );
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.warn('SpeechRecognition failed to start:', err);
+      setIsListening(false);
+    }
+  };
+
+  const handleImageSearchClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const cleanBaseName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ').toLowerCase();
+
+    // 1. Direct matching against store products
+    const matchedProduct = products?.find(p =>
+      cleanBaseName.includes(p.nameEn.toLowerCase()) ||
+      cleanBaseName.includes(p.brand.toLowerCase()) ||
+      p.nameEn.toLowerCase().split(' ').some(w => w.length > 3 && cleanBaseName.includes(w))
+    );
+
+    // 2. Direct matching against catalog categories
+    const matchedCategory = categories?.find(c =>
+      cleanBaseName.includes(c.id.toLowerCase()) ||
+      cleanBaseName.includes(c.nameEn.toLowerCase())
+    );
+
+    // 3. Fallback common tech brand/device patterns
+    const commonTechMatch = cleanBaseName.match(/(iphone|samsung|galaxy|macbook|sony|dell|hp|lenovo|airpods|headphone|watch|camera|tv|playstation|xbox|pixel|asus|bose|logitech)/i);
+
+    const searchTarget = matchedProduct
+      ? matchedProduct.nameEn
+      : (matchedCategory
+        ? matchedCategory.nameEn
+        : (commonTechMatch
+          ? commonTechMatch[0]
+          : (cleanBaseName.length > 3 && !cleanBaseName.startsWith('img') && !cleanBaseName.startsWith('pxl') && !cleanBaseName.startsWith('photo')
+            ? cleanBaseName
+            : 'Electronics')));
+
+    setSearchQuery(searchTarget);
+    navigate(`/?search=${encodeURIComponent(searchTarget)}`);
+    showToast(
+      language === 'en'
+        ? `📷 Visual search: Scanning photo for "${searchTarget}"...`
+        : `📷 የምስል ፍለጋ፡ "${searchTarget}" እየተፈለገ ነው...`,
+      'info'
+    );
+    e.target.value = '';
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +234,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors shadow-xs">
       <div className="max-w-[1440px] mx-auto w-full px-3 sm:px-4 md:px-5 lg:px-8 py-2 sm:py-2.5 lg:py-3.5">
         <div className="flex items-center justify-between gap-1.5 sm:gap-2.5 md:gap-3 lg:gap-5">
-          
+
           {/* 1. Brand Logo & Category Explorer Dropdown */}
           <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3 shrink-0">
             <Link to="/" className="flex items-center gap-2 sm:gap-2.5 cursor-pointer select-none group shrink-0">
@@ -149,11 +258,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               <button
                 type="button"
                 onClick={() => setIsDeptDropdownOpen(!isDeptDropdownOpen)}
-                className={`h-9 lg:h-10 px-3 lg:px-3.5 rounded-xl font-bold text-xs lg:text-[13px] flex items-center gap-1.5 transition-all cursor-pointer border ${
-                  isDeptDropdownOpen
+                className={`h-9 lg:h-10 px-3 lg:px-3.5 rounded-xl font-bold text-xs lg:text-[13px] flex items-center gap-1.5 transition-all cursor-pointer border ${isDeptDropdownOpen
                     ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-xs'
                     : 'bg-slate-100 dark:bg-zinc-800/90 hover:bg-slate-200/80 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 border-slate-200/80 dark:border-zinc-700/80'
-                }`}
+                  }`}
                 title={language === 'en' ? 'Browse all categories' : 'ሁሉንም ምድቦች ይመልከቱ'}
               >
                 <Layers className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${isDeptDropdownOpen ? 'text-white' : 'text-[#0052FF] dark:text-blue-400'}`} />
@@ -164,9 +272,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               {/* Department Dropdown Menu */}
               {isDeptDropdownOpen && (
                 <>
-                  <div 
-                    className="fixed inset-0 z-40 bg-black/20 dark:bg-black/50 backdrop-blur-[1px]" 
-                    onClick={() => setIsDeptDropdownOpen(false)} 
+                  <div
+                    className="fixed inset-0 z-40 bg-black/20 dark:bg-black/50 backdrop-blur-[1px]"
+                    onClick={() => setIsDeptDropdownOpen(false)}
                   />
                   <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                     <div className="px-4 py-2.5 flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 mb-1.5">
@@ -186,11 +294,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                     <button
                       type="button"
                       onClick={() => handleCategorySelect('all')}
-                      className={`w-full px-4 py-2.5 text-left text-sm font-bold flex items-center justify-between transition-colors cursor-pointer ${
-                        selectedCategory === 'all'
+                      className={`w-full px-4 py-2.5 text-left text-sm font-bold flex items-center justify-between transition-colors cursor-pointer ${selectedCategory === 'all'
                           ? 'bg-blue-50 dark:bg-blue-950/40 text-[#0052FF] dark:text-blue-400 font-black'
                           : 'hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 hover:text-[#0052FF]'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <Sparkles className="w-4.5 h-4.5 text-amber-500" />
@@ -207,11 +314,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                           key={cat.id}
                           type="button"
                           onClick={() => handleCategorySelect(cat.id)}
-                          className={`w-full px-4 py-2.5 text-left text-sm font-bold flex items-center justify-between transition-colors cursor-pointer ${
-                            isSelected
+                          className={`w-full px-4 py-2.5 text-left text-sm font-bold flex items-center justify-between transition-colors cursor-pointer ${isSelected
                               ? 'bg-blue-50 dark:bg-blue-950/40 text-[#0052FF] dark:text-blue-400 font-black'
                               : 'hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-200 hover:text-[#0052FF]'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-3">
                             <CatIcon className={`w-4.5 h-4.5 ${isSelected ? 'text-[#0052FF]' : 'text-slate-400 dark:text-zinc-500'}`} />
@@ -223,7 +329,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                     })}
 
                     <hr className="border-slate-100 dark:border-zinc-800 my-2" />
-                    
+
                     <button
                       type="button"
                       onClick={handleDealsClick}
@@ -244,14 +350,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               <Search className="absolute left-3 w-4 h-4 text-slate-400 dark:text-zinc-500 pointer-events-none" />
               <input
                 type="text"
-                placeholder={language === 'en' ? 'Search smartphones, Arctis, PS5...' : 'ስልኮችን፣ ማዳመጫዎችን፣ ፒኤስ5 ይፈልጉ...'}
+                placeholder={
+                  isListening
+                    ? (language === 'en' ? '🎙️ Listening... Speak now' : '🎙️ እያዳመጥን ነው... ይናገሩ')
+                    : (language === 'en' ? 'Search smartphones, Arctis, PS5...' : 'ስልኮችን፣ ማዳመጫዎችን፣ ፒኤስ5 ይፈልጉ...')
+                }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-9 lg:h-10 pl-9 pr-14 lg:pr-28 rounded-xl border border-slate-200/90 dark:border-zinc-700/80 bg-slate-100/70 dark:bg-zinc-800/80 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0052FF]/30 focus:border-[#0052FF] dark:focus:border-blue-500 focus:bg-white dark:focus:bg-zinc-900 text-slate-900 dark:text-zinc-100 transition-all shadow-2xs"
               />
               <div className="absolute right-1.5 flex items-center gap-0.5 sm:gap-1 text-slate-400">
                 {searchQuery && (
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setSearchQuery('')}
                     className="p-1 text-slate-400 hover:text-slate-950 dark:hover:text-white text-xs font-bold rounded-lg cursor-pointer"
@@ -270,10 +380,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setSearchQuery('Galaxy S24');
-                    showToast(language === 'en' ? '📷 Image Search activated: Matches for "Galaxy S24"' : '📷 የምስል ፍለጋ ተከናውኗል!', 'info');
-                  }}
+                  onClick={handleImageSearchClick}
                   className="hidden lg:flex p-1 sm:p-1.5 hover:bg-slate-200/80 dark:hover:bg-zinc-700/80 text-slate-500 hover:text-[#0052FF] dark:hover:text-blue-400 rounded-lg transition-colors cursor-pointer"
                   title={language === 'en' ? 'Search by Image / Camera' : 'በምስል ይፈልጉ'}
                 >
@@ -281,11 +388,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setSearchQuery('Arctis Nova');
-                    showToast(language === 'en' ? '🎙️ Listening... Recognized "Arctis Nova"' : '🎙️ ድምፅ ተሰምቷል፡ "Arctis Nova"', 'info');
-                  }}
-                  className="hidden lg:flex p-1 sm:p-1.5 hover:bg-slate-200/80 dark:hover:bg-zinc-700/80 text-slate-500 hover:text-[#0052FF] dark:hover:text-blue-400 rounded-lg transition-colors cursor-pointer"
+                  onClick={handleVoiceSearch}
+                  className={`hidden lg:flex p-1 sm:p-1.5 hover:bg-slate-200/80 dark:hover:bg-zinc-700/80 rounded-lg transition-colors cursor-pointer ${isListening ? 'text-red-500 animate-pulse bg-red-50 dark:bg-red-950/40' : 'text-slate-500 hover:text-[#0052FF] dark:hover:text-blue-400'
+                    }`}
                   title={language === 'en' ? 'Search by Voice' : 'በድምፅ ይፈልጉ'}
                 >
                   <Mic className="w-3.5 h-3.5" />
@@ -298,11 +403,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
           <nav className="hidden xl:flex items-center gap-1.5 text-xs lg:text-[13px] font-bold shrink-0">
             <button
               onClick={handleDealsClick}
-              className={`h-9 lg:h-10 px-3 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
-                selectedCategory === 'deals'
+              className={`h-9 lg:h-10 px-3 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${selectedCategory === 'deals'
                   ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-black'
                   : 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40'
-              }`}
+                }`}
             >
               <Flame className="w-4 h-4 text-rose-500 fill-rose-500/20" />
               <span>{language === 'en' ? 'Deals' : 'ቅናሾች'}</span>
@@ -330,7 +434,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
 
           {/* 4. Action Controls & Utilities (Strict Sequence: 1. Cart, 2. Wishlist, 3. Bell, 4. Sign In, 5. Language, 6. Theme) */}
           <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0">
-            
+
             {/* 1. Cart Button (Always visible) */}
             <button
               type="button"
@@ -386,11 +490,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
             <button
               type="button"
               onClick={onOpenProfile}
-              className={`h-9 sm:h-10 px-2.5 lg:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer border shrink-0 ${
-                isCustomerLoggedIn
+              className={`h-9 sm:h-10 px-2.5 lg:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer border shrink-0 ${isCustomerLoggedIn
                   ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300/80 dark:border-amber-800/80 hover:bg-amber-100'
                   : 'bg-[#0052FF] hover:bg-blue-600 text-white border-transparent shadow-xs hover:shadow-blue-600/20'
-              }`}
+                }`}
               title={isCustomerLoggedIn ? (customerName || 'My Account') : (language === 'en' ? 'Sign In / Account' : 'ይግቡ / መለያ')}
             >
               <User className="w-4 h-4 shrink-0" />
@@ -406,17 +509,15 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
             <div className="hidden lg:flex bg-slate-100 dark:bg-zinc-800 p-0.5 sm:p-1 rounded-xl border border-slate-200 dark:border-zinc-700 shrink-0">
               <button
                 onClick={() => setLanguage('en')}
-                className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                  language === 'en' ? 'bg-white dark:bg-zinc-700 text-slate-950 dark:text-zinc-100 shadow-xs' : 'text-slate-400 hover:text-slate-950 dark:hover:text-zinc-100'
-                }`}
+                className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${language === 'en' ? 'bg-white dark:bg-zinc-700 text-slate-950 dark:text-zinc-100 shadow-xs' : 'text-slate-400 hover:text-slate-950 dark:hover:text-zinc-100'
+                  }`}
               >
                 EN
               </button>
               <button
                 onClick={() => setLanguage('am')}
-                className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                  language === 'am' ? 'bg-white dark:bg-zinc-700 text-slate-950 dark:text-zinc-100 shadow-xs' : 'text-slate-400 hover:text-slate-950 dark:hover:text-zinc-100'
-                }`}
+                className={`px-2 sm:px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${language === 'am' ? 'bg-white dark:bg-zinc-700 text-slate-950 dark:text-zinc-100 shadow-xs' : 'text-slate-400 hover:text-slate-950 dark:hover:text-zinc-100'
+                  }`}
               >
                 አማ
               </button>
@@ -424,9 +525,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
 
             {/* 6. Theme Toggle Switch (Hidden on mobile/tablet < lg, visible on lg+ desktop) */}
             <div className="hidden lg:flex items-center shrink-0">
-              <ThemeToggle 
-                theme={theme} 
-                onToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} 
+              <ThemeToggle
+                theme={theme}
+                onToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')}
                 language={language}
                 size="sm"
               />
@@ -451,7 +552,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
             <Search className="w-4 h-4 absolute left-3 text-slate-400 dark:text-zinc-500 pointer-events-none" />
             <input
               type="text"
-              placeholder={language === 'en' ? 'Search smartphones, laptops, PS5...' : 'ስልኮችን፣ ላፕቶፖችን፣ ፒኤስ5 ይፈልጉ...'}
+              placeholder={
+                isListening
+                  ? (language === 'en' ? '🎙️ Listening... Speak now' : '🎙️ እያዳመጥን ነው... ይናገሩ')
+                  : (language === 'en' ? 'Search smartphones, laptops, PS5...' : 'ስልኮችን፣ ላፕቶፖችን፣ ፒኤስ5 ይፈልጉ...')
+              }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-10 pl-9 pr-20 rounded-xl text-xs sm:text-sm bg-slate-100 dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 focus:border-[#0052FF] text-slate-900 dark:text-zinc-100 outline-none transition-all placeholder:text-slate-400"
@@ -477,23 +582,37 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setSearchQuery('Galaxy S24');
-                  showToast(language === 'en' ? '📷 Image Search activated' : '📷 የምስል ፍለጋ ተከናውኗል!', 'info');
-                }}
-                className="p-1.5 text-slate-400 hover:text-[#0052FF] rounded-lg text-xs"
+                onClick={handleImageSearchClick}
+                className="p-1.5 text-slate-400 hover:text-[#0052FF] rounded-lg text-xs cursor-pointer"
                 title={language === 'en' ? 'Image Search' : 'በምስል ይፈልጉ'}
               >
                 <Camera className="w-3.5 h-3.5" />
               </button>
+              <button
+                type="button"
+                onClick={handleVoiceSearch}
+                className={`p-1.5 rounded-lg text-xs cursor-pointer ${isListening ? 'text-red-500 animate-pulse bg-red-50 dark:bg-red-950/40' : 'text-slate-400 hover:text-[#0052FF]'
+                  }`}
+                title={language === 'en' ? 'Voice Search' : 'በድምፅ ይፈልጉ'}
+              >
+                <Mic className="w-3.5 h-3.5" />
+              </button>
             </div>
           </form>
+          {/* Hidden Image File Picker for Visual Search */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageFileChange}
+          />
         </div>
 
         {/* Mobile Drawer Menu */}
         {isMobileMenuOpen && (
           <div className="py-3 mt-2 border-t border-slate-200 dark:border-zinc-800 flex flex-col gap-2.5 xl:hidden animate-in fade-in slide-in-from-top-2 duration-150 max-h-[calc(100vh-120px)] overflow-y-auto pb-6">
-            
+
             {/* Account Card inside Mobile Menu */}
             <button
               onClick={() => { setIsMobileMenuOpen(false); onOpenProfile?.(); }}
@@ -520,8 +639,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               {/* Cart */}
               <button
                 type="button"
-                onClick={() => { 
-                  setIsMobileMenuOpen(false); 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
                   if (location.pathname === '/') {
                     setIsCartOpen(true);
                   } else {
@@ -704,7 +823,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-400">
                 {language === 'en' ? 'Preferences' : 'ምርጫዎች'}
               </span>
-              
+
               <div className="flex items-center justify-between gap-2">
                 {/* Language Switch */}
                 <div className="flex items-center gap-2">
@@ -715,18 +834,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                     <button
                       type="button"
                       onClick={() => setLanguage('en')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                        language === 'en' ? 'bg-[#0052FF] text-white shadow-xs' : 'text-slate-500 hover:text-slate-900 dark:text-zinc-300'
-                      }`}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${language === 'en' ? 'bg-[#0052FF] text-white shadow-xs' : 'text-slate-500 hover:text-slate-900 dark:text-zinc-300'
+                        }`}
                     >
                       English
                     </button>
                     <button
                       type="button"
                       onClick={() => setLanguage('am')}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
-                        language === 'am' ? 'bg-[#0052FF] text-white shadow-xs' : 'text-slate-500 hover:text-slate-900 dark:text-zinc-300'
-                      }`}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${language === 'am' ? 'bg-[#0052FF] text-white shadow-xs' : 'text-slate-500 hover:text-slate-900 dark:text-zinc-300'
+                        }`}
                     >
                       አማርኛ
                     </button>
@@ -738,9 +855,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                   <span className="text-xs font-bold text-slate-700 dark:text-zinc-300">
                     {language === 'en' ? 'Theme:' : 'ገጽታ:'}
                   </span>
-                  <ThemeToggle 
-                    theme={theme} 
-                    onToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} 
+                  <ThemeToggle
+                    theme={theme}
+                    onToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')}
                     language={language}
                     size="sm"
                   />
