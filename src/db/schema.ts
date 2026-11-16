@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { boolean, integer, json, pgTable, real, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { bigint, boolean, integer, json, pgTable, real, serial, text, timestamp } from 'drizzle-orm/pg-core';
 
 // 1. Users Table (Linked to Firebase Auth UID / Phone)
 export const users = pgTable('users', {
@@ -90,6 +90,8 @@ export const orders = pgTable('orders', {
   orderStatus: text('order_status').default('PROCESSING').notNull(),
   txRef: text('tx_ref').notNull(),
   channel: text('channel').default('WEB').notNull(), // 'WEB' | 'TELEGRAM_MINI_APP' | 'MOBILE'
+  telegramUserId: bigint('telegram_user_id', { mode: 'number' }),
+  telegramUsername: text('telegram_username'),
   discountCode: text('discount_code'),
   discountAmount: real('discount_amount').default(0),
   paymentReceipt: text('payment_receipt'),

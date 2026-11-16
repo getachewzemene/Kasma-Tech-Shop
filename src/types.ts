@@ -142,6 +142,8 @@ export interface Order {
   gateNotes?: string;
   createdAt: string;
   channel: 'WEB' | 'TELEGRAM_MINI_APP' | 'MOBILE';
+  telegramUserId?: number;
+  telegramUsername?: string;
   discountCode?: string;
   discountAmount?: number;
   codVerificationPin?: string;

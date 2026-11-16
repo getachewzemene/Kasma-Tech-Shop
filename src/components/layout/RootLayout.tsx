@@ -8,6 +8,7 @@ import { MyOrdersView } from '../MyOrdersView';
 import { PwaInstallPrompt } from '../pwa/PwaInstallPrompt';
 import { ResponsiveDeviceTester } from '../dev/ResponsiveDeviceTester';
 import { useShop } from '../../context/ShopContext';
+import { useTelegramMiniAppSync } from '../../hooks/useTelegramMiniAppSync';
 
 export const RootLayout: React.FC = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -42,6 +43,7 @@ export const RootLayout: React.FC = () => {
   } = useShop();
 
   const location = useLocation();
+  const { isTMA } = useTelegramMiniAppSync();
   const isHiddenRoute =
     location.pathname.startsWith('/checkout') ||
     location.pathname.startsWith('/courier') ||
@@ -123,7 +125,7 @@ export const RootLayout: React.FC = () => {
       />
 
       {/* Mobile & Tablet Progressive Web App (PWA) Install Banner */}
-      <PwaInstallPrompt language={language} />
+      {!isTMA && <PwaInstallPrompt language={language} />}
 
       {/* Developer Real-Time Mobile Responsiveness Inspector (Dev Only) */}
       {import.meta.env.DEV && <ResponsiveDeviceTester />}

@@ -38,10 +38,15 @@ async function startServer() {
   const app = express();
   const PORT = parseInt(process.env.PORT || '3000', 10);
 
-  // Security Headers for Production & CDN Readiness
+  // Security Headers for Production, CDN & Telegram WebApp Readiness
   app.use((_req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    // Content-Security-Policy with frame-ancestors to permit Telegram client framing (web.telegram.org)
+    // while preventing malicious third-party framing
+    res.setHeader(
+      'Content-Security-Policy',
+      "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org https://webk.telegram.org https://webz.telegram.org telegram:;"
+    );
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     next();
@@ -721,6 +726,66 @@ async function startServer() {
       user: user || { id: 4859302, first_name: 'Kasma', username: 'kasma_user' },
       authenticatedAt: new Date().toISOString(),
       signatureVerified: true
+    });
+  });
+
+  // Telegram Mini App User Synchronization Endpoint
+  app.post('/api/telegram/sync-user', (req, res) => {
+    const { user, initData, phone } = req.body || {};
+    if (!user || !user.id) {
+      res.status(400).json({ success: false, error: 'Valid Telegram user object is required.' });
+      return;
+    }
+
+    // Match past customer orders by Telegram ID, Telegram username, or Phone
+    const cleanReqPhone = phone ? phone.replace(/[^\d]/g, '') : '';
+    const matchedOrders = db.orders.filter(o => 
+      (o.telegramUserId && o.telegramUserId === user.id) ||
+      (user.username && o.telegramUsername && o.telegramUsername.toLowerCase() === user.username.toLowerCase()) ||
+      (cleanReqPhone && o.customerPhone && o.customerPhone.replace(/[^\d]/g, '') === cleanReqPhone)
+    );
+
+    // If matching orders don't have telegramUserId set yet, link them!
+    let linkedCount = 0;
+    matchedOrders.forEach(o => {
+      if (!o.telegramUserId) {
+        o.telegramUserId = user.id;
+        if (user.username && !o.telegramUsername) {
+          o.telegramUsername = user.username;
+        }
+        linkedCount++;
+      }
+    });
+
+    // Calculate loyalty points (base 150 points for TMA sync + 50 points per linked order)
+    const points = 150 + (matchedOrders.length * 50);
+
+    // Record verified audit log
+    db.auditLogs.unshift({
+      id: `audit-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      actor: user.username ? `@${user.username}` : user.first_name || 'Telegram User',
+      action: 'TELEGRAM_USER_SYNCED',
+      details: `Telegram Mini App profile synced for user ID ${user.id} (${user.first_name}${user.last_name ? ' ' + user.last_name : ''}). ${matchedOrders.length} order(s) linked.`,
+      severity: 'INFO'
+    });
+    db.save();
+
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        username: user.username,
+        language_code: user.language_code,
+        photo_url: user.photo_url,
+        phone: phone || ''
+      },
+      ordersCount: matchedOrders.length,
+      orders: matchedOrders,
+      points,
+      syncedAt: new Date().toISOString()
     });
   });
 

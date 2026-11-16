@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
-import { 
-  CheckCircle, 
-  Truck, 
-  MapPin, 
-  Phone, 
-  Clock, 
-  ArrowRight, 
-  ShieldCheck, 
+import {
+  CheckCircle,
+  Truck,
+  MapPin,
+  Phone,
+  Clock,
+  ArrowRight,
+  ShieldCheck,
   Download,
   Share2,
   Package,
@@ -23,6 +23,8 @@ import {
 import { QRCodeSVG } from 'qrcode.react';
 import { generateCustomerReceiptPDF } from '../../lib/pdfGenerator';
 import { getOrderHandoverPin } from '../courier/courierTypes';
+import { getWhatsAppDirectUrl, KASMA_CONTACTS } from '../../constants/contacts';
+import { isTelegramWebApp, closeTelegramMiniApp, sendTelegramData } from '../../utils/telegramWebApp';
 
 export const OrderConfirmationPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +37,24 @@ export const OrderConfirmationPage: React.FC = () => {
   const order = orders.find(o => o.id === id) || orders[0];
   const handoverPin = order ? getOrderHandoverPin(order) : '8492';
 
+  // Auto-send data back to Telegram Bot if executing inside Telegram Mini App
+  useEffect(() => {
+    if (order && isTelegramWebApp()) {
+      try {
+        sendTelegramData({
+          action: 'ORDER_PLACED',
+          orderId: order.id,
+          total: order.total,
+          handoverPin: handoverPin,
+          paymentMethod: order.paymentMethod,
+          status: order.status
+        });
+      } catch (err) {
+        console.warn('Telegram Mini App sendData notification:', err);
+      }
+    }
+  }, [order, handoverPin]);
+
   const handleCopyPin = () => {
     navigator.clipboard?.writeText(handoverPin);
     setCopiedPin(true);
@@ -46,8 +66,8 @@ export const OrderConfirmationPage: React.FC = () => {
     const itemsList = order.items
       .map(i => `• ${i.product.nameEn} (${i.variantName || 'Standard'}) x${i.quantity} — ${(i.price * i.quantity).toLocaleString()} ETB`)
       .join('\n');
-    const paymentDesc = order.paymentMethod === 'COD' 
-      ? 'Cash on Delivery (በዕቃ ርክክብ ጊዜ የሚከፈል)' 
+    const paymentDesc = order.paymentMethod === 'COD'
+      ? 'Cash on Delivery (በዕቃ ርክክብ ጊዜ የሚከፈል)'
       : `Bank Transfer / Telebirr ${order.paymentReference ? `(Ref: ${order.paymentReference})` : ''}`;
 
     return `🛍️ KASMA TECH SHOP — ORDER #${order.id}
@@ -69,8 +89,8 @@ ${itemsList}
   };
 
   const handleSendWhatsApp = () => {
-    const text = encodeURIComponent(getOrderShareText());
-    window.open(`https://wa.me/251911234567?text=${text}`, '_blank');
+    const text = getOrderShareText();
+    window.open(getWhatsAppDirectUrl(text), '_blank');
   };
 
   return (
@@ -231,8 +251,8 @@ ${itemsList}
             <p className="text-[11px] text-gray-400">
               Payment Rail:{' '}
               <span className="font-semibold text-gray-700 dark:text-zinc-300">
-                {order?.paymentMethod === 'COD' 
-                  ? (language === 'en' ? 'Cash on Delivery (COD)' : 'በዕቃ ርክክብ ጊዜ (COD)') 
+                {order?.paymentMethod === 'COD'
+                  ? (language === 'en' ? 'Cash on Delivery (COD)' : 'በዕቃ ርክክብ ጊዜ (COD)')
                   : (language === 'en' ? `Bank Transfer ${order?.paymentReference ? `(Ref: ${order.paymentReference})` : ''}` : `የባንክ ዝውውር ${order?.paymentReference ? `(${order.paymentReference})` : ''}`)}
               </span>
             </p>
@@ -358,6 +378,16 @@ ${itemsList}
           </button>
 
           <div className="flex flex-col sm:flex-row gap-3">
+            {isTelegramWebApp() && (
+              <button
+                type="button"
+                onClick={closeTelegramMiniApp}
+                className="flex-1 py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+              >
+                <Send className="w-4 h-4 text-sky-400" />
+                <span>{language === 'en' ? 'Return to Telegram' : 'ወደ ቴሌግራም ተመለስ'}</span>
+              </button>
+            )}
             <Link
               to={`/tracking/${order ? order.id : id}`}
               className="flex-1 py-3.5 px-4 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"

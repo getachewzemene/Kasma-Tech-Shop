@@ -34,8 +34,9 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy compiled bundles and assets from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/db.json ./db.json
-COPY --from=builder /app/src/db ./src/db
+
+# Create runtime persistence directory and grant ownership to node user
+RUN mkdir -p /app/src/server && chown -R node:node /app
 
 # Install wget for container health checks
 RUN apk add --no-cache wget

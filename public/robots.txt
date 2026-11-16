@@ -1,0 +1,16 @@
+# Kasma Tech Shop - Production Robots Exclusion File
+User-agent: *
+Allow: /
+Allow: /catalog
+Allow: /deals
+Allow: /tracking
+Allow: /warranty
+
+# Disallow administrative portals & internal API routes
+Disallow: /admin
+Disallow: /merchant
+Disallow: /courier
+Disallow: /api/
+
+# Canonical Sitemap Reference
+Sitemap: https://kasmashop.et/sitemap.xml

@@ -28,6 +28,14 @@ services:
         sync: false
       - key: TELEGRAM_BOT_TOKEN
         sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: VITE_TELEGRAM_BOT_USERNAME
+        value: KasmaTechShopBot
+      - key: VITE_TELEGRAM_SUPPORT_USERNAME
+        value: KasmaTechSupport
+      - key: VITE_WHATSAPP_SUPPORT_NUMBER
+        value: "251911223344"
       - key: GEMINI_API_KEY
         sync: false
       - key: APP_URL

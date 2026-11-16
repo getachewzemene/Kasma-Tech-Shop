@@ -30,7 +30,14 @@ import {
   INITIAL_TELEGRAM_ALERTS,
   INITIAL_FLASH_DEALS
 } from '../mockData';
-import { initTelegramMiniApp } from '../utils/telegramWebApp';
+import { 
+  initTelegramMiniApp, 
+  isTelegramWebApp, 
+  getTelegramUser, 
+  subscribeTelegramThemeChange, 
+  triggerHaptic, 
+  TelegramWebAppUser 
+} from '../utils/telegramWebApp';
 
 export interface ToastNotification {
   id: string;
@@ -172,6 +179,12 @@ interface ShopContextType {
   pointsLogs: KasmaPointsLog[];
   addPoints: (amount: number, reasonEn: string, reasonAm: string, type?: 'EARNED' | 'REDEEMED' | 'BONUS') => void;
   redeemReward: (reward: KasmaPointsReward) => void;
+
+  // Telegram Mini App Sync
+  isTelegramMiniApp: boolean;
+  telegramUser: TelegramWebAppUser | null;
+  isTelegramSynced: boolean;
+  syncTelegramUserWithStore: (customPhone?: string) => Promise<boolean>;
 
   // Admin / Merchant Approvals
   approveProduct: (id: string) => Promise<void>;
@@ -370,6 +383,17 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const isLoggedIn = localStorage.getItem('kasma_customer_logged_in') === 'true';
     return isLoggedIn ? (localStorage.getItem('kasma_customer_email') || 'customer@kasma.et') : (localStorage.getItem('kasma_customer_email') || '');
   });
+
+  // Telegram Mini App User Identity
+  const [isTelegramApp] = useState<boolean>(() => isTelegramWebApp());
+  const [telegramUser, setTelegramUser] = useState<TelegramWebAppUser | null>(() => {
+    try {
+      const stored = localStorage.getItem('kasma_telegram_user');
+      if (stored) return JSON.parse(stored);
+    } catch { }
+    return getTelegramUser();
+  });
+  const [isTelegramSynced, setIsTelegramSynced] = useState<boolean>(false);
   const [addresses, setAddresses] = useState<DeliveryAddress[]>(() => {
     try {
       const saved = localStorage.getItem('kasma_addresses');
@@ -520,14 +544,83 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch { }
   }, [theme]);
 
-  // TMA auto-init
+  // Telegram Mini App User Synchronization
+  const syncTelegramUserWithStore = useCallback(async (customPhone?: string): Promise<boolean> => {
+    const user = telegramUser || getTelegramUser();
+    if (!user) return false;
+
+    const phoneToSync = customPhone || customerPhone || localStorage.getItem('kasma_customer_phone') || '';
+    try {
+      const res = await fetch('/api/telegram/sync-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user,
+          phone: phoneToSync,
+          initData: window.Telegram?.WebApp?.initData || ''
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setIsTelegramSynced(true);
+        if (data.points && data.points > kasmaPoints) {
+          setKasmaPoints(data.points);
+          try {
+            localStorage.setItem('kasma_points', String(data.points));
+          } catch { }
+        }
+        return true;
+      }
+    } catch (err) {
+      console.warn('[TMA Sync] Offline or server unreachable, profile held locally:', err);
+    }
+    return false;
+  }, [telegramUser, customerPhone, kasmaPoints]);
+
+  // Telegram Mini App Auto-Init & Real-time Two-Way Sync
   useEffect(() => {
     const tma = initTelegramMiniApp();
-    if (tma && tma.user) {
-      if (tma.colorScheme === 'dark') setTheme('dark');
-      if (tma.user.first_name) setCustomerName(tma.user.first_name);
+    if (tma) {
+      if (tma.colorScheme === 'dark') {
+        setTheme('dark');
+      }
+
+      // Synchronize theme changes from Telegram client in real-time
+      const unsubscribeTheme = subscribeTelegramThemeChange((scheme) => {
+        setTheme(scheme);
+      });
+
+      if (tma.user) {
+        setTelegramUser(tma.user);
+        try {
+          localStorage.setItem('kasma_telegram_user', JSON.stringify(tma.user));
+        } catch { }
+
+        const fullName = `${tma.user.first_name || ''} ${tma.user.last_name || ''}`.trim() || tma.user.username || 'Telegram User';
+        setCustomerName(prev => prev || fullName);
+        setIsCustomerLoggedIn(true);
+        try {
+          localStorage.setItem('kasma_customer_logged_in', 'true');
+          localStorage.setItem('kasma_auth_provider', 'telegram');
+          if (!localStorage.getItem('kasma_customer_name')) {
+            localStorage.setItem('kasma_customer_name', fullName);
+          }
+        } catch { }
+
+        // Match Telegram language if available and not manually overridden
+        if (tma.user.language_code === 'am' && !localStorage.getItem('kasma_lang_manual')) {
+          setLanguage('am');
+        }
+
+        syncTelegramUserWithStore();
+      }
+
+      return () => {
+        unsubscribeTheme();
+      };
     }
-  }, []);
+  }, [syncTelegramUserWithStore]);
 
   // Backend state fetcher with SWR multi-tier cache
   const refreshState = useCallback(async (isSilentBackground = false) => {
@@ -1589,6 +1682,12 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         pointsLogs,
         addPoints,
         redeemReward,
+
+        // Telegram Mini App
+        isTelegramMiniApp: isTelegramApp,
+        telegramUser,
+        isTelegramSynced,
+        syncTelegramUserWithStore,
 
         approveProduct,
         rejectProduct,

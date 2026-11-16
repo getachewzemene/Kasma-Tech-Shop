@@ -5,46 +5,46 @@ import ThirtyDaySalesTrendChart from './ThirtyDaySalesTrendChart';
 import { SeoGeoDashboard } from './SeoGeoDashboard';
 import { ProductCard } from './ProductCard';
 import { GridContainer } from './GridContainer';
-import { 
-  Shield, 
-  Sparkles, 
-  TrendingUp, 
-  Users, 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  RefreshCw, 
-  FileText, 
-  Lock, 
-  Globe, 
-  DollarSign, 
-  Trash2, 
-  Plus, 
-  Percent, 
-  Tag, 
-  Search, 
-  BarChart3, 
-  Layers, 
-  Building2, 
-  Receipt, 
-  Terminal, 
-  ShieldCheck, 
-  Database, 
-  Server, 
-  Cpu, 
-  Clock, 
-  Check, 
+import {
+  Shield,
+  Sparkles,
+  TrendingUp,
+  Users,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  RefreshCw,
+  FileText,
+  Lock,
+  Globe,
+  DollarSign,
+  Trash2,
+  Plus,
+  Percent,
+  Tag,
+  Search,
+  BarChart3,
+  Layers,
+  Building2,
+  Receipt,
+  Terminal,
+  ShieldCheck,
+  Database,
+  Server,
+  Cpu,
+  Clock,
+  Check,
   AlertCircle,
   MessageCircle,
-  Play, 
-  Eye, 
-  FileSpreadsheet, 
-  ChevronRight, 
-  Download, 
-  Filter, 
-  Settings, 
-  Activity, 
-  User, 
+  Play,
+  Eye,
+  FileSpreadsheet,
+  ChevronRight,
+  Download,
+  Filter,
+  Settings,
+  Activity,
+  User,
   Maximize2,
   Calendar,
   HelpCircle,
@@ -360,7 +360,7 @@ export default function AdminDashboard({
   const [selectedCrmCustomer, setSelectedCrmCustomer] = useState<CustomerProfile | null>(null);
   const [bonusPointsInput, setBonusPointsInput] = useState<number>(100);
   const [crmNoteInput, setCrmNoteInput] = useState<string>('');
-  
+
   // Campaign Broadcast state
   const [isCampaignModalOpen, setIsCampaignModalOpen] = useState(false);
   const [campaignTitle, setCampaignTitle] = useState('VIP Exclusive Weekend Rewards');
@@ -375,7 +375,7 @@ export default function AdminDashboard({
     { id: 'TKT-902', customerName: 'Selamawit Alemu', issue: 'Courier Delivery Address Change to Piassa', category: 'SHIPPING', priority: 'MEDIUM', status: 'IN_PROGRESS', date: '2026-07-29' },
     { id: 'TKT-903', customerName: 'Bethlehem Tadesse', issue: 'Points Redemption Inquiry', category: 'LOYALTY', priority: 'LOW', status: 'RESOLVED', date: '2026-07-27' },
   ]);
-  
+
 
   // Search and Filter States
   const [productFilter, setProductFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'LOW_SEO' | 'HIGH_SEO'>('ALL');
@@ -384,7 +384,7 @@ export default function AdminDashboard({
   const [orderSearch, setOrderSearch] = useState('');
   const [logFilter, setLogFilter] = useState<'ALL' | 'CRITICAL' | 'WARNING' | 'INFO'>('ALL');
   const [logSearch, setLogSearch] = useState('');
-  
+
   // Custom Interaction States
   const [selectedKycMerchant, setSelectedKycMerchant] = useState<Merchant | null>(null);
   const [rejectionProductId, setRejectionProductId] = useState<string | null>(null);
@@ -595,7 +595,7 @@ export default function AdminDashboard({
     onAddPromoCode(promo);
     setPromoSuccess(`Promo code "${formattedCode}" created successfully!`);
     showToast(`Promo code "${formattedCode}" published successfully.`, 'success');
-    
+
     // Reset form
     setNewCode('');
     setNewType('PERCENTAGE');
@@ -666,7 +666,7 @@ export default function AdminDashboard({
     if (isScanning) return;
     setIsScanning(true);
     setTerminalLogs(prev => [...prev, '⚡ Starting Platform Security Compliance Audit (Level 4)...']);
-    
+
     setTimeout(() => {
       setTerminalLogs(prev => [...prev, '✓ Verifying transaction ledger cryptohash signatures...']);
     }, 800);
@@ -681,7 +681,7 @@ export default function AdminDashboard({
 
     setTimeout(() => {
       setTerminalLogs(prev => [
-        ...prev, 
+        ...prev,
         '✓ Database Sharding health: OPTIMAL (100% Replication parity)',
         '✓ Chapa and Telebirr webhook endpoints: SECURE',
         '🎉 [SUCCESS] Platform compliance check passed. All nodes compliant.'
@@ -695,7 +695,7 @@ export default function AdminDashboard({
   const handlePayoutAuthorization = (merchantId: string, payoutId: string, amount: number) => {
     setIsProcessingPayoutId(payoutId);
     showToast(`Authorizing CBE settlement gateway: ${amount.toLocaleString()} ETB...`, 'info');
-    
+
     setTimeout(() => {
       onApprovePayout(merchantId, payoutId);
       setIsProcessingPayoutId(null);
@@ -933,17 +933,16 @@ export default function AdminDashboard({
 
   return (
     <div className="flex bg-slate-50 dark:bg-zinc-950 min-h-screen font-sans text-slate-900 dark:text-zinc-100 rounded-3xl overflow-hidden border border-slate-200/80 dark:border-zinc-800 shadow-sm">
-      
+
       {/* Toast Alert Popup */}
       {toast && (
-        <div 
-          className={`fixed top-6 right-6 z-50 p-4 rounded-2xl shadow-2xl flex items-center gap-3 border text-xs max-w-sm transition-all duration-300 transform translate-y-0 scale-100 ${
-            toast.type === 'success' 
-              ? 'bg-slate-900 border-slate-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:border-zinc-300' 
+        <div
+          className={`fixed top-6 right-6 z-50 p-4 rounded-2xl shadow-2xl flex items-center gap-3 border text-xs max-w-sm transition-all duration-300 transform translate-y-0 scale-100 ${toast.type === 'success'
+              ? 'bg-slate-900 border-slate-800 text-white dark:bg-zinc-100 dark:text-zinc-950 dark:border-zinc-300'
               : toast.type === 'error'
-              ? 'bg-rose-50 border-rose-200 text-rose-800'
-              : 'bg-slate-100 border-slate-200 text-slate-900'
-          }`}
+                ? 'bg-rose-50 border-rose-200 text-rose-800'
+                : 'bg-slate-100 border-slate-200 text-slate-900'
+            }`}
         >
           {toast.type === 'success' && <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />}
           {toast.type === 'error' && <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />}
@@ -954,7 +953,7 @@ export default function AdminDashboard({
 
       {/* Enterprise Sidebar navigation */}
       <aside className={`bg-slate-900 text-slate-400 transition-all duration-300 flex flex-col shrink-0 border-r border-slate-800/80 ${isSidebarCollapsed ? 'w-20' : 'w-72'}`}>
-        
+
         {/* Sidebar Header Brand block */}
         <div className={`h-16 flex items-center ${isSidebarCollapsed ? 'justify-center px-2' : 'justify-between px-4'} border-b border-slate-800 bg-slate-900/90`}>
           {isSidebarCollapsed ? (
@@ -980,7 +979,7 @@ export default function AdminDashboard({
                   <p className="text-[9px] text-slate-500 font-mono tracking-widest font-extrabold uppercase truncate">GOVERNANCE CONSOLE</p>
                 </div>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsSidebarCollapsed(true)}
                 className="text-slate-400 hover:text-white p-1.5 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer shrink-0 ml-1 hidden md:block"
@@ -1050,19 +1049,17 @@ export default function AdminDashboard({
                   <button
                     type="button"
                     onClick={handleItemClick}
-                    className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer relative ${
-                      isActive
+                    className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer relative ${isActive
                         ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-bold scale-105'
                         : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'
-                    }`}
+                      }`}
                   >
                     <IconComponent className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-100'}`} />
-                    
+
                     {/* Badge Pill for Collapsed View */}
                     {hasBadge && (
-                      <span className={`absolute -top-1 -right-1 text-[9px] font-mono font-black px-1.5 py-0.2 rounded-full border border-slate-900 shadow-2xs ${
-                        isActive ? 'bg-amber-400 text-slate-950' : 'bg-indigo-500 text-white'
-                      }`}>
+                      <span className={`absolute -top-1 -right-1 text-[9px] font-mono font-black px-1.5 py-0.2 rounded-full border border-slate-900 shadow-2xs ${isActive ? 'bg-amber-400 text-slate-950' : 'bg-indigo-500 text-white'
+                        }`}>
                         {badgeValue}
                       </span>
                     )}
@@ -1086,11 +1083,10 @@ export default function AdminDashboard({
                 key={item.id}
                 type="button"
                 onClick={handleItemClick}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 font-sans cursor-pointer group ${
-                  isActive 
-                    ? 'bg-indigo-600 text-white font-semibold shadow-xs border-l-2 border-indigo-300' 
+                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 font-sans cursor-pointer group ${isActive
+                    ? 'bg-indigo-600 text-white font-semibold shadow-xs border-l-2 border-indigo-300'
                     : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-100'
-                }`}
+                  }`}
                 title={item.label}
               >
                 <div className="flex items-center gap-3">
@@ -1142,10 +1138,10 @@ export default function AdminDashboard({
 
       {/* Main Workspace Frame */}
       <main className="flex-1 flex flex-col min-w-0 bg-slate-50/50 dark:bg-zinc-950 overflow-y-auto">
-        
+
         {/* Main Workspace Header */}
         <header className="sticky top-0 z-30 h-16 border-b border-slate-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md px-6 flex items-center justify-between shrink-0 shadow-2xs">
-          
+
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
@@ -1157,7 +1153,7 @@ export default function AdminDashboard({
             <div className="hidden lg:flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400">
               <Clock className="w-3.5 h-3.5 text-slate-400" />
               <span className="font-mono text-slate-700 dark:text-zinc-300 font-medium">
-                {currentTime.toLocaleTimeString(language === 'en' ? 'en-US' : 'am-ET')} 
+                {currentTime.toLocaleTimeString(language === 'en' ? 'en-US' : 'am-ET')}
                 <span className="text-slate-400 dark:text-zinc-500 ml-1">EAT (UTC+3)</span>
               </span>
             </div>
@@ -1211,13 +1207,13 @@ export default function AdminDashboard({
 
         {/* Workspace Panels and Tabs */}
         <div className="p-6 md:p-8 space-y-8 flex-1">
-          
+
           {/* ======================================================== */}
           {/* TAB 1: ADVANCED BUSINESS INTELLIGENCE & METRICS WORKSPACE */}
           {/* ======================================================== */}
           {adminTab === 'ANALYTICS' && (
             <div className="space-y-8 animate-in fade-in duration-300">
-              
+
               {/* Top Analytical Greeting Panel */}
               <div className="bg-gradient-to-r from-zinc-900 to-indigo-950 rounded-2xl p-6 text-white shadow-lg border border-zinc-800/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
                 <div>
@@ -1240,7 +1236,7 @@ export default function AdminDashboard({
 
               {/* Financial KPI Dashboard Widgets */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                
+
                 <div className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 rounded-2xl p-5 shadow-2xs hover:shadow-xs transition-all">
                   <div className="flex justify-between items-start">
                     <div>
@@ -1312,7 +1308,7 @@ export default function AdminDashboard({
 
               {/* Comprehensive Recharts BI Analytics Charts Panel */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
+
                 {/* 1. Area Chart of Platform Sales Progression */}
                 <div className="lg:col-span-2 bg-white border border-gray-150 rounded-2xl p-5 space-y-4 shadow-xs">
                   <div className="flex justify-between items-center border-b border-gray-100 pb-3">
@@ -1328,14 +1324,14 @@ export default function AdminDashboard({
                       <AreaChart data={salesChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <defs>
                           <linearGradient id="colorGmv" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#0052FF" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="#0052FF" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="#0052FF" stopOpacity={0.2} />
+                            <stop offset="95%" stopColor="#0052FF" stopOpacity={0} />
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                         <XAxis dataKey="date" stroke="#9CA3AF" fontSize={9} tickLine={false} />
                         <YAxis stroke="#9CA3AF" fontSize={9} tickLine={false} />
-                        <Tooltip 
+                        <Tooltip
                           contentStyle={{ backgroundColor: '#18181B', borderRadius: '12px', border: 'none', color: '#F3F4F6' }}
                           labelStyle={{ fontWeight: 'bold', fontSize: '10px', color: '#9CA3AF' }}
                         />
@@ -1396,7 +1392,7 @@ export default function AdminDashboard({
 
               {/* Conversion order funnel and product categories distributions */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
+
                 {/* Product Categories Listing Density */}
                 <div className="bg-white border border-gray-150 rounded-2xl p-5 space-y-4 shadow-xs">
                   <h4 className="font-extrabold text-xs text-zinc-900 uppercase tracking-wider border-b border-gray-100 pb-3">
@@ -1443,7 +1439,7 @@ export default function AdminDashboard({
                           <span className="font-mono font-bold text-black">{step.value} ({step.pct}%)</span>
                         </div>
                         <div className="w-full h-2.5 bg-gray-100 border border-gray-150 rounded-full overflow-hidden">
-                          <div 
+                          <div
                             className={`h-full ${step.color} rounded-full transition-all duration-500`}
                             style={{ width: `${step.pct}%` }}
                           />
@@ -1463,14 +1459,14 @@ export default function AdminDashboard({
           {/* ======================================================== */}
           {adminTab === 'PRODUCTS' && (
             <div className="space-y-6 animate-in fade-in duration-300">
-              
+
               <div className="bg-white border border-gray-150 rounded-2xl p-5 shadow-xs space-y-4">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-4">
                   <div>
                     <h3 className="font-extrabold text-sm text-zinc-900 uppercase tracking-wider">Catalog Compliance & Inspection</h3>
                     <p className="text-xs text-gray-400 mt-1">Audit merchant submissions for translations, price discrepancies, and stock thresholds before authorizing active dispatch.</p>
                   </div>
-                  
+
                   {/* Category and Query filter options */}
                   <div className="flex flex-wrap items-center gap-1.5 bg-gray-55/10 p-1.5 rounded-xl border border-gray-200/40">
                     {[
@@ -1484,11 +1480,10 @@ export default function AdminDashboard({
                       <button
                         key={filterOpt.id}
                         onClick={() => setProductFilter(filterOpt.id as any)}
-                        className={`px-2.5 py-1.5 rounded-lg text-xs font-bold uppercase transition-colors cursor-pointer ${
-                          productFilter === filterOpt.id 
-                            ? 'bg-zinc-950 text-white' 
+                        className={`px-2.5 py-1.5 rounded-lg text-xs font-bold uppercase transition-colors cursor-pointer ${productFilter === filterOpt.id
+                            ? 'bg-zinc-950 text-white'
                             : 'text-zinc-500 hover:text-zinc-950'
-                        }`}
+                          }`}
                       >
                         {filterOpt.label}
                       </button>
@@ -1542,268 +1537,260 @@ export default function AdminDashboard({
                   .map((p) => {
                     const seoScore = calculateProductSeoScore(p);
                     return (
-                    <div key={p.id} className="bg-white border border-gray-150 rounded-2xl p-5 shadow-xs hover:border-indigo-400 transition-colors flex flex-col md:flex-row gap-5">
-                      
-                      <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden border border-gray-100 shrink-0 bg-gray-50 flex items-center justify-center relative">
-                        <img src={p.image} alt="" className="w-full h-full object-cover" />
-                        <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[8px] font-bold font-mono ${
-                          p.status === 'PENDING_APPROVAL' ? 'bg-amber-100 text-amber-700' : p.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                        }`}>
-                          {p.status}
-                        </span>
-                      </div>
+                      <div key={p.id} className="bg-white border border-gray-150 rounded-2xl p-5 shadow-xs hover:border-indigo-400 transition-colors flex flex-col md:flex-row gap-5">
 
-                      <div className="flex-1 space-y-3.5">
-                        <div className="space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="bg-zinc-100 text-zinc-800 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                              Store: {p.merchantName}
-                            </span>
-                            <span className="bg-zinc-100 text-zinc-800 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider font-mono">
-                              Brand: {p.brand}
-                            </span>
-                            <span className="bg-indigo-50 text-indigo-600 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                              Category: {p.category}
-                            </span>
-
-                            {/* SEO Score Indicator Badge */}
-                            <div className="flex items-center gap-1.5">
-                              <div 
-                                className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold border transition-all ${
-                                  seoScore.score >= 80
-                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                                    : seoScore.score >= 65
-                                    ? 'bg-amber-50 text-amber-800 border-amber-300'
-                                    : 'bg-rose-50 text-rose-800 border-rose-300'
-                                }`}
-                                title={`SEO Score: ${seoScore.score}% (${seoScore.grade})\n• Descriptions: ${seoScore.breakdown.descriptions.detail}\n• Image Asset: ${seoScore.breakdown.image.detail}\n• Search Keywords: ${seoScore.breakdown.keywords.detail}\n• SKUs: ${seoScore.breakdown.skus.detail}`}
-                              >
-                                <Sparkles className="w-3 h-3 text-current shrink-0" />
-                                <span>SEO SCORE: {seoScore.score}%</span>
-                                <span className="font-extrabold px-1 rounded bg-black/10 text-[9px]">{seoScore.grade}</span>
-                              </div>
-
-                              <button
-                                onClick={() => handleTriggerQuickFix(p)}
-                                disabled={quickFixLoadingId === p.id}
-                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 text-white shadow-2xs hover:from-indigo-500 hover:to-violet-500 transition-all cursor-pointer disabled:opacity-50 active:scale-95"
-                                title="Auto-optimize descriptions, Amharic translations & search tags with Gemini AI"
-                              >
-                                {quickFixLoadingId === p.id ? (
-                                  <>
-                                    <RefreshCw className="w-2.5 h-2.5 animate-spin" />
-                                    <span>AI Optimizing...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Zap className="w-2.5 h-2.5 text-amber-300 fill-amber-300" />
-                                    <span>Quick Fix</span>
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          </div>
-                          <h4 className="font-extrabold text-sm text-zinc-900 mt-1">{p.nameEn}</h4>
-                          <p className="text-xs text-gray-500 font-medium">{p.nameAm}</p>
+                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden border border-gray-100 shrink-0 bg-gray-50 flex items-center justify-center relative">
+                          <img src={p.image} alt="" className="w-full h-full object-cover" />
+                          <span className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[8px] font-bold font-mono ${p.status === 'PENDING_APPROVAL' ? 'bg-amber-100 text-amber-700' : p.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                            }`}>
+                            {p.status}
+                          </span>
                         </div>
 
-                        {/* Dual Language compliance inspector */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                          <div className="p-3 bg-gray-50/50 rounded-xl border border-gray-100/60 leading-relaxed">
-                            <strong className="text-[9px] text-gray-400 uppercase font-bold block mb-1">English Catalog Copy</strong>
-                            <p className="text-zinc-700 text-[11px]">{p.descriptionEn}</p>
+                        <div className="flex-1 space-y-3.5">
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="bg-zinc-100 text-zinc-800 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                                Store: {p.merchantName}
+                              </span>
+                              <span className="bg-zinc-100 text-zinc-800 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider font-mono">
+                                Brand: {p.brand}
+                              </span>
+                              <span className="bg-indigo-50 text-indigo-600 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                                Category: {p.category}
+                              </span>
+
+                              {/* SEO Score Indicator Badge */}
+                              <div className="flex items-center gap-1.5">
+                                <div
+                                  className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold border transition-all ${seoScore.score >= 80
+                                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                      : seoScore.score >= 65
+                                        ? 'bg-amber-50 text-amber-800 border-amber-300'
+                                        : 'bg-rose-50 text-rose-800 border-rose-300'
+                                    }`}
+                                  title={`SEO Score: ${seoScore.score}% (${seoScore.grade})\n• Descriptions: ${seoScore.breakdown.descriptions.detail}\n• Image Asset: ${seoScore.breakdown.image.detail}\n• Search Keywords: ${seoScore.breakdown.keywords.detail}\n• SKUs: ${seoScore.breakdown.skus.detail}`}
+                                >
+                                  <Sparkles className="w-3 h-3 text-current shrink-0" />
+                                  <span>SEO SCORE: {seoScore.score}%</span>
+                                  <span className="font-extrabold px-1 rounded bg-black/10 text-[9px]">{seoScore.grade}</span>
+                                </div>
+
+                                <button
+                                  onClick={() => handleTriggerQuickFix(p)}
+                                  disabled={quickFixLoadingId === p.id}
+                                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 text-white shadow-2xs hover:from-indigo-500 hover:to-violet-500 transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+                                  title="Auto-optimize descriptions, Amharic translations & search tags with Gemini AI"
+                                >
+                                  {quickFixLoadingId === p.id ? (
+                                    <>
+                                      <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                                      <span>AI Optimizing...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Zap className="w-2.5 h-2.5 text-amber-300 fill-amber-300" />
+                                      <span>Quick Fix</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                            <h4 className="font-extrabold text-sm text-zinc-900 mt-1">{p.nameEn}</h4>
+                            <p className="text-xs text-gray-500 font-medium">{p.nameAm}</p>
                           </div>
-                          <div className="p-3 bg-gray-50/50 rounded-xl border border-gray-100/60 leading-relaxed">
-                            <strong className="text-[9px] text-gray-400 uppercase font-bold block mb-1">Amharic translation Check</strong>
-                            <p className="text-zinc-700 text-[11px]">{p.descriptionAm}</p>
+
+                          {/* Dual Language compliance inspector */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                            <div className="p-3 bg-gray-50/50 rounded-xl border border-gray-100/60 leading-relaxed">
+                              <strong className="text-[9px] text-gray-400 uppercase font-bold block mb-1">English Catalog Copy</strong>
+                              <p className="text-zinc-700 text-[11px]">{p.descriptionEn}</p>
+                            </div>
+                            <div className="p-3 bg-gray-50/50 rounded-xl border border-gray-100/60 leading-relaxed">
+                              <strong className="text-[9px] text-gray-400 uppercase font-bold block mb-1">Amharic translation Check</strong>
+                              <p className="text-zinc-700 text-[11px]">{p.descriptionAm}</p>
+                            </div>
+                          </div>
+
+                          {/* Automated SEO & GEO Evaluation Breakdown Panel */}
+                          <div className="p-3 bg-gradient-to-r from-slate-50 to-indigo-50/30 rounded-xl border border-indigo-100/80 space-y-2">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div className="flex items-center gap-1.5">
+                                <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                                <span className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-800">
+                                  Automated SEO Score Audit
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 font-mono text-[10px]">
+                                <span className="text-gray-500">Readiness:</span>
+                                <span className={`font-black px-2 py-0.5 rounded ${seoScore.score >= 80 ? 'bg-emerald-100 text-emerald-800' : seoScore.score >= 65 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
+                                  }`}>
+                                  {seoScore.score}/100 ({seoScore.grade})
+                                </span>
+                                <button
+                                  onClick={() => handleTriggerQuickFix(p)}
+                                  disabled={quickFixLoadingId === p.id}
+                                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 text-white shadow-xs hover:from-indigo-500 hover:to-violet-500 transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+                                >
+                                  {quickFixLoadingId === p.id ? (
+                                    <>
+                                      <RefreshCw className="w-3 h-3 animate-spin" />
+                                      <span>AI Optimizing...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Zap className="w-3 h-3 text-amber-300 fill-amber-300" />
+                                      <span>⚡ Quick Fix with Gemini AI</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Progress bar */}
+                            <div className="w-full bg-gray-200/80 rounded-full h-1.5 overflow-hidden flex">
+                              <div
+                                className={`h-full transition-all duration-500 ${seoScore.score >= 80 ? 'bg-emerald-500' : seoScore.score >= 65 ? 'bg-amber-500' : 'bg-rose-500'
+                                  }`}
+                                style={{ width: `${seoScore.score}%` }}
+                              />
+                            </div>
+
+                            {/* 4 Core Pillars */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px]">
+                              {/* Descriptions */}
+                              <div className={`p-2 rounded-lg border flex items-start gap-1.5 ${seoScore.breakdown.descriptions.pass ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' : 'bg-rose-50/60 border-rose-200 text-rose-900'
+                                }`}>
+                                {seoScore.breakdown.descriptions.pass ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" /> : <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />}
+                                <div>
+                                  <span className="font-bold block">Descriptions ({seoScore.breakdown.descriptions.score}/{seoScore.breakdown.descriptions.max})</span>
+                                  <span className="text-[9px] opacity-80 leading-tight block">{seoScore.breakdown.descriptions.detail}</span>
+                                </div>
+                              </div>
+
+                              {/* Clear Image */}
+                              <div className={`p-2 rounded-lg border flex items-start gap-1.5 ${seoScore.breakdown.image.pass ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' : 'bg-rose-50/60 border-rose-200 text-rose-900'
+                                }`}>
+                                {seoScore.breakdown.image.pass ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" /> : <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />}
+                                <div>
+                                  <span className="font-bold block">Clear Image ({seoScore.breakdown.image.score}/{seoScore.breakdown.image.max})</span>
+                                  <span className="text-[9px] opacity-80 leading-tight block">{seoScore.breakdown.image.detail}</span>
+                                </div>
+                              </div>
+
+                              {/* SEO Keywords & Title */}
+                              <div className={`p-2 rounded-lg border flex items-start gap-1.5 ${seoScore.breakdown.keywords.pass ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' : 'bg-rose-50/60 border-rose-200 text-rose-900'
+                                }`}>
+                                {seoScore.breakdown.keywords.pass ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" /> : <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />}
+                                <div>
+                                  <span className="font-bold block">SEO Keywords ({seoScore.breakdown.keywords.score}/{seoScore.breakdown.keywords.max})</span>
+                                  <span className="text-[9px] opacity-80 leading-tight block">{seoScore.breakdown.keywords.detail}</span>
+                                </div>
+                              </div>
+
+                              {/* Unique SKUs */}
+                              <div className={`p-2 rounded-lg border flex items-start gap-1.5 ${seoScore.breakdown.skus.pass ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' : 'bg-rose-50/60 border-rose-200 text-rose-900'
+                                }`}>
+                                {seoScore.breakdown.skus.pass ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" /> : <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />}
+                                <div>
+                                  <span className="font-bold block">Unique SKUs ({seoScore.breakdown.skus.score}/{seoScore.breakdown.skus.max})</span>
+                                  <span className="text-[9px] opacity-80 leading-tight block">{seoScore.breakdown.skus.detail}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {seoScore.tips.length > 0 && (
+                              <div className="text-[9px] text-amber-800 bg-amber-50/80 p-2 rounded-lg border border-amber-200/80 flex items-center gap-1.5">
+                                <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                                <span><strong>Actionable SEO Recommendations:</strong> {seoScore.tips.join(' • ')}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* SKUs and financial numbers */}
+                          <div className="flex flex-wrap items-center justify-between gap-4 text-[10px] bg-zinc-50 p-3 rounded-xl border border-zinc-200/50 font-mono text-zinc-700">
+                            <div className="flex flex-wrap gap-4">
+                              <p><strong className="font-sans text-gray-450 uppercase text-[9px] font-bold block">Base Price</strong> {p.price.toLocaleString()} ETB</p>
+                              <p><strong className="font-sans text-gray-450 uppercase text-[9px] font-bold block">Low Threshold</strong> {p.lowStockThreshold} Units</p>
+                              <p>
+                                <strong className="font-sans text-gray-450 uppercase text-[9px] font-bold block">SKU & On Hand Quantity</strong>
+                                {p.variants.map(v => `${v.sku} (${v.onHand} pcs)`).join(', ')}
+                              </p>
+                            </div>
+                            {p.variants.some(v => v.onHand <= p.lowStockThreshold) && (
+                              <button
+                                onClick={() => {
+                                  const lowVariant = p.variants.find(v => v.onHand <= p.lowStockThreshold) || p.variants[0];
+                                  const targetMerchant = merchants.find(m => m.id === p.merchantId);
+                                  dispatchWhatsAppLowStockAlert({
+                                    productName: p.nameEn,
+                                    sku: lowVariant.sku,
+                                    onHand: lowVariant.onHand,
+                                    threshold: p.lowStockThreshold,
+                                    storeName: p.merchantName,
+                                    merchantPhone: targetMerchant?.phone
+                                  }, targetMerchant?.phone, language);
+                                  showToast(`Dispatched WhatsApp low stock alert to store ${p.merchantName}`, 'info');
+                                }}
+                                className="text-[9px] font-black bg-[#25D366] hover:bg-[#20bd5a] text-white px-2.5 py-1.5 rounded-lg flex items-center gap-1 shadow-xs transition-all cursor-pointer shrink-0 font-sans"
+                                title="Send WhatsApp Low Stock Warning to Merchant"
+                              >
+                                <MessageCircle className="w-3.5 h-3.5 fill-current shrink-0" />
+                                <span>WhatsApp Merchant Alert</span>
+                              </button>
+                            )}
                           </div>
                         </div>
 
-                        {/* Automated SEO & GEO Evaluation Breakdown Panel */}
-                        <div className="p-3 bg-gradient-to-r from-slate-50 to-indigo-50/30 rounded-xl border border-indigo-100/80 space-y-2">
-                          <div className="flex items-center justify-between flex-wrap gap-2">
-                            <div className="flex items-center gap-1.5">
-                              <Sparkles className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                              <span className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-800">
-                                Automated SEO Score Audit
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 font-mono text-[10px]">
-                              <span className="text-gray-500">Readiness:</span>
-                              <span className={`font-black px-2 py-0.5 rounded ${
-                                seoScore.score >= 80 ? 'bg-emerald-100 text-emerald-800' : seoScore.score >= 65 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
-                              }`}>
-                                {seoScore.score}/100 ({seoScore.grade})
-                              </span>
+                        {/* Approval Controls */}
+                        <div className="flex flex-row md:flex-col justify-end gap-2.5 shrink-0 min-w-[160px]">
+                          {p.status === 'PENDING_APPROVAL' && (
+                            <>
                               <button
-                                onClick={() => handleTriggerQuickFix(p)}
-                                disabled={quickFixLoadingId === p.id}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600 text-white shadow-xs hover:from-indigo-500 hover:to-violet-500 transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+                                onClick={() => {
+                                  onApproveProduct(p.id);
+                                  showToast(`Approved "${p.nameEn}" Listing. Dispatched to Web storefront.`, 'success');
+                                }}
+                                className="bg-black hover:bg-zinc-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
                               >
-                                {quickFixLoadingId === p.id ? (
-                                  <>
-                                    <RefreshCw className="w-3 h-3 animate-spin" />
-                                    <span>AI Optimizing...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Zap className="w-3 h-3 text-amber-300 fill-amber-300" />
-                                    <span>⚡ Quick Fix with Gemini AI</span>
-                                  </>
-                                )}
+                                <Check className="w-4 h-4 text-emerald-500" /> Approve Listing
                               </button>
-                            </div>
-                          </div>
 
-                          {/* Progress bar */}
-                          <div className="w-full bg-gray-200/80 rounded-full h-1.5 overflow-hidden flex">
-                            <div 
-                              className={`h-full transition-all duration-500 ${
-                                seoScore.score >= 80 ? 'bg-emerald-500' : seoScore.score >= 65 ? 'bg-amber-500' : 'bg-rose-500'
-                              }`}
-                              style={{ width: `${seoScore.score}%` }}
-                            />
-                          </div>
+                              {/* Rejection Form Initiator */}
+                              <button
+                                onClick={() => setRejectionProductId(p.id)}
+                                className="bg-white hover:bg-red-50 text-red-600 border border-gray-200 font-bold text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                              >
+                                <XCircle className="w-4 h-4" /> Reject Listing
+                              </button>
+                            </>
+                          )}
 
-                          {/* 4 Core Pillars */}
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px]">
-                            {/* Descriptions */}
-                            <div className={`p-2 rounded-lg border flex items-start gap-1.5 ${
-                              seoScore.breakdown.descriptions.pass ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' : 'bg-rose-50/60 border-rose-200 text-rose-900'
-                            }`}>
-                              {seoScore.breakdown.descriptions.pass ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" /> : <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />}
-                              <div>
-                                <span className="font-bold block">Descriptions ({seoScore.breakdown.descriptions.score}/{seoScore.breakdown.descriptions.max})</span>
-                                <span className="text-[9px] opacity-80 leading-tight block">{seoScore.breakdown.descriptions.detail}</span>
-                              </div>
-                            </div>
-
-                            {/* Clear Image */}
-                            <div className={`p-2 rounded-lg border flex items-start gap-1.5 ${
-                              seoScore.breakdown.image.pass ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' : 'bg-rose-50/60 border-rose-200 text-rose-900'
-                            }`}>
-                              {seoScore.breakdown.image.pass ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" /> : <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />}
-                              <div>
-                                <span className="font-bold block">Clear Image ({seoScore.breakdown.image.score}/{seoScore.breakdown.image.max})</span>
-                                <span className="text-[9px] opacity-80 leading-tight block">{seoScore.breakdown.image.detail}</span>
-                              </div>
-                            </div>
-
-                            {/* SEO Keywords & Title */}
-                            <div className={`p-2 rounded-lg border flex items-start gap-1.5 ${
-                              seoScore.breakdown.keywords.pass ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' : 'bg-rose-50/60 border-rose-200 text-rose-900'
-                            }`}>
-                              {seoScore.breakdown.keywords.pass ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" /> : <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />}
-                              <div>
-                                <span className="font-bold block">SEO Keywords ({seoScore.breakdown.keywords.score}/{seoScore.breakdown.keywords.max})</span>
-                                <span className="text-[9px] opacity-80 leading-tight block">{seoScore.breakdown.keywords.detail}</span>
-                              </div>
-                            </div>
-
-                            {/* Unique SKUs */}
-                            <div className={`p-2 rounded-lg border flex items-start gap-1.5 ${
-                              seoScore.breakdown.skus.pass ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' : 'bg-rose-50/60 border-rose-200 text-rose-900'
-                            }`}>
-                              {seoScore.breakdown.skus.pass ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" /> : <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />}
-                              <div>
-                                <span className="font-bold block">Unique SKUs ({seoScore.breakdown.skus.score}/{seoScore.breakdown.skus.max})</span>
-                                <span className="text-[9px] opacity-80 leading-tight block">{seoScore.breakdown.skus.detail}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {seoScore.tips.length > 0 && (
-                            <div className="text-[9px] text-amber-800 bg-amber-50/80 p-2 rounded-lg border border-amber-200/80 flex items-center gap-1.5">
-                              <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
-                              <span><strong>Actionable SEO Recommendations:</strong> {seoScore.tips.join(' • ')}</span>
+                          {p.status === 'APPROVED' && (
+                            <div className="text-center p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 flex flex-col items-center justify-center">
+                              <CheckCircle className="w-5 h-5 text-emerald-600 mb-1" />
+                              <span className="text-[10px] font-bold uppercase text-emerald-700">Approved & Live</span>
                             </div>
                           )}
-                        </div>
 
-                        {/* SKUs and financial numbers */}
-                        <div className="flex flex-wrap items-center justify-between gap-4 text-[10px] bg-zinc-50 p-3 rounded-xl border border-zinc-200/50 font-mono text-zinc-700">
-                          <div className="flex flex-wrap gap-4">
-                            <p><strong className="font-sans text-gray-450 uppercase text-[9px] font-bold block">Base Price</strong> {p.price.toLocaleString()} ETB</p>
-                            <p><strong className="font-sans text-gray-450 uppercase text-[9px] font-bold block">Low Threshold</strong> {p.lowStockThreshold} Units</p>
-                            <p>
-                              <strong className="font-sans text-gray-450 uppercase text-[9px] font-bold block">SKU & On Hand Quantity</strong>
-                              {p.variants.map(v => `${v.sku} (${v.onHand} pcs)`).join(', ')}
-                            </p>
-                          </div>
-                          {p.variants.some(v => v.onHand <= p.lowStockThreshold) && (
-                            <button
-                              onClick={() => {
-                                const lowVariant = p.variants.find(v => v.onHand <= p.lowStockThreshold) || p.variants[0];
-                                const targetMerchant = merchants.find(m => m.id === p.merchantId);
-                                dispatchWhatsAppLowStockAlert({
-                                  productName: p.nameEn,
-                                  sku: lowVariant.sku,
-                                  onHand: lowVariant.onHand,
-                                  threshold: p.lowStockThreshold,
-                                  storeName: p.merchantName,
-                                  merchantPhone: targetMerchant?.phone
-                                }, targetMerchant?.phone, language);
-                                showToast(`Dispatched WhatsApp low stock alert to store ${p.merchantName}`, 'info');
-                              }}
-                              className="text-[9px] font-black bg-[#25D366] hover:bg-[#20bd5a] text-white px-2.5 py-1.5 rounded-lg flex items-center gap-1 shadow-xs transition-all cursor-pointer shrink-0 font-sans"
-                              title="Send WhatsApp Low Stock Warning to Merchant"
-                            >
-                              <MessageCircle className="w-3.5 h-3.5 fill-current shrink-0" />
-                              <span>WhatsApp Merchant Alert</span>
-                            </button>
+                          {p.status === 'REJECTED' && (
+                            <div className="text-center p-3.5 bg-red-50 rounded-xl border border-red-150 flex flex-col items-center justify-center">
+                              <XCircle className="w-5 h-5 text-red-600 mb-1" />
+                              <span className="text-[10px] font-bold uppercase text-red-700">Audit Rejected</span>
+                            </div>
                           )}
+
+                          <button
+                            onClick={() => setSelectedQrProduct(p)}
+                            className="bg-indigo-50 hover:bg-indigo-100 text-[#0052FF] border border-blue-150 font-bold text-[10px] uppercase tracking-wide px-3 py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer mt-auto"
+                          >
+                            <QrCode className="w-3.5 h-3.5" /> Generate QR
+                          </button>
                         </div>
+
                       </div>
-
-                      {/* Approval Controls */}
-                      <div className="flex flex-row md:flex-col justify-end gap-2.5 shrink-0 min-w-[160px]">
-                        {p.status === 'PENDING_APPROVAL' && (
-                          <>
-                            <button
-                              onClick={() => {
-                                onApproveProduct(p.id);
-                                showToast(`Approved "${p.nameEn}" Listing. Dispatched to Web storefront.`, 'success');
-                              }}
-                              className="bg-black hover:bg-zinc-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer"
-                            >
-                              <Check className="w-4 h-4 text-emerald-500" /> Approve Listing
-                            </button>
-                            
-                            {/* Rejection Form Initiator */}
-                            <button
-                              onClick={() => setRejectionProductId(p.id)}
-                              className="bg-white hover:bg-red-50 text-red-600 border border-gray-200 font-bold text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                            >
-                              <XCircle className="w-4 h-4" /> Reject Listing
-                            </button>
-                          </>
-                        )}
-
-                        {p.status === 'APPROVED' && (
-                          <div className="text-center p-3.5 bg-emerald-50 rounded-xl border border-emerald-200 flex flex-col items-center justify-center">
-                            <CheckCircle className="w-5 h-5 text-emerald-600 mb-1" />
-                            <span className="text-[10px] font-bold uppercase text-emerald-700">Approved & Live</span>
-                          </div>
-                        )}
-
-                        {p.status === 'REJECTED' && (
-                          <div className="text-center p-3.5 bg-red-50 rounded-xl border border-red-150 flex flex-col items-center justify-center">
-                            <XCircle className="w-5 h-5 text-red-600 mb-1" />
-                            <span className="text-[10px] font-bold uppercase text-red-700">Audit Rejected</span>
-                          </div>
-                        )}
-
-                        <button
-                          onClick={() => setSelectedQrProduct(p)}
-                          className="bg-indigo-50 hover:bg-indigo-100 text-[#0052FF] border border-blue-150 font-bold text-[10px] uppercase tracking-wide px-3 py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer mt-auto"
-                        >
-                          <QrCode className="w-3.5 h-3.5" /> Generate QR
-                        </button>
-                      </div>
-
-                    </div>
-                  );
-                })}
+                    );
+                  })}
 
                 {products
                   .filter(p => {
@@ -1831,12 +1818,12 @@ export default function AdminDashboard({
                       p.variants.some(v => v.sku.toLowerCase().includes(searchLower))
                     );
                   }).length === 0 && (
-                  <div className="p-16 text-center border border-dashed border-gray-200 rounded-2xl bg-white">
-                    <CheckCircle className="w-8 h-8 text-indigo-600 mx-auto mb-3" />
-                    <p className="font-extrabold text-zinc-900 text-xs uppercase tracking-widest">Inspection Queue Cleared</p>
-                    <p className="text-xs text-gray-400 mt-1">There are no outstanding entries matching your selected filter options.</p>
-                  </div>
-                )}
+                    <div className="p-16 text-center border border-dashed border-gray-200 rounded-2xl bg-white">
+                      <CheckCircle className="w-8 h-8 text-indigo-600 mx-auto mb-3" />
+                      <p className="font-extrabold text-zinc-900 text-xs uppercase tracking-widest">Inspection Queue Cleared</p>
+                      <p className="text-xs text-gray-400 mt-1">There are no outstanding entries matching your selected filter options.</p>
+                    </div>
+                  )}
               </div>
 
               {/* Rejection Comments Dialog slide-over/modal */}
@@ -1907,7 +1894,7 @@ export default function AdminDashboard({
           {/* ======================================================== */}
           {adminTab === 'MERCHANTS' && (
             <div className="space-y-6 animate-in fade-in duration-300">
-              
+
               <div className="bg-white border border-gray-150 rounded-2xl p-5 shadow-xs space-y-4">
                 <div className="border-b border-gray-100 pb-3">
                   <h3 className="font-extrabold text-sm text-zinc-900 uppercase tracking-wider">Merchant CRM & License Verification Console</h3>
@@ -1942,18 +1929,16 @@ export default function AdminDashboard({
                     const isKycPending = m.kycStatus === 'PENDING_VERIFICATION';
                     return (
                       <div key={m.id} className="bg-white border border-gray-150 rounded-2xl p-5 shadow-xs flex flex-col lg:flex-row justify-between gap-5">
-                        
+
                         <div className="space-y-3.5 flex-1">
                           <div className="flex items-center gap-3">
                             <h4 className="font-extrabold text-sm text-zinc-900">{m.storeName}</h4>
-                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold border ${
-                              m.status === 'ACTIVE' ? 'bg-zinc-100 border-zinc-200 text-zinc-900' : 'bg-red-50 border-red-200 text-red-600'
-                            }`}>
+                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold border ${m.status === 'ACTIVE' ? 'bg-zinc-100 border-zinc-200 text-zinc-900' : 'bg-red-50 border-red-200 text-red-600'
+                              }`}>
                               STATUS: {m.status}
                             </span>
-                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold border ${
-                              m.kycStatus === 'APPROVED' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-amber-50 border-amber-200 text-amber-700'
-                            }`}>
+                            <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold border ${m.kycStatus === 'APPROVED' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-amber-50 border-amber-200 text-amber-700'
+                              }`}>
                               KYC: {m.kycStatus}
                             </span>
                           </div>
@@ -1968,7 +1953,7 @@ export default function AdminDashboard({
                               <strong className="text-[9px] uppercase tracking-wider text-gray-400 block mb-0.5">Verification & Compliance</strong>
                               <p className="text-zinc-800">TIN Checked: <span className="font-mono bg-zinc-100 px-1 py-0.2 rounded text-[10px] text-zinc-700 font-bold">TIN-482019438</span></p>
                               {m.kycDocument && (
-                                <button 
+                                <button
                                   onClick={() => setSelectedKycMerchant(m)}
                                   className="text-indigo-600 hover:underline flex items-center gap-1 font-bold text-[10px] mt-0.5 uppercase cursor-pointer"
                                 >
@@ -1998,7 +1983,7 @@ export default function AdminDashboard({
                               <span>Approve & Activate Store ✔</span>
                             </button>
                           )}
-                          
+
                           {m.status === 'ACTIVE' ? (
                             <button
                               onClick={() => {
@@ -2038,60 +2023,59 @@ export default function AdminDashboard({
                 </div>
 
                 <div className="space-y-4">
-                  {merchants.flatMap(m => 
+                  {merchants.flatMap(m =>
                     m.payouts.map(p => ({ ...p, merchantId: m.id, storeName: m.storeName }))
                   )
-                  .sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                  .map((payout) => (
-                    <div key={payout.id} className="border border-gray-150 p-4 rounded-xl hover:border-gray-300 transition-colors bg-zinc-50/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="bg-zinc-900 text-white font-mono text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                            {payout.bankName}
-                          </span>
-                          <span className="text-xs font-bold text-gray-900">
-                            {payout.amount.toLocaleString()} ETB
-                          </span>
-                          <span className={`px-2 py-0.2 rounded text-[8px] font-mono font-bold ${
-                            payout.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : payout.status === 'FAILED' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700 border border-amber-200'
-                          }`}>
-                            {payout.status}
-                          </span>
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .map((payout) => (
+                      <div key={payout.id} className="border border-gray-150 p-4 rounded-xl hover:border-gray-300 transition-colors bg-zinc-50/20 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="bg-zinc-900 text-white font-mono text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                              {payout.bankName}
+                            </span>
+                            <span className="text-xs font-bold text-gray-900">
+                              {payout.amount.toLocaleString()} ETB
+                            </span>
+                            <span className={`px-2 py-0.2 rounded text-[8px] font-mono font-bold ${payout.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : payout.status === 'FAILED' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                              }`}>
+                              {payout.status}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-gray-500 mt-1.5 space-y-0.5">
+                            <p><strong>Merchant Store:</strong> {payout.storeName} • <strong>Routing Account Number:</strong> <span className="font-mono text-zinc-900 font-bold">{payout.accountNumber}</span></p>
+                            <p className="text-[9px] text-gray-400">Created: {new Date(payout.createdAt).toLocaleString(language === 'en' ? 'en-US' : 'am-ET')}</p>
+                          </div>
                         </div>
-                        <div className="text-[10px] text-gray-500 mt-1.5 space-y-0.5">
-                          <p><strong>Merchant Store:</strong> {payout.storeName} • <strong>Routing Account Number:</strong> <span className="font-mono text-zinc-900 font-bold">{payout.accountNumber}</span></p>
-                          <p className="text-[9px] text-gray-400">Created: {new Date(payout.createdAt).toLocaleString(language === 'en' ? 'en-US' : 'am-ET')}</p>
-                        </div>
+
+                        {payout.status === 'PENDING' && (
+                          <button
+                            disabled={isProcessingPayoutId !== null}
+                            onClick={() => handlePayoutAuthorization(payout.merchantId, payout.id, payout.amount)}
+                            className="bg-black hover:bg-zinc-800 text-white text-[10px] font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                          >
+                            {isProcessingPayoutId === payout.id ? (
+                              <>
+                                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                <span>Clearing CBE API...</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>Authorize Bank Settlement</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+
+                        {payout.status === 'COMPLETED' && (
+                          <div className="flex items-center gap-1.5 p-2 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-700 font-bold text-[10px] uppercase font-mono">
+                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                            <span>Cleared & Completed</span>
+                          </div>
+                        )}
                       </div>
-
-                      {payout.status === 'PENDING' && (
-                        <button
-                          disabled={isProcessingPayoutId !== null}
-                          onClick={() => handlePayoutAuthorization(payout.merchantId, payout.id, payout.amount)}
-                          className="bg-black hover:bg-zinc-800 text-white text-[10px] font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer disabled:opacity-50"
-                        >
-                          {isProcessingPayoutId === payout.id ? (
-                            <>
-                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                              <span>Clearing CBE API...</span>
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                              <span>Authorize Bank Settlement</span>
-                            </>
-                          )}
-                        </button>
-                      )}
-
-                      {payout.status === 'COMPLETED' && (
-                        <div className="flex items-center gap-1.5 p-2 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-700 font-bold text-[10px] uppercase font-mono">
-                          <CheckCircle className="w-4 h-4 text-emerald-600" />
-                          <span>Cleared & Completed</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                    ))}
 
                   {merchants.flatMap(m => m.payouts).length === 0 && (
                     <div className="py-12 text-center border border-dashed border-gray-150 rounded-2xl bg-zinc-50/10">
@@ -2107,8 +2091,8 @@ export default function AdminDashboard({
               {selectedKycMerchant && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center z-50 p-4">
                   <div className="bg-white rounded-2xl border border-gray-150 p-6 max-w-lg w-full space-y-4 shadow-2xl animate-in zoom-in duration-150 relative">
-                    
-                    <button 
+
+                    <button
                       onClick={() => setSelectedKycMerchant(null)}
                       className="absolute top-4 right-4 text-gray-400 hover:text-black font-extrabold text-sm p-1.5 rounded-full hover:bg-gray-100 cursor-pointer"
                     >
@@ -2202,7 +2186,7 @@ export default function AdminDashboard({
           {/* ======================================================== */}
           {adminTab === 'ORDERS' && (
             <div className="space-y-6 animate-in fade-in duration-300">
-              
+
               <div className="bg-white border border-gray-150 rounded-2xl p-5 shadow-xs space-y-4">
                 <div className="border-b border-gray-100 pb-3">
                   <h3 className="font-extrabold text-sm text-zinc-900 uppercase tracking-wider">Marketplace Customer Orders Registry</h3>
@@ -2236,15 +2220,14 @@ export default function AdminDashboard({
                   })
                   .map((order) => (
                     <div key={order.id} className="bg-white border border-gray-150 rounded-2xl p-5 shadow-xs hover:border-indigo-400 transition-colors space-y-4">
-                      
+
                       {/* Top Row summary */}
                       <div className="flex flex-col md:flex-row justify-between gap-4 border-b border-gray-100 pb-3 text-xs">
                         <div className="space-y-0.5">
                           <div className="flex items-center gap-2">
                             <span className="font-extrabold text-zinc-900">Order #{order.id}</span>
-                            <span className={`px-2 py-0.2 rounded text-[8px] font-mono font-bold uppercase border ${
-                              order.status === 'DELIVERED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : order.status === 'CANCELLED' || order.status === 'REFUNDED' ? 'bg-red-50 text-red-650' : 'bg-amber-50 text-amber-700 border-amber-200'
-                            }`}>
+                            <span className={`px-2 py-0.2 rounded text-[8px] font-mono font-bold uppercase border ${order.status === 'DELIVERED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : order.status === 'CANCELLED' || order.status === 'REFUNDED' ? 'bg-red-50 text-red-650' : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}>
                               {order.status}
                             </span>
                           </div>
@@ -2274,8 +2257,40 @@ export default function AdminDashboard({
                           <p className="text-zinc-700 leading-relaxed">{order.shippingAddress}</p>
                         </div>
                         <div>
-                          <strong className="text-[9px] uppercase tracking-wider text-gray-400 block mb-0.5">Payment Verification reference</strong>
-                          <p className="text-zinc-800 font-mono text-[11px]">{order.paymentId ? `TXN: ${order.paymentId}` : 'Escrow Pending Callback'}</p>
+                          <strong className="text-[9px] uppercase tracking-wider text-gray-400 block mb-0.5">Payment & Receipt Verification</strong>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${order.paymentMethod === 'COD'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              }`}>
+                              {order.paymentMethod === 'COD' ? '💵 Cash on Delivery (COD)' : `🏦 ${order.paymentMethod || 'Bank Transfer'}`}
+                            </span>
+                            {order.paymentReceipt && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const w = window.open('');
+                                  w?.document.write(`
+                                    <title>Payment Receipt #${order.id}</title>
+                                    <body style="margin:0;background:#0b0f17;display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;color:white;">
+                                      <div style="text-align:center;padding:24px;max-width:600px;">
+                                        <h3 style="margin-bottom:8px;">Kasma Order #${order.id} — Payment Receipt</h3>
+                                        <p style="font-size:12px;color:#94a3b8;margin-bottom:16px;">Reference: ${order.paymentReference || 'N/A'} • Total: ${order.total.toLocaleString()} ETB</p>
+                                        <img src="${order.paymentReceipt}" style="max-width:100%;max-height:80vh;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.5);" />
+                                      </div>
+                                    </body>
+                                  `);
+                                }}
+                                className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200 hover:bg-purple-200 cursor-pointer flex items-center gap-1"
+                                title="View customer-uploaded transfer receipt"
+                              >
+                                <span>🧾 View Receipt</span>
+                              </button>
+                            )}
+                          </div>
+                          <p className="text-zinc-800 font-mono text-[11px] mt-1">
+                            {order.paymentReference ? `Ref: ${order.paymentReference}` : (order.paymentId ? `TXN: ${order.paymentId}` : 'No Ref Provided')}
+                          </p>
                           {order.discountCode && (
                             <p className="text-[10px] text-emerald-600 font-bold uppercase mt-1">Discount Code: {order.discountCode} (-{order.discountAmount} ETB)</p>
                           )}
@@ -2289,7 +2304,7 @@ export default function AdminDashboard({
                           {order.items.map((item, index) => (
                             <div key={index} className="flex justify-between items-center text-zinc-700">
                               <span className="font-sans">
-                                {language === 'en' ? item.product.nameEn : item.product.nameAm} 
+                                {language === 'en' ? item.product.nameEn : item.product.nameAm}
                                 <span className="text-[10px] text-gray-400 ml-1 font-mono">({item.variantName})</span>
                                 <span className="text-zinc-450 ml-1.5 font-bold">x{item.quantity}</span>
                               </span>
@@ -2302,23 +2317,33 @@ export default function AdminDashboard({
                       {/* Status Update & Telegram Alert Action Bar */}
                       {onUpdateOrderStatus && (
                         <div className="pt-2 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
-                            <span className="text-sky-500">📲</span> Telegram Shipping Alerts:
-                          </span>
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {(['PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'] as const).map((st) => (
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
+                              <span className="text-sky-500">📲</span> Telegram Shipping Alerts:
+                            </span>
+                            {order.status === 'PENDING_PAYMENT' && (
                               <button
-                                key={st}
-                                onClick={() => onUpdateOrderStatus(order.id, st)}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                                  order.status === st 
-                                    ? 'bg-sky-500 text-white shadow-xs' 
-                                    : 'bg-gray-100 hover:bg-sky-50 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 hover:text-sky-600'
-                                }`}
+                                type="button"
+                                onClick={() => onUpdateOrderStatus(order.id, 'PROCESSING')}
+                                className="px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs cursor-pointer flex items-center gap-1"
                               >
-                                {st}
+                                <span>✓ Approve Payment</span>
                               </button>
-                            ))}
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                              {(['PENDING_PAYMENT', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'] as const).map((st) => (
+                                <button
+                                  key={st}
+                                  onClick={() => onUpdateOrderStatus(order.id, st)}
+                                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${order.status === st
+                                      ? 'bg-sky-500 text-white shadow-xs'
+                                      : 'bg-gray-100 hover:bg-sky-50 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 hover:text-sky-600'
+                                    }`}
+                                >
+                                  {st}
+                                </button>
+                              ))}
                           </div>
                         </div>
                       )}
@@ -2343,7 +2368,7 @@ export default function AdminDashboard({
           {/* ======================================================== */}
           {adminTab === 'PROMOTIONS' && (
             <div className="space-y-6 animate-in fade-in duration-300">
-              
+
               <div className="bg-white border border-gray-150 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                   <h3 className="font-extrabold text-sm text-zinc-900 uppercase tracking-wider">Platform Promotions & Loyalty Campaign Manager</h3>
@@ -2355,7 +2380,7 @@ export default function AdminDashboard({
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
+
                 {/* Advanced Promo Generator Form */}
                 <div className="lg:col-span-1 bg-white border border-gray-150 rounded-2xl p-5 space-y-4 shadow-sm">
                   <h4 className="font-extrabold text-xs uppercase text-zinc-900 flex items-center gap-1.5 border-b border-gray-100 pb-2.5">
@@ -2474,7 +2499,7 @@ export default function AdminDashboard({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {promoCodes.map((promo) => (
                       <div key={promo.code} className="border border-gray-150 p-4 rounded-2xl bg-zinc-50/20 flex flex-col justify-between hover:border-indigo-400 transition-all relative shadow-xs group">
-                        
+
                         <div>
                           <div className="flex justify-between items-start gap-2">
                             <div>
@@ -2501,7 +2526,7 @@ export default function AdminDashboard({
                           <div className="mt-4 space-y-1.5 text-xs">
                             <p className="font-semibold text-zinc-800">{promo.descriptionEn}</p>
                             <p className="text-[11px] text-gray-500 font-medium">{promo.descriptionAm}</p>
-                            
+
                             {promo.minSubtotal && (
                               <p className="text-[9px] font-bold text-amber-600 bg-amber-50 inline-block px-2 py-0.5 rounded border border-amber-200 uppercase tracking-wider mt-1 font-mono">
                                 Min Subtotal: {promo.minSubtotal.toLocaleString()} ETB
@@ -2538,25 +2563,24 @@ export default function AdminDashboard({
           {/* ======================================================== */}
           {adminTab === 'SECURITY' && (
             <div className="space-y-6 animate-in fade-in duration-300">
-              
+
               <div className="bg-white border border-gray-150 rounded-2xl p-5 shadow-xs space-y-4">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-4">
                   <div>
                     <h3 className="font-extrabold text-sm text-zinc-900 uppercase tracking-wider">System Security Audits & Integrity Console</h3>
                     <p className="text-xs text-gray-400 mt-1">Inspect immutable, timestamped logs generated by payment webhooks, bank transfers, and listing revisions.</p>
                   </div>
-                  
+
                   {/* Log Filter by severity level */}
                   <div className="flex items-center gap-2 bg-gray-55/10 p-1 rounded-xl border border-gray-250/40">
                     {['ALL', 'CRITICAL', 'WARNING', 'INFO'].map((sev) => (
                       <button
                         key={sev}
                         onClick={() => setLogFilter(sev as any)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer ${
-                          logFilter === sev 
-                            ? 'bg-zinc-950 text-white' 
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all cursor-pointer ${logFilter === sev
+                            ? 'bg-zinc-950 text-white'
                             : 'text-zinc-500 hover:text-zinc-950'
-                        }`}
+                          }`}
                       >
                         {sev}
                       </button>
@@ -2577,10 +2601,10 @@ export default function AdminDashboard({
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
+
                 {/* Rolling Security Console Logger (AWS/Stripe central terminal style) */}
                 <div className="lg:col-span-2 space-y-4">
-                  
+
                   <div className="bg-zinc-950 p-5 rounded-2xl font-mono text-xs text-zinc-400 border border-zinc-900 shadow-2xl relative">
                     <div className="flex items-center justify-between border-b border-zinc-900 pb-3 mb-3 text-zinc-500 text-[10px] uppercase font-bold tracking-wider">
                       <span className="flex items-center gap-2">
@@ -2609,9 +2633,8 @@ export default function AdminDashboard({
                         .map((log) => (
                           <div key={log.id} className="p-2.5 border-b border-zinc-900 hover:bg-zinc-900/30 transition-colors space-y-1">
                             <div className="flex justify-between items-center text-[10px]">
-                              <span className={`font-bold px-2 py-0.5 rounded text-[8px] uppercase tracking-wider ${
-                                log.severity === 'CRITICAL' ? 'bg-red-950/80 text-red-400 border border-red-900/40' : log.severity === 'WARNING' ? 'bg-amber-950/80 text-amber-400 border border-amber-900/40' : 'bg-zinc-900 text-zinc-300'
-                              }`}>
+                              <span className={`font-bold px-2 py-0.5 rounded text-[8px] uppercase tracking-wider ${log.severity === 'CRITICAL' ? 'bg-red-950/80 text-red-400 border border-red-900/40' : log.severity === 'WARNING' ? 'bg-amber-950/80 text-amber-400 border border-amber-900/40' : 'bg-zinc-900 text-zinc-300'
+                                }`}>
                                 {log.severity} • {log.action}
                               </span>
                               <span className="text-zinc-600 text-[9px] font-bold font-mono">{log.timestamp}</span>
@@ -2697,7 +2720,7 @@ export default function AdminDashboard({
           {/* ======================================================== */}
           {adminTab === 'CRM' && (
             <div className="space-y-8 animate-in fade-in duration-300">
-              
+
               {/* Top CRM Header Banner & Quick Actions */}
               <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-2xl p-6 text-white shadow-lg border border-indigo-800/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
                 <div className="space-y-1">
@@ -2711,7 +2734,7 @@ export default function AdminDashboard({
                     </span>
                   </div>
                   <p className="text-xs text-indigo-200/80 leading-relaxed max-w-2xl">
-                    {language === 'en' 
+                    {language === 'en'
                       ? 'Monitor customer lifetime value (LTV), reward loyalty tiers, resolve support tickets, and launch targeted promotional broadcasts.'
                       : 'የደንበኞችን የህይወት ዘመን ግዢ (LTV) ይከታተሉ፣ የታማኝነት ሽልማቶችን ይሰጡ፣ እንዲሁም ማስተወቂያዎችን ያስ አስተላልፉ።'}
                   </p>
@@ -2741,7 +2764,7 @@ export default function AdminDashboard({
 
               {/* CRM Key Metrics KPI Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                
+
                 {/* Metric 1 */}
                 <div className="bg-white p-5 rounded-2xl border border-gray-150 shadow-xs space-y-3">
                   <div className="flex justify-between items-center">
@@ -2823,10 +2846,10 @@ export default function AdminDashboard({
 
               {/* Customer Search, Segment Filter & Table */}
               <div className="bg-white rounded-2xl border border-gray-150 shadow-xs overflow-hidden space-y-4 p-6">
-                
+
                 {/* Search & Tabs Toolbar */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-4">
-                  
+
                   {/* Filter Pills */}
                   <div className="flex flex-wrap gap-2">
                     {[
@@ -2839,11 +2862,10 @@ export default function AdminDashboard({
                         key={tab.id}
                         type="button"
                         onClick={() => setCrmSegmentFilter(tab.id as any)}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                          crmSegmentFilter === tab.id
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${crmSegmentFilter === tab.id
                             ? 'bg-indigo-600 text-white shadow-xs font-black'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                          }`}
                       >
                         {language === 'en' ? tab.label : tab.am}
                       </button>
@@ -2896,7 +2918,7 @@ export default function AdminDashboard({
                         })
                         .map((cust) => (
                           <tr key={cust.id} className="hover:bg-indigo-50/20 transition-colors group">
-                            
+
                             {/* Customer Profile Info */}
                             <td className="py-3.5 px-4 whitespace-nowrap">
                               <div className="flex items-center gap-3">
@@ -2923,15 +2945,14 @@ export default function AdminDashboard({
 
                             {/* Loyalty Tier */}
                             <td className="py-3.5 px-4 whitespace-nowrap">
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
-                                cust.loyaltyTier === 'VIP Platinum'
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${cust.loyaltyTier === 'VIP Platinum'
                                   ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-2xs'
                                   : cust.loyaltyTier === 'Gold'
-                                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                                  : cust.loyaltyTier === 'Silver'
-                                  ? 'bg-slate-100 text-slate-800 border border-slate-300'
-                                  : 'bg-orange-50 text-orange-800 border border-orange-200'
-                              }`}>
+                                    ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                    : cust.loyaltyTier === 'Silver'
+                                      ? 'bg-slate-100 text-slate-800 border border-slate-300'
+                                      : 'bg-orange-50 text-orange-800 border border-orange-200'
+                                }`}>
                                 <Award className="w-3 h-3" />
                                 <span>{cust.loyaltyTier}</span>
                               </span>
@@ -2939,13 +2960,12 @@ export default function AdminDashboard({
 
                             {/* Preferred Payment */}
                             <td className="py-3.5 px-4 whitespace-nowrap">
-                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold font-mono ${
-                                cust.preferredPayment === 'TELEBIRR'
+                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold font-mono ${cust.preferredPayment === 'TELEBIRR'
                                   ? 'bg-blue-50 text-blue-700 border border-blue-200'
                                   : cust.preferredPayment === 'CHAPA'
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : 'bg-purple-50 text-purple-700 border border-purple-200'
-                              }`}>
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                    : 'bg-purple-50 text-purple-700 border border-purple-200'
+                                }`}>
                                 {cust.preferredPayment}
                               </span>
                             </td>
@@ -2965,11 +2985,10 @@ export default function AdminDashboard({
 
                             {/* Status */}
                             <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                cust.status === 'ACTIVE'
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${cust.status === 'ACTIVE'
                                   ? 'bg-emerald-100 text-emerald-800'
                                   : 'bg-rose-100 text-rose-800 animate-pulse'
-                              }`}>
+                                }`}>
                                 {cust.status}
                               </span>
                             </td>
@@ -3026,9 +3045,8 @@ export default function AdminDashboard({
                     <div key={tkt.id} className="border border-gray-200 rounded-2xl p-4 bg-gray-50/50 space-y-3 relative">
                       <div className="flex justify-between items-start">
                         <span className="text-[10px] font-mono font-bold text-gray-400">{tkt.id}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${
-                          tkt.status === 'RESOLVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'
-                        }`}>
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold ${tkt.status === 'RESOLVED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'
+                          }`}>
                           {tkt.status}
                         </span>
                       </div>
@@ -3109,15 +3127,15 @@ export default function AdminDashboard({
               {selectedQrProduct.variants.map((v) => {
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(v.sku)}`;
                 return (
-                  <div 
-                    key={v.sku} 
+                  <div
+                    key={v.sku}
                     className="border border-gray-150 rounded-2xl p-4 flex flex-col justify-between bg-gray-50/20 hover:shadow-md transition-all text-left"
                   >
                     <div className="flex gap-3 text-left">
                       <div className="w-20 h-20 bg-white p-1.5 rounded-xl border border-gray-200 shrink-0 flex items-center justify-center relative group">
-                        <img 
-                          src={qrUrl} 
-                          alt={`QR for ${v.sku}`} 
+                        <img
+                          src={qrUrl}
+                          alt={`QR for ${v.sku}`}
                           className="w-full h-full object-contain"
                           referrerPolicy="no-referrer"
                         />
@@ -3157,7 +3175,7 @@ export default function AdminDashboard({
                               oscillator.stop();
                               audioCtx.close();
                             }, 120);
-                          } catch (err) {}
+                          } catch (err) { }
                           alert(`Admin Simulation Beep: Verified SKU ${v.sku} barcode integrity.`);
                         }}
                         className="py-1.5 px-3 bg-black text-white font-bold text-[10px] rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer"
@@ -3204,7 +3222,7 @@ export default function AdminDashboard({
               <div className="absolute top-0 left-0 bg-zinc-950 text-white font-mono text-[8px] font-black tracking-widest px-2.5 py-0.5 uppercase rounded-br-lg">
                 KASMA VERIFIED SECURE
               </div>
-              
+
               <div className="pt-2">
                 <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
                   {selectedPrintVariant.product.brand}
@@ -3219,9 +3237,9 @@ export default function AdminDashboard({
 
               {/* QR Code */}
               <div className="w-36 h-36 bg-white p-3 rounded-2xl border-2 border-zinc-950 flex items-center justify-center">
-                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(selectedPrintVariant.variant.sku)}`} 
-                  alt="Printed Code" 
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(selectedPrintVariant.variant.sku)}`}
+                  alt="Printed Code"
                   className="w-full h-full object-contain"
                   referrerPolicy="no-referrer"
                 />
@@ -3297,7 +3315,7 @@ export default function AdminDashboard({
       {selectedCrmCustomer && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white text-zinc-950 rounded-3xl max-w-2xl w-full p-6 space-y-6 shadow-2xl relative text-left max-h-[90vh] overflow-y-auto">
-            
+
             {/* Modal Header */}
             <div className="flex justify-between items-start border-b border-gray-150 pb-4">
               <div className="flex items-center gap-3">
@@ -3447,7 +3465,7 @@ export default function AdminDashboard({
       {isCampaignModalOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white text-zinc-950 rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl relative text-left">
-            
+
             <div className="flex justify-between items-center border-b border-gray-150 pb-3">
               <div className="flex items-center gap-2">
                 <Send className="w-5 h-5 text-indigo-600" />
@@ -3465,7 +3483,7 @@ export default function AdminDashboard({
             </div>
 
             <div className="space-y-4 text-xs">
-              
+
               {/* Campaign Title */}
               <div className="space-y-1">
                 <label className="font-bold text-gray-700">{language === 'en' ? 'Campaign Title:' : 'የማስተወቂያው ርዕስ፡'}</label>
@@ -3524,11 +3542,11 @@ export default function AdminDashboard({
                   <span className="font-bold">{language === 'en' ? 'Estimated Audience Reach:' : 'ተደራሽ ደንበኞች፡'}</span>
                 </div>
                 <span className="font-black font-mono text-indigo-600 bg-white px-2.5 py-1 rounded-lg border border-indigo-200">
-                  {campaignTargetSegment === 'VIP' 
-                    ? crmCustomers.filter(c => c.loyaltyTier === 'VIP Platinum' || c.loyaltyTier === 'Gold').length 
+                  {campaignTargetSegment === 'VIP'
+                    ? crmCustomers.filter(c => c.loyaltyTier === 'VIP Platinum' || c.loyaltyTier === 'Gold').length
                     : campaignTargetSegment === 'AT_RISK'
-                    ? crmCustomers.filter(c => c.status === 'AT_RISK').length
-                    : crmCustomers.length
+                      ? crmCustomers.filter(c => c.status === 'AT_RISK').length
+                      : crmCustomers.length
                   } {language === 'en' ? 'Recipients' : 'ተቀባዮች'}
                 </span>
               </div>
@@ -3540,16 +3558,16 @@ export default function AdminDashboard({
               <button
                 type="button"
                 onClick={() => {
-                  const reachCount = campaignTargetSegment === 'VIP' 
-                    ? crmCustomers.filter(c => c.loyaltyTier === 'VIP Platinum' || c.loyaltyTier === 'Gold').length 
+                  const reachCount = campaignTargetSegment === 'VIP'
+                    ? crmCustomers.filter(c => c.loyaltyTier === 'VIP Platinum' || c.loyaltyTier === 'Gold').length
                     : campaignTargetSegment === 'AT_RISK'
-                    ? crmCustomers.filter(c => c.status === 'AT_RISK').length
-                    : crmCustomers.length;
+                      ? crmCustomers.filter(c => c.status === 'AT_RISK').length
+                      : crmCustomers.length;
 
                   setIsCampaignModalOpen(false);
                   showToast(
-                    language === 'en' 
-                      ? `Campaign "${campaignTitle}" dispatched via ${campaignChannel} to ${reachCount} customers!` 
+                    language === 'en'
+                      ? `Campaign "${campaignTitle}" dispatched via ${campaignChannel} to ${reachCount} customers!`
                       : `ማስተወቂያው "${campaignTitle}" ለ${reachCount} ደንበኞች ተልኳል!`,
                     'success'
                   );
@@ -3576,7 +3594,7 @@ export default function AdminDashboard({
       {quickFixModalData && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
           <div className="bg-white rounded-2xl shadow-2xl border border-indigo-100 max-w-2xl w-full p-6 space-y-5 my-8 relative">
-            
+
             {/* Header */}
             <div className="flex items-start justify-between border-b border-gray-100 pb-4">
               <div className="flex items-center gap-3">
@@ -3596,8 +3614,8 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              <button 
-                onClick={() => setQuickFixModalData(null)} 
+              <button
+                onClick={() => setQuickFixModalData(null)}
                 className="text-gray-400 hover:text-zinc-700 p-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 <XCircle className="w-5 h-5" />
@@ -3623,7 +3641,7 @@ export default function AdminDashboard({
 
             {/* Comparison Body */}
             <div className="space-y-4 max-h-[55vh] overflow-y-auto pr-1">
-              
+
               {/* English Description Comparison */}
               <div className="space-y-1.5">
                 <label className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-700 flex items-center justify-between">

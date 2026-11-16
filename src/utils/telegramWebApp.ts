@@ -100,6 +100,9 @@ export interface TelegramWebApp {
 
   setHeaderColor: (color: string) => void;
   setBackgroundColor: (color: string) => void;
+  
+  onEvent?: (eventType: 'themeChanged' | 'viewportChanged' | 'mainButtonClicked' | 'backButtonClicked' | 'settingsButtonClicked' | 'invoiceClosed', callback: () => void) => void;
+  offEvent?: (eventType: 'themeChanged' | 'viewportChanged' | 'mainButtonClicked' | 'backButtonClicked' | 'settingsButtonClicked' | 'invoiceClosed', callback: () => void) => void;
 }
 
 declare global {
@@ -193,6 +196,12 @@ export function triggerHaptic(type: 'success' | 'warning' | 'error' | 'light' | 
 }
 
 /**
+ * Main Button & Back Button Singleton Handlers to prevent duplicate event listeners
+ */
+let activeMainButtonHandler: (() => void) | null = null;
+let activeBackButtonHandler: (() => void) | null = null;
+
+/**
  * Main Button Helpers for Telegram Native Bottom Bar
  */
 export interface TelegramMainButtonParams {
@@ -225,9 +234,16 @@ export function showTelegramMainButton(
     text = paramsOrText;
   }
 
+  // Safely detach previous handler if any
+  if (activeMainButtonHandler && mb.offClick) {
+    mb.offClick(activeMainButtonHandler);
+    activeMainButtonHandler = null;
+  }
+
   if (text) mb.setText(text);
   if (btnColor) mb.color = btnColor;
   if (handler) {
+    activeMainButtonHandler = handler;
     mb.onClick(handler);
   }
   if (isProgress) {
@@ -241,7 +257,12 @@ export function showTelegramMainButton(
 
 export function hideTelegramMainButton() {
   if (typeof window === 'undefined' || !window.Telegram?.WebApp?.MainButton) return;
-  window.Telegram.WebApp.MainButton.hide();
+  const mb = window.Telegram.WebApp.MainButton;
+  if (activeMainButtonHandler && mb.offClick) {
+    mb.offClick(activeMainButtonHandler);
+    activeMainButtonHandler = null;
+  }
+  mb.hide();
 }
 
 export function setTelegramMainButtonProgress(show: boolean) {
@@ -260,13 +281,45 @@ export function setTelegramMainButtonProgress(show: boolean) {
 export function showTelegramBackButton(onClick: () => void) {
   if (typeof window === 'undefined' || !window.Telegram?.WebApp?.BackButton) return;
   const bb = window.Telegram.WebApp.BackButton;
+  if (activeBackButtonHandler && bb.offClick) {
+    bb.offClick(activeBackButtonHandler);
+    activeBackButtonHandler = null;
+  }
+  activeBackButtonHandler = onClick;
   bb.onClick(onClick);
   bb.show();
 }
 
 export function hideTelegramBackButton() {
   if (typeof window === 'undefined' || !window.Telegram?.WebApp?.BackButton) return;
-  window.Telegram.WebApp.BackButton.hide();
+  const bb = window.Telegram.WebApp.BackButton;
+  if (activeBackButtonHandler && bb.offClick) {
+    bb.offClick(activeBackButtonHandler);
+    activeBackButtonHandler = null;
+  }
+  bb.hide();
+}
+
+/**
+ * Close Telegram Mini App
+ */
+export function closeTelegramMiniApp() {
+  if (typeof window === 'undefined' || !window.Telegram?.WebApp?.close) return;
+  window.Telegram.WebApp.close();
+}
+
+/**
+ * Subscribe to Telegram client colorScheme changes
+ */
+export function subscribeTelegramThemeChange(callback: (colorScheme: 'light' | 'dark') => void): () => void {
+  if (typeof window === 'undefined' || !window.Telegram?.WebApp?.onEvent) return () => {};
+  const handler = () => {
+    callback(window.Telegram!.WebApp.colorScheme || 'light');
+  };
+  window.Telegram.WebApp.onEvent('themeChanged', handler);
+  return () => {
+    window.Telegram?.WebApp?.offEvent?.('themeChanged', handler);
+  };
 }
 
 /**

@@ -54,6 +54,8 @@ import { OrderTrackingVisualizer } from './OrderTrackingVisualizer';
 import { generateCustomerReceiptPDF } from '../lib/pdfGenerator';
 import { createDigitalWarrantyPass, downloadDigitalWarrantyCertificatePDF } from '../lib/warrantyService';
 import { GoogleIcon, FacebookIcon } from './checkout/CheckoutAuthModal';
+import { isTelegramWebApp } from '../utils/telegramWebApp';
+import { getTelegramMiniAppDirectUrl } from '../constants/contacts';
 
 export interface UserProfileViewProps {
   isOpen: boolean;
@@ -1728,6 +1730,21 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                       <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border ${tierInfo.badgeColor}`}>
                         {tierInfo.nameEn}
                       </span>
+                      {isTelegramWebApp() ? (
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 flex items-center gap-1">
+                          <span>✈️ Telegram Synced</span>
+                        </span>
+                      ) : (
+                        <a
+                          href={getTelegramMiniAppDirectUrl()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#229ED9]/20 hover:bg-[#229ED9]/30 text-sky-300 border border-sky-400/30 flex items-center gap-1 transition-colors"
+                          title="Open as Telegram Mini App"
+                        >
+                          <span>✈️ Open in Telegram</span>
+                        </a>
+                      )}
                     </div>
                     <p className="text-xs text-zinc-400 font-mono">{customerPhone} • {customerEmail}</p>
                   </div>
