@@ -1,23 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <!-- Homepage -->
   <url>
     <loc>https://kasmashop.et/</loc>
+    <xhtml:link rel="alternate" hreflang="en-ET" href="https://kasmashop.et/" />
+    <xhtml:link rel="alternate" hreflang="am-ET" href="https://kasmashop.et/?lang=am" />
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://kasmashop.et/kasma-logo.png</image:loc>
+      <image:title>Kasma Original Tech Store - Ethiopia</image:title>
+      <image:caption>Premier electronics store in Addis Ababa, Ethiopia</image:caption>
+    </image:image>
   </url>
+
+  <!-- Complete Electronics Catalog -->
   <url>
     <loc>https://kasmashop.et/catalog</loc>
+    <xhtml:link rel="alternate" hreflang="en-ET" href="https://kasmashop.et/catalog" />
+    <xhtml:link rel="alternate" hreflang="am-ET" href="https://kasmashop.et/catalog?lang=am" />
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
+
+  <!-- Flash Deals & Tech Discounts -->
   <url>
     <loc>https://kasmashop.et/deals</loc>
     <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Category: Computers & Laptops -->
+  <url>
+    <loc>https://kasmashop.et/catalog?category=computers</loc>
+    <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
+
+  <!-- Category: Original Smartphones -->
   <url>
-    <loc>https://kasmashop.et/cart</loc>
+    <loc>https://kasmashop.et/catalog?category=mobiles</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Category: Pro Audio & Headphones -->
+  <url>
+    <loc>https://kasmashop.et/catalog?category=headphones</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Category: Gaming & Consoles -->
+  <url>
+    <loc>https://kasmashop.et/catalog?category=gaming</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Category: Smartwatches & Wearables -->
+  <url>
+    <loc>https://kasmashop.et/catalog?category=smartwatches</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Category: Smart TVs & Displays -->
+  <url>
+    <loc>https://kasmashop.et/catalog?category=television</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Digital Warranty & IMEI Checker -->
+  <url>
+    <loc>https://kasmashop.et/warranty</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Live Dispatch Tracking -->
+  <url>
+    <loc>https://kasmashop.et/tracking</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>

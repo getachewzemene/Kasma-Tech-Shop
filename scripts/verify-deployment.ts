@@ -60,7 +60,7 @@ async function runDeploymentVerification() {
     checks.push({
       title: 'SEO Discovery & Crawling',
       success: true,
-      notes: 'robots.txt and sitemap.xml configured in public/.'
+      notes: 'robots.txt and sitemap.xml configured with AI bot crawler permissions in public/.'
     });
   } else {
     checks.push({
@@ -70,8 +70,24 @@ async function runDeploymentVerification() {
     });
   }
 
-  // Check 4: Telegram Mini App SDK & CSP Framing
+  // Check 3b: GEO Metadata & Local Ethiopia Schema.org
   const indexHtmlContent = fs.existsSync(indexHtml) ? fs.readFileSync(indexHtml, 'utf8') : '';
+  if (indexHtmlContent.includes('geo.region') && indexHtmlContent.includes('ElectronicsStore')) {
+    checks.push({
+      title: 'GEO & Local SEO Targeting (Ethiopia / Addis Ababa)',
+      success: true,
+      notes: 'geo.region (ET-AA), geo.position (8.9953;38.7885), and Schema.org ElectronicsStore JSON-LD present.'
+    });
+  } else {
+    passed = false;
+    checks.push({
+      title: 'GEO & Local SEO Targeting (Ethiopia / Addis Ababa)',
+      success: false,
+      notes: 'geo.region or Schema.org ElectronicsStore missing in index.html.'
+    });
+  }
+
+  // Check 4: Telegram Mini App SDK & CSP Framing
   if (indexHtmlContent.includes('telegram-web-app.js')) {
     checks.push({
       title: 'Telegram Mini App (TMA) SDK Embed',

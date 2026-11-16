@@ -1,4 +1,6 @@
 # Kasma Tech Shop - Production Robots Exclusion File
+# Optimized for Google, Bing, and Generative Engine Optimization (GEO) AI Crawlers
+
 User-agent: *
 Allow: /
 Allow: /catalog
@@ -11,6 +13,22 @@ Disallow: /admin
 Disallow: /merchant
 Disallow: /courier
 Disallow: /api/
+
+# AI Citation & Generative Search Crawlers (ChatGPT, Gemini, Perplexity, Claude, Apple Intelligence)
+User-agent: GPTBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
 
 # Canonical Sitemap Reference
 Sitemap: https://kasmashop.et/sitemap.xml

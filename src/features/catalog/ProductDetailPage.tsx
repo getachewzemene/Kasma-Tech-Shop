@@ -35,6 +35,7 @@ import { SerialCoverageCheckerModal } from '../../components/warranty/SerialCove
 import { SideBySideSpecComparisonSection } from '../../components/catalog/SideBySideSpecComparisonSection';
 import { TechSpecsComparisonModal } from '../../components/catalog/TechSpecsComparisonModal';
 import { generateDeviceSerial, generateTamperProofHash } from '../../lib/warrantyService';
+import { SeoHead } from '../../components/seo/SeoHead';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -295,6 +296,9 @@ export const ProductDetailPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+      {/* Dynamic SEO & Schema.org Product Metadata for Ethiopian E-Commerce */}
+      {product && <SeoHead product={product} language={language} type="product" />}
+
       {/* Breadcrumb Navigation */}
       <nav className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-400">
         <Link to="/" className="hover:text-[#0052FF] font-medium transition-colors">
