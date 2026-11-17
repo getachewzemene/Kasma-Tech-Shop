@@ -265,7 +265,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     price: 14800,
     category: 'cameras',
     brand: 'Hikvision',
-    image: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1549109926-58f039549485?auto=format&fit=crop&w=800&q=80',
     lowStockThreshold: 4,
     merchantId: 'm4',
     merchantName: 'Abyssinia Electronics',

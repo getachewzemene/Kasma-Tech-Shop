@@ -240,16 +240,6 @@ export default function CustomerWeb({
   };
   const [isCategoriesExpanded, setIsCategoriesExpanded] = useState<boolean>(false);
 
-  // Auto-expand category section if user selects a category that is in the overflow/hidden list
-  useEffect(() => {
-    if (selectedCategory && selectedCategory !== 'all') {
-      const overflowCatIds = ['cameras', 'television', 'accessories'];
-      if (overflowCatIds.includes(selectedCategory)) {
-        setIsCategoriesExpanded(true);
-      }
-    }
-  }, [selectedCategory]);
-
   const [sortBy, setSortBy] = useState<'default' | 'priceAsc' | 'priceDesc' | 'newest'>('default');
   const [isGridLoading, setIsGridLoading] = useState(false);
   const [showWhatsAppButton, setShowWhatsAppButton] = useState<boolean>(false);
@@ -2155,6 +2145,9 @@ export default function CustomerWeb({
             } else if (lower.includes('prime 20,000mah')) {
               line1 = 'PRIME 20,000mAh';
               line2 = 'POWER BANK';
+            } else if (lower.includes('cctv') || lower.includes('hikvision')) {
+              line1 = 'PTZ SMART OUTDOOR';
+              line2 = 'CCTV CAMERA 4K';
             } else {
               const words = clean.split(' ');
               if (words.length <= 2) {
@@ -2175,72 +2168,83 @@ export default function CustomerWeb({
           const savingsAmount = Math.round(slide.price * 0.25);
 
           return (
-            <div id="tour-welcome-banner" className="relative bg-gradient-to-br from-[#021B24] via-[#052C38] to-[#0A1A28] dark:from-zinc-950 dark:via-[#032029] dark:to-zinc-950 text-white rounded-2xl sm:rounded-3xl overflow-hidden h-[280px] xs:h-[300px] sm:h-[330px] md:h-[350px] lg:h-[360px] shadow-xl border border-cyan-500/25 dark:border-zinc-800/85 group transition-all duration-300">
+            <div
+              id="tour-welcome-banner"
+              className="relative bg-gradient-to-br from-[#0B0F19] via-[#0E1526] to-[#050811] text-white rounded-2xl sm:rounded-3xl overflow-hidden min-h-[300px] h-[300px] xs:h-[320px] sm:h-[340px] md:h-[360px] lg:h-[380px] shadow-2xl border border-slate-800/90 group transition-all duration-300"
+            >
+              {/* Premium radial gradient glow mesh behind the product image */}
+              <div className="absolute right-0 sm:right-10 top-1/2 -translate-y-1/2 w-72 sm:w-[440px] h-72 sm:h-[440px] bg-gradient-to-br from-blue-600/20 via-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute left-6 -top-10 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-              {/* Background ambient glow behind product */}
-              <div className="absolute right-4 sm:right-16 top-1/2 -translate-y-1/2 w-48 sm:w-[320px] h-48 sm:h-[320px] bg-cyan-400/10 dark:bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-
-              {/* Top Left Limited Offer Badge */}
-              <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-4 z-20">
-                <span className="text-[8.5px] xs:text-[9.5px] sm:text-xs font-black uppercase tracking-wider text-white bg-[#00925D] px-2.5 sm:px-3 py-0.5 rounded-full inline-flex items-center gap-1 shadow-md border border-emerald-400/40">
-                  <Zap className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-white fill-current" />
+              {/* Top Bar Badges: Limited Offer & Discount */}
+              <div className="absolute top-3 left-3 sm:top-4 sm:left-6 z-20 flex items-center gap-2">
+                <span className="text-[9px] xs:text-[10px] sm:text-xs font-bold uppercase tracking-wider text-blue-300 bg-blue-500/15 border border-blue-400/30 backdrop-blur-md px-3 py-1 rounded-full inline-flex items-center gap-1.5 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                  <Zap className="w-3 h-3 text-blue-300 fill-current" />
                   <span>{language === 'en' ? 'LIMITED OFFER' : 'ልዩ ቅናሽ'}</span>
                 </span>
               </div>
 
-              {/* Top Right Discount Badge */}
-              <div className="absolute top-2.5 right-2.5 sm:top-3.5 sm:right-4 z-20">
-                <span className="text-[8.5px] xs:text-[9.5px] sm:text-xs font-black uppercase tracking-wider text-white bg-gradient-to-r from-red-600 via-rose-600 to-orange-500 shadow-md border border-red-400/40 px-2.5 sm:px-3 py-0.5 rounded-full inline-flex items-center gap-1">
-                  <Zap className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-yellow-200 fill-current" />
+              <div className="absolute top-3 right-3 sm:top-4 sm:right-6 z-20 flex items-center gap-2">
+                <span className="text-[9px] xs:text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-rose-200 bg-gradient-to-r from-rose-600 via-rose-500 to-orange-500 shadow-md border border-rose-400/40 backdrop-blur-md px-2.5 sm:px-3 py-1 rounded-full inline-flex items-center gap-1">
+                  <Flame className="w-3 h-3 text-amber-200 fill-current" />
                   <span>20% OFF</span>
                 </span>
               </div>
 
-              {/* Robust Full-Height Flex Container with strict 10px padding */}
-              <div className="w-full h-full p-2.5 sm:p-3 flex items-center justify-between gap-3 sm:gap-6 relative z-10">
-
-                {/* Left Content Column - Perfectly centered vertically */}
+              {/* Full-Height Flex Container */}
+              <div className="w-full h-full p-3 sm:p-5 md:p-7 flex items-center justify-between gap-3 sm:gap-6 relative z-10">
+                {/* Left Content Column */}
                 <div
                   key={`slide-info-${slide.id}`}
-                  className="w-[55%] sm:w-[50%] md:w-[48%] flex flex-col justify-center space-y-2 sm:space-y-3 text-left pl-3 sm:pl-6 pr-2 z-10 min-w-0"
+                  className="w-[55%] sm:w-[50%] md:w-[48%] flex flex-col justify-center space-y-2 sm:space-y-3.5 text-left pl-1 sm:pl-4 pr-1 z-10 min-w-0"
                 >
-                  {/* Brand Label */}
+                  {/* Brand Tag */}
                   {brandName && (
-                    <div className="text-[10px] sm:text-xs font-extrabold text-cyan-200/90 tracking-widest uppercase font-sans">
-                      {brandName}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] sm:text-xs font-bold text-blue-400 tracking-[0.2em] uppercase font-mono">
+                        {brandName}
+                      </span>
+                      <span className="w-1 h-1 rounded-full bg-slate-600" />
+                      <span className="text-[9px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        {language === 'en' ? 'Official Warranty' : 'ዋስትና ያለው'}
+                      </span>
                     </div>
                   )}
 
-                  {/* Product Title - Max 2 lines */}
-                  <h1 className="text-sm xs:text-base sm:text-xl md:text-2xl lg:text-[25px] font-black tracking-tight leading-snug text-white uppercase drop-shadow-sm font-sans line-clamp-2">
+                  {/* Product Title */}
+                  <h1 className="text-sm xs:text-base sm:text-xl md:text-2xl lg:text-[26px] font-extrabold tracking-tight leading-snug sm:leading-tight text-white uppercase drop-shadow-sm font-sans line-clamp-2">
                     {line1} {line2}
                   </h1>
 
-                  {/* Price & Savings Hierarchy - STRICT ONE-LINER PRICE */}
-                  <div className="space-y-1">
-                    <div className="flex items-baseline gap-2 flex-nowrap overflow-hidden">
-                      <span className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black text-amber-300 font-mono tracking-tight drop-shadow-sm whitespace-nowrap">
-                        {slide.price.toLocaleString()} ETB
+                  {/* Price & Savings Hierarchy */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap">
+                      <span className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-[32px] font-black text-white tracking-tight drop-shadow-sm whitespace-nowrap">
+                        {slide.price.toLocaleString()} <span className="text-xs sm:text-sm font-bold text-blue-400">ETB</span>
                       </span>
-                      <span className="text-xs sm:text-sm md:text-base text-gray-300/80 font-mono line-through font-bold whitespace-nowrap">
+                      <span className="text-xs sm:text-sm md:text-base text-slate-400 line-through font-medium whitespace-nowrap">
                         {originalPrice.toLocaleString()} ETB
                       </span>
                     </div>
 
                     <div>
-                      <span className="text-[9px] sm:text-[10.5px] font-black uppercase text-emerald-300 bg-[#00925D]/30 border border-[#00925D]/60 px-2.5 py-0.5 rounded-md tracking-wider inline-block whitespace-nowrap">
-                        {language === 'en'
-                          ? `SAVE ${savingsAmount.toLocaleString()} ETB`
-                          : `ከ${savingsAmount.toLocaleString()} ብር ይቆጥቡ`}
+                      <span className="text-[9px] sm:text-[10.5px] font-bold uppercase text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-md tracking-wider inline-flex items-center gap-1 whitespace-nowrap">
+                        <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
+                        <span>
+                          {language === 'en'
+                            ? `SAVE ${savingsAmount.toLocaleString()} ETB`
+                            : `ከ${savingsAmount.toLocaleString()} ብር ይቆጥቡ`}
+                        </span>
                       </span>
                     </div>
                   </div>
 
-                  {/* CTA Buttons - Compact Inline Horizontal Row */}
+                  {/* CTA Buttons */}
                   <div className="flex items-center gap-2 sm:gap-3 pt-1 flex-row flex-nowrap">
                     <button
                       onClick={() => handleOpenProduct(slide)}
-                      className="px-3.5 sm:px-5 py-2 sm:py-2.5 bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all shadow-md shadow-blue-600/30 inline-flex items-center gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap shrink-0 hover:scale-[1.02]"
+                      className="px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-[#0052FF] via-blue-600 to-[#0052FF] hover:bg-blue-600 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-blue-600/30 inline-flex items-center gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap shrink-0 hover:scale-[1.02]"
                     >
                       <span>{language === 'en' ? 'BUY NOW' : 'አሁኑኑ ይግዙ'}</span>
                       <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -2253,51 +2257,52 @@ export default function CustomerWeb({
                           addToCart(slide, slide.variants[0], 1);
                         }
                       }}
-                      className="px-3 sm:px-4 py-2 sm:py-2.5 bg-[#12313D]/90 hover:bg-[#1A4252] text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all border border-cyan-500/30 backdrop-blur-md inline-flex items-center gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap shrink-0 hover:scale-[1.02]"
+                      className="px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-800/80 hover:bg-slate-700/80 text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all border border-slate-700 backdrop-blur-md inline-flex items-center gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap shrink-0 hover:scale-[1.02]"
                     >
-                      <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-300" />
                       <span>{language === 'en' ? '+ CART' : '+ ቅርጫት'}</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Right Side Product Image - Exactly fitting 100% of height inside 10px padding */}
-                <div className="w-[45%] sm:w-[50%] md:w-[52%] h-full flex items-center justify-center relative overflow-hidden">
+                {/* Right Side Product Image Showcase */}
+                <div className="w-[45%] sm:w-[50%] md:w-[52%] h-full flex items-center justify-center relative p-1 sm:p-2">
                   <div
                     key={`slide-img-${slide.id}`}
-                    className="relative w-full h-full flex items-center justify-center rounded-xl sm:rounded-2xl overflow-hidden group-hover:scale-[1.02] transition-transform duration-500 z-10"
+                    className="relative w-full h-[90%] sm:h-[94%] flex items-center justify-center rounded-2xl overflow-hidden bg-gradient-to-b from-slate-900/60 to-slate-950/80 border border-slate-800/80 shadow-2xl p-1.5 sm:p-2 group-hover:border-blue-500/40 transition-all duration-500"
                   >
                     <LazyImage
                       src={slide.image}
                       alt={slide.nameEn}
-                      className="w-full h-full object-cover object-center filter drop-shadow-[0_12px_28px_rgba(0,0,0,0.5)]"
-                      containerClassName="w-full h-full flex items-center justify-center rounded-xl sm:rounded-2xl overflow-hidden"
+                      className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-700 ease-out"
+                      containerClassName="w-full h-full flex items-center justify-center rounded-xl overflow-hidden"
                     />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent pointer-events-none rounded-xl" />
                   </div>
                 </div>
-
               </div>
 
-              {/* Navigation Arrows & Bullet Indicators at Bottom */}
-              <div className="absolute bottom-2.5 left-3.5 sm:bottom-3 sm:left-5 flex items-center gap-1.5 z-20">
+              {/* Navigation Arrows & Bullet Indicators */}
+              <div className="absolute bottom-3 left-4 sm:bottom-4 sm:left-7 flex items-center gap-1.5 z-20">
                 {activeSlides.map((_, index) => (
                   <button
                     key={`bullet-${index}`}
                     onClick={() => setCurrentSlide(index)}
-                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${index === currentSlide ? 'w-5 bg-white shadow-xs' : 'w-1.5 bg-white/40 hover:bg-white/70'
-                      }`}
+                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                      index === currentSlide ? 'w-6 bg-[#0052FF] shadow-sm shadow-blue-500/60' : 'w-1.5 bg-white/30 hover:bg-white/60'
+                    }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
                 ))}
               </div>
 
-              <div className="absolute bottom-2.5 right-3 sm:bottom-3 sm:right-4 flex items-center gap-1.5 z-20">
+              <div className="absolute bottom-3 right-4 sm:bottom-4 sm:right-6 flex items-center gap-1.5 z-20">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setCurrentSlide((prev) => (prev - 1 + activeSlides.length) % activeSlides.length);
                   }}
-                  className="p-1 sm:p-1.5 bg-black/50 hover:bg-black/80 text-white rounded-lg transition-all cursor-pointer border border-white/20 backdrop-blur-md active:scale-95 shadow-md"
+                  className="p-1 sm:p-1.5 bg-slate-900/80 hover:bg-slate-800 text-slate-200 hover:text-white rounded-lg transition-all cursor-pointer border border-slate-700/80 backdrop-blur-md active:scale-95 shadow-md"
                   aria-label="Previous slide"
                 >
                   <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -2307,13 +2312,12 @@ export default function CustomerWeb({
                     e.stopPropagation();
                     setCurrentSlide((prev) => (prev + 1) % activeSlides.length);
                   }}
-                  className="p-1 sm:p-1.5 bg-black/50 hover:bg-black/80 text-white rounded-lg transition-all cursor-pointer border border-white/20 backdrop-blur-md active:scale-95 shadow-md"
+                  className="p-1 sm:p-1.5 bg-slate-900/80 hover:bg-slate-800 text-slate-200 hover:text-white rounded-lg transition-all cursor-pointer border border-slate-700/80 backdrop-blur-md active:scale-95 shadow-md"
                   aria-label="Next slide"
                 >
                   <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               </div>
-
             </div>
           );
         })() : (
@@ -2332,79 +2336,152 @@ export default function CustomerWeb({
         )}
       </div>
 
-      {/* 3. PROFESSIONAL READABLE & EXPANDABLE CATEGORY NAVIGATION BAR */}
-      <div className="max-w-[1440px] mx-auto w-full px-2 sm:px-4 md:px-8 mt-3 sm:mt-4">
-        {/* Category Header with Title, Count, Clear Filter & Expand Toggle */}
-        <div className="flex items-center justify-between mb-2.5 sm:mb-3 px-0.5">
+      {/* 3. MODERN RESPONSIVE CATEGORY NAVIGATION BAR */}
+      <div className="max-w-[1440px] mx-auto w-full px-2 sm:px-4 md:px-8 mt-3 sm:mt-5">
+        {/* Category Header with Title, Count & Reset */}
+        <div className="flex items-center justify-between mb-2 sm:mb-3 px-1">
           <div className="flex items-center gap-2">
             <div className="p-1 sm:p-1.5 rounded-lg bg-[#0052FF]/10 text-[#0052FF] dark:bg-blue-500/15 dark:text-blue-400">
-              <Layers className="w-4 h-4" />
+              <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
             <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-gray-800 dark:text-zinc-200">
-              {language === 'en' ? 'Categories' : 'ምድቦች'}
+              {language === 'en' ? 'Shop by Category' : 'በምድብ ይግዙ'}
             </span>
             <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border border-gray-200/80 dark:border-zinc-700">
               8
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {selectedCategory !== 'all' && (
               <button
                 type="button"
                 onClick={() => setSelectedCategory('all')}
-                className="text-xs sm:text-sm font-bold text-[#0052FF] dark:text-blue-400 hover:underline cursor-pointer flex items-center gap-1"
+                className="text-xs font-bold text-[#0052FF] dark:text-blue-400 hover:underline cursor-pointer flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 transition-all hover:scale-102"
               >
+                <RotateCcw className="w-3 h-3" />
                 <span>{language === 'en' ? 'Clear Filter' : 'ሁሉንም አሳይ'}</span>
               </button>
             )}
 
-            {/* Expand / Collapse Header Trigger */}
+            {/* Mobile View Toggle: Compact Horizontal Scroll Rail vs Expanded Grid */}
             <button
               type="button"
               onClick={() => setIsCategoriesExpanded(!isCategoriesExpanded)}
-              className="text-xs sm:text-sm font-bold text-gray-600 dark:text-zinc-400 hover:text-[#0052FF] dark:hover:text-blue-400 cursor-pointer flex items-center gap-1.5 transition-colors group"
+              className="md:hidden text-xs font-bold text-gray-600 dark:text-zinc-400 hover:text-[#0052FF] dark:hover:text-blue-400 cursor-pointer flex items-center gap-1 px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200/70 dark:hover:bg-zinc-700 transition-colors"
+              title={isCategoriesExpanded ? 'Collapse into scrollable rail' : 'Expand all categories'}
             >
               <span>
                 {isCategoriesExpanded
-                  ? (language === 'en' ? 'Show Less' : 'ያነሱ')
-                  : (language === 'en' ? 'See All Categories' : 'ሁሉንም ይመልከቱ')}
+                  ? (language === 'en' ? 'Compact' : 'ያነሱ')
+                  : (language === 'en' ? 'View Grid' : 'ሁሉንም (8)')}
               </span>
-              <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0052FF] dark:text-blue-400 transition-transform duration-300 group-hover:scale-110 ${isCategoriesExpanded ? 'rotate-180' : ''}`} />
+              {isCategoriesExpanded ? (
+                <ChevronUp className="w-3.5 h-3.5 text-[#0052FF]" />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5 text-[#0052FF]" />
+              )}
             </button>
           </div>
         </div>
 
-        {/* Category Cards Container */}
+        {/* Category Navigation Body */}
         {(() => {
           const ALL_CATEGORIES = [
-            { id: 'computers', nameEn: 'Computers', nameAm: 'ላፕቶፕ', icon: Laptop },
-            { id: 'mobiles', nameEn: 'Phones', nameAm: 'ሞባይል', icon: Smartphone },
-            { id: 'headphones', nameEn: 'Headphones', nameAm: 'ማዳመጫዎች', icon: Headphones },
-            { id: 'gaming', nameEn: 'Gaming', nameAm: 'ጌሚንግ', icon: Gamepad2 },
-            { id: 'smartwatches', nameEn: 'Smartwatches', nameAm: 'ስማርት ሰዓት', icon: Watch },
-            { id: 'cameras', nameEn: 'Cameras', nameAm: 'ካሜራ', icon: Camera },
-            { id: 'television', nameEn: 'TV & Video', nameAm: 'ቴሌቪዥን', icon: Tv },
-            { id: 'accessories', nameEn: 'Accessories', nameAm: 'መለዋወጫዎች', icon: Cpu }
+            { id: 'computers', nameEn: 'Computers', nameAm: 'ላፕቶፕ', icon: Laptop, iconColor: 'text-blue-500', bgGlow: 'group-hover:bg-blue-500/10' },
+            { id: 'mobiles', nameEn: 'Phones', nameAm: 'ሞባይል', icon: Smartphone, iconColor: 'text-purple-500', bgGlow: 'group-hover:bg-purple-500/10' },
+            { id: 'headphones', nameEn: 'Headphones', nameAm: 'ማዳመጫ', icon: Headphones, iconColor: 'text-cyan-500', bgGlow: 'group-hover:bg-cyan-500/10' },
+            { id: 'gaming', nameEn: 'Gaming', nameAm: 'ጌሚንግ', icon: Gamepad2, iconColor: 'text-rose-500', bgGlow: 'group-hover:bg-rose-500/10' },
+            { id: 'smartwatches', nameEn: 'Watches', nameAm: 'ስማርት ሰዓት', icon: Watch, iconColor: 'text-emerald-500', bgGlow: 'group-hover:bg-emerald-500/10' },
+            { id: 'cameras', nameEn: 'Cameras', nameAm: 'ካሜራ', icon: Camera, iconColor: 'text-amber-500', bgGlow: 'group-hover:bg-amber-500/10' },
+            { id: 'television', nameEn: 'TV & Video', nameAm: 'ቴሌቪዥን', icon: Tv, iconColor: 'text-indigo-500', bgGlow: 'group-hover:bg-indigo-500/10' },
+            { id: 'accessories', nameEn: 'Accessories', nameAm: 'መለዋወጫ', icon: Cpu, iconColor: 'text-teal-500', bgGlow: 'group-hover:bg-teal-500/10' }
           ];
 
-          // In collapsed mode: show 5 prominent items + 1 expandable "See More" button (total 6 items in 1 row on desktop)
-          // In expanded mode: show all 8 categories across a spacious multi-column grid
-          const visibleCategories = isCategoriesExpanded ? ALL_CATEGORIES : ALL_CATEGORIES.slice(0, 5);
-          const hiddenCount = ALL_CATEGORIES.length - 5;
+          const categoryCounts: Record<string, number> = {};
+          approvedProducts.forEach(p => {
+            categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1;
+          });
+
+          const formatCount = (count: number) => {
+            if (language === 'en') {
+              return `${count} ${count === 1 ? 'item' : 'items'}`;
+            }
+            return `${count} ${count === 1 ? 'ዕቃ' : 'ዕቃዎች'}`;
+          };
 
           return (
             <div className="w-full">
-              <div
-                className={`grid gap-2 sm:gap-2.5 md:gap-3 items-center w-full transition-all duration-300 ${
-                  isCategoriesExpanded
-                    ? 'grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-4'
-                    : 'grid-cols-2 xs:grid-cols-3 md:grid-cols-6'
-                }`}
-              >
-                {visibleCategories.map((dept) => {
+              {/* MOBILE DEFAULT: Ultra-Compact Single-Row Horizontal Scrolling Rail (~40px high) */}
+              <div className={`${isCategoriesExpanded ? 'hidden' : 'flex md:hidden'} items-center gap-2 overflow-x-auto no-scrollbar scrollbar-touch py-1 px-0.5`}>
+                {/* All Products Pill */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory('all');
+                    const el = document.getElementById('products-grid-section');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer active:scale-95 ${
+                    selectedCategory === 'all'
+                      ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-blue-500/25 ring-2 ring-[#0052FF]/30'
+                      : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/50'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>{language === 'en' ? 'All' : 'ሁሉም'}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                    selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
+                  }`}>
+                    {approvedProducts.length}
+                  </span>
+                </button>
+
+                {/* Category Pills */}
+                {ALL_CATEGORIES.map((dept) => {
                   const DeptIcon = dept.icon;
                   const isSelected = selectedCategory === dept.id;
+                  const count = categoryCounts[dept.id] || 0;
+
+                  return (
+                    <button
+                      key={`mobile-rail-${dept.id}`}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory(isSelected ? 'all' : dept.id);
+                        const el = document.getElementById('products-grid-section');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer active:scale-95 ${
+                        isSelected
+                          ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-blue-500/25 ring-2 ring-[#0052FF]/30 scale-[1.02]'
+                          : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/50'
+                      }`}
+                    >
+                      <DeptIcon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : dept.iconColor}`} />
+                      <span>{language === 'en' ? dept.nameEn : dept.nameAm}</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                        isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* GRID VIEW: Active when expanded on mobile OR always on desktop (md:) */}
+              <div
+                className={`w-full ${
+                  isCategoriesExpanded
+                    ? 'grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-2 sm:gap-2.5 md:gap-3'
+                    : 'hidden md:grid md:grid-cols-8 gap-2.5 sm:gap-3'
+                }`}
+              >
+                {ALL_CATEGORIES.map((dept) => {
+                  const DeptIcon = dept.icon;
+                  const isSelected = selectedCategory === dept.id;
+                  const count = categoryCounts[dept.id] || 0;
 
                   return (
                     <button
@@ -2414,23 +2491,24 @@ export default function CustomerWeb({
                         const el = document.getElementById('products-grid-section');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className={`w-full flex items-center justify-center gap-2 sm:gap-2.5 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl border transition-all duration-200 group cursor-pointer focus:outline-none min-h-[46px] sm:min-h-[50px] shadow-2xs hover:shadow-sm ${
+                      className={`relative w-full flex flex-col items-center justify-center p-2 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl border transition-all duration-200 group cursor-pointer focus:outline-none min-h-[64px] sm:min-h-[74px] md:min-h-[84px] text-center ${
                         isSelected
-                          ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-md shadow-blue-500/25 ring-2 ring-[#0052FF]/30 scale-[1.01]'
-                          : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/60 hover:text-[#0052FF] hover:bg-blue-50/50 dark:hover:bg-blue-950/20'
+                          ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-lg shadow-blue-500/25 ring-2 ring-[#0052FF]/30 -translate-y-0.5'
+                          : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/60 hover:shadow-md hover:-translate-y-0.5'
                       }`}
                     >
                       <div
-                        className={`p-1.5 rounded-lg transition-colors ${
+                        className={`w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center mb-1 transition-all duration-200 ${
                           isSelected
-                            ? 'bg-white/20 text-white'
-                            : 'bg-blue-50 dark:bg-blue-950/50 text-[#0052FF] dark:text-blue-400 group-hover:bg-[#0052FF] group-hover:text-white'
+                            ? 'bg-white/20 text-white shadow-inner'
+                            : `bg-gray-100 dark:bg-zinc-800 ${dept.iconColor} ${dept.bgGlow} group-hover:scale-110`
                         }`}
                       >
-                        <DeptIcon className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0 transition-transform group-hover:scale-110" />
+                        <DeptIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 shrink-0" />
                       </div>
+
                       <span
-                        className={`text-xs sm:text-sm font-bold text-center leading-snug tracking-normal whitespace-nowrap ${
+                        className={`text-[10.5px] sm:text-xs font-bold leading-tight tracking-tight whitespace-nowrap truncate max-w-full px-0.5 ${
                           isSelected
                             ? 'text-white'
                             : 'text-gray-900 dark:text-zinc-100 group-hover:text-[#0052FF] dark:group-hover:text-blue-400'
@@ -2438,41 +2516,20 @@ export default function CustomerWeb({
                       >
                         {language === 'en' ? dept.nameEn : dept.nameAm}
                       </span>
+
+                      <span
+                        className={`text-[8.5px] sm:text-[10px] font-medium leading-none mt-0.5 ${
+                          isSelected
+                            ? 'text-blue-100'
+                            : 'text-gray-400 dark:text-zinc-500'
+                        }`}
+                      >
+                        {formatCount(count)}
+                      </span>
                     </button>
                   );
                 })}
-
-                {/* Collapsed Mode: Expandable "+X More" Button */}
-                {!isCategoriesExpanded && (
-                  <button
-                    type="button"
-                    onClick={() => setIsCategoriesExpanded(true)}
-                    className="w-full flex items-center justify-center gap-2 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl border border-dashed border-[#0052FF]/40 dark:border-blue-500/40 bg-blue-50/60 dark:bg-blue-950/30 text-[#0052FF] dark:text-blue-400 hover:bg-[#0052FF] hover:text-white hover:border-[#0052FF] transition-all duration-200 group cursor-pointer focus:outline-none min-h-[46px] sm:min-h-[50px] shadow-2xs hover:shadow-sm"
-                    title={language === 'en' ? 'Click to expand all categories' : 'ሁሉንም ምድቦች ለማየት ይጫኑ'}
-                  >
-                    <div className="p-1.5 rounded-lg bg-[#0052FF]/10 dark:bg-blue-400/10 group-hover:bg-white/20 transition-all">
-                      <ChevronDown className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0 transition-transform group-hover:translate-y-0.5" />
-                    </div>
-                    <span className="text-xs sm:text-sm font-bold tracking-normal whitespace-nowrap">
-                      {language === 'en' ? `+${hiddenCount} More` : `+${hiddenCount} ተጨማሪ`}
-                    </span>
-                  </button>
-                )}
               </div>
-
-              {/* Expanded Mode: Centered "Show Less" Pill */}
-              {isCategoriesExpanded && (
-                <div className="flex justify-center mt-2.5 sm:mt-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsCategoriesExpanded(false)}
-                    className="inline-flex items-center gap-1.5 px-4 py-1.5 sm:py-2 rounded-xl bg-gray-100 hover:bg-gray-200/80 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs sm:text-sm font-bold text-gray-700 dark:text-zinc-200 transition-all border border-gray-200 dark:border-zinc-700 shadow-2xs cursor-pointer active:scale-95"
-                  >
-                    <ChevronUp className="w-4 h-4 text-[#0052FF] dark:text-blue-400" />
-                    <span>{language === 'en' ? 'Show Less' : 'ያነሱ'}</span>
-                  </button>
-                </div>
-              )}
             </div>
           );
         })()}

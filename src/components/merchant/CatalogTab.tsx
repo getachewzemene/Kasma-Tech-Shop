@@ -535,7 +535,7 @@ export default function CatalogTab({
     { name: 'Audio & Headphones', url: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?auto=format&fit=crop&w=600&q=80' },
     { name: 'Smartwatches', url: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=600&q=80' },
     { name: 'Gaming Consoles', url: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=600&q=80' },
-    { name: 'Cameras & Security', url: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=600&q=80' },
+    { name: 'Cameras & Security', url: 'https://images.unsplash.com/photo-1549109926-58f039549485?auto=format&fit=crop&w=600&q=80' },
     { name: 'Chargers & Power', url: 'https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=600&q=80' },
     { name: 'Earbuds & Wireless', url: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&q=80' }
   ];
