@@ -67,42 +67,48 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
   if (!isOpen) return null;
 
   // Generate enriched flash sale items with calculated prices and discounts
+  const now = Date.now();
   const flashSaleItems = products.map((p, idx) => {
-    const nominatedDeal = flashDeals.find(d => d.productId === p.id && d.status === 'ACTIVE');
+    // Automatically filter out expired promotions
+    const nominatedDeal = flashDeals.find(
+      d => d.productId === p.id && d.status === 'ACTIVE' && (!d.endDate || new Date(d.endDate).getTime() > now)
+    );
 
     // If product has a merchant nomination, use merchant's nominated discount & price
-    let discountPct = 30;
-    let flashPrice = Math.round(p.price * 0.7);
+    let discountPct = 15;
+    let flashPrice = Math.round(p.price * 0.85);
+    let originalPrice = p.price;
     let tag = 'FLASH SALE';
     let isMerchantNominated = false;
 
     if (nominatedDeal) {
-      discountPct = nominatedDeal.discountPct;
+      originalPrice = nominatedDeal.originalPrice || p.price;
+      discountPct = nominatedDeal.discountPct || Math.round(((originalPrice - nominatedDeal.flashPrice) / originalPrice) * 100);
       flashPrice = nominatedDeal.flashPrice;
-      tag = nominatedDeal.bannerTag || `${nominatedDeal.discountPct}% OFF`;
+      tag = nominatedDeal.bannerTag || `${discountPct}% OFF`;
       isMerchantNominated = true;
     } else {
-      if (idx % 3 === 0) discountPct = 40;
-      if (idx % 5 === 0) discountPct = 50;
-      if (idx % 2 === 0 && idx % 3 !== 0) discountPct = 35;
-      flashPrice = Math.round(p.price * (1 - discountPct / 100));
-      tag = discountPct >= 40 ? 'MEGA DEAL' : 'FLASH SALE';
+      if (idx % 3 === 0) discountPct = 25;
+      if (idx % 5 === 0) discountPct = 30;
+      if (idx % 2 === 0 && idx % 3 !== 0) discountPct = 20;
+      flashPrice = Math.round(originalPrice * (1 - discountPct / 100));
+      tag = discountPct >= 25 ? 'MEGA DEAL' : 'FLASH SALE';
     }
 
+    const totalStock = p.variants.reduce((acc, v) => acc + (v.onHand || 0), 0);
     const claimedPct = nominatedDeal && nominatedDeal.dealStock > 0 
-      ? Math.min(95, Math.round((nominatedDeal.claimedStock / nominatedDeal.dealStock) * 100))
+      ? Math.min(95, Math.round(((nominatedDeal.claimedStock || 0) / nominatedDeal.dealStock) * 100))
       : (simulatedClaimedQty[p.id] || (45 + (idx * 8) % 50));
-    const totalStock = p.variants.reduce((acc, v) => acc + v.onHand, 0);
     const remainingQty = nominatedDeal 
-      ? Math.max(1, nominatedDeal.dealStock - nominatedDeal.claimedStock)
-      : Math.max(1, Math.round(totalStock * (1 - claimedPct / 100)));
+      ? Math.max(0, Math.min(totalStock, nominatedDeal.dealStock - (nominatedDeal.claimedStock || 0)))
+      : Math.max(0, totalStock);
     const isUpcoming = !nominatedDeal && idx >= 6 && idx % 2 === 1;
 
     return {
       product: p,
       discountPct,
       flashPrice,
-      originalPrice: p.price,
+      originalPrice,
       claimedPct,
       remainingQty,
       isUpcoming,
@@ -374,7 +380,7 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
               </div>
             ) : (
               <GridContainer gap="spacious">
-                {filteredItems.map(({ product: p, discountPct, flashPrice, claimedPct, remainingQty, isUpcoming, tag, isMerchantNominated }) => {
+                {filteredItems.map(({ product: p, discountPct, flashPrice, originalPrice, claimedPct, remainingQty, isUpcoming, tag, isMerchantNominated }) => {
                   const isFavorite = favorites.includes(p.id);
                   const isCompared = comparedProductIds.includes(p.id);
 
@@ -393,6 +399,7 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
                       showToast={showToast}
                       flashDiscountPct={discountPct}
                       flashPrice={flashPrice}
+                      originalPrice={originalPrice}
                       claimedPct={isUpcoming ? undefined : claimedPct}
                       remainingQty={isUpcoming ? undefined : remainingQty}
                       isUpcoming={isUpcoming}

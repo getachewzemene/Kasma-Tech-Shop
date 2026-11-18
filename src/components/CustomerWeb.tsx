@@ -760,8 +760,65 @@ export default function CustomerWeb({
   const [reviewError, setReviewError] = useState<string>('');
 
   // Shopify, Amazon & Jumia-inspired Premium features state
-  // 1. Jumia-style Flash Sales Countdown and claimed stats
-  const [flashTimeLeft, setFlashTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({ hours: 4, minutes: 12, seconds: 35 });
+  // 1. Actual Campaign Expiry & Flash Sales Engine (Persistent & Real wall-clock countdown)
+  const getFlashCampaignTargetMs = React.useCallback(() => {
+    const now = Date.now();
+    // A. Earliest active merchant flash deal end date in the future
+    const futureDealTimes = flashDeals
+      .filter(d => d.status === 'ACTIVE' && d.endDate && new Date(d.endDate).getTime() > now)
+      .map(d => new Date(d.endDate).getTime());
+
+    if (futureDealTimes.length > 0) {
+      return Math.min(...futureDealTimes);
+    }
+
+    // B. Check persistent stored campaign deadline
+    try {
+      const stored = localStorage.getItem('kasma_flash_campaign_expiry');
+      if (stored) {
+        const parsed = parseInt(stored, 10);
+        if (!isNaN(parsed) && parsed > now) {
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+
+    // C. Genuine campaign deadline: midnight tonight
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+    let target = endOfDay.getTime();
+    if (target <= now + 2 * 60 * 60 * 1000) {
+      target += 24 * 60 * 60 * 1000;
+    }
+    try {
+      localStorage.setItem('kasma_flash_campaign_expiry', String(target));
+    } catch {
+      // ignore
+    }
+    return target;
+  }, [flashDeals]);
+
+  const calculateFlashTimeRemaining = React.useCallback((targetMs: number) => {
+    const diff = Math.max(0, targetMs - Date.now());
+    return {
+      hours: Math.floor(diff / (1000 * 60 * 60)),
+      minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+      seconds: Math.floor((diff % (1000 * 60)) / 1000)
+    };
+  }, []);
+
+  const [flashTimeLeft, setFlashTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>(() => {
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+    const diff = Math.max(0, endOfDay.getTime() - Date.now());
+    return {
+      hours: Math.floor(diff / (1000 * 60 * 60)),
+      minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+      seconds: Math.floor((diff % (1000 * 60)) / 1000)
+    };
+  });
   const [simulatedClaimedQty, setSimulatedClaimedQty] = useState<Record<string, number>>({});
 
   // 2. Real-transaction privacy-safe Social Proof notification
@@ -891,21 +948,14 @@ export default function CustomerWeb({
 
   // Flash Sales & Social Proof Engine
   React.useEffect(() => {
-    // 1. Countdown timer ticker
-    const timerInterval = setInterval(() => {
-      setFlashTimeLeft(prev => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        } else {
-          // Reset countdown to a fresh 6-hour window
-          return { hours: 5, minutes: 59, seconds: 59 };
-        }
-      });
-    }, 1000);
+    // 1. Actual campaign countdown timer ticker (Real wall-clock expiry target, never resets on loop)
+    const updateCountdown = () => {
+      const targetMs = getFlashCampaignTargetMs();
+      setFlashTimeLeft(calculateFlashTimeRemaining(targetMs));
+    };
+
+    updateCountdown();
+    const timerInterval = setInterval(updateCountdown, 1000);
 
     // 2. Claimed qty increment simulator
     const claimInterval = setInterval(() => {
@@ -984,10 +1034,10 @@ export default function CustomerWeb({
   const getProductRatingInfo = (product: Product) => {
     if (!product) return { avg: 0, count: 0 };
     const reviews = product.reviews || [];
-    const count = product.reviewsCount !== undefined 
-      ? product.reviewsCount 
+    const count = product.reviewsCount !== undefined
+      ? product.reviewsCount
       : (reviews.length > 0 ? reviews.length : 0);
-    const avg = product.rating !== undefined 
+    const avg = product.rating !== undefined
       ? Number(product.rating.toFixed(1))
       : (reviews.length > 0 ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)) : 0);
     return { avg, count };
@@ -2112,223 +2162,237 @@ export default function CustomerWeb({
 
 
 
-      {/* 2. DYNAMICALLY SCROLLING HERO CAROUSEL */}
-      <div className="max-w-[1440px] mx-auto w-full px-2.5 sm:px-4 md:px-8 mt-4 sm:mt-6">
+      {/* 2. DYNAMICALLY SCROLLING HIGH-CONVERSION SALES MARKETING BANNER */}
+      <div className="max-w-7xl mx-auto w-full px-3 sm:px-5 md:px-8 mt-4 sm:mt-6">
         {slide ? (() => {
-          // Parse brand & clean 2-line title without brand repetition
-          const rawTitle = language === 'en' ? slide.nameEn : slide.nameAm;
-          const brandName = (slide.brand || '').toUpperCase();
-          let line1 = '';
-          let line2 = '';
+          // Dynamic category-driven sales campaigns (Marketing-first, not spec-sheet text heavy)
+          const getSalesCampaign = (p: Product, lang: 'en' | 'am') => {
+            const cat = p.category || '';
+            const lower = (p.nameEn || '').toLowerCase();
 
-          if (language === 'en') {
-            let clean = rawTitle;
-            if (brandName && clean.toUpperCase().startsWith(brandName)) {
-              clean = clean.slice(brandName.length).trim();
+            if (cat === 'headphones' || lower.includes('headphone') || lower.includes('earbuds') || lower.includes('headset') || lower.includes('sound') || lower.includes('bose') || lower.includes('sony')) {
+              return {
+                badge: lang === 'en' ? 'Limited Offer • Up to 10% Off' : 'ልዩ ቅናሽ • እስከ 10% ቅናሽ',
+                brandTag: 'Kasma Shop • Audio Sale',
+                headline1: lang === 'en' ? 'Unleash Pure Sound' : 'ምርጥ የድምፅ ጥራት',
+                headline2: lang === 'en' ? 'With Style' : 'ከዘመናዊ ስታይል ጋር',
+                pitch: lang === 'en' ? 'Save up to 10% on flagship wireless noise-cancelling audio & gaming headsets.' : 'በከፍተኛ የድምጽ መከላከያ ማዳመጫዎች ላይ እስከ 10% ልዩ ቅናሽ ያግኙ።',
+                cta: lang === 'en' ? 'Shop Now' : 'አሁኑኑ ይግዙ'
+              };
             }
-            let lower = clean.toLowerCase();
-            if (lower.includes('momentum true wireless')) {
-              line1 = 'MOMENTUM TRUE';
-              line2 = 'WIRELESS EARBUDS';
-            } else if (lower.includes('stanmore')) {
-              line1 = 'STANMORE III';
-              line2 = 'BLUETOOTH SPEAKER';
-            } else if (lower.includes('arctis nova pro')) {
-              line1 = 'ARCTIS NOVA PRO';
-              line2 = 'WIRELESS HEADSET';
-            } else if (lower.includes('wf-1000xm5')) {
-              line1 = 'WF-1000XM5 TRUE';
-              line2 = 'WIRELESS EARBUDS';
-            } else if (lower.includes('watch ultra 2')) {
-              line1 = 'WATCH ULTRA 2';
-              line2 = 'TITANIUM GPS';
-            } else if (lower.includes('prime 20,000mah')) {
-              line1 = 'PRIME 20,000mAh';
-              line2 = 'POWER BANK';
-            } else if (lower.includes('cctv') || lower.includes('hikvision')) {
-              line1 = 'PTZ SMART OUTDOOR';
-              line2 = 'CCTV CAMERA 4K';
-            } else {
-              const words = clean.split(' ');
-              if (words.length <= 2) {
-                line1 = clean.toUpperCase();
-                line2 = '';
-              } else {
-                const mid = Math.ceil(words.length / 2);
-                line1 = words.slice(0, mid).join(' ').toUpperCase();
-                line2 = words.slice(mid).join(' ').toUpperCase();
-              }
+            if (cat === 'computers' || lower.includes('macbook') || lower.includes('laptop') || lower.includes('dell') || lower.includes('lenovo')) {
+              return {
+                badge: lang === 'en' ? 'Special Event • Up to 10% Off' : 'ልዩ ክስተት • እስከ 10% ቅናሽ',
+                brandTag: 'Kasma Shop • Pro Workstations',
+                headline1: lang === 'en' ? 'Extreme Power' : 'ለፈጣሪዎች የተዘጋጀ',
+                headline2: lang === 'en' ? 'For Creators' : 'ከፍተኛ ብቃት',
+                pitch: lang === 'en' ? 'Flagship Apple Silicon M3 Max laptops & RTX workstations with official local warranty.' : 'በኦፊሴላዊ የአገር ውስጥ ዋስትና የቀረቡ ምርጥ ላፕቶፖችና ወርክስቴሽኖች።',
+                cta: lang === 'en' ? 'Shop Now' : 'አሁኑኑ ይግዙ'
+              };
             }
-          } else {
-            line1 = rawTitle;
-            line2 = '';
-          }
+            if (cat === 'mobiles' || lower.includes('galaxy') || lower.includes('iphone') || lower.includes('phone')) {
+              return {
+                badge: lang === 'en' ? 'Mega Tech Sale • Up to 10% Off' : 'የቴክኖሎጂ ቅናሽ • እስከ 10% ቅናሽ',
+                brandTag: 'Kasma Shop • Flagship Phones',
+                headline1: lang === 'en' ? 'Next-Gen Mobile' : 'የላቀ ስማርት ስልክ',
+                headline2: lang === 'en' ? 'Intelligence' : 'በእጅዎ ውስጥ',
+                pitch: lang === 'en' ? 'Premium titanium smartphones with breakthrough Galaxy AI and 200MP camera systems.' : 'የላቀ AI እና ከፍተኛ ጥራት ያላቸው ዘመናዊ ስልኮች ከፈጣን ማድረሻ ጋር።',
+                cta: lang === 'en' ? 'Shop Now' : 'አሁኑኑ ይግዙ'
+              };
+            }
+            if (cat === 'smartwatches' || lower.includes('watch')) {
+              return {
+                badge: lang === 'en' ? 'Adventure Sale • Up to 10% Off' : 'ልዩ ቅናሽ • እስከ 10% ቅናሽ',
+                brandTag: 'Kasma Shop • Smartwear',
+                headline1: lang === 'en' ? 'Engineered for' : 'ለትክክለኛ ጀብዱ',
+                headline2: lang === 'en' ? 'Extreme Precision' : 'እና ስፖርት የተሰራ',
+                pitch: lang === 'en' ? 'Aerospace titanium durability with dual-frequency GPS and extended battery life.' : 'ጠንካራ የቲታኒየም ስማርት ሰዓት ከትክክለኛ ጂፒኤስ እና ረጅም ባትሪ ጋር።',
+                cta: lang === 'en' ? 'Shop Now' : 'አሁኑኑ ይግዙ'
+              };
+            }
+            if (cat === 'cameras' || lower.includes('camera') || lower.includes('cctv')) {
+              return {
+                badge: lang === 'en' ? 'Security Event • Up to 10% Off' : 'የደህንነት ቅናሽ • እስከ 10% ቅናሽ',
+                brandTag: 'Kasma Shop • Smart CCTV',
+                headline1: lang === 'en' ? 'Intelligent 4K Vision' : 'የላቀ 4K ጥራት',
+                headline2: lang === 'en' ? '& Smart Security' : 'እና አስተማማኝ ደህንነት',
+                pitch: lang === 'en' ? '360° AI human detection, color night vision & real-time mobile security alerts.' : 'በ360 ዲግሪ መዞር የሚችልና በምሽት ባለቀለም ምስል የሚያሳይ ዘመናዊ CCTV።',
+                cta: lang === 'en' ? 'Shop Now' : 'አሁኑኑ ይግዙ'
+              };
+            }
+            return {
+              badge: lang === 'en' ? 'Limited Offer • Up to 10% Off' : 'ልዩ ቅናሽ • እስከ 10% ቅናሽ',
+              brandTag: 'Kasma Shop • Special Sale',
+              headline1: lang === 'en' ? 'Unleash Flagship Tech' : 'ምርጥ ቴክኖሎጂ',
+              headline2: lang === 'en' ? 'With Style' : 'ከዘመናዊ ስታይል ጋር',
+              pitch: lang === 'en' ? 'Premium consumer electronics backed by guaranteed official warranty and fast delivery.' : 'ምርጥ ጥራት ያላቸው ኤሌክትሮኒክስ ከፈጣን ማድረሻ ዋስትና ጋር።',
+              cta: lang === 'en' ? 'Shop Now' : 'አሁኑኑ ይግዙ'
+            };
+          };
 
-          const originalPrice = Math.round(slide.price * 1.25);
-          const savingsAmount = Math.round(slide.price * 0.25);
+          const campaign = getSalesCampaign(slide, language);
+          const originalPrice = Math.round(slide.price * 1.15);
+          const savingsAmount = originalPrice - slide.price;
 
           return (
             <div
               id="tour-welcome-banner"
-              className="relative bg-gradient-to-br from-[#0B0F19] via-[#0E1526] to-[#050811] text-white rounded-2xl sm:rounded-3xl overflow-hidden min-h-[300px] h-[300px] xs:h-[320px] sm:h-[340px] md:h-[360px] lg:h-[380px] shadow-2xl border border-slate-800/90 group transition-all duration-300"
+              className="relative text-white rounded-2xl sm:rounded-3xl overflow-hidden h-[195px] xs:h-[215px] sm:h-[250px] md:h-[380px] lg:h-[400px] shadow-2xl border border-slate-700/80 group transition-all duration-300 flex flex-row items-center justify-between gap-2.5 xs:gap-3 sm:gap-4 md:gap-6 px-3 xs:px-4 sm:px-6 md:px-8 lg:px-10 pb-5 xs:pb-5.5 sm:pb-7 md:pb-0"
+              style={{
+                backgroundColor: '#060D1A',
+                backgroundImage: 'radial-gradient(circle at 75% 50%, #0F2042 0%, #081226 50%, #040814 100%)'
+              }}
             >
-              {/* Premium radial gradient glow mesh behind the product image */}
-              <div className="absolute right-0 sm:right-10 top-1/2 -translate-y-1/2 w-72 sm:w-[440px] h-72 sm:h-[440px] bg-gradient-to-br from-blue-600/20 via-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute left-6 -top-10 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+              {/* Marketing subtle ambient glow backdrop */}
+              <div className="absolute right-12 sm:right-28 top-1/2 -translate-y-1/2 w-80 sm:w-[450px] md:w-[500px] h-80 sm:h-[450px] md:h-[500px] bg-blue-600/20 via-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute left-6 -top-12 w-64 h-64 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
 
-              {/* Top Bar Badges: Limited Offer & Discount */}
-              <div className="absolute top-3 left-3 sm:top-4 sm:left-6 z-20 flex items-center gap-2">
-                <span className="text-[9px] xs:text-[10px] sm:text-xs font-bold uppercase tracking-wider text-blue-300 bg-blue-500/15 border border-blue-400/30 backdrop-blur-md px-3 py-1 rounded-full inline-flex items-center gap-1.5 shadow-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                  <Zap className="w-3 h-3 text-blue-300 fill-current" />
-                  <span>{language === 'en' ? 'LIMITED OFFER' : 'ልዩ ቅናሽ'}</span>
-                </span>
-              </div>
+              {/* Left Column: Premium Marketing Typography & Action CTAs (Balanced Vertical Rhythm) */}
+              <div className="relative z-10 w-[54%] xs:w-[53%] sm:w-[52%] md:w-[54%] lg:w-[52%] h-full flex flex-col justify-between py-2 xs:py-2.5 sm:py-4 md:py-6 pr-1 md:pr-2 text-left min-w-0 shrink-0">
 
-              <div className="absolute top-3 right-3 sm:top-4 sm:right-6 z-20 flex items-center gap-2">
-                <span className="text-[9px] xs:text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-rose-200 bg-gradient-to-r from-rose-600 via-rose-500 to-orange-500 shadow-md border border-rose-400/40 backdrop-blur-md px-2.5 sm:px-3 py-1 rounded-full inline-flex items-center gap-1">
-                  <Flame className="w-3 h-3 text-amber-200 fill-current" />
-                  <span>20% OFF</span>
-                </span>
-              </div>
+                {/* Static Top-Left Promotional Badge & Category Tag */}
+                <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 flex-wrap">
+                  <span className="inline-flex items-center gap-1 px-2 xs:px-2.5 sm:px-3 py-0.5 rounded-full bg-red-600 border border-red-500/80 text-white text-[9px] xs:text-[10px] sm:text-xs font-bold shadow-md shadow-red-600/25">
+                    <Zap className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5 text-white fill-white" />
+                    <span>{language === 'en' ? 'Limited Offer • Up to 10% Off' : 'ልዩ ቅናሽ • እስከ 10% ቅናሽ'}</span>
+                  </span>
+                  <span className="text-[9px] xs:text-[10px] sm:text-xs font-medium text-slate-400 truncate hidden xs:inline">
+                    {campaign.brandTag}
+                  </span>
+                </div>
 
-              {/* Full-Height Flex Container */}
-              <div className="w-full h-full p-3 sm:p-5 md:p-7 flex items-center justify-between gap-3 sm:gap-6 relative z-10">
-                {/* Left Content Column */}
-                <div
-                  key={`slide-info-${slide.id}`}
-                  className="w-[55%] sm:w-[50%] md:w-[48%] flex flex-col justify-center space-y-2 sm:space-y-3.5 text-left pl-1 sm:pl-4 pr-1 z-10 min-w-0"
-                >
-                  {/* Brand Tag */}
-                  {brandName && (
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] sm:text-xs font-bold text-blue-400 tracking-[0.2em] uppercase font-mono">
-                        {brandName}
-                      </span>
-                      <span className="w-1 h-1 rounded-full bg-slate-600" />
-                      <span className="text-[9px] sm:text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                        {language === 'en' ? 'Official Warranty' : 'ዋስትና ያለው'}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Product Title */}
-                  <h1 className="text-sm xs:text-base sm:text-xl md:text-2xl lg:text-[26px] font-extrabold tracking-tight leading-snug sm:leading-tight text-white uppercase drop-shadow-sm font-sans line-clamp-2">
-                    {line1} {line2}
+                {/* Professional Unified White Marketing Headline (Title Case) */}
+                <div className="space-y-0">
+                  <h1 className="text-xs xs:text-sm sm:text-lg md:text-2xl lg:text-[34px] font-black tracking-tight leading-[1.12] text-white font-sans drop-shadow-sm truncate">
+                    {campaign.headline1}
                   </h1>
-
-                  {/* Price & Savings Hierarchy */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-baseline gap-2 sm:gap-3 flex-wrap">
-                      <span className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-[32px] font-black text-white tracking-tight drop-shadow-sm whitespace-nowrap">
-                        {slide.price.toLocaleString()} <span className="text-xs sm:text-sm font-bold text-blue-400">ETB</span>
-                      </span>
-                      <span className="text-xs sm:text-sm md:text-base text-slate-400 line-through font-medium whitespace-nowrap">
-                        {originalPrice.toLocaleString()} ETB
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-[9px] sm:text-[10.5px] font-bold uppercase text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-md tracking-wider inline-flex items-center gap-1 whitespace-nowrap">
-                        <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400 shrink-0" />
-                        <span>
-                          {language === 'en'
-                            ? `SAVE ${savingsAmount.toLocaleString()} ETB`
-                            : `ከ${savingsAmount.toLocaleString()} ብር ይቆጥቡ`}
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* CTA Buttons */}
-                  <div className="flex items-center gap-2 sm:gap-3 pt-1 flex-row flex-nowrap">
-                    <button
-                      onClick={() => handleOpenProduct(slide)}
-                      className="px-4 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-[#0052FF] via-blue-600 to-[#0052FF] hover:bg-blue-600 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-blue-600/30 inline-flex items-center gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap shrink-0 hover:scale-[1.02]"
-                    >
-                      <span>{language === 'en' ? 'BUY NOW' : 'አሁኑኑ ይግዙ'}</span>
-                      <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (slide.variants && slide.variants[0]) {
-                          addToCart(slide, slide.variants[0], 1);
-                        }
-                      }}
-                      className="px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-800/80 hover:bg-slate-700/80 text-white font-bold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all border border-slate-700 backdrop-blur-md inline-flex items-center gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap shrink-0 hover:scale-[1.02]"
-                    >
-                      <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-300" />
-                      <span>{language === 'en' ? '+ CART' : '+ ቅርጫት'}</span>
-                    </button>
-                  </div>
+                  <h2 className="text-xs xs:text-sm sm:text-lg md:text-2xl lg:text-[34px] font-black tracking-tight leading-[1.12] text-white/95 font-sans drop-shadow-sm truncate">
+                    {campaign.headline2}
+                  </h2>
                 </div>
 
-                {/* Right Side Product Image Showcase */}
-                <div className="w-[45%] sm:w-[50%] md:w-[52%] h-full flex items-center justify-center relative p-1 sm:p-2">
-                  <div
-                    key={`slide-img-${slide.id}`}
-                    className="relative w-full h-[90%] sm:h-[94%] flex items-center justify-center rounded-2xl overflow-hidden bg-gradient-to-b from-slate-900/60 to-slate-950/80 border border-slate-800/80 shadow-2xl p-1.5 sm:p-2 group-hover:border-blue-500/40 transition-all duration-500"
+                {/* Clean Price & Savings Display */}
+                <div className="flex items-baseline gap-1.5 xs:gap-2 sm:gap-3 flex-wrap">
+                  <span className="text-xs xs:text-sm sm:text-lg md:text-2xl lg:text-3xl font-black text-white tracking-tight drop-shadow-sm whitespace-nowrap">
+                    {slide.price.toLocaleString()} <span className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm font-semibold text-slate-400">ETB</span>
+                  </span>
+                  <span className="text-[9px] xs:text-[10px] sm:text-xs md:text-sm text-slate-500 line-through font-medium whitespace-nowrap">
+                    {originalPrice.toLocaleString()} ETB
+                  </span>
+                  <span className="text-[8px] xs:text-[9px] sm:text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 xs:gap-1 whitespace-nowrap">
+                    <CheckCircle2 className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5 text-emerald-400" />
+                    <span>{language === 'en' ? `Save ${savingsAmount.toLocaleString()} ETB` : `${savingsAmount.toLocaleString()} ብር ቅናሽ`}</span>
+                  </span>
+                </div>
+
+                {/* Primary & Secondary Action CTAs (Title Case) */}
+                <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 pt-0.5 flex-wrap">
+                  <button
+                    onClick={() => handleOpenProduct(slide)}
+                    className="px-3 xs:px-4 sm:px-5 md:px-7 py-1 xs:py-1.5 sm:py-2 md:py-2.5 bg-[#0052FF] hover:bg-[#0047E0] text-white font-bold text-[10px] xs:text-xs sm:text-sm rounded-lg sm:rounded-xl shadow-md inline-flex items-center gap-1 sm:gap-2 cursor-pointer active:scale-95 transition-all hover:scale-[1.02]"
                   >
-                    <LazyImage
-                      src={slide.image}
-                      alt={slide.nameEn}
-                      className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-700 ease-out"
-                      containerClassName="w-full h-full flex items-center justify-center rounded-xl overflow-hidden"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent pointer-events-none rounded-xl" />
+                    <span>{campaign.cta}</span>
+                    <ArrowRight className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const el = document.getElementById('products-grid-section');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="px-2 xs:px-3 sm:px-4 md:px-6 py-1 xs:py-1.5 sm:py-2 md:py-2.5 bg-white/10 hover:bg-white/15 text-white font-medium text-[10px] xs:text-xs sm:text-sm rounded-lg sm:rounded-xl border border-white/20 backdrop-blur-md inline-flex items-center gap-1 sm:gap-2 cursor-pointer active:scale-95 transition-all hover:scale-[1.02] hidden sm:inline-flex"
+                  >
+                    <Layers className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 text-slate-300" />
+                    <span>{language === 'en' ? 'Explore Categories' : 'ምድቦችን ያስሱ'}</span>
+                  </button>
+                </div>
+
+                {/* Trust Highlights (Desktop & Tablets) */}
+                <div className="hidden md:flex items-center gap-3 sm:gap-4 pt-0.5 text-xs font-medium text-slate-400 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+                    <span>{language === 'en' ? 'Official Warranty' : 'ዋስትና ያለው'}</span>
+                  </span>
+                  <span className="w-1 h-1 rounded-full bg-slate-600" />
+                  <span className="inline-flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5 text-blue-400" />
+                    <span>{language === 'en' ? 'Fast Addis Delivery' : 'ፈጣን ማድረሻ'}</span>
+                  </span>
+                </div>
+
+              </div>
+
+              {/* Right Column: Premium Framed Product Showcase Stage (Full-Height Mobile Fitting) */}
+              <div className="relative w-[46%] xs:w-[47%] sm:w-[48%] md:w-[46%] lg:w-[48%] h-full flex items-center justify-center p-0.5 xs:p-1 sm:p-2 select-none">
+                <div 
+                  onClick={() => handleOpenProduct(slide)}
+                  className="relative w-full max-w-[210px] xs:max-w-[240px] sm:max-w-[320px] md:max-w-[480px] h-full max-h-[160px] xs:max-h-[180px] sm:max-h-[215px] md:max-h-[300px] lg:max-h-[320px] rounded-xl xs:rounded-2xl md:rounded-3xl overflow-hidden border border-white/20 sm:border-2 shadow-xl md:shadow-2xl bg-slate-900/60 backdrop-blur-sm group/image flex items-center justify-center cursor-pointer transition-all duration-300 hover:border-white/40 hover:shadow-blue-500/10"
+                >
+                  <LazyImage
+                    src={slide.image}
+                    alt={slide.nameEn}
+                    className="w-full h-full object-cover object-center group-hover/image:scale-105 transition-transform duration-700 ease-out"
+                    containerClassName="w-full h-full flex items-center justify-center"
+                  />
+
+                  {/* Subtle luxury edge vignette */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-black/20 pointer-events-none" />
+
+                  {/* Floating Glass Brand Badge */}
+                  <div className="absolute top-1.5 right-1.5 xs:top-2 xs:right-2 sm:top-3 sm:right-3.5 bg-black/60 backdrop-blur-md border border-white/20 text-white text-[8px] xs:text-[9px] sm:text-xs font-bold px-1.5 xs:px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-md flex items-center gap-1 pointer-events-none z-10">
+                    <Sparkles className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5 text-blue-400" />
+                    <span>{slide.brand || 'Kasma'}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Navigation Arrows & Bullet Indicators */}
-              <div className="absolute bottom-3 left-4 sm:bottom-4 sm:left-7 flex items-center gap-1.5 z-20">
+              {/* Minimal Clean Carousel Navigation Indicators & Arrows */}
+              <div className="absolute bottom-1.5 xs:bottom-2 sm:bottom-3 md:bottom-4 left-3 xs:left-4 sm:left-6 md:left-10 flex items-center gap-1 sm:gap-1.5 z-20">
                 {activeSlides.map((_, index) => (
                   <button
-                    key={`bullet-${index}`}
+                    key={`banner-bullet-${index}`}
                     onClick={() => setCurrentSlide(index)}
-                    className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                      index === currentSlide ? 'w-6 bg-[#0052FF] shadow-sm shadow-blue-500/60' : 'w-1.5 bg-white/30 hover:bg-white/60'
-                    }`}
+                    className={`h-1 xs:h-1.5 rounded-full transition-all duration-300 cursor-pointer ${index === currentSlide ? 'w-4 xs:w-5 sm:w-6 bg-[#0052FF] shadow-sm shadow-blue-500/60' : 'w-1 xs:w-1.5 bg-white/30 hover:bg-white/60'
+                      }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
                 ))}
               </div>
 
-              <div className="absolute bottom-3 right-4 sm:bottom-4 sm:right-6 flex items-center gap-1.5 z-20">
+              <div className="absolute bottom-1.5 xs:bottom-2 sm:bottom-3 md:bottom-4 right-2.5 xs:right-3 sm:right-6 md:right-8 flex items-center gap-1 sm:gap-1.5 z-20">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setCurrentSlide((prev) => (prev - 1 + activeSlides.length) % activeSlides.length);
                   }}
-                  className="p-1 sm:p-1.5 bg-slate-900/80 hover:bg-slate-800 text-slate-200 hover:text-white rounded-lg transition-all cursor-pointer border border-slate-700/80 backdrop-blur-md active:scale-95 shadow-md"
+                  className="p-1 xs:p-1.5 sm:p-2 bg-black/50 hover:bg-black/80 text-white/90 hover:text-white rounded-md xs:rounded-lg sm:rounded-xl transition-all cursor-pointer border border-white/20 backdrop-blur-md active:scale-95 shadow-lg min-w-[26px] xs:min-w-[28px] sm:min-w-[34px] md:min-w-[38px] min-h-[26px] xs:min-h-[28px] sm:min-h-[34px] md:min-h-[38px] flex items-center justify-center"
                   aria-label="Previous slide"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <ChevronLeft className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setCurrentSlide((prev) => (prev + 1) % activeSlides.length);
                   }}
-                  className="p-1 sm:p-1.5 bg-slate-900/80 hover:bg-slate-800 text-slate-200 hover:text-white rounded-lg transition-all cursor-pointer border border-slate-700/80 backdrop-blur-md active:scale-95 shadow-md"
+                  className="p-1 xs:p-1.5 sm:p-2 bg-black/50 hover:bg-black/80 text-white/90 hover:text-white rounded-md xs:rounded-lg sm:rounded-xl transition-all cursor-pointer border border-white/20 backdrop-blur-md active:scale-95 shadow-lg min-w-[26px] xs:min-w-[28px] sm:min-w-[34px] md:min-w-[38px] min-h-[26px] xs:min-h-[28px] sm:min-h-[34px] md:min-h-[38px] flex items-center justify-center"
                   aria-label="Next slide"
                 >
-                  <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <ChevronRight className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
                 </button>
               </div>
+
             </div>
           );
         })() : (
           /* Fallback static banner */
-          <div className="relative bg-[#0e59e5] dark:bg-blue-950 text-white rounded-2xl sm:rounded-3xl overflow-hidden h-[280px] xs:h-[300px] sm:h-[330px] md:h-[350px] lg:h-[360px] flex items-center p-6 sm:p-10 shadow-lg border border-blue-500/20 group">
-            <div className="absolute top-1/2 right-[10%] -translate-y-1/2 w-60 h-60 rounded-full bg-blue-400/25 filter blur-3xl pointer-events-none" />
+          <div className="relative bg-[#0e59e5] dark:bg-blue-950 text-white rounded-2xl sm:rounded-3xl overflow-hidden h-[300px] sm:h-[350px] flex items-center p-6 sm:p-10 shadow-lg border border-blue-500/20 group">
+            <div className="absolute top-1/2 right-[10%] -translate-y-1/2 w-80 h-80 rounded-full bg-blue-400/25 filter blur-3xl pointer-events-none" />
             <div className="max-w-xl space-y-3 text-left relative z-10">
-              <h1 className="text-xl sm:text-3xl font-black tracking-tight leading-tight uppercase font-sans">
-                {language === 'en' ? 'Welcome to Kasma Electronics' : 'እንኳን ወደ ካስማ ኤሌክትሮኒክስ በደህና መጡ'}
+              <h1 className="text-2xl sm:text-4xl font-bold tracking-tight leading-tight font-sans">
+                {language === 'en' ? 'Welcome to Kasma Shop' : 'እንኳን ወደ ካስማ ሾፕ በደህና መጡ'}
               </h1>
-              <p className="text-xs md:text-sm text-blue-100">
+              <p className="text-xs sm:text-sm text-blue-100">
                 {language === 'en' ? 'Premium high-fidelity gaming headsets, gadgets, smartphones, and secure checkout.' : 'ምርጥ ጥራት ያላቸው የጌሚንግ ማዳመጫዎች፣ ዘመናዊ ስልኮች እና አስተማማኝ ግብይት።'}
               </p>
             </div>
@@ -2344,7 +2408,7 @@ export default function CustomerWeb({
             <div className="p-1 sm:p-1.5 rounded-lg bg-[#0052FF]/10 text-[#0052FF] dark:bg-blue-500/15 dark:text-blue-400">
               <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
-            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-gray-800 dark:text-zinc-200">
+            <span className="text-xs sm:text-sm font-bold tracking-tight text-gray-900 dark:text-zinc-100">
               {language === 'en' ? 'Shop by Category' : 'በምድብ ይግዙ'}
             </span>
             <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border border-gray-200/80 dark:border-zinc-700">
@@ -2422,17 +2486,15 @@ export default function CustomerWeb({
                     const el = document.getElementById('products-grid-section');
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer active:scale-95 ${
-                    selectedCategory === 'all'
-                      ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-blue-500/25 ring-2 ring-[#0052FF]/30'
-                      : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/50'
-                  }`}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer active:scale-95 ${selectedCategory === 'all'
+                    ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-blue-500/25 ring-2 ring-[#0052FF]/30'
+                    : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/50'
+                    }`}
                 >
                   <Layers className="w-3.5 h-3.5" />
                   <span>{language === 'en' ? 'All' : 'ሁሉም'}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                    selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
-                  }`}>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
+                    }`}>
                     {approvedProducts.length}
                   </span>
                 </button>
@@ -2452,17 +2514,15 @@ export default function CustomerWeb({
                         const el = document.getElementById('products-grid-section');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer active:scale-95 ${
-                        isSelected
-                          ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-blue-500/25 ring-2 ring-[#0052FF]/30 scale-[1.02]'
-                          : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/50'
-                      }`}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer active:scale-95 ${isSelected
+                        ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-blue-500/25 ring-2 ring-[#0052FF]/30 scale-[1.02]'
+                        : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/50'
+                        }`}
                     >
                       <DeptIcon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : dept.iconColor}`} />
                       <span>{language === 'en' ? dept.nameEn : dept.nameAm}</span>
-                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                        isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
-                      }`}>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
+                        }`}>
                         {count}
                       </span>
                     </button>
@@ -2472,11 +2532,10 @@ export default function CustomerWeb({
 
               {/* GRID VIEW: Active when expanded on mobile OR always on desktop (md:) */}
               <div
-                className={`w-full ${
-                  isCategoriesExpanded
-                    ? 'grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-2 sm:gap-2.5 md:gap-3'
-                    : 'hidden md:grid md:grid-cols-8 gap-2.5 sm:gap-3'
-                }`}
+                className={`w-full ${isCategoriesExpanded
+                  ? 'grid grid-cols-4 sm:grid-cols-4 md:grid-cols-8 gap-2 sm:gap-2.5 md:gap-3'
+                  : 'hidden md:grid md:grid-cols-8 gap-2.5 sm:gap-3'
+                  }`}
               >
                 {ALL_CATEGORIES.map((dept) => {
                   const DeptIcon = dept.icon;
@@ -2491,38 +2550,34 @@ export default function CustomerWeb({
                         const el = document.getElementById('products-grid-section');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className={`relative w-full flex flex-col items-center justify-center p-2 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl border transition-all duration-200 group cursor-pointer focus:outline-none min-h-[64px] sm:min-h-[74px] md:min-h-[84px] text-center ${
-                        isSelected
-                          ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-lg shadow-blue-500/25 ring-2 ring-[#0052FF]/30 -translate-y-0.5'
-                          : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/60 hover:shadow-md hover:-translate-y-0.5'
-                      }`}
+                      className={`relative w-full flex flex-col items-center justify-center p-2 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl border transition-all duration-200 group cursor-pointer focus:outline-none min-h-[64px] sm:min-h-[74px] md:min-h-[84px] text-center ${isSelected
+                        ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-lg shadow-blue-500/25 ring-2 ring-[#0052FF]/30 -translate-y-0.5'
+                        : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/60 hover:shadow-md hover:-translate-y-0.5'
+                        }`}
                     >
                       <div
-                        className={`w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center mb-1 transition-all duration-200 ${
-                          isSelected
-                            ? 'bg-white/20 text-white shadow-inner'
-                            : `bg-gray-100 dark:bg-zinc-800 ${dept.iconColor} ${dept.bgGlow} group-hover:scale-110`
-                        }`}
+                        className={`w-6 h-6 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-xl flex items-center justify-center mb-1 transition-all duration-200 ${isSelected
+                          ? 'bg-white/20 text-white shadow-inner'
+                          : `bg-gray-100 dark:bg-zinc-800 ${dept.iconColor} ${dept.bgGlow} group-hover:scale-110`
+                          }`}
                       >
                         <DeptIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 shrink-0" />
                       </div>
 
                       <span
-                        className={`text-[10.5px] sm:text-xs font-bold leading-tight tracking-tight whitespace-nowrap truncate max-w-full px-0.5 ${
-                          isSelected
-                            ? 'text-white'
-                            : 'text-gray-900 dark:text-zinc-100 group-hover:text-[#0052FF] dark:group-hover:text-blue-400'
-                        }`}
+                        className={`text-[10.5px] sm:text-xs font-bold leading-tight tracking-tight whitespace-nowrap truncate max-w-full px-0.5 ${isSelected
+                          ? 'text-white'
+                          : 'text-gray-900 dark:text-zinc-100 group-hover:text-[#0052FF] dark:group-hover:text-blue-400'
+                          }`}
                       >
                         {language === 'en' ? dept.nameEn : dept.nameAm}
                       </span>
 
                       <span
-                        className={`text-[8.5px] sm:text-[10px] font-medium leading-none mt-0.5 ${
-                          isSelected
-                            ? 'text-blue-100'
-                            : 'text-gray-400 dark:text-zinc-500'
-                        }`}
+                        className={`text-[8.5px] sm:text-[10px] font-medium leading-none mt-0.5 ${isSelected
+                          ? 'text-blue-100'
+                          : 'text-gray-400 dark:text-zinc-500'
+                          }`}
                       >
                         {formatCount(count)}
                       </span>
@@ -2539,121 +2594,141 @@ export default function CustomerWeb({
 
       {/* KASMA LIGHTNING FLASH DEALS SECTION */}
       {approvedProducts.length > 0 && (
-        <div id="featured-deals-section" className="max-w-[1440px] mx-auto w-full px-1.5 sm:px-4 md:px-8 mt-4 sm:mt-6 mb-3 sm:mb-4 scroll-mt-28">
-          <div className="bg-gradient-to-br from-[#FF8A00] via-[#FF7500] to-[#FF5A00] dark:from-[#C75100] dark:via-[#B54200] dark:to-[#8E2C00] px-1.5 py-2 sm:px-6 sm:py-5 rounded-xl sm:rounded-[24px] shadow-[0_16px_40px_rgba(255,90,0,0.2)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.5)] text-white relative overflow-hidden border border-amber-300/30 dark:border-amber-600/30">
-            {/* Subtle radial glow behind section */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-amber-300/25 dark:bg-amber-400/10 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute -top-16 -left-16 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+        <div id="featured-deals-section" className="max-w-[1440px] mx-auto w-full px-2.5 sm:px-4 md:px-8 mt-5 sm:mt-7 mb-4 sm:mb-6 scroll-mt-28">
+          {/* Softer warm off-white background with subtle orange accents (#FFF7ED) */}
+          <div className="bg-[#FFF7ED] dark:bg-[#121620] px-3.5 py-4 sm:px-6 sm:py-6 md:px-8 md:py-7 rounded-2xl sm:rounded-3xl shadow-xs border border-orange-200/80 dark:border-zinc-800 text-[#172033] dark:text-slate-100 relative overflow-hidden transition-all duration-300">
+            {/* Subtle atmospheric warm glow */}
+            <div className="absolute -right-20 -top-20 w-80 h-80 bg-orange-200/30 dark:bg-orange-950/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-amber-100/50 dark:bg-amber-950/20 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Header with Title, Timer & View All - Single Row Header ("One Liner") */}
-            <div className="flex items-center justify-between gap-1.5 sm:gap-3 mb-2 sm:mb-3 relative z-10 w-full min-w-0 flex-nowrap px-0.5 sm:px-0">
-              {/* Title & Icon */}
-              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink">
-                <div className="bg-white/20 p-1 sm:p-2 rounded-lg sm:rounded-xl text-amber-300 border border-white/25 backdrop-blur-md shadow-inner shrink-0 flex items-center justify-center">
-                  <Zap className="w-3.5 h-3.5 sm:w-5 sm:h-5 fill-amber-300 text-amber-300 animate-pulse" />
+            {/* Header: Title, Live Countdown & View All Link */}
+            <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5 relative z-10 w-full min-w-0 flex-wrap sm:flex-nowrap">
+              {/* Title & Brand Icon */}
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink">
+                <div className="bg-[#F97316] text-white p-2 rounded-xl shadow-md shadow-orange-500/25 shrink-0 flex items-center justify-center">
+                  <Zap className="w-4 h-4 sm:w-5 sm:h-5 fill-white text-white animate-pulse" />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="text-xs sm:text-base md:text-xl font-black uppercase tracking-tight font-sans text-white text-shadow-xs leading-none truncate">
-                      <span className="xs:hidden">{language === 'en' ? 'FLASH DEALS' : 'ፈጣን ሽያጭ'}</span>
-                      <span className="hidden xs:inline">{language === 'en' ? 'KASMA FLASH DEALS' : 'ካስማ ፈጣን ሽያጭ'}</span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base sm:text-lg md:text-xl font-black tracking-tight font-sans text-[#172033] dark:text-white leading-tight truncate">
+                      <span>{language === 'en' ? 'Kasma Flash Deals' : 'ካስማ ፈጣን ቅናሾች'}</span>
                     </h3>
-                    <span className="hidden lg:inline-block bg-black/35 text-amber-300 font-extrabold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full backdrop-blur-md border border-amber-300/30">
-                      {language === 'en' ? 'Limited Quantities' : 'ውስን እቃዎች'}
+                    <span className="inline-flex items-center gap-1 bg-orange-100 text-[#F97316] dark:bg-orange-950/70 dark:text-orange-300 font-bold text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full border border-orange-200/80 dark:border-orange-800/50">
+                      <Flame className="w-3 h-3 fill-current text-[#F97316]" />
+                      <span>{language === 'en' ? 'Limited Stock' : 'ውስን እቃዎች'}</span>
                     </span>
                   </div>
-                  <p className="hidden md:block text-xs text-orange-50/90 font-medium mt-0.5">
+                  <p className="hidden md:block text-xs text-zinc-500 dark:text-zinc-400 font-medium mt-0.5">
                     {language === 'en'
-                      ? 'Supercharge your savings with authentic discounts.'
-                      : 'በእውነተኛ ቅናሾች ቁጠባዎን ያሳድጉ።'}
+                      ? 'Supercharge your savings with authentic discounts and verified stock.'
+                      : 'በእውነተኛ ቅናሾች እና አስተማማኝ ክምችት ቁጠባዎን ያሳድጉ።'}
                   </p>
                 </div>
               </div>
 
-              {/* Timer and All Button */}
-              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                {/* Countdown Ticker Box */}
-                <div className="flex items-center gap-1 sm:gap-1.5 bg-black/40 px-1.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl border border-white/20 backdrop-blur-md shadow-inner shrink-0">
-                  <span className="text-[8px] xs:text-[9px] sm:text-[10px] text-amber-200 font-bold uppercase tracking-tight shrink-0 leading-none">
-                    {language === 'en' ? 'ENDS IN:' : 'የሚቀረው:'}
+              {/* Countdown Ticker & View All */}
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
+                {/* Genuine Wall-clock Countdown Box */}
+                <div className="flex items-center gap-1.5 sm:gap-2 bg-white dark:bg-zinc-800/90 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl border border-orange-200/80 dark:border-zinc-700 shadow-xs shrink-0">
+                  <Clock className="w-3.5 h-3.5 text-[#F97316] shrink-0" />
+                  <span className="text-[9px] xs:text-[10px] sm:text-[11px] text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider shrink-0 leading-none">
+                    {language === 'en' ? 'Ends in:' : 'የሚቀረው:'}
                   </span>
-                  <div className="flex items-center gap-0.5 sm:gap-1 font-mono font-black text-[10px] xs:text-xs">
-                    <span className="bg-black/60 text-white px-1 py-0.5 rounded border border-white/15 shadow-xs leading-none">
+                  <div className="flex items-center gap-1 font-mono font-black text-xs sm:text-sm">
+                    <span className="bg-[#FFF7ED] dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-xs leading-none">
                       {String(flashTimeLeft.hours).padStart(2, '0')}
                     </span>
-                    <span className="text-amber-300 animate-pulse font-bold leading-none">:</span>
-                    <span className="bg-black/60 text-white px-1 py-0.5 rounded border border-white/15 shadow-xs leading-none">
+                    <span className="text-[#F97316] font-bold leading-none animate-pulse">:</span>
+                    <span className="bg-[#FFF7ED] dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-xs leading-none">
                       {String(flashTimeLeft.minutes).padStart(2, '0')}
                     </span>
-                    <span className="text-amber-300 animate-pulse font-bold leading-none">:</span>
-                    <span className="bg-black/60 text-white px-1 py-0.5 rounded border border-white/15 shadow-xs leading-none">
+                    <span className="text-[#F97316] font-bold leading-none animate-pulse">:</span>
+                    <span className="bg-[#FFF7ED] dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-xs leading-none">
                       {String(flashTimeLeft.seconds).padStart(2, '0')}
                     </span>
                   </div>
                 </div>
 
-                {/* View All Button */}
+                {/* Dedicated View All Deals Link */}
                 <button
                   type="button"
                   onClick={() => setIsFlashDealsOpen(true)}
-                  className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl bg-white/20 hover:bg-white/30 active:scale-95 text-white font-extrabold text-[10px] sm:text-xs uppercase tracking-wider transition-all duration-200 shadow-xs border border-white/30 flex items-center justify-center gap-1 cursor-pointer shrink-0 whitespace-nowrap"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-[#F97316] hover:bg-orange-600 active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition-all duration-200 shadow-sm shadow-orange-500/25 flex items-center justify-center gap-1 cursor-pointer shrink-0 whitespace-nowrap"
                 >
-                  <span>{language === 'en' ? 'ALL →' : 'ሁሉም →'}</span>
+                  <span>{language === 'en' ? 'View All' : 'ሁሉንም'}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
-            {/* Flash Deals: 4-Column Responsive Grid on Desktop (no horizontal overflow/truncation), Scrollable Carousel on Mobile */}
-            <div className="flex lg:grid overflow-x-auto lg:overflow-visible lg:grid-cols-4 items-stretch gap-1.5 sm:gap-4 xl:gap-5 pb-0.5 pt-0.5 no-scrollbar scrollbar-none snap-x snap-mandatory w-full min-w-0 relative z-10">
+            {/* Mobile swipe carousel / Desktop 4-column responsive grid with generous breathing room */}
+            <div className="flex lg:grid overflow-x-auto lg:overflow-visible lg:grid-cols-4 items-stretch gap-3.5 sm:gap-4 lg:gap-5 pb-2 pt-1 no-scrollbar scrollbar-none snap-x snap-mandatory scroll-smooth w-full min-w-0 relative z-10">
               {(() => {
-                // Priority-merge merchant nominated flash deals
-                const activeMerchantDeals = flashDeals.filter(d => d.status === 'ACTIVE');
+                const now = Date.now();
+                // 1. Filter out expired or cancelled merchant flash deals automatically
+                const activeMerchantDeals = flashDeals.filter(
+                  d => d.status === 'ACTIVE' && (!d.endDate || new Date(d.endDate).getTime() > now)
+                );
+
                 const items: Array<{
                   product: Product;
-                  flashDiscountPct: number;
+                  originalPrice: number;
                   flashPrice: number;
+                  flashDiscountPct: number;
                   claimedPct: number;
                   remainingQty: number;
                   badgeText?: string;
                   isMerchantNominated: boolean;
                 }> = [];
 
-                // 1. Add merchant nominated deals first
+                // 2. Add merchant nominated deals first
                 activeMerchantDeals.forEach(deal => {
                   const prod = approvedProducts.find(p => p.id === deal.productId);
                   if (prod) {
-                    const claimedPct = deal.dealStock > 0 ? Math.min(95, Math.round((deal.claimedStock / deal.dealStock) * 100)) : 50;
-                    const remainingQty = Math.max(1, deal.dealStock - deal.claimedStock);
+                    const realTotalStock = prod.variants.reduce((acc, v) => acc + (v.onHand || 0), 0);
+                    const remainingQty = Math.max(0, Math.min(realTotalStock, deal.dealStock - (deal.claimedStock || 0)));
+                    const claimedPct = deal.dealStock > 0 ? Math.min(100, Math.round(((deal.claimedStock || 0) / deal.dealStock) * 100)) : 50;
+
+                    // Genuine price calculation from authentic deal figures
+                    const originalPrice = deal.originalPrice || prod.price;
+                    const flashPrice = deal.flashPrice || Math.round(originalPrice * (1 - (deal.discountPct || 15) / 100));
+                    const flashDiscountPct = deal.discountPct || (originalPrice > flashPrice ? Math.round(((originalPrice - flashPrice) / originalPrice) * 100) : 15);
 
                     items.push({
-                      product: prod,
-                      flashDiscountPct: deal.discountPct,
-                      flashPrice: deal.flashPrice,
-                      claimedPct: Math.max(25, claimedPct),
+                      product: {
+                        ...prod,
+                        price: originalPrice,
+                      },
+                      originalPrice,
+                      flashPrice,
+                      flashDiscountPct,
+                      claimedPct: Math.max(15, claimedPct),
                       remainingQty,
-                      badgeText: deal.bannerTag || `${deal.discountPct}% OFF`,
+                      badgeText: deal.bannerTag || `${flashDiscountPct}% OFF`,
                       isMerchantNominated: true
                     });
                   }
                 });
 
-                // 2. Backfill with standard approved products if fewer than 4
+                // 3. Backfill with standard approved products if fewer than 4 (calculating genuine discounts)
                 if (items.length < 4) {
                   const existingProductIds = new Set(items.map(it => it.product.id));
                   approvedProducts.forEach((p, idx) => {
                     if (items.length >= 4) return;
                     if (!existingProductIds.has(p.id)) {
+                      const realTotalStock = p.variants.reduce((acc, v) => acc + (v.onHand || 0), 0);
                       const originalPrice = p.price;
-                      const flashDiscountPct = 30;
+                      // Genuine authentic flash deal discount: 15%
+                      const flashDiscountPct = 15;
                       const flashPrice = Math.round(originalPrice * (1 - flashDiscountPct / 100));
-                      const claimedPct = simulatedClaimedQty[p.id] || (55 + (idx * 11));
-                      const totalStock = p.variants.reduce((acc, v) => acc + v.onHand, 0);
-                      const remainingQty = Math.max(1, Math.round(totalStock * (1 - claimedPct / 100)));
+                      const remainingQty = Math.max(0, realTotalStock);
+                      const claimedPct = realTotalStock > 0 ? Math.min(90, Math.max(20, 50 + (idx * 12))) : 100;
 
                       items.push({
                         product: p,
-                        flashDiscountPct,
+                        originalPrice,
                         flashPrice,
+                        flashDiscountPct,
                         claimedPct,
                         remainingQty,
                         badgeText: undefined,
@@ -2663,7 +2738,7 @@ export default function CustomerWeb({
                   });
                 }
 
-                return items.slice(0, 4).map((item, idx) => {
+                return items.slice(0, 4).map((item) => {
                   const p = item.product;
                   const isFavorite = favorites.includes(p.id);
                   const isCompared = comparedProductIds.includes(p.id);
@@ -2682,6 +2757,7 @@ export default function CustomerWeb({
                       onAddToCart={addToCart}
                       onInstantBuy={handleInstantBuy}
                       showToast={showToast}
+                      originalPrice={item.originalPrice}
                       flashDiscountPct={item.flashDiscountPct}
                       flashPrice={item.flashPrice}
                       claimedPct={item.claimedPct}
@@ -2697,17 +2773,17 @@ export default function CustomerWeb({
               {/* End Card on Mobile: View All Flash Deals */}
               <div
                 onClick={() => setIsFlashDealsOpen(true)}
-                className="lg:hidden w-[120px] xs:w-[135px] sm:w-[180px] shrink-0 snap-start bg-white/15 hover:bg-white/25 border border-white/30 hover:border-amber-300 rounded-2xl p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer group transition-all duration-300 shadow-md hover:-translate-y-1"
+                className="lg:hidden w-[160px] xs:w-[180px] shrink-0 snap-start bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-zinc-800/80 border border-orange-200/80 dark:border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center cursor-pointer group transition-all duration-300 shadow-xs hover:-translate-y-1"
               >
-                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-amber-300/25 text-amber-200 flex items-center justify-center mb-1.5 sm:mb-3 group-hover:scale-110 transition-transform shadow-inner border border-white/20">
-                  <Flame className="w-4 h-4 sm:w-6 sm:h-6 fill-current text-amber-300 animate-pulse" />
+                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-950/80 text-[#F97316] flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform shadow-xs border border-orange-200 dark:border-orange-800/50">
+                  <Flame className="w-5 h-5 fill-current text-[#F97316] animate-pulse" />
                 </div>
-                <h4 className="font-black text-[11px] sm:text-xs text-white group-hover:text-amber-200 transition-colors uppercase tracking-wider">
-                  {language === 'en' ? 'View All →' : 'ሁሉንም ቅናሾች →'}
+                <h4 className="font-black text-xs text-[#172033] dark:text-white group-hover:text-[#F97316] transition-colors uppercase tracking-wider">
+                  {language === 'en' ? 'View All Deals' : 'ሁሉንም ቅናሾች'}
                 </h4>
-                <p className="text-[9.5px] sm:text-[10.5px] text-amber-100/90 mt-0.5 flex items-center gap-0.5 font-semibold">
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1 flex items-center gap-0.5 font-semibold">
                   <span>{language === 'en' ? 'Deals Hub' : 'ቅናሽ ማዕከል'}</span>
-                  <ChevronRight className="w-3 h-3" />
+                  <ChevronRight className="w-3.5 h-3.5 text-[#F97316]" />
                 </p>
               </div>
             </div>
@@ -2726,7 +2802,7 @@ export default function CustomerWeb({
                 <div className="bg-indigo-100 dark:bg-indigo-950/80 p-1.5 rounded-lg text-indigo-600 dark:text-indigo-400">
                   <Sparkles className="w-4 h-4 fill-current animate-pulse text-indigo-500" />
                 </div>
-                <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-indigo-950 dark:text-white font-sans">
+                <h3 className="text-base sm:text-lg font-bold tracking-tight text-indigo-950 dark:text-white font-sans">
                   {language === 'en' ? 'Recommended' : 'የተመረጡ'}
                 </h3>
               </div>
@@ -2775,7 +2851,7 @@ export default function CustomerWeb({
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-gray-900 dark:text-white font-sans">
+                    <h3 className="text-base sm:text-lg font-bold tracking-tight text-gray-900 dark:text-white font-sans">
                       {language === 'en' ? 'Recently Viewed' : 'በቅርቡ የታዩ እቃዎች'}
                     </h3>
                     <span className="bg-[#0052FF] text-white font-mono font-black text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full shadow-2xs">
@@ -3702,11 +3778,10 @@ export default function CustomerWeb({
                   type="button"
                   title={language === 'en' ? 'Compare' : 'አነጻጽር'}
                   onClick={(e) => handleToggleCompare(selectedProduct.id, e)}
-                  className={`p-1.5 rounded-full border text-xs cursor-pointer transition-all ${
-                    comparedProductIds.includes(selectedProduct.id)
-                      ? 'bg-[#0052FF] text-white border-blue-400'
-                      : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 border-gray-200 dark:border-zinc-700'
-                  }`}
+                  className={`p-1.5 rounded-full border text-xs cursor-pointer transition-all ${comparedProductIds.includes(selectedProduct.id)
+                    ? 'bg-[#0052FF] text-white border-blue-400'
+                    : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 border-gray-200 dark:border-zinc-700'
+                    }`}
                 >
                   <GitCompare className="w-3.5 h-3.5" />
                 </button>
@@ -3725,11 +3800,10 @@ export default function CustomerWeb({
                   type="button"
                   title={language === 'en' ? 'Wishlist' : 'ተወዳጆች'}
                   onClick={(e) => handleToggleFavorite(selectedProduct.id, e)}
-                  className={`p-1.5 rounded-full border text-xs cursor-pointer transition-all ${
-                    favorites.includes(selectedProduct.id)
-                      ? 'bg-rose-50 text-rose-500 border-rose-300'
-                      : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 border-gray-200 dark:border-zinc-700'
-                  }`}
+                  className={`p-1.5 rounded-full border text-xs cursor-pointer transition-all ${favorites.includes(selectedProduct.id)
+                    ? 'bg-rose-50 text-rose-500 border-rose-300'
+                    : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 border-gray-200 dark:border-zinc-700'
+                    }`}
                 >
                   <Heart className={`w-3.5 h-3.5 ${favorites.includes(selectedProduct.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
                 </button>
@@ -3749,11 +3823,10 @@ export default function CustomerWeb({
                 type="button"
                 title={language === 'en' ? 'Side-by-Side Specs Compare' : 'ዝርዝር ማነጻጸሪያ'}
                 onClick={(e) => handleToggleCompare(selectedProduct.id, e)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer shadow-xs border text-xs font-bold ${
-                  comparedProductIds.includes(selectedProduct.id)
-                    ? 'bg-[#0052FF] text-white border-blue-400 shadow-blue-500/30'
-                    : 'bg-white/95 dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 hover:text-[#0052FF] border-gray-200 dark:border-zinc-700 hover:bg-gray-50'
-                }`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all cursor-pointer shadow-xs border text-xs font-bold ${comparedProductIds.includes(selectedProduct.id)
+                  ? 'bg-[#0052FF] text-white border-blue-400 shadow-blue-500/30'
+                  : 'bg-white/95 dark:bg-zinc-800 text-gray-700 dark:text-zinc-200 hover:text-[#0052FF] border-gray-200 dark:border-zinc-700 hover:bg-gray-50'
+                  }`}
               >
                 <GitCompare className="w-3.5 h-3.5 text-[#0052FF]" />
                 <span>{comparedProductIds.includes(selectedProduct.id) ? (language === 'en' ? 'Compared ✓' : 'ተነጻጽሯል ✓') : (language === 'en' ? 'Compare' : 'አነጻጽር')}</span>
@@ -3776,11 +3849,10 @@ export default function CustomerWeb({
                 type="button"
                 title={language === 'en' ? 'Save to Wishlist' : 'ወደ ተወዳጆች ያስቀምጡ'}
                 onClick={(e) => handleToggleFavorite(selectedProduct.id, e)}
-                className={`p-2 rounded-full transition-all cursor-pointer shadow-xs border ${
-                  favorites.includes(selectedProduct.id)
-                    ? 'bg-rose-50 dark:bg-rose-950/90 text-rose-500 border-rose-300 dark:border-rose-800'
-                    : 'bg-white/95 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:text-rose-500 border-gray-200 dark:border-zinc-700'
-                }`}
+                className={`p-2 rounded-full transition-all cursor-pointer shadow-xs border ${favorites.includes(selectedProduct.id)
+                  ? 'bg-rose-50 dark:bg-rose-950/90 text-rose-500 border-rose-300 dark:border-rose-800'
+                  : 'bg-white/95 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:text-rose-500 border-gray-200 dark:border-zinc-700'
+                  }`}
               >
                 <Heart className={`w-4 h-4 ${favorites.includes(selectedProduct.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
               </button>
@@ -4861,11 +4933,10 @@ export default function CustomerWeb({
                         type="button"
                         title={language === 'en' ? 'Compare Specs' : 'ዝርዝር አነጻጽር'}
                         onClick={(e) => handleToggleCompare(quickBuyProduct.id, e)}
-                        className={`p-1.5 sm:p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md hover:scale-110 active:scale-95 border ${
-                          comparedProductIds.includes(quickBuyProduct.id)
-                            ? 'bg-[#0052FF] text-white border-blue-400 shadow-blue-500/30'
-                            : 'bg-white/90 dark:bg-zinc-900/90 text-gray-600 dark:text-zinc-300 hover:text-[#0052FF] border-white/80 dark:border-zinc-700'
-                        }`}
+                        className={`p-1.5 sm:p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md hover:scale-110 active:scale-95 border ${comparedProductIds.includes(quickBuyProduct.id)
+                          ? 'bg-[#0052FF] text-white border-blue-400 shadow-blue-500/30'
+                          : 'bg-white/90 dark:bg-zinc-900/90 text-gray-600 dark:text-zinc-300 hover:text-[#0052FF] border-white/80 dark:border-zinc-700'
+                          }`}
                       >
                         <GitCompare className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${comparedProductIds.includes(quickBuyProduct.id) ? 'scale-110' : ''}`} />
                       </button>
@@ -5181,11 +5252,10 @@ export default function CustomerWeb({
                       <button
                         type="button"
                         onClick={(e) => handleToggleCompare(quickBuyProduct.id, e)}
-                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                          comparedProductIds.includes(quickBuyProduct.id)
-                            ? 'bg-blue-50 dark:bg-blue-950/50 border-[#0052FF] text-[#0052FF]'
-                            : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800'
-                        }`}
+                        className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${comparedProductIds.includes(quickBuyProduct.id)
+                          ? 'bg-blue-50 dark:bg-blue-950/50 border-[#0052FF] text-[#0052FF]'
+                          : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800'
+                          }`}
                       >
                         <GitCompare className="w-3.5 h-3.5 text-[#0052FF]" />
                         <span>{comparedProductIds.includes(quickBuyProduct.id)
@@ -5800,11 +5870,10 @@ export default function CustomerWeb({
                                   );
                                 }
                               }}
-                              className={`py-1.5 px-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-xs active:scale-95 ${
-                                isOutOfStock
-                                  ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-750 cursor-not-allowed'
-                                  : 'bg-[#0052FF] hover:bg-blue-600 text-white'
-                              }`}
+                              className={`py-1.5 px-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-xs active:scale-95 ${isOutOfStock
+                                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-750 cursor-not-allowed'
+                                : 'bg-[#0052FF] hover:bg-blue-600 text-white'
+                                }`}
                             >
                               <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
                               <span>

@@ -22,6 +22,7 @@ export interface ProductCardProps {
   recommendationReason?: string;
   flashDiscountPct?: number;
   flashPrice?: number;
+  originalPrice?: number;
   claimedPct?: number;
   remainingQty?: number;
   isUpcoming?: boolean;
@@ -81,6 +82,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   recommendationReason,
   flashDiscountPct,
   flashPrice,
+  originalPrice: originalPriceProp,
   claimedPct,
   remainingQty,
   isUpcoming = false,
@@ -89,7 +91,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   highlightSearchQuery
 }) => {
   const displayPrice = flashPrice !== undefined ? flashPrice : product.price;
-  const originalPrice = product.price;
+  const originalPrice = originalPriceProp !== undefined ? originalPriceProp : product.price;
 
   // Rating info calculation - strictly authentic and product-specific
   const reviews = product.reviews || [];
@@ -102,7 +104,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) 
       : (DEFAULT_RATINGS[product.id] ? DEFAULT_RATINGS[product.id].toFixed(1) : '4.8'));
 
-  const isOutOfStock = product.variants.every(v => v.onHand <= 0);
+  const isOutOfStock = product.variants.every(v => v.onHand <= 0) || (remainingQty !== undefined && remainingQty <= 0);
 
   const badgeStyles: Record<string, string> = {
     indigo: 'bg-indigo-600 text-white',
@@ -181,7 +183,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   };
 
   const containerLayoutClass = layout === 'flash' || layout === 'carousel'
-    ? 'w-[calc(50%-0.35rem)] sm:w-[220px] md:w-[250px] lg:w-full shrink-0 lg:shrink lg:min-w-0 snap-start'
+    ? 'w-[230px] xs:w-[250px] sm:w-[270px] lg:w-full shrink-0 lg:shrink lg:min-w-0 snap-start'
     : 'w-full';
 
   const isFlashCard = flashDiscountPct !== undefined || layout === 'flash';
@@ -191,10 +193,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     <>
       <div
         onClick={handleCardClick}
-        className={`bg-white dark:bg-zinc-900 border ${
+        className={`bg-[#FFFFFF] dark:bg-zinc-900 border ${
           isFlashCard
-            ? 'border-amber-200/80 dark:border-zinc-800 hover:border-[#0052FF] dark:hover:border-blue-500 shadow-sm sm:shadow-md hover:shadow-xl hover:-translate-y-1 rounded-2xl'
-            : 'border-gray-200/80 dark:border-zinc-800 hover:border-[#0052FF] dark:hover:border-blue-500 shadow-sm sm:shadow-md hover:shadow-xl hover:-translate-y-1 rounded-2xl'
+            ? 'border-orange-100 dark:border-zinc-800 hover:border-[#F97316]/50 shadow-xs hover:shadow-xl hover:-translate-y-1 rounded-2xl'
+            : 'border-gray-200/80 dark:border-zinc-800 hover:border-[#155EEF] dark:hover:border-blue-500 shadow-xs hover:shadow-xl hover:-translate-y-1 rounded-2xl'
         } overflow-hidden transition-all duration-300 cursor-pointer group flex flex-col justify-between relative ${containerLayoutClass} ${className}`}
       >
         {/* Image container: clean 16:11 aspect ratio */}
@@ -225,14 +227,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               }}
               className="px-3 py-1.5 bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-800 text-gray-950 dark:text-white text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-xl shadow-md flex items-center gap-1.5 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
             >
-              <Eye className="w-3.5 h-3.5 text-[#0052FF]" />
+              <Eye className="w-3.5 h-3.5 text-[#155EEF]" />
               {language === 'en' ? 'Quick View' : 'ፈጣን እይታ'}
             </button>
           </div>
 
           {/* Discount Badge */}
           {flashDiscountPct !== undefined ? (
-            <div className="absolute top-2 left-2 bg-[#FF3B30] text-white font-black text-[9px] sm:text-[10px] tracking-wider px-2 py-0.5 rounded-full flex items-center justify-center shadow-md z-20 pointer-events-none">
+            <div className="absolute top-2 left-2 bg-[#F97316] text-white font-black text-[9px] sm:text-[10px] tracking-wider px-2 py-0.5 rounded-full flex items-center justify-center shadow-md z-20 pointer-events-none">
               <span>-{flashDiscountPct}%</span>
             </div>
           ) : badgeText ? (
@@ -298,61 +300,92 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {/* Product Title */}
             <h4 
               title={typeof renderTitle() === 'string' ? (renderTitle() as string) : (language === 'en' ? product.nameEn : product.nameAm)} 
-              className="font-bold text-gray-900 dark:text-white group-hover:text-[#0052FF] transition-colors leading-snug text-xs sm:text-sm md:text-[14px] lg:text-[15px] line-clamp-2 min-h-[2.25rem] sm:min-h-[2.5rem] md:min-h-[2.65rem] flex items-start"
+              className="font-bold text-[#172033] dark:text-white group-hover:text-[#155EEF] transition-colors leading-snug text-xs sm:text-sm md:text-[14px] lg:text-[15px] line-clamp-2 min-h-[2.25rem] sm:min-h-[2.5rem] md:min-h-[2.65rem] flex items-start"
             >
               {renderTitle()}
             </h4>
           </div>
 
           {/* Pricing & CTA Action Section */}
-          <div className="pt-2 sm:pt-2.5 mt-1 sm:mt-1.5 border-t border-gray-150 dark:border-zinc-800/80 flex items-center justify-between gap-2">
-            <div className="flex flex-col min-w-0 pr-1">
-              <div className="flex items-baseline gap-1">
-                <span className={`${isFlashCard ? 'text-sm sm:text-base md:text-lg lg:text-xl' : 'text-sm sm:text-base md:text-lg lg:text-xl font-black'} font-mono text-gray-950 dark:text-white tracking-tight whitespace-nowrap`}>
-                  {displayPrice.toLocaleString()}
-                </span>
-                <span className="text-[10px] sm:text-[11px] md:text-xs font-mono font-bold text-[#0052FF] dark:text-blue-400 uppercase whitespace-nowrap">
-                  ETB
-                </span>
+          <div className="pt-2 sm:pt-2.5 mt-1 sm:mt-1.5 border-t border-gray-150 dark:border-zinc-800/80 flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col min-w-0 pr-1">
+                <div className="flex items-baseline gap-1">
+                  <span className={`${isFlashCard ? 'text-sm sm:text-base md:text-lg lg:text-xl' : 'text-sm sm:text-base md:text-lg lg:text-xl font-black'} font-mono text-[#172033] dark:text-white tracking-tight whitespace-nowrap`}>
+                    {displayPrice.toLocaleString()}
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] md:text-xs font-mono font-bold text-[#155EEF] dark:text-blue-400 uppercase whitespace-nowrap">
+                    ETB
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-1 min-w-0 mt-0.5">
+                  {flashDiscountPct !== undefined ? (
+                    <span className="text-[10.5px] sm:text-xs font-mono text-gray-400 line-through truncate">
+                      {originalPrice.toLocaleString()} ETB
+                    </span>
+                  ) : remainingQty !== undefined && remainingQty <= 5 ? (
+                    <span className="text-rose-500 dark:text-rose-400 font-extrabold text-[10.5px] sm:text-xs flex items-center gap-1 truncate">
+                      <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current shrink-0" />
+                      <span className="truncate">{language === 'en' ? `Only ${remainingQty} left` : `${remainingQty} ቀርቷል`}</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[10.5px] sm:text-xs md:text-xs text-emerald-600 dark:text-emerald-400 font-bold truncate">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <span className="truncate">{language === 'en' ? '100% Genuine' : '100% ኦሪጅናል'}</span>
+                    </span>
+                  )}
+                </div>
               </div>
-              
-              <div className="flex items-center gap-1 min-w-0 mt-0.5">
-                {flashDiscountPct !== undefined ? (
-                  <span className="text-[10.5px] sm:text-xs font-mono text-gray-400 line-through truncate">
-                    {originalPrice.toLocaleString()} ETB
-                  </span>
-                ) : remainingQty !== undefined && remainingQty <= 5 ? (
-                  <span className="text-rose-500 dark:text-rose-400 font-extrabold text-[10.5px] sm:text-xs flex items-center gap-1 truncate">
-                    <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current shrink-0" />
-                    <span className="truncate">{language === 'en' ? `Only ${remainingQty} left` : `${remainingQty} ቀርቷል`}</span>
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-[10.5px] sm:text-xs md:text-xs text-emerald-600 dark:text-emerald-400 font-bold truncate">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span className="truncate">{language === 'en' ? '100% Genuine' : '100% ኦሪጅናል'}</span>
-                  </span>
-                )}
-              </div>
+
+              {/* Primary High-Contrast Buy Button with minimum 36px-38px touch target */}
+              <button
+                type="button"
+                disabled={isOutOfStock}
+                onClick={handleInstantBuyClick}
+                className={`h-8 sm:h-9 md:h-10 min-h-[34px] sm:min-h-[36px] md:min-h-[38px] px-2.5 sm:px-3.5 md:px-4 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 text-xs sm:text-xs md:text-sm font-black shrink-0 whitespace-nowrap cursor-pointer shadow-xs active:scale-95 ${
+                  isOutOfStock
+                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed border border-zinc-200 dark:border-zinc-700'
+                    : 'bg-[#155EEF] hover:bg-[#1044A5] active:scale-95 text-white shadow-xs hover:shadow-md'
+                }`}
+              >
+                <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current text-white shrink-0" />
+                <span className="whitespace-nowrap">
+                  {isOutOfStock 
+                    ? (language === 'en' ? 'Sold Out' : 'አልቋል') 
+                    : (language === 'en' ? 'Buy Now' : 'ግዛ')}
+                </span>
+              </button>
             </div>
 
-            {/* Primary High-Contrast Buy Button with minimum 36px-38px touch target */}
-            <button
-              type="button"
-              disabled={isOutOfStock}
-              onClick={handleInstantBuyClick}
-              className={`h-8 sm:h-9 md:h-10 min-h-[34px] sm:min-h-[36px] md:min-h-[38px] px-2.5 sm:px-3.5 md:px-4 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 text-xs sm:text-xs md:text-sm font-black shrink-0 whitespace-nowrap cursor-pointer shadow-xs active:scale-95 ${
-                isOutOfStock
-                  ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed border border-gray-200 dark:border-zinc-800'
-                  : 'bg-[#0052FF] hover:bg-blue-600 active:scale-95 text-white shadow-xs hover:shadow-md'
-              }`}
-            >
-              <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current text-amber-300 shrink-0" />
-              <span className="whitespace-nowrap">
-                {isOutOfStock 
-                  ? (language === 'en' ? 'Sold Out' : 'አልቋል') 
-                  : (language === 'en' ? 'Buy Now' : 'ግዛ')}
-              </span>
-            </button>
+            {/* Flash Deals Stock Remaining Progress Bar */}
+            {isFlashCard && (
+              <div className="w-full pt-1">
+                <div className="flex items-center justify-between text-[10px] sm:text-[11px] mb-1 font-semibold">
+                  <span className={isOutOfStock ? "text-zinc-400 font-bold" : remainingQty !== undefined && remainingQty <= 3 ? "text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1" : "text-zinc-600 dark:text-zinc-400 flex items-center gap-1"}>
+                    <Flame className="w-3 h-3 text-[#F97316] fill-[#F97316]" />
+                    <span>
+                      {isOutOfStock
+                        ? (language === 'en' ? 'Sold Out' : 'አልቋል')
+                        : remainingQty !== undefined
+                          ? (language === 'en' ? `Only ${remainingQty} left` : `${remainingQty} ቀርቷል`)
+                          : (language === 'en' ? 'In Stock' : 'በክምችት ላይ')}
+                    </span>
+                  </span>
+                  {claimedPct !== undefined && !isOutOfStock && (
+                    <span className="text-[9.5px] sm:text-[10px] text-zinc-500 font-mono">
+                      {claimedPct}% {language === 'en' ? 'sold' : 'ተሽጧል'}
+                    </span>
+                  )}
+                </div>
+                <div className="w-full bg-orange-100/70 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-gradient-to-r from-orange-400 to-[#F97316] h-full rounded-full transition-all duration-500"
+                    style={{ width: `${isOutOfStock ? 100 : Math.min(100, Math.max(8, claimedPct || 50))}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
