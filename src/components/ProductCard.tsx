@@ -182,8 +182,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     );
   };
 
-  const containerLayoutClass = layout === 'flash' || layout === 'carousel'
-    ? 'w-[230px] xs:w-[250px] sm:w-[270px] lg:w-full shrink-0 lg:shrink lg:min-w-0 snap-start'
+  const containerLayoutClass = layout === 'carousel'
+    ? 'w-[160px] xs:w-[175px] sm:w-[220px] md:w-[250px] shrink-0 snap-start'
     : 'w-full';
 
   const isFlashCard = flashDiscountPct !== undefined || layout === 'flash';
@@ -234,18 +234,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* Discount Badge */}
           {flashDiscountPct !== undefined ? (
-            <div className="absolute top-2 left-2 bg-[#F97316] text-white font-black text-[9px] sm:text-[10px] tracking-wider px-2 py-0.5 rounded-full flex items-center justify-center shadow-md z-20 pointer-events-none">
+            <div className="absolute top-1.5 left-1.5 xs:top-2 xs:left-2 bg-[#F97316] text-white font-black text-[8.5px] xs:text-[9.5px] sm:text-[10px] tracking-wider px-1.5 xs:px-2 py-0.5 rounded-full flex items-center justify-center shadow-md z-20 pointer-events-none">
               <span>-{flashDiscountPct}%</span>
             </div>
           ) : badgeText ? (
-            <span className={`absolute top-2 left-2 ${badgeStyles[badgeColor]} text-[8px] sm:text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs z-20 pointer-events-none whitespace-nowrap`}>
+            <span className={`absolute top-1.5 left-1.5 xs:top-2 xs:left-2 ${badgeStyles[badgeColor]} text-[7.5px] xs:text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider px-1.5 xs:px-2 py-0.5 rounded-md shadow-xs z-20 pointer-events-none whitespace-nowrap`}>
               {badgeText}
             </span>
           ) : null}
 
           {/* Action Buttons: Clean Wishlist Heart Only */}
           {onToggleFavorite && (
-            <div className="absolute top-2 right-2 flex items-center z-30 pointer-events-auto">
+            <div className="absolute top-1.5 right-1.5 xs:top-2 xs:right-2 flex items-center z-30 pointer-events-auto">
               <button
                 type="button"
                 title={language === 'en' ? (isFavorite ? 'Remove from Wishlist' : 'Save to Wishlist') : (isFavorite ? 'ከተወዳጆች አስወግድ' : 'ወደ ተወዳጆች አስቀምጥ')}
@@ -253,25 +253,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   e.stopPropagation();
                   onToggleFavorite(product.id, e);
                 }}
-                className={`min-w-[34px] min-h-[34px] w-[34px] h-[34px] rounded-full backdrop-blur-md transition-all cursor-pointer shadow-xs hover:scale-108 active:scale-95 flex items-center justify-center border ${
+                className={`min-w-[28px] min-h-[28px] w-7 h-7 xs:w-8 xs:h-8 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-xs hover:scale-108 active:scale-95 flex items-center justify-center border ${
                   isFavorite
                     ? 'bg-rose-50 dark:bg-rose-950/90 text-rose-500 dark:text-rose-400 border-rose-300 dark:border-rose-800 shadow-rose-500/20 shadow-sm'
                     : 'bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-800 text-gray-500 hover:text-rose-500 border-white/80 dark:border-zinc-700/80'
                 }`}
               >
-                <Heart className={`w-4 h-4 transition-transform ${isFavorite ? 'fill-rose-500 text-rose-500 scale-110' : ''}`} />
+                <Heart className={`w-3.5 h-3.5 xs:w-4 xs:h-4 transition-transform ${isFavorite ? 'fill-rose-500 text-rose-500 scale-110' : ''}`} />
               </button>
             </div>
           )}
         </div>
 
         {/* Card Content / Description Section: Natural, readable layout */}
-        <div className="p-3 sm:p-3.5 md:p-4 flex flex-col justify-between flex-1 min-h-0 text-left gap-2 sm:gap-2.5">
-          <div className="space-y-1.5">
+        <div className="p-2 xs:p-2.5 sm:p-3 md:p-3.5 flex flex-col justify-between flex-1 min-h-0 text-left gap-1.5 sm:gap-2">
+          <div className="space-y-1">
             {/* Brand & Authentic Rating Capsule */}
-            <div className="flex items-center justify-between gap-1.5 min-w-0">
-              <div className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-wider truncate min-w-0">
-                <Tag className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400 shrink-0" />
+            <div className="flex items-center justify-between gap-1 min-w-0">
+              <div className="flex items-center gap-1 text-[10px] xs:text-[11px] sm:text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-wider truncate min-w-0">
+                <Tag className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-gray-400 shrink-0" />
                 <span className="truncate">{product.brand}</span>
               </div>
 
@@ -279,19 +279,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               {avg !== null ? (
                 <div 
                   title={language === 'en' ? `${avg} out of 5 stars (${count} customer reviews)` : `${avg} ከ 5 ኮከቦች (${count} የደንበኛ አስተያየቶች)`}
-                  className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-[11px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full shrink-0 whitespace-nowrap"
+                  className="flex items-center gap-0.5 xs:gap-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-[9.5px] xs:text-[10.5px] sm:text-xs px-1.5 xs:px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap"
                 >
-                  <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                  <Star className="w-2.5 h-2.5 xs:w-3 xs:h-3 fill-amber-400 text-amber-400 shrink-0" />
                   <span className="font-bold text-amber-900 dark:text-amber-200">{avg}</span>
                   {count > 0 && (
-                    <span className="text-[10px] sm:text-[11px] text-amber-700/90 dark:text-amber-400/90 font-medium">
-                      ({count} {language === 'en' ? 'reviews' : 'ግምገማዎች'})
+                    <span className="text-[9px] xs:text-[10px] sm:text-[11px] text-amber-700/90 dark:text-amber-400/90 font-medium hidden sm:inline">
+                      ({count})
                     </span>
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 font-bold text-[10.5px] sm:text-xs px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
-                  <Sparkles className="w-3 h-3 text-emerald-500 shrink-0" />
+                <div className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 font-bold text-[9.5px] xs:text-[10.5px] sm:text-xs px-1.5 xs:px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
+                  <Sparkles className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-emerald-500 shrink-0" />
                   <span>{language === 'en' ? 'New' : 'አዲስ'}</span>
                 </div>
               )}
@@ -300,59 +300,59 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {/* Product Title */}
             <h4 
               title={typeof renderTitle() === 'string' ? (renderTitle() as string) : (language === 'en' ? product.nameEn : product.nameAm)} 
-              className="font-bold text-[#172033] dark:text-white group-hover:text-[#155EEF] transition-colors leading-snug text-xs sm:text-sm md:text-[14px] lg:text-[15px] line-clamp-2 min-h-[2.25rem] sm:min-h-[2.5rem] md:min-h-[2.65rem] flex items-start"
+              className="font-bold text-[#172033] dark:text-white group-hover:text-[#155EEF] transition-colors leading-snug text-[11px] xs:text-xs sm:text-sm line-clamp-2 min-h-[1.9rem] xs:min-h-[2.1rem] sm:min-h-[2.4rem] flex items-start"
             >
               {renderTitle()}
             </h4>
           </div>
 
           {/* Pricing & CTA Action Section */}
-          <div className="pt-2 sm:pt-2.5 mt-1 sm:mt-1.5 border-t border-gray-150 dark:border-zinc-800/80 flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-2">
+          <div className="pt-1.5 xs:pt-2 border-t border-gray-150 dark:border-zinc-800/80 flex flex-col gap-1.5 xs:gap-2">
+            <div className="flex items-center justify-between gap-1.5">
               <div className="flex flex-col min-w-0 pr-1">
                 <div className="flex items-baseline gap-1">
-                  <span className={`${isFlashCard ? 'text-sm sm:text-base md:text-lg lg:text-xl' : 'text-sm sm:text-base md:text-lg lg:text-xl font-black'} font-mono text-[#172033] dark:text-white tracking-tight whitespace-nowrap`}>
+                  <span className="text-xs xs:text-sm sm:text-base font-black font-mono text-[#172033] dark:text-white tracking-tight whitespace-nowrap">
                     {displayPrice.toLocaleString()}
                   </span>
-                  <span className="text-[10px] sm:text-[11px] md:text-xs font-mono font-bold text-[#155EEF] dark:text-blue-400 uppercase whitespace-nowrap">
+                  <span className="text-[9px] xs:text-[10px] sm:text-xs font-mono font-bold text-[#155EEF] dark:text-blue-400 uppercase whitespace-nowrap">
                     ETB
                   </span>
                 </div>
                 
                 <div className="flex items-center gap-1 min-w-0 mt-0.5">
                   {flashDiscountPct !== undefined ? (
-                    <span className="text-[10.5px] sm:text-xs font-mono text-gray-400 line-through truncate">
+                    <span className="text-[9px] xs:text-[10px] sm:text-xs font-mono text-gray-400 line-through truncate">
                       {originalPrice.toLocaleString()} ETB
                     </span>
                   ) : remainingQty !== undefined && remainingQty <= 5 ? (
-                    <span className="text-rose-500 dark:text-rose-400 font-extrabold text-[10.5px] sm:text-xs flex items-center gap-1 truncate">
-                      <Flame className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current shrink-0" />
-                      <span className="truncate">{language === 'en' ? `Only ${remainingQty} left` : `${remainingQty} ቀርቷል`}</span>
+                    <span className="text-rose-500 dark:text-rose-400 font-extrabold text-[9px] xs:text-[10px] sm:text-xs flex items-center gap-0.5 truncate">
+                      <Flame className="w-2.5 h-2.5 xs:w-3 xs:h-3 fill-current shrink-0" />
+                      <span className="truncate">{language === 'en' ? `${remainingQty} left` : `${remainingQty} ቀርቷል`}</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-[10.5px] sm:text-xs md:text-xs text-emerald-600 dark:text-emerald-400 font-bold truncate">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      <span className="truncate">{language === 'en' ? '100% Genuine' : '100% ኦሪጅናል'}</span>
+                    <span className="inline-flex items-center gap-0.5 text-[9px] xs:text-[10px] sm:text-xs text-emerald-600 dark:text-emerald-400 font-bold truncate">
+                      <ShieldCheck className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-emerald-500 shrink-0" />
+                      <span className="truncate">{language === 'en' ? 'Genuine' : 'ኦሪጅናል'}</span>
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* Primary High-Contrast Buy Button with minimum 36px-38px touch target */}
+              {/* Primary High-Contrast Buy Button */}
               <button
                 type="button"
                 disabled={isOutOfStock}
                 onClick={handleInstantBuyClick}
-                className={`h-8 sm:h-9 md:h-10 min-h-[34px] sm:min-h-[36px] md:min-h-[38px] px-2.5 sm:px-3.5 md:px-4 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 text-xs sm:text-xs md:text-sm font-black shrink-0 whitespace-nowrap cursor-pointer shadow-xs active:scale-95 ${
+                className={`h-7 xs:h-7.5 sm:h-8.5 min-h-[28px] xs:min-h-[30px] sm:min-h-[34px] px-2 xs:px-2.5 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-center gap-1 text-[10px] xs:text-[11px] sm:text-xs font-black shrink-0 whitespace-nowrap cursor-pointer shadow-xs active:scale-95 ${
                   isOutOfStock
                     ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed border border-zinc-200 dark:border-zinc-700'
                     : 'bg-[#155EEF] hover:bg-[#1044A5] active:scale-95 text-white shadow-xs hover:shadow-md'
                 }`}
               >
-                <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-current text-white shrink-0" />
+                <Zap className="w-2.5 h-2.5 xs:w-3 xs:h-3 fill-current text-white shrink-0" />
                 <span className="whitespace-nowrap">
                   {isOutOfStock 
-                    ? (language === 'en' ? 'Sold Out' : 'አልቋል') 
+                    ? (language === 'en' ? 'Sold' : 'አልቋል') 
                     : (language === 'en' ? 'Buy Now' : 'ግዛ')}
                 </span>
               </button>
@@ -360,25 +360,25 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
             {/* Flash Deals Stock Remaining Progress Bar */}
             {isFlashCard && (
-              <div className="w-full pt-1">
-                <div className="flex items-center justify-between text-[10px] sm:text-[11px] mb-1 font-semibold">
-                  <span className={isOutOfStock ? "text-zinc-400 font-bold" : remainingQty !== undefined && remainingQty <= 3 ? "text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1" : "text-zinc-600 dark:text-zinc-400 flex items-center gap-1"}>
-                    <Flame className="w-3 h-3 text-[#F97316] fill-[#F97316]" />
+              <div className="w-full pt-0.5">
+                <div className="flex items-center justify-between text-[8.5px] xs:text-[9.5px] sm:text-[10px] mb-0.5 font-semibold">
+                  <span className={isOutOfStock ? "text-zinc-400 font-bold" : remainingQty !== undefined && remainingQty <= 3 ? "text-rose-600 dark:text-rose-400 font-bold flex items-center gap-0.5" : "text-zinc-600 dark:text-zinc-400 flex items-center gap-0.5"}>
+                    <Flame className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-[#F97316] fill-[#F97316] shrink-0" />
                     <span>
                       {isOutOfStock
                         ? (language === 'en' ? 'Sold Out' : 'አልቋል')
                         : remainingQty !== undefined
-                          ? (language === 'en' ? `Only ${remainingQty} left` : `${remainingQty} ቀርቷል`)
+                          ? (language === 'en' ? `${remainingQty} left` : `${remainingQty} ቀርቷል`)
                           : (language === 'en' ? 'In Stock' : 'በክምችት ላይ')}
                     </span>
                   </span>
                   {claimedPct !== undefined && !isOutOfStock && (
-                    <span className="text-[9.5px] sm:text-[10px] text-zinc-500 font-mono">
+                    <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] text-zinc-500 font-mono">
                       {claimedPct}% {language === 'en' ? 'sold' : 'ተሽጧል'}
                     </span>
                   )}
                 </div>
-                <div className="w-full bg-orange-100/70 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-orange-100/70 dark:bg-zinc-800 h-1 xs:h-1.5 rounded-full overflow-hidden">
                   <div
                     className="bg-gradient-to-r from-orange-400 to-[#F97316] h-full rounded-full transition-all duration-500"
                     style={{ width: `${isOutOfStock ? 100 : Math.min(100, Math.max(8, claimedPct || 50))}%` }}

@@ -114,34 +114,37 @@ export const AutoCarousel: React.FC<AutoCarouselProps> = ({
   const isGridOnDesktop = products.length <= 4;
 
   return (
-    <div className="border-0 sm:border border-gray-150 dark:border-zinc-800 rounded-none sm:rounded-3xl bg-transparent sm:bg-white dark:sm:bg-zinc-900 p-0 sm:p-5 shadow-none sm:shadow-xs w-full max-w-full overflow-hidden">
-      {/* Container Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 sm:gap-2.5 pb-2 sm:pb-4 mb-1 sm:mb-0 border-b border-gray-200 dark:border-zinc-800">
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          <div className="space-y-0.5 sm:space-y-1 flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <span className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${dotClasses[badgeColor]} animate-pulse shrink-0`} />
-              <h3 className="text-xs sm:text-sm font-black uppercase tracking-widest text-gray-950 dark:text-white leading-tight truncate">
-                {language === 'en' ? titleEn : titleAm}
-              </h3>
-            </div>
+    <div className="w-full max-w-full">
+      {/* Section Header */}
+      <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+          <span className={`w-2.5 h-2.5 rounded-full ${dotClasses[badgeColor]} animate-pulse shrink-0`} />
+          <div className="min-w-0">
+            <h3 className="text-sm sm:text-base md:text-lg font-black uppercase tracking-wider text-gray-950 dark:text-white leading-tight truncate">
+              {language === 'en' ? titleEn : titleAm}
+            </h3>
+            {subtitleEn && (
+              <p className="text-xs text-gray-500 dark:text-zinc-400 font-medium truncate hidden sm:block mt-0.5">
+                {language === 'en' ? subtitleEn : subtitleAm}
+              </p>
+            )}
           </div>
 
           {badgeColor === 'red' && timeLeft && (
-            <div className="flex items-center gap-1.5 sm:gap-2 pl-0 sm:pl-4 border-l-0 sm:border-l border-gray-200 dark:border-zinc-855 shrink-0">
-              <span className="text-[9px] sm:text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+            <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 pl-3 border-l border-gray-200 dark:border-zinc-800 shrink-0">
+              <span className="text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
                 {language === 'en' ? 'Ends in:' : 'የቀረው ጊዜ:'}
               </span>
               <div className="flex items-center gap-1 font-mono">
-                <span className="bg-black text-white dark:bg-zinc-800 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded font-black text-[11px] sm:text-xs text-center min-w-[24px] sm:min-w-[28px]">
+                <span className="bg-black text-white dark:bg-zinc-800 px-1.5 py-0.5 rounded font-black text-xs text-center min-w-[24px]">
                   {String(timeLeft.hours).padStart(2, '0')}
                 </span>
                 <span className="text-gray-400 font-bold text-xs">:</span>
-                <span className="bg-black text-white dark:bg-zinc-800 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded font-black text-[11px] sm:text-xs text-center min-w-[24px] sm:min-w-[28px]">
+                <span className="bg-black text-white dark:bg-zinc-800 px-1.5 py-0.5 rounded font-black text-xs text-center min-w-[24px]">
                   {String(timeLeft.minutes).padStart(2, '0')}
                 </span>
                 <span className="text-gray-400 font-bold text-xs">:</span>
-                <span className="bg-black text-white dark:bg-zinc-800 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded font-black text-[11px] sm:text-xs text-center min-w-[24px] sm:min-w-[28px] text-red-500 animate-pulse">
+                <span className="bg-black text-white dark:bg-zinc-800 px-1.5 py-0.5 rounded font-black text-xs text-center min-w-[24px] text-red-500 animate-pulse">
                   {String(timeLeft.seconds).padStart(2, '0')}
                 </span>
               </div>
@@ -149,20 +152,23 @@ export const AutoCarousel: React.FC<AutoCarouselProps> = ({
           )}
         </div>
         
-        <div className={`flex gap-1.5 self-end sm:self-auto shrink-0 mt-0.5 sm:mt-0 ${isGridOnDesktop ? 'lg:hidden' : ''}`}>
+        {/* Navigation Arrows */}
+        <div className={`flex gap-1.5 shrink-0 ${isGridOnDesktop ? 'lg:hidden' : ''}`}>
           <button 
             type="button"
             onClick={scrollLeft} 
-            className="p-1 sm:p-1.5 rounded-full border border-gray-150 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-zinc-400 transition-colors cursor-pointer shadow-xs"
+            className="p-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-600 dark:text-zinc-300 transition-colors cursor-pointer shadow-xs"
+            aria-label="Scroll left"
           >
-            <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <ChevronLeft className="w-4 h-4" />
           </button>
           <button 
             type="button"
             onClick={scrollRight} 
-            className="p-1 sm:p-1.5 rounded-full border border-gray-150 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-500 dark:text-zinc-400 transition-colors cursor-pointer shadow-xs"
+            className="p-1.5 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-600 dark:text-zinc-300 transition-colors cursor-pointer shadow-xs"
+            aria-label="Scroll right"
           >
-            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -170,7 +176,7 @@ export const AutoCarousel: React.FC<AutoCarouselProps> = ({
       {/* Carousel Track */}
       <div 
         ref={containerRef}
-        className={`flex ${isGridOnDesktop ? 'lg:grid lg:grid-cols-4 lg:overflow-visible' : ''} items-stretch gap-2.5 sm:gap-4 lg:gap-5 overflow-x-auto pb-1.5 pt-1.5 sm:pt-3 px-0.5 no-scrollbar scrollbar-none scroll-smooth snap-x snap-mandatory w-full`}
+        className={`flex ${isGridOnDesktop ? 'lg:grid lg:grid-cols-4 lg:overflow-visible' : ''} items-stretch gap-3 sm:gap-4 lg:gap-5 overflow-x-auto pb-1.5 pt-1 px-0.5 no-scrollbar scrollbar-none scroll-smooth snap-x snap-mandatory w-full`}
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         {products.map((p) => {

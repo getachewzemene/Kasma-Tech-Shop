@@ -1,7 +1,16 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Product } from '../types';
-import { Zap, CheckCircle2, ArrowRight, Sparkles, ChevronLeft, ChevronRight, ShieldCheck, Truck } from 'lucide-react';
+import {
+  CheckCircle2,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck,
+  Truck,
+  Zap,
+} from 'lucide-react';
 import { LazyImage } from './LazyImage';
+import { getProductSpecs } from '../utils/productSpecs';
 
 interface HeroSalesBannerProps {
   slide: Product;
@@ -10,7 +19,102 @@ interface HeroSalesBannerProps {
   setCurrentSlide: React.Dispatch<React.SetStateAction<number>>;
   language: 'en' | 'am';
   onOpenProduct: (p: Product) => void;
+  /** Time each slide stays on screen. Default 6000ms. */
+  autoplayMs?: number;
 }
+
+type Lang = 'en' | 'am';
+
+interface Campaign {
+  brandTag: string;
+  tagline: string;
+  cta: string;
+  /** RGB triplet used for the per-category glow, e.g. "99,102,241" */
+  glow: string;
+}
+
+const CTA = (lang: Lang) => (lang === 'en' ? 'Shop now' : 'አሁኑኑ ይግዙ');
+
+// Category-specific copy + glow color. Each category gets its own glow so the
+// banner visibly changes personality from slide to slide.
+const getSalesCampaign = (p: Product, lang: Lang): Campaign => {
+  const cat = p.category || '';
+  const lower = (p.nameEn || '').toLowerCase();
+
+  if (
+    cat === 'headphones' ||
+    ['headphone', 'earbuds', 'sound', 'bose', 'sony'].some((k) => lower.includes(k))
+  ) {
+    return {
+      brandTag: 'Audio',
+      tagline: lang === 'en' ? 'Pure sound, audiophile grade' : 'ምርጥ የድምፅ ጥራት • ኦሪጅናል',
+      cta: CTA(lang),
+      glow: '139,92,246',
+    };
+  }
+  if (cat === 'computers' || ['macbook', 'laptop', 'dell'].some((k) => lower.includes(k))) {
+    return {
+      brandTag: 'Computers',
+      tagline: lang === 'en' ? 'Extreme performance for creators' : 'ከፍተኛ ብቃት • ለፈጣሪዎች የተዘጋጀ',
+      cta: CTA(lang),
+      glow: '6,182,212',
+    };
+  }
+  if (cat === 'mobiles' || ['galaxy', 'iphone', 'phone'].some((k) => lower.includes(k))) {
+    return {
+      brandTag: 'Smartphones',
+      tagline: lang === 'en' ? 'Flagship power with AMOLED and 5G' : 'የላቀ ስማርት ስልክ • AMOLED & 5G',
+      cta: CTA(lang),
+      glow: '37,99,235',
+    };
+  }
+  if (cat === 'smartwatches' || lower.includes('watch')) {
+    return {
+      brandTag: 'Smartwatches',
+      tagline: lang === 'en' ? 'Precision built for adventure' : 'ትክክለኛ ጀብዱ • ለስፖርት የተሰራ',
+      cta: CTA(lang),
+      glow: '16,185,129',
+    };
+  }
+  if (cat === 'cameras' || ['camera', 'cctv'].some((k) => lower.includes(k))) {
+    return {
+      brandTag: 'CCTV & Cameras',
+      tagline: lang === 'en' ? 'Sharp 4K vision, smart AI security' : 'የላቀ 4K ጥራት • አስተማማኝ ደህንነት',
+      cta: CTA(lang),
+      glow: '245,158,11',
+    };
+  }
+  return {
+    brandTag: 'Featured',
+    tagline: lang === 'en' ? 'Authentic quality, verified stock' : 'ምርጥ ቴክኖሎጂ • የተረጋገጠ ጥራት',
+    cta: CTA(lang),
+    glow: '59,130,246',
+  };
+};
+
+// Short spec chips (max 3)
+const getSlideSpecChips = (p: Product, lang: Lang): string[] => {
+  const specs = getProductSpecs(p);
+  if (specs && specs.length > 0) {
+    return specs.slice(0, 3).map((s) => {
+      const val = lang === 'en' ? s.valueEn : s.valueAm;
+      return val.split('(')[0].replace(/•.*/, '').trim();
+    });
+  }
+  if (p.specs) {
+    const chips: string[] = [];
+    if (p.specs.display) chips.push(p.specs.display.split('(')[0].trim());
+    if (p.specs.ram || p.specs.storage)
+      chips.push(`${p.specs.ram || ''} ${p.specs.storage || ''}`.trim());
+    if (p.specs.battery) chips.push(p.specs.battery.split('(')[0].trim());
+    if (chips.length > 0) return chips.slice(0, 3);
+  }
+  return lang === 'en'
+    ? ['Official warranty', 'Authentic brand', 'Fast delivery']
+    : ['አስተማማኝ ዋስትና', 'ኦሪጅናል እቃ', 'ፈጣን ማድረሻ'];
+};
+
+const SWIPE_THRESHOLD = 50;
 
 export const HeroSalesBanner: React.FC<HeroSalesBannerProps> = ({
   slide,
@@ -18,199 +122,262 @@ export const HeroSalesBanner: React.FC<HeroSalesBannerProps> = ({
   currentSlide,
   setCurrentSlide,
   language,
-  onOpenProduct
+  onOpenProduct,
+  autoplayMs = 6000,
 }) => {
-  // Dynamic category-driven sales campaigns
-  const getSalesCampaign = (p: Product, lang: 'en' | 'am') => {
-    const cat = p.category || '';
-    const lower = (p.nameEn || '').toLowerCase();
+  const [paused, setPaused] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const total = activeSlides.length;
 
-    if (cat === 'headphones' || lower.includes('headphone') || lower.includes('earbuds') || lower.includes('headset') || lower.includes('sound') || lower.includes('bose') || lower.includes('sony')) {
-      return {
-        brandTag: 'Kasma Shop • Audio Sale',
-        headline1: lang === 'en' ? 'Unleash Pure Sound' : 'ምርጥ የድምፅ ጥራት',
-        headline2: lang === 'en' ? 'With Style' : 'ከዘመናዊ ስታይል ጋር',
-        cta: lang === 'en' ? 'Shop Now' : 'አሁኑኑ ይግዙ'
-      };
-    }
-    if (cat === 'computers' || lower.includes('macbook') || lower.includes('laptop') || lower.includes('dell') || lower.includes('lenovo')) {
-      return {
-        brandTag: 'Kasma Shop • Pro Workstations',
-        headline1: lang === 'en' ? 'Extreme Power' : 'ለፈጣሪዎች የተዘጋጀ',
-        headline2: lang === 'en' ? 'For Creators' : 'ከፍተኛ ብቃት',
-        cta: lang === 'en' ? 'Shop Now' : 'አሁኑኑ ይግዙ'
-      };
-    }
-    if (cat === 'mobiles' || lower.includes('galaxy') || lower.includes('iphone') || lower.includes('phone')) {
-      return {
-        brandTag: 'Kasma Shop • Flagship Phones',
-        headline1: lang === 'en' ? 'Next-Gen Mobile' : 'የላቀ ስማርት ስልክ',
-        headline2: lang === 'en' ? 'Intelligence' : 'በእጅዎ ውስጥ',
-        cta: lang === 'en' ? 'Shop Now' : 'አሁኑኑ ይግዙ'
-      };
-    }
-    if (cat === 'smartwatches' || lower.includes('watch')) {
-      return {
-        brandTag: 'Kasma Shop • Smartwear',
-        headline1: lang === 'en' ? 'Engineered for' : 'ለትክክለኛ ጀብዱ',
-        headline2: lang === 'en' ? 'Extreme Precision' : 'እና ስፖርት የተሰራ',
-        cta: lang === 'en' ? 'Shop Now' : 'አሁኑኑ ይግዙ'
-      };
-    }
-    if (cat === 'cameras' || lower.includes('camera') || lower.includes('cctv')) {
-      return {
-        brandTag: 'Kasma Shop • Smart CCTV',
-        headline1: lang === 'en' ? 'Intelligent 4K Vision' : 'የላቀ 4K ጥራት',
-        headline2: lang === 'en' ? '& Smart Security' : 'እና አስተማማኝ ደህንነት',
-        cta: lang === 'en' ? 'Shop Now' : 'አሁኑኑ ይግዙ'
-      };
-    }
-    return {
-      brandTag: 'Kasma Shop • Special Sale',
-      headline1: lang === 'en' ? 'Unleash Flagship Tech' : 'ምርጥ ቴክኖሎጂ',
-      headline2: lang === 'en' ? 'With Style' : 'ከዘመናዊ ስታይል ጋር',
-      cta: lang === 'en' ? 'Shop Now' : 'አሁኑኑ ይግዙ'
-    };
-  };
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduceMotion(mq.matches);
+    const onChange = () => setReduceMotion(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  const goNext = () => setCurrentSlide((p) => (p + 1) % total);
+  const goPrev = () => setCurrentSlide((p) => (p - 1 + total) % total);
 
   const campaign = getSalesCampaign(slide, language);
+  const specChips = getSlideSpecChips(slide, language);
   const originalPrice = Math.round(slide.price * 1.15);
   const savingsAmount = originalPrice - slide.price;
+  const discountPct = Math.round((savingsAmount / originalPrice) * 100);
+  const productName = language === 'en' ? slide.nameEn : slide.nameAm || slide.nameEn;
+  const autoplayOn = total > 1 && !reduceMotion;
 
   return (
-    <div
+    <section
       id="tour-welcome-banner"
-      className="relative text-white rounded-2xl sm:rounded-3xl overflow-hidden h-[195px] xs:h-[210px] sm:h-[240px] md:h-[300px] lg:h-[330px] shadow-2xl border border-slate-800/90 group transition-all duration-300 flex flex-row items-stretch justify-between p-2.5 xs:p-3 sm:p-5 md:p-6 lg:p-7 gap-2 xs:gap-2.5 sm:gap-4 md:gap-6 select-none"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={language === 'en' ? 'Featured deals' : 'ልዩ ቅናሾች'}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'ArrowLeft') goPrev();
+        if (e.key === 'ArrowRight') goNext();
+      }}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
+      onTouchStart={(e) => {
+        touchStartX.current = e.touches[0].clientX;
+        setPaused(true);
+      }}
+      onTouchEnd={(e) => {
+        setPaused(false);
+        if (touchStartX.current === null) return;
+        const dx = e.changedTouches[0].clientX - touchStartX.current;
+        touchStartX.current = null;
+        if (Math.abs(dx) > SWIPE_THRESHOLD) (dx < 0 ? goNext : goPrev)();
+      }}
+      className="relative w-full max-w-none overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 text-white select-none outline-none focus-visible:ring-2 focus-visible:ring-blue-400 shadow-2xl"
       style={{
-        backgroundColor: '#060D1A',
-        backgroundImage: 'radial-gradient(circle at 80% 50%, #0F2347 0%, #08142C 50%, #040814 100%)'
+        // Guard: stops any outside CSS (e.g. a #tour-welcome-banner rule) from insetting the banner
+        width: '100%',
+        maxWidth: 'none',
+        marginLeft: 0,
+        marginRight: 0,
+        backgroundColor: '#050B18',
+        backgroundImage:
+          'radial-gradient(ellipse at 75% 40%, #0F2347 0%, #08142C 45%, #040814 100%)',
       }}
     >
-      {/* Subtle marketing ambient glow backdrop */}
-      <div className="absolute right-12 sm:right-24 top-1/2 -translate-y-1/2 w-72 sm:w-[420px] md:w-[480px] h-72 sm:h-[420px] md:h-[480px] bg-blue-600/15 via-indigo-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute left-6 -top-10 w-60 h-60 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+      <style>{`
+        @keyframes hero-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+        @keyframes hero-text-in  { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        @keyframes hero-img-in   { from { opacity: 0; transform: scale(.94) translateX(18px); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) {
+          .hero-anim { animation: none !important; }
+        }
+      `}</style>
 
-      {/* Left Column: Clean, Compact Marketing Typography & Single Direct CTA */}
-        <div className="relative z-10 w-[44%] xs:w-[46%] sm:w-[52%] md:w-[50%] lg:w-[48%] flex flex-col justify-between items-start text-left min-w-0 shrink-0 pb-5 xs:pb-6 sm:pb-0">
+      {/* Per-category ambient glow: color changes with each slide */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-10 top-1/2 h-[520px] w-[520px] -translate-y-1/2 rounded-full blur-3xl transition-colors duration-700"
+        style={{ background: `radial-gradient(circle, rgba(${campaign.glow},0.35) 0%, transparent 65%)` }}
+      />
 
-          {/* Top: Static Promotional Badge (Never changes across slides) */}
-          <div className="flex items-center gap-1.5 xs:gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1 px-1.5 xs:px-2 py-0.5 rounded-full bg-red-600 border border-red-500/80 text-white text-[8.5px] xs:text-[9.5px] sm:text-xs font-bold shadow-sm shadow-red-600/30 shrink-0">
-                <Zap className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-white fill-white shrink-0" />
-                <span>{language === 'en' ? 'Limited Offer • Up to 10% Off' : 'ልዩ ቅናሽ • እስከ 10% ቅናሽ'}</span>
-              </span>
-              <span className="text-[9px] xs:text-[10px] sm:text-xs font-medium text-slate-400 truncate hidden sm:inline">
-                {campaign.brandTag}
-              </span>
+      {/* Live region so screen readers hear slide changes */}
+      <div className="sr-only" aria-live={paused ? 'polite' : 'off'}>
+        {`${currentSlide + 1} / ${total}: ${productName}`}
+      </div>
+
+      <div
+        key={currentSlide}
+        className="relative z-10 flex min-h-[200px] flex-row sm:min-h-0 sm:h-[300px] sm:items-center md:h-[400px] lg:h-[420px]"
+      >
+        {/* ---------- Text column ---------- */}
+        <div className="hero-anim relative z-10 flex w-[54%] flex-col [text-shadow:0_1px_10px_rgba(0,0,0,0.55)] items-start justify-start gap-1.5 overflow-hidden px-3 pb-11 pt-3 sm:justify-center sm:w-[55%] sm:gap-3 sm:px-6 sm:pb-12 md:gap-4 md:py-8 md:pb-16 md:pl-12 md:pr-6 lg:pl-14 [animation:hero-text-in_500ms_ease-out_both]">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-bold sm:gap-1.5 sm:px-3 sm:py-1 sm:text-sm">
+              <Zap className="h-3 w-3 fill-white sm:h-4 sm:w-4" />
+              {language === 'en' ? `Limited offer · -${discountPct}%` : `ልዩ ቅናሽ · -${discountPct}%`}
+            </span>
+            <span className="hidden sm:inline text-sm font-medium text-slate-300">
+              Kasma · {campaign.brandTag}
+            </span>
           </div>
 
-          {/* Center: Punchy, Clean Title & Pricing */}
-          <div className="space-y-1 xs:space-y-1.5 sm:space-y-2 my-auto w-full py-1">
-              <h2 className="text-[12px] xs:text-[13px] sm:text-lg md:text-2xl lg:text-[28px] font-black tracking-tight leading-tight text-white font-sans drop-shadow-sm line-clamp-2">
-                {campaign.headline1} {campaign.headline2}
-              </h2>
+          <div className="w-full">
+            <h2 className="line-clamp-2 text-[15px] font-black leading-snug tracking-tight sm:text-3xl sm:leading-tight lg:text-4xl">
+              {productName}
+            </h2>
+            <p className="mt-1.5 line-clamp-1 hidden text-sm font-medium text-slate-300 sm:block sm:text-base">
+              {campaign.tagline}
+            </p>
+          </div>
 
-              {/* Pricing & Savings Display */}
-                  <div className="flex items-baseline gap-1 xs:gap-1.5 sm:gap-2.5 flex-wrap">
-                    <span className="text-[11px] xs:text-sm sm:text-lg md:text-2xl font-black text-white tracking-tight drop-shadow-sm whitespace-nowrap font-mono">
-                      {slide.price.toLocaleString()} <span className="text-[8.5px] xs:text-[10px] sm:text-xs font-semibold text-slate-400">ETB</span>
-                    </span>
-                      <span className="text-[8.5px] xs:text-[10px] sm:text-xs text-slate-400 line-through font-medium whitespace-nowrap">
-                        {originalPrice.toLocaleString()} ETB
-                      </span>
-                        <span className="text-[7.5px] xs:text-[8.5px] sm:text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-1 xs:px-1.5 py-0.5 rounded-full inline-flex items-center gap-0.5 whitespace-nowrap">
-                          <CheckCircle2 className="w-2 h-2 xs:w-2.5 xs:h-2.5 text-emerald-400 shrink-0" />
-                          <span>{language === 'en' ? `Save ${savingsAmount.toLocaleString()} ETB` : `${savingsAmount.toLocaleString()} ብር`}</span>
-                        </span>
-                      </div>
-                  </div>
+          <div className="hidden flex-wrap items-center gap-2 sm:flex">
+            {specChips.map((chip, idx) => (
+              <span
+                key={`hero-chip-${idx}`}
+                className="rounded-lg border border-white/15 bg-white/10 px-3 py-1 text-sm font-semibold text-slate-100 backdrop-blur-sm"
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
 
-                  {/* Bottom: Single Direct Action CTA (Shop Now) + Trust Highlights */}
-                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                    <button
-                      onClick={() => onOpenProduct(slide)}
-                      className="w-fit px-2.5 xs:px-3.5 sm:px-5 md:px-6 py-1.5 sm:py-2 md:py-2.5 bg-[#0052FF] hover:bg-[#0047E0] active:scale-95 text-white font-bold text-[9.5px] xs:text-xs sm:text-sm rounded-lg sm:rounded-xl shadow-md inline-flex items-center gap-1 sm:gap-2 cursor-pointer transition-all hover:scale-[1.02]"
-                    >
-                      <span>{campaign.cta}</span>
-                      <ArrowRight className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
-                    </button>
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="font-mono text-lg font-black tracking-tight sm:text-4xl lg:text-5xl">
+              {slide.price.toLocaleString()}
+              <span className="ml-1 text-[11px] font-semibold text-slate-300 sm:ml-1.5 sm:text-lg">ETB</span>
+            </span>
+            <span className="text-[11px] font-medium text-slate-400 line-through sm:text-base">
+              {originalPrice.toLocaleString()} ETB
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-1.5 py-0.5 text-[11px] font-bold text-emerald-300 sm:px-2.5 sm:text-sm">
+              <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              {language === 'en'
+                ? `Save ${savingsAmount.toLocaleString()} ETB`
+                : `${savingsAmount.toLocaleString()} ብር ይቆጥቡ`}
+            </span>
+          </div>
 
-                    {/* Trust Highlights (Desktop & Tablets) */}
-                    <div className="hidden lg:flex items-center gap-2 text-xs font-medium text-slate-400 pl-2">
-                      <span className="inline-flex items-center gap-1">
-                        <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-                        <span>{language === 'en' ? 'Official Warranty' : 'ዋስትና ያለው'}</span>
-                      </span>
-                      <span className="w-1 h-1 rounded-full bg-slate-600" />
-                      <span className="inline-flex items-center gap-1">
-                        <Truck className="w-3.5 h-3.5 text-blue-400" />
-                        <span>{language === 'en' ? 'Fast Addis Delivery' : 'ፈጣን ማድረሻ'}</span>
-                      </span>
-                    </div>
-                  </div>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-3 pt-1">
+            <button
+              type="button"
+              onClick={() => onOpenProduct(slide)}
+              className="inline-flex min-h-[40px] items-center justify-center gap-1.5 rounded-xl bg-[#0052FF] px-4 text-sm font-bold sm:min-h-[48px] sm:gap-2 sm:px-6 sm:text-base shadow-lg shadow-blue-600/30 transition hover:bg-[#0047E0] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              {campaign.cta}
+              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
 
-              </div>
+            <div className="hidden items-center gap-4 text-sm font-medium text-slate-200 lg:flex">
+              <span className="inline-flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-blue-400" />
+                {language === 'en' ? 'Official warranty' : 'ዋስትና ያለው'}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Truck className="h-4 w-4 text-blue-400" />
+                {language === 'en' ? 'Fast Addis delivery' : 'ፈጣን ማድረሻ'}
+              </span>
+            </div>
+          </div>
+        </div>
 
-                {/* Right Column: Hero Product Showcase Stage (Expanded to Left on Small Devices) */}
-                <div className="relative w-[56%] xs:w-[54%] sm:w-[48%] md:w-[50%] lg:w-[52%] h-full flex items-center justify-center select-none min-w-0">
-                  <div
-                    onClick={() => onOpenProduct(slide)}
-                    className="relative w-full h-full rounded-xl xs:rounded-2xl md:rounded-3xl overflow-hidden border border-white/20 sm:border-slate-700/80 shadow-lg md:shadow-2xl bg-slate-900/80 backdrop-blur-sm group/image flex items-center justify-center cursor-pointer transition-all duration-300 hover:border-white/40 hover:shadow-blue-500/15"
-                  >
-                    <LazyImage
-                      src={slide.image}
-                      alt={slide.nameEn}
-                      className="w-full h-full object-cover object-center group-hover/image:scale-105 transition-transform duration-700 ease-out"
-                      containerClassName="w-full h-full flex items-center justify-center"
-                    />
+        {/* ---------- Product stage: full-bleed right half on desktop ---------- */}
+        <button
+          type="button"
+          onClick={() => onOpenProduct(slide)}
+          aria-label={productName}
+          className="hero-anim group/image absolute inset-y-0 right-0 z-0 block h-full w-[64%] cursor-pointer overflow-hidden focus-visible:outline-none sm:w-[62%] md:w-[60%] [animation:hero-img-in_600ms_ease-out_both]"
+        >
+          {/*
+            Background layer: the photo runs edge to edge on the right and slides in behind the
+            text. The mask only fades the photo's own left edge into the banner (no dark overlay
+            on the product). Use object-contain for transparent cutouts.
+          */}
+          <div
+            className="absolute inset-0 [&_img]:absolute [&_img]:inset-0 [&_img]:h-full [&_img]:w-full [&_img]:max-w-none [&_img]:object-cover [&_img]:object-center"
+            style={{
+              WebkitMaskImage:
+                'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.9) 45%, #000 70%)',
+              maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.9) 45%, #000 70%)',
+            }}
+          >
+            <LazyImage
+              src={slide.image}
+              alt={slide.nameEn}
+              className="h-full w-full object-cover object-center transition-transform duration-700 group-hover/image:scale-105"
+              containerClassName="h-full w-full"
+            />
+          </div>
+        </button>
+      </div>
 
-                    {/* Subtle luxury edge vignette */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/20 pointer-events-none" />
-
-                    {/* Floating Glass Brand Badge */}
-                    <div className="absolute top-1.5 right-1.5 xs:top-2 xs:right-2 sm:top-3 sm:right-3 bg-black/60 backdrop-blur-md border border-white/20 text-white text-[8px] xs:text-[9px] sm:text-xs font-bold px-1.5 xs:px-2 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-lg flex items-center gap-1 pointer-events-none z-10">
-                      <Sparkles className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5 text-blue-400" />
-                      <span>{slide.brand || 'Kasma'}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Minimal Clean Carousel Navigation Indicators & Arrows */}
-                <div className="absolute bottom-1.5 xs:bottom-2 sm:bottom-2.5 left-3 xs:left-3.5 sm:left-5 md:left-7 flex items-center gap-1 sm:gap-1.5 z-20">
-                  {activeSlides.map((_, index) => (
-                    <button
-                      key={`banner-bullet-${index}`}
-                      onClick={() => setCurrentSlide(index)}
-                      className={`h-1 xs:h-1.5 rounded-full transition-all duration-300 cursor-pointer ${index === currentSlide ? 'w-4 xs:w-5 sm:w-6 bg-[#0052FF] shadow-sm shadow-blue-500/60' : 'w-1 xs:w-1.5 bg-white/30 hover:bg-white/60'
-                        }`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-
-                <div className="absolute bottom-1.5 xs:bottom-2 sm:bottom-2.5 right-2 xs:right-2.5 sm:right-3 md:right-4 flex items-center gap-1 z-20">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCurrentSlide((prev) => (prev - 1 + activeSlides.length) % activeSlides.length);
-                    }}
-                    className="p-1 xs:p-1.5 sm:p-2 bg-black/60 hover:bg-black/90 text-white/90 hover:text-white rounded-md xs:rounded-lg sm:rounded-xl transition-all cursor-pointer border border-white/20 backdrop-blur-md active:scale-95 shadow-lg min-w-[24px] xs:min-w-[26px] sm:min-w-[32px] min-h-[24px] xs:min-h-[26px] sm:min-h-[32px] flex items-center justify-center"
-                    aria-label="Previous slide"
-                  >
-                    <ChevronLeft className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCurrentSlide((prev) => (prev + 1) % activeSlides.length);
-                    }}
-                    className="p-1 xs:p-1.5 sm:p-2 bg-black/60 hover:bg-black/90 text-white/90 hover:text-white rounded-md xs:rounded-lg sm:rounded-xl transition-all cursor-pointer border border-white/20 backdrop-blur-md active:scale-95 shadow-lg min-w-[24px] xs:min-w-[26px] sm:min-w-[32px] min-h-[24px] xs:min-h-[26px] sm:min-h-[32px] flex items-center justify-center"
-                    aria-label="Next slide"
-                  >
-                    <ChevronRight className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4" />
-                  </button>
-                </div>
-
-              </div>
+      {/* ---------- Progress segments: full width on phones, bottom-left on desktop ---------- */}
+      {total > 1 && (
+        <div
+          className="absolute bottom-0 left-3 z-20 flex w-[calc(54%-1.5rem)] items-center sm:bottom-1 sm:left-6 sm:w-[200px] md:left-12 md:w-[260px] lg:left-14"
+          role="tablist"
+          aria-label="Slides"
+        >
+          <div className="flex w-full items-center gap-1">
+            {activeSlides.map((_, index) => {
+              const isActive = index === currentSlide;
+              return (
+                <button
+                  key={`banner-seg-${index}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label={`${language === 'en' ? 'Go to slide' : 'ወደ ስላይድ'} ${index + 1}`}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`group/seg flex h-11 min-w-0 items-center transition-all duration-300 ${isActive ? 'flex-[3]' : 'flex-1'
+                    }`}
+                >
+                  <span className="relative block h-1.5 w-full overflow-hidden rounded-full bg-white/25 transition-colors group-hover/seg:bg-white/40">
+                    {isActive && (
+                      <span
+                        className="hero-anim absolute inset-0 origin-left rounded-full bg-[#3B82F6]"
+                        style={
+                          autoplayOn
+                            ? {
+                              animation: `hero-progress ${autoplayMs}ms linear forwards`,
+                              animationPlayState: paused ? 'paused' : 'running',
+                            }
+                            : undefined
+                        }
+                        onAnimationEnd={goNext}
+                      />
+                    )}
+                  </span>
+                </button>
               );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ---------- Arrows + counter: sits on the bottom of the image (phones) / bottom-right (desktop) ---------- */}
+      {total > 1 && (
+        <div className="absolute bottom-3 right-3 z-20 flex items-center rounded-full border border-white/15 bg-black/55 p-0.5 backdrop-blur-md sm:bottom-5 sm:right-5 md:bottom-7 md:right-8 md:gap-0.5 md:p-1">
+          <button
+            type="button"
+            onClick={goPrev}
+            aria-label={language === 'en' ? 'Previous slide' : 'ቀዳሚ'}
+            className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white sm:h-10 sm:w-10"
+          >
+            <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={goNext}
+            aria-label={language === 'en' ? 'Next slide' : 'ቀጣይ'}
+            className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white sm:h-10 sm:w-10"
+          >
+            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+        </div>
+      )}
+    </section>
+  );
 };
