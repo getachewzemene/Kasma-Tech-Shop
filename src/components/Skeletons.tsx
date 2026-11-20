@@ -279,18 +279,17 @@ export const ProductCardSkeleton: React.FC<{ className?: string }> = ({ classNam
             <Shimmer className="h-3 w-16 rounded" />
             <Shimmer className="h-3 w-10 rounded" />
           </div>
-          {/* Title Lines */}
+          {/* Title Line: Strictly one-line matching ProductCard */}
           <Shimmer className="h-4 w-4/5 rounded-md" />
-          <Shimmer className="h-3.5 w-3/5 rounded-md" />
         </div>
 
         {/* Price & Action Row */}
         <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/60 flex items-center justify-between mt-auto">
           <div className="space-y-1">
-            <Shimmer className="h-2.5 w-10 rounded" />
-            <Shimmer className="h-5 w-20 rounded" />
+            <Shimmer className="h-6 w-24 rounded" />
+            <Shimmer className="h-3 w-14 rounded" />
           </div>
-          <Shimmer className="h-8 w-8 rounded-xl" />
+          <Shimmer className="h-8 w-16 rounded-xl" />
         </div>
       </div>
     </div>

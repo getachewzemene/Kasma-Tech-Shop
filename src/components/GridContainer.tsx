@@ -14,23 +14,23 @@ export const GridContainer: React.FC<GridContainerProps> = ({
   className = ''
 }) => {
   const gapClasses = {
-    tight: 'gap-1.5 sm:gap-3',
-    normal: 'gap-2 sm:gap-4',
-    spacious: 'gap-2 sm:gap-4.5'
+    tight: 'gap-2 sm:gap-4',
+    normal: 'gap-4 sm:gap-6',
+    spacious: 'gap-6 lg:gap-8'
   };
 
   const colClasses: Record<string | number, string> = {
     1: 'grid-cols-1',
-    2: 'grid-cols-2 sm:grid-cols-2',
-    3: 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3',
-    4: 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
-    5: 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
-    6: 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
-    'auto-fill': 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+    2: 'grid-cols-2',
+    3: 'grid-cols-2 lg:grid-cols-3',
+    4: 'grid-cols-2 lg:grid-cols-4',
+    5: 'grid-cols-2 lg:grid-cols-4',
+    6: 'grid-cols-2 lg:grid-cols-4',
+    'auto-fill': 'grid-cols-2 lg:grid-cols-4'
   };
 
   const gridClass = cols === 'auto-fill' || className.includes('grid-cols-[')
-    ? (className.includes('grid-cols-[') ? className : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4')
+    ? (className.includes('grid-cols-[') ? className : 'grid-cols-2 lg:grid-cols-4')
     : (colClasses[cols] || colClasses[4]);
 
   return (

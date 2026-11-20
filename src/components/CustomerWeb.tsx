@@ -2081,7 +2081,7 @@ export default function CustomerWeb({
       </div>
 
       {/* 3. MODERN RESPONSIVE CATEGORY NAVIGATION BAR */}
-      <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8">
+      <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16">
         {(() => {
           const ALL_CATEGORIES = [
             { id: 'computers', nameEn: 'Computers', nameAm: 'ላፕቶፕ', icon: Laptop, iconColor: 'text-blue-500', bgGlow: 'group-hover:bg-blue-500/10' },
@@ -2115,7 +2115,7 @@ export default function CustomerWeb({
           return (
             <div className="w-full">
               {/* Category Header with Title, Dynamic Count & Reset */}
-              <div className="flex items-center justify-between mb-3 sm:mb-4 px-1">
+              <div className="flex items-center justify-between mb-4 sm:mb-6 px-1">
                 <div className="flex items-center gap-2">
                   <div className="p-1 sm:p-1.5 rounded-lg bg-[#0052FF]/10 text-[#0052FF] dark:bg-blue-500/15 dark:text-blue-400">
                     <Layers className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -2123,7 +2123,7 @@ export default function CustomerWeb({
                   <span className="text-xs sm:text-sm md:text-base font-extrabold tracking-tight text-gray-900 dark:text-zinc-100">
                     {language === 'en' ? 'Shop by Category' : 'በምድብ ይግዙ'}
                   </span>
-                  <span className="text-[11px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200/80 dark:border-zinc-700">
+                  <span className="text-xs sm:text-sm font-mono font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200/80 dark:border-zinc-700">
                     {activeCategories.length}
                   </span>
                 </div>
@@ -2178,7 +2178,7 @@ export default function CustomerWeb({
                 >
                   <Layers className="w-3.5 h-3.5" />
                   <span>{language === 'en' ? 'All' : 'ሁሉም'}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold ${selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
                     }`}>
                     {approvedProducts.length}
                   </span>
@@ -2199,14 +2199,14 @@ export default function CustomerWeb({
                         const el = document.getElementById('products-grid-section');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer active:scale-95 ${isSelected
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer active:scale-95 ${isSelected
                         ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-blue-500/25 ring-2 ring-[#0052FF]/30 scale-[1.02]'
                         : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/50'
                         }`}
                     >
                       <DeptIcon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : dept.iconColor}`} />
                       <span>{language === 'en' ? dept.nameEn : dept.nameAm}</span>
-                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold ${isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
                         }`}>
                         {count}
                       </span>
@@ -2218,8 +2218,8 @@ export default function CustomerWeb({
               {/* GRID VIEW: Interactive cards with hover lift, border glow & prominent readable labels */}
               <div
                 className={`w-full ${isCategoriesExpanded
-                  ? 'grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2.5 sm:gap-3.5 md:gap-4'
-                  : 'hidden md:grid md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 sm:gap-3.5 md:gap-4'
+                  ? 'grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 sm:gap-4'
+                  : 'hidden md:grid md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-2 sm:gap-4'
                   }`}
               >
                 {activeCategories.map((dept) => {
@@ -2250,7 +2250,7 @@ export default function CustomerWeb({
                       </div>
 
                       <span
-                        className={`text-xs sm:text-[13px] md:text-sm font-extrabold leading-tight tracking-tight whitespace-nowrap truncate max-w-full px-0.5 ${isSelected
+                        className={`text-sm sm:text-[15px] md:text-base font-extrabold leading-tight tracking-tight whitespace-nowrap truncate max-w-full px-0.5 ${isSelected
                           ? 'text-white'
                           : 'text-gray-900 dark:text-zinc-100 group-hover:text-[#0052FF] dark:group-hover:text-blue-400'
                           }`}
@@ -2259,7 +2259,7 @@ export default function CustomerWeb({
                       </span>
 
                       <span
-                        className={`text-[10px] sm:text-xs font-semibold leading-none mt-1 ${isSelected
+                        className={`text-xs sm:text-sm font-medium leading-none mt-1 ${isSelected
                           ? 'text-blue-100'
                           : 'text-gray-500 dark:text-zinc-300'
                           }`}
@@ -2279,56 +2279,50 @@ export default function CustomerWeb({
 
       {/* KASMA LIGHTNING FLASH DEALS SECTION */}
       {approvedProducts.length > 0 && (
-        <div id="featured-deals-section" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-6 sm:mt-8 mb-4 sm:mb-6 scroll-mt-28">
+        <div id="featured-deals-section" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16 scroll-mt-28">
           {/* Softer warm off-white background with subtle orange accents (#FFF7ED) */}
-          <div className="bg-[#FFF7ED] dark:bg-[#121620] px-3.5 py-4 sm:px-6 sm:py-6 md:px-8 md:py-7 rounded-2xl sm:rounded-3xl shadow-xs border border-orange-200/80 dark:border-zinc-800 text-[#172033] dark:text-slate-100 relative overflow-hidden transition-all duration-300">
+          <div className="bg-[#FFF7ED] dark:bg-[#121620] p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl shadow-xs border border-orange-200/80 dark:border-zinc-800 text-[#172033] dark:text-slate-100 relative overflow-hidden transition-all duration-300">
             {/* Subtle atmospheric warm glow */}
             <div className="absolute -right-20 -top-20 w-80 h-80 bg-orange-200/30 dark:bg-orange-950/20 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-amber-100/50 dark:bg-amber-950/20 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Header: Flash Deals on Left Top End & Countdown on Right Top End in ONE Row */}
-            <div className="flex items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-5 relative z-10 w-full min-w-0">
-              {/* Left Top End: Title & Lightning Icon */}
-              <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 min-w-0">
+            {/* Unified SectionHeader: Flash Deals on Left Top End & Countdown on Right Top End in ONE Row */}
+            <SectionHeader
+              titleEn="Flash Deals"
+              titleAm="ፈጣን ቅናሾች"
+              subtitleEn="Supercharge your savings with authentic discounts and verified stock."
+              subtitleAm="በእውነተኛ ቅናሾች እና አስተማማኝ ክምችት ቁጠባዎን ያሳድጉ።"
+              language={language}
+              icon={
                 <div className="bg-[#F97316] text-white p-1.5 xs:p-2 rounded-xl shadow-md shadow-orange-500/25 shrink-0 flex items-center justify-center">
                   <Zap className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 fill-white text-white animate-pulse" />
                 </div>
-                <div className="min-w-0">
-                  <h3 className="text-sm xs:text-base sm:text-lg md:text-xl font-black tracking-tight font-sans text-[#172033] dark:text-white leading-tight truncate">
-                    <span>{language === 'en' ? 'Flash Deals' : 'ፈጣን ቅናሾች'}</span>
-                  </h3>
-                  <p className="hidden md:block text-xs text-zinc-500 dark:text-zinc-400 font-medium mt-0.5">
-                    {language === 'en'
-                      ? 'Supercharge your savings with authentic discounts and verified stock.'
-                      : 'በእውነተኛ ቅናሾች እና አስተማማኝ ክምችት ቁጠባዎን ያሳድጉ።'}
-                  </p>
+              }
+              rightContent={
+                <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 bg-white dark:bg-zinc-800/90 px-2 py-1 xs:px-2.5 xs:py-1.5 sm:px-3 sm:py-2 rounded-xl border border-orange-200/80 dark:border-zinc-700 shadow-xs shrink-0">
+                  <Clock className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-[#F97316] shrink-0" />
+                  <span className="text-xs text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider shrink-0 leading-none">
+                    {language === 'en' ? 'Ends in:' : 'የሚቀረው:'}
+                  </span>
+                  <div className="flex items-center gap-0.5 xs:gap-1 font-mono font-black text-xs sm:text-sm">
+                    <span className="bg-[#FFF7ED] dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-xs leading-none">
+                      {String(flashTimeLeft.hours).padStart(2, '0')}
+                    </span>
+                    <span className="text-[#F97316] font-bold leading-none animate-pulse">:</span>
+                    <span className="bg-[#FFF7ED] dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-xs leading-none">
+                      {String(flashTimeLeft.minutes).padStart(2, '0')}
+                    </span>
+                    <span className="text-[#F97316] font-bold leading-none animate-pulse">:</span>
+                    <span className="bg-[#FFF7ED] dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-xs leading-none">
+                      {String(flashTimeLeft.seconds).padStart(2, '0')}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              }
+            />
 
-              {/* Right Top End: Countdown Timer Box (Top View All Button Removed) */}
-              <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 bg-white dark:bg-zinc-800/90 px-2 py-1 xs:px-2.5 xs:py-1.5 sm:px-3 sm:py-2 rounded-xl border border-orange-200/80 dark:border-zinc-700 shadow-xs shrink-0 ml-auto">
-                <Clock className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-[#F97316] shrink-0" />
-                <span className="text-[8.5px] xs:text-[9.5px] sm:text-[11px] text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider shrink-0 leading-none">
-                  {language === 'en' ? 'Ends in:' : 'የሚቀረው:'}
-                </span>
-                <div className="flex items-center gap-0.5 xs:gap-1 font-mono font-black text-[11px] xs:text-xs sm:text-sm">
-                  <span className="bg-[#FFF7ED] dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-xs leading-none">
-                    {String(flashTimeLeft.hours).padStart(2, '0')}
-                  </span>
-                  <span className="text-[#F97316] font-bold leading-none animate-pulse">:</span>
-                  <span className="bg-[#FFF7ED] dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-xs leading-none">
-                    {String(flashTimeLeft.minutes).padStart(2, '0')}
-                  </span>
-                  <span className="text-[#F97316] font-bold leading-none animate-pulse">:</span>
-                  <span className="bg-[#FFF7ED] dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-xs leading-none">
-                    {String(flashTimeLeft.seconds).padStart(2, '0')}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Responsive 2-column mobile grid / 4-column desktop grid with zero overflow */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 items-stretch gap-2 xs:gap-2.5 sm:gap-4 lg:gap-5 pb-1 pt-1 w-full min-w-0 relative z-10">
+            {/* Fixed Grid: 4 columns on desktop, 2 on mobile */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 items-stretch gap-4 sm:gap-6 w-full min-w-0 relative z-10">
                 {(() => {
                   const now = Date.now();
                   // 1. Filter out expired or cancelled merchant flash deals automatically
@@ -2438,7 +2432,7 @@ export default function CustomerWeb({
               </div>
 
             {/* Bottom View All Action Button */}
-            <div className="mt-3.5 sm:mt-5 text-center relative z-10">
+            <div className="mt-6 sm:mt-8 text-center relative z-10">
               <button
                 type="button"
                 onClick={() => setIsFlashDealsOpen(true)}
@@ -2455,29 +2449,25 @@ export default function CustomerWeb({
 
       {/* Recommended for You Personalized Section with Contextual Reasons */}
       {recommendedProductsWithReasons.length > 0 && (
-        <section className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-8 sm:mt-12">
-          {/* Header with Reason Context */}
-          <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              <div className="bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/60 dark:border-indigo-800/60 p-1.5 rounded-xl text-indigo-600 dark:text-indigo-400 shrink-0">
-                <Sparkles className="w-4 h-4 fill-current animate-pulse text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <h3 className="text-sm sm:text-base md:text-lg font-black uppercase tracking-wider text-gray-950 dark:text-white leading-tight">
-                  {language === 'en' ? 'Recommended For You' : 'ለእርስዎ የተመረጡ'}
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-zinc-400 font-medium hidden sm:block mt-0.5">
-                  {language === 'en'
-                    ? 'Personalized selections based on your browsing and purchase preferences.'
-                    : 'በእርስዎ ምርጫዎች እና ፍላጎት ላይ ተመስርተው የተመረጡ።'}
-                </p>
-              </div>
-            </div>
-          </div>
+        <section className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16">
+          {/* Unified SectionHeader */}
+          <SectionHeader
+            titleEn="Recommended For You"
+            titleAm="ለእርስዎ የተመረጡ"
+            subtitleEn="Personalized selections based on your browsing and purchase preferences."
+            subtitleAm="በእርስዎ ምርጫዎች እና ፍላጎት ላይ ተመስርተው የተመረጡ።"
+            language={language}
+            onViewAll={() => {
+              setSelectedCategory('all');
+              const el = document.getElementById('products-grid-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            viewAllText={language === 'en' ? 'View all' : 'ሁሉንም እይ'}
+          />
 
-          {/* Product Grid */}
-          <GridContainer cols={4}>
-            {recommendedProductsWithReasons.map((recItem) => {
+          {/* Fixed Grid: 4 columns on desktop, 2 on mobile with strict scale gap (16px / 24px) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 items-stretch gap-4 sm:gap-6 w-full min-w-0">
+            {recommendedProductsWithReasons.slice(0, 4).map((recItem) => {
               const p = recItem.product;
               const isFavorite = favorites.includes(p.id);
               const isCompared = comparedProductIds.includes(p.id);
@@ -2497,54 +2487,52 @@ export default function CustomerWeb({
                   onInstantBuy={handleInstantBuy}
                   showToast={showToast}
                   badgeColor="indigo"
+                  layout="grid"
+                  className="w-full"
                 />
               );
             })}
-          </GridContainer>
+          </div>
         </section>
       )}
 
       {/* RECENTLY VIEWED SECTION - STORES LAST 5 CLICKED PRODUCTS */}
       {recentlyViewedProducts.length > 0 && (
-        <section id="recently-viewed-section" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-8 sm:mt-12">
-          {/* Header with Title, Count Badge & Clear History */}
-          <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="bg-blue-50 dark:bg-blue-950/60 border border-blue-200/60 dark:border-blue-800/60 p-1.5 sm:p-2 rounded-xl text-[#0052FF] dark:text-blue-400 shrink-0">
-                <Clock className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#0052FF] dark:text-blue-400" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-sm sm:text-base md:text-lg font-black uppercase tracking-wider text-gray-950 dark:text-white leading-tight">
-                    {language === 'en' ? 'Recently Viewed' : 'በቅርቡ የታዩ እቃዎች'}
-                  </h3>
-                  <span className="bg-[#0052FF] text-white font-mono font-black text-[10px] sm:text-xs px-2 py-0.5 rounded-full shadow-2xs">
-                    {recentlyViewedProducts.length}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-zinc-400 font-medium hidden sm:block mt-0.5 truncate">
-                  {language === 'en'
-                    ? 'The last 5 products you inspected. Easily revisit your items of interest.'
-                    : 'በቅርቡ የተመለከቷቸው የመጨረሻዎቹ 5 ምርቶች። ፍላጎት ያሳዩባቸውን እቃዎች በፍጥነት ይመልከቱ።'}
-                </p>
-              </div>
-            </div>
+        <section id="recently-viewed-section" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16">
+          {/* Unified SectionHeader */}
+          <SectionHeader
+            titleEn="Recently Viewed"
+            titleAm="በቅርቡ የታዩ እቃዎች"
+            subtitleEn="The last items you inspected. Easily revisit your items of interest."
+            subtitleAm="በቅርቡ የተመለከቷቸው ምርቶች። ፍላጎት ያሳዩባቸውን እቃዎች በፍጥነት ይመልከቱ።"
+            language={language}
+            badge={
+              <span className="bg-[#0052FF] text-white font-mono font-bold text-xs px-2.5 py-0.5 rounded-full shadow-2xs">
+                {recentlyViewedProducts.length}
+              </span>
+            }
+            onViewAll={() => {
+              setSelectedCategory('all');
+              const el = document.getElementById('products-grid-section');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            viewAllText={language === 'en' ? 'View all' : 'ሁሉንም እይ'}
+            rightContent={
+              <button
+                type="button"
+                onClick={handleClearRecentlyViewed}
+                className="text-xs font-bold text-gray-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 bg-white dark:bg-zinc-900 hover:bg-red-50 dark:hover:bg-red-950/40 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border border-gray-200 dark:border-zinc-800 shrink-0 shadow-2xs hover:border-red-200"
+                title={language === 'en' ? 'Clear recently viewed items history' : 'የታዩ እቃዎችን ታሪክ አጽዳ'}
+              >
+                <Trash2 className="w-3.5 h-3.5 text-gray-400 group-hover:text-red-500" />
+                <span className="hidden xs:inline">{language === 'en' ? 'Clear History' : 'ታሪክ አጽዳ'}</span>
+              </button>
+            }
+          />
 
-            {/* Clear History Button */}
-            <button
-              type="button"
-              onClick={handleClearRecentlyViewed}
-              className="text-xs font-bold text-gray-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400 bg-white dark:bg-zinc-900 hover:bg-red-50 dark:hover:bg-red-950/40 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border border-gray-200 dark:border-zinc-800 shrink-0 shadow-2xs hover:border-red-200"
-              title={language === 'en' ? 'Clear recently viewed items history' : 'የታዩ እቃዎችን ታሪክ አጽዳ'}
-            >
-              <Trash2 className="w-3.5 h-3.5 text-gray-400 group-hover:text-red-500" />
-              <span className="hidden xs:inline">{language === 'en' ? 'Clear History' : 'ታሪክ አጽዳ'}</span>
-            </button>
-          </div>
-
-          {/* Recently Viewed Grid Container (Up to 5 Products) */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 items-stretch gap-2.5 sm:gap-4">
-            {recentlyViewedProducts.map((p) => {
+          {/* Fixed Grid: 4 columns on desktop, 2 on mobile with strict scale gap (16px / 24px) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 items-stretch gap-4 sm:gap-6 w-full min-w-0">
+            {recentlyViewedProducts.slice(0, 4).map((p) => {
               const isFavorite = favorites.includes(p.id);
               const isCompared = comparedProductIds.includes(p.id);
 
@@ -2563,6 +2551,8 @@ export default function CustomerWeb({
                   onInstantBuy={handleInstantBuy}
                   showToast={showToast}
                   badgeColor="blue"
+                  layout="grid"
+                  className="w-full"
                 />
               );
             })}
@@ -2571,7 +2561,7 @@ export default function CustomerWeb({
       )}
 
       {/* 5. DYNAMIC SPOTLIGHT & DEALS HUBS - 4 AUTO-SCROLL CAROUSELS */}
-      <div id="spotlight-carousels-section" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-8 sm:mt-12 space-y-8 sm:space-y-12">
+      <div id="spotlight-carousels-section" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16 space-y-12 lg:space-y-16">
 
   {/* Carousel 1: Trending Tech & Editor's Choice */}
   <AutoCarousel
@@ -2592,6 +2582,11 @@ export default function CustomerWeb({
     autoScrollInterval={6500}
     onAddToCart={addToCart}
     showToast={showToast}
+    onViewAll={() => {
+      setSelectedCategory('all');
+      const el = document.getElementById('products-grid-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }}
   />
 
   {/* Carousel 2: New Items */}
@@ -2613,6 +2608,12 @@ export default function CustomerWeb({
     autoScrollInterval={7000}
     onAddToCart={addToCart}
     showToast={showToast}
+    onViewAll={() => {
+      setSelectedCategory('all');
+      setSortBy('newest');
+      const el = document.getElementById('products-grid-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }}
   />
 
   {/* Carousel 3: Weekly Deals */}
@@ -2634,6 +2635,7 @@ export default function CustomerWeb({
     autoScrollInterval={7500}
     onAddToCart={addToCart}
     showToast={showToast}
+    onViewAll={() => setIsFlashDealsOpen(true)}
   />
 
   {/* Carousel 4: Top Sold & Daily Bestsellers */}
@@ -2655,24 +2657,30 @@ export default function CustomerWeb({
     autoScrollInterval={6500}
     onAddToCart={addToCart}
     showToast={showToast}
+    onViewAll={() => {
+      setSelectedCategory('all');
+      setSortBy('default');
+      const el = document.getElementById('products-grid-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }}
   />
 
 </div>
 
 {/* 6. MIDDLE BANNER LAYOUTS (MARSHALL SPEAKER PROMO BANNER GRID) */ }
-<div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-6 sm:mt-10 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+<div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
 
   {/* Large Marshall Banner */}
   <div className="lg:col-span-7 bg-gradient-to-r from-[#004C61] via-[#00607A] to-[#0D1F2D] dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 flex flex-row justify-between items-center overflow-hidden border border-cyan-500/15 dark:border-zinc-800 hover:border-cyan-500/30 dark:hover:border-zinc-700 transition-all min-h-[160px] sm:min-h-[220px] relative group">
     <div className="space-y-2 sm:space-y-4 z-10 text-left max-w-[60%] sm:max-w-xs">
-      <span className="text-[8px] sm:text-[9px] font-black text-kasma-gold bg-black/35 border border-white/10 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md uppercase tracking-widest w-fit block">
+      <span className="text-xs font-black text-kasma-gold bg-black/35 border border-white/10 px-2.5 py-1 rounded-md uppercase tracking-widest w-fit block">
         {language === 'en' ? 'GET REWARDS' : 'ሽልማት ያግኙ'}
       </span>
       <div className="space-y-0.5 sm:space-y-1">
         <h2 className="text-base sm:text-xl md:text-2xl font-black uppercase tracking-tight font-sans text-white leading-tight">
           {language === 'en' ? 'Super Cheap Price' : 'እጅግ ቅናሽ ዋጋ'}
         </h2>
-        <p className="text-[10px] sm:text-[11px] text-cyan-100/80 dark:text-zinc-400 font-medium line-clamp-2 sm:line-clamp-none">
+        <p className="text-xs sm:text-sm text-cyan-100/80 dark:text-zinc-400 font-medium line-clamp-2 sm:line-clamp-none">
           {language === 'en' ? 'Earn 20% Back in Rewards points to spend on accessories' : 'አሁን ሲገዙ ተጨማሪ የ20% ነጥብ ያግኙ'}
         </p>
       </div>
@@ -2681,7 +2689,7 @@ export default function CustomerWeb({
           const spProd = approvedProducts.find(p => p.id === 'p4');
           if (spProd) handleOpenProduct(spProd);
         }}
-        className="px-3.5 sm:px-5 py-1.5 sm:py-2.5 bg-white hover:bg-gray-50 text-black font-black text-[9px] sm:text-[10px] uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md inline-flex items-center gap-1 sm:gap-1.5 cursor-pointer mt-1"
+        className="px-3.5 sm:px-5 py-1.5 sm:py-2.5 bg-white hover:bg-gray-50 text-black font-bold text-xs uppercase tracking-wider rounded-lg sm:rounded-xl transition-all shadow-md inline-flex items-center gap-1 sm:gap-1.5 cursor-pointer mt-1"
       >
         <span>{language === 'en' ? 'Shop Now' : 'አሁን ይግዙ'}</span>
         <ArrowRight className="w-3 h-3" />
@@ -2703,9 +2711,9 @@ export default function CustomerWeb({
     {/* Row 1: Power Bank */}
     <div className="bg-gray-100 dark:bg-zinc-900 rounded-xl sm:rounded-2xl p-2.5 sm:p-5 flex justify-between items-center border border-gray-150 dark:border-zinc-800 min-h-[85px] sm:min-h-[100px] hover:border-gray-250 transition-all relative group overflow-hidden">
       <div className="space-y-0.5 sm:space-y-1 text-left z-10 max-w-[62%] sm:max-w-[65%] min-w-0">
-        <h4 className="text-[10px] xs:text-[11px] sm:text-xs font-black text-gray-900 dark:text-zinc-50 uppercase tracking-tight line-clamp-2 leading-tight">{language === 'en' ? 'Charger Power Bank' : 'ፖርቴብል ቻርጀር'}</h4>
-        <p className="text-[8px] xs:text-[9px] text-gray-400 font-bold uppercase line-clamp-1">{language === 'en' ? 'Starting at 2,400 ETB' : 'ዋጋው ከ 2,400 ብር ጀምሮ'}</p>
-        <button onClick={() => { setSelectedCategory('accessories'); const el = document.getElementById('products-grid-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }} className="text-[8px] xs:text-[9px] font-black text-[#0052FF] uppercase tracking-wider underline block pt-0.5 sm:pt-1 cursor-pointer">{language === 'en' ? 'Discover »' : 'ይጎብኙ »'}</button>
+        <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-zinc-50 uppercase tracking-tight line-clamp-2 leading-tight">{language === 'en' ? 'Charger Power Bank' : 'ፖርቴብል ቻርጀር'}</h4>
+        <p className="text-xs text-gray-400 font-bold uppercase line-clamp-1">{language === 'en' ? 'Starting at 2,400 ETB' : 'ዋጋው ከ 2,400 ብር ጀምሮ'}</p>
+        <button onClick={() => { setSelectedCategory('accessories'); const el = document.getElementById('products-grid-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }} className="text-xs font-bold text-[#0052FF] uppercase tracking-wider underline block pt-0.5 sm:pt-1 cursor-pointer">{language === 'en' ? 'Discover »' : 'ይጎብኙ »'}</button>
       </div>
       <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden border border-gray-200/80 dark:border-zinc-700/80 shadow-xs shrink-0 group-hover:scale-105 transition-transform duration-300">
         <LazyImage
@@ -2719,9 +2727,9 @@ export default function CustomerWeb({
     {/* Row 2: Controller for Switch */}
     <div className="bg-gray-100 dark:bg-zinc-900 rounded-xl sm:rounded-2xl p-2.5 sm:p-5 flex justify-between items-center border border-gray-150 dark:border-zinc-800 min-h-[85px] sm:min-h-[100px] hover:border-gray-250 transition-all relative group overflow-hidden">
       <div className="space-y-0.5 sm:space-y-1 text-left z-10 max-w-[62%] sm:max-w-[65%] min-w-0">
-        <h4 className="text-[10px] xs:text-[11px] sm:text-xs font-black text-gray-900 dark:text-zinc-50 uppercase tracking-tight line-clamp-2 leading-tight">{language === 'en' ? 'Controller for Switch' : 'የስዊች ጌም መቆጣጠሪያ'}</h4>
-        <p className="text-[8px] xs:text-[9px] text-gray-400 font-bold uppercase line-clamp-1">{language === 'en' ? 'Discount 30% Off' : '30% ቅናሽ'}</p>
-        <button onClick={() => { setSelectedCategory('gaming'); const el = document.getElementById('products-grid-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }} className="text-[8px] xs:text-[9px] font-black text-[#0052FF] uppercase tracking-wider underline block pt-0.5 sm:pt-1 cursor-pointer">{language === 'en' ? 'Discover »' : 'ይጎብኙ »'}</button>
+        <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-zinc-50 uppercase tracking-tight line-clamp-2 leading-tight">{language === 'en' ? 'Controller for Switch' : 'የስዊች ጌም መቆጣጠሪያ'}</h4>
+        <p className="text-xs text-gray-400 font-bold uppercase line-clamp-1">{language === 'en' ? 'Discount 30% Off' : '30% ቅናሽ'}</p>
+        <button onClick={() => { setSelectedCategory('gaming'); const el = document.getElementById('products-grid-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }} className="text-xs font-bold text-[#0052FF] uppercase tracking-wider underline block pt-0.5 sm:pt-1 cursor-pointer">{language === 'en' ? 'Discover »' : 'ይጎብኙ »'}</button>
       </div>
       <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden border border-gray-200/80 dark:border-zinc-700/80 shadow-xs shrink-0 group-hover:scale-105 transition-transform duration-300">
         <LazyImage
@@ -2737,7 +2745,7 @@ export default function CustomerWeb({
 </div>
 
 {/* Category Pills & Filters Section */ }
-<div id="products-grid-section" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-6 sm:mt-10 lg:mt-12 space-y-4">
+<div id="products-grid-section" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16 pb-12 lg:pb-16 space-y-6">
 
   {/* Category Header with Track shipment */}
   <div className="flex justify-between items-center pb-1">
@@ -2771,7 +2779,7 @@ export default function CustomerWeb({
 
       {/* Left: Breadcrumb, Category Title & Product Count */}
       <div className="space-y-1">
-        <nav className="flex items-center gap-1.5 text-[11px] font-bold text-gray-400 dark:text-zinc-500">
+        <nav className="flex items-center gap-1.5 text-xs font-bold text-gray-400 dark:text-zinc-500">
           <button
             type="button"
             onClick={() => setSelectedCategory('all')}
@@ -2942,7 +2950,7 @@ export default function CustomerWeb({
     {/* Active Refinements Badges (Integrated into Control Card) */}
     {(selectedCategory !== 'all' || searchQuery.trim() !== '' || minPriceInput !== '' || maxPriceInput !== '' || selectedBrands.length > 0 || availabilityFilter !== 'ALL' || selectedRatingFilter > 0) && (
       <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-150 dark:border-slate-800/80">
-        <span className="text-[10px] font-black uppercase text-gray-400 dark:text-zinc-500 tracking-wider">
+        <span className="text-xs font-bold uppercase text-gray-400 dark:text-zinc-500 tracking-wider">
           {language === 'en' ? 'Active:' : 'የተመረጡ፡'}
         </span>
 
@@ -3043,8 +3051,6 @@ export default function CustomerWeb({
     )}
 
   </div>
-
-</div>
 
 {/* FILTER Bottom Sheet Overlay Modal */ }
 <AnimatePresence>
@@ -3301,25 +3307,24 @@ export default function CustomerWeb({
 </AnimatePresence>
 
 {/* Main Grid Section */ }
-<div id="products-catalog-grid" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-6">
+<div id="products-catalog-grid" className="w-full mt-6">
 
   {isGridLoading ? (
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={`grid-shimmer-${i}`} className="bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800/60 rounded-2xl overflow-hidden flex flex-col h-full space-y-3">
-          <Shimmer className="aspect-[3/2] w-full rounded-none" />
-          <div className="p-4 sm:p-5 space-y-3 flex flex-col flex-1 justify-between">
+          <Shimmer className="aspect-[16/11] w-full rounded-none" />
+          <div className="p-3.5 sm:p-4 space-y-2.5 flex flex-col flex-1 justify-between">
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Shimmer className="h-3.5 w-20" />
-                <Shimmer className="h-3.5 w-12" />
+                <Shimmer className="h-3 w-16" />
+                <Shimmer className="h-3 w-10" />
               </div>
-              <Shimmer className="h-4 w-full rounded" />
-              <Shimmer className="h-4 w-3/4 rounded" />
+              <Shimmer className="h-4 w-4/5 rounded" />
             </div>
-            <div className="pt-3 border-t border-gray-100 dark:border-zinc-800/40 flex justify-between items-center mt-auto">
-              <Shimmer className="h-6 w-24" />
-              <Shimmer className="h-8 w-20 rounded-xl" />
+            <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/40 flex justify-between items-center mt-auto">
+              <Shimmer className="h-5 w-20" />
+              <Shimmer className="h-7 w-16 rounded-xl" />
             </div>
           </div>
         </div>
@@ -3424,6 +3429,7 @@ export default function CustomerWeb({
     </>
   )}
 </div>
+</div>
 
 {/* Product Detail Modal / Quick View */ }
 {
@@ -3464,11 +3470,11 @@ export default function CustomerWeb({
               title={language === 'en' ? 'Wishlist' : 'ተወዳጆች'}
               onClick={(e) => handleToggleFavorite(selectedProduct.id, e)}
               className={`p-1.5 rounded-full border text-xs cursor-pointer transition-all ${favorites.includes(selectedProduct.id)
-                ? 'bg-rose-50 text-rose-500 border-rose-300'
+                ? 'bg-red-50 dark:bg-red-950/80 text-red-600 border-red-300 dark:border-red-800 shadow-sm shadow-red-500/20'
                 : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 border-gray-200 dark:border-zinc-700'
                 }`}
             >
-              <Heart className={`w-3.5 h-3.5 ${favorites.includes(selectedProduct.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
+              <Heart className={`w-3.5 h-3.5 transition-transform ${favorites.includes(selectedProduct.id) ? 'fill-red-600 text-red-600 scale-110' : ''}`} />
             </button>
             <button
               onClick={() => setSelectedProduct(null)}
@@ -3513,11 +3519,11 @@ export default function CustomerWeb({
             title={language === 'en' ? 'Save to Wishlist' : 'ወደ ተወዳጆች ያስቀምጡ'}
             onClick={(e) => handleToggleFavorite(selectedProduct.id, e)}
             className={`p-2 rounded-full transition-all cursor-pointer shadow-xs border ${favorites.includes(selectedProduct.id)
-              ? 'bg-rose-50 dark:bg-rose-950/90 text-rose-500 border-rose-300 dark:border-rose-800'
-              : 'bg-white/95 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:text-rose-500 border-gray-200 dark:border-zinc-700'
+              ? 'bg-red-50 dark:bg-red-950/90 text-red-600 border-red-300 dark:border-red-800 shadow-sm shadow-red-500/20'
+              : 'bg-white/95 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:text-red-600 border-gray-200 dark:border-zinc-700'
               }`}
           >
-            <Heart className={`w-4 h-4 ${favorites.includes(selectedProduct.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
+            <Heart className={`w-4 h-4 transition-transform ${favorites.includes(selectedProduct.id) ? 'fill-red-600 text-red-600 scale-110' : ''}`} />
           </button>
 
           <button
@@ -3582,14 +3588,14 @@ export default function CustomerWeb({
                         <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-500" />
                         <span>{language === 'en' ? 'Verified Quality Guarantee' : 'የተረጋገጠ የጥራት ዋስትና'}</span>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-[11px] w-full min-w-0">
+                      <div className="grid grid-cols-2 gap-2 text-xs w-full min-w-0">
                         <div className="p-2 rounded-xl bg-gray-50 dark:bg-zinc-800/90 border border-gray-150 dark:border-zinc-700/80 flex items-center gap-1.5 text-gray-700 dark:text-zinc-200 min-w-0">
                           <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                          <span className="font-semibold text-[10px] truncate">{language === 'en' ? '100% Authentic' : '100% እውነተኛ'}</span>
+                          <span className="font-semibold text-xs truncate">{language === 'en' ? '100% Authentic' : '100% እውነተኛ'}</span>
                         </div>
                         <div className="p-2 rounded-xl bg-gray-50 dark:bg-zinc-800/90 border border-gray-150 dark:border-zinc-700/80 flex items-center gap-1.5 text-gray-700 dark:text-zinc-200 min-w-0">
                           <Truck className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                          <span className="font-semibold text-[10px] truncate">{language === 'en' ? 'Fast Shipping' : 'ፈጣን ማጓጓዣ'}</span>
+                          <span className="font-semibold text-xs truncate">{language === 'en' ? 'Fast Shipping' : 'ፈጣን ማጓጓዣ'}</span>
                         </div>
                       </div>
                     </div>
@@ -3605,7 +3611,7 @@ export default function CustomerWeb({
                 <div className="space-y-3.5 sm:space-y-4 w-full min-w-0">
                   {/* Category & Brand Breadcrumb + Stock Badge */}
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase tracking-widest font-extrabold truncate max-w-[200px]">
+                    <span className="text-xs text-gray-400 dark:text-zinc-500 uppercase tracking-widest font-bold truncate max-w-[200px]">
                       {selectedProduct.brand} • {categories.find(c => c.id === selectedProduct.category)?.nameEn}
                     </span>
 
@@ -3621,7 +3627,7 @@ export default function CustomerWeb({
                             }`} />
                         )}
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600 dark:text-zinc-300 whitespace-nowrap">
+                      <span className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-zinc-300 whitespace-nowrap">
                         {isOutOfStock
                           ? (language === 'en' ? 'Out of Stock' : 'ክምችት አልቋል')
                           : isLowStock
@@ -3641,28 +3647,28 @@ export default function CustomerWeb({
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-2 flex-wrap">
                         {selectedProduct.condition === 'SEALED' ? (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-emerald-100/90 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-emerald-100/90 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                             <Lock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                             <span>{language === 'en' ? 'Factory Sealed' : 'በፋብሪካው የታሸገ'}</span>
                           </span>
                         ) : selectedProduct.condition === 'BRAND_NEW' ? (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-blue-100/90 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-blue-100/90 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800">
                             <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                             <span>{language === 'en' ? 'Brand New' : 'አዲስ (ያልተከፈተ)'}</span>
                           </span>
                         ) : selectedProduct.condition === 'OPEN_BOX' ? (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-amber-100/90 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-amber-100/90 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                             <Package className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                             <span>{language === 'en' ? 'Open Box' : 'ክፍት ሳጥን'}</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg bg-purple-100/90 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-purple-100/90 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800">
                             <RotateCcw className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                             <span>{language === 'en' ? 'Certified Refurbished' : 'የታደሰ'}</span>
                           </span>
                         )}
 
-                        <span className="inline-flex items-center gap-1 text-[10.5px] font-bold px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 font-mono shadow-2xs">
+                        <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700 font-mono shadow-2xs">
                           <ShieldCheck className="w-3 h-3 text-[#0052FF]" />
                           <span>
                             {language === 'en'
@@ -3672,12 +3678,12 @@ export default function CustomerWeb({
                         </span>
                       </div>
 
-                      <span className="text-[10px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                      <span className="text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
                         {language === 'en' ? 'Condition Verified' : 'ሁኔታው የተረጋገጠ'}
                       </span>
                     </div>
 
-                    <p className="text-[11px] text-gray-600 dark:text-zinc-400 leading-snug">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-400 leading-snug">
                       {selectedProduct.condition === 'SEALED'
                         ? (language === 'en'
                           ? '🔒 Factory Sealed: Manufacturer original box with intact tamper-evident holographic seal. Never opened, unsealed, or activated.'
@@ -3717,7 +3723,7 @@ export default function CustomerWeb({
                             </div>
                             <span className="text-gray-350 dark:text-zinc-700">•</span>
                             <span
-                              className="font-bold underline cursor-pointer hover:text-black dark:hover:text-white transition-all text-[11px]"
+                              className="font-bold underline cursor-pointer hover:text-black dark:hover:text-white transition-all text-xs"
                               onClick={() => {
                                 const el = document.getElementById('reviews-section');
                                 if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -3727,7 +3733,7 @@ export default function CustomerWeb({
                             </span>
                           </>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 font-bold text-[11px] border border-gray-200/60 dark:border-zinc-750">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 font-bold text-xs border border-gray-200/60 dark:border-zinc-750">
                             <span>{language === 'en' ? 'No ratings yet' : 'እስካሁን ምንም ደረጃ አልተሰጠውም'}</span>
                           </span>
                         )}
@@ -3737,10 +3743,10 @@ export default function CustomerWeb({
 
                   {/* Detailed Description */}
                   <div className="bg-gray-50/80 dark:bg-zinc-800/80 p-3.5 sm:p-4 rounded-2xl border border-gray-150 dark:border-zinc-700/80 space-y-1.5 shadow-2xs">
-                    <span className="text-[10px] text-gray-400 dark:text-zinc-400 font-extrabold uppercase tracking-widest block">
+                    <span className="text-xs text-gray-400 dark:text-zinc-400 font-bold uppercase tracking-widest block">
                       {language === 'en' ? 'Product Overview' : 'የምርት አጠቃላይ መግለጫ'}
                     </span>
-                    <p className="text-gray-700 dark:text-zinc-200 text-xs sm:text-sm leading-relaxed">
+                    <p className="text-gray-700 dark:text-zinc-200 text-sm leading-relaxed">
                       {highlightText(language === 'en' ? selectedProduct.descriptionEn : selectedProduct.descriptionAm, searchQuery)}
                     </p>
                   </div>
@@ -3751,7 +3757,7 @@ export default function CustomerWeb({
                     if (!specs || specs.length === 0) return null;
                     return (
                       <div className="space-y-2">
-                        <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-extrabold uppercase tracking-widest flex items-center gap-1.5">
+                        <span className="text-xs text-gray-400 dark:text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
                           <Box className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                           {language === 'en' ? 'Key Specifications' : 'ዋና ዋና መግለጫዎች'}
                         </span>
@@ -3765,7 +3771,7 @@ export default function CustomerWeb({
                                 key={sIdx}
                                 className="p-2.5 sm:p-3 rounded-xl border bg-white dark:bg-zinc-900 border-gray-200/80 dark:border-zinc-800 flex flex-col justify-between shadow-2xs"
                               >
-                                <div className="flex items-center gap-1.5 text-[10px] font-extrabold uppercase tracking-wider text-gray-500 dark:text-zinc-400 mb-0.5">
+                                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400 mb-0.5">
                                   {isWeight ? (
                                     <Scale className="w-3 h-3 text-amber-500 shrink-0" />
                                   ) : isBattery ? (
@@ -3777,7 +3783,7 @@ export default function CustomerWeb({
                                   )}
                                   <span>{language === 'en' ? spec.labelEn : spec.labelAm}</span>
                                 </div>
-                                <div className="font-semibold text-gray-900 dark:text-zinc-100 text-xs leading-snug">
+                                <div className="font-semibold text-gray-900 dark:text-zinc-100 text-xs sm:text-sm leading-snug">
                                   {language === 'en' ? spec.valueEn : spec.valueAm}
                                 </div>
                               </div>
@@ -3790,7 +3796,7 @@ export default function CustomerWeb({
 
                   {/* SKU Options Selector */}
                   <div className="space-y-2 pt-1">
-                    <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-extrabold uppercase tracking-widest block">
+                    <span className="text-xs text-gray-400 dark:text-zinc-500 font-bold uppercase tracking-widest block">
                       {language === 'en' ? 'Select Option / SKU' : 'የእቃውን አይነት / SKU ይምረጡ'}
                     </span>
                     <div className={`grid gap-2 ${selectedProduct.variants.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
@@ -4643,11 +4649,11 @@ export default function CustomerWeb({
                     title={language === 'en' ? 'Save to Wishlist' : 'ወደ ተወዳጆች ያስቀምጡ'}
                     onClick={(e) => handleToggleFavorite(quickBuyProduct.id, e)}
                     className={`p-1.5 sm:p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md hover:scale-110 active:scale-95 border ${favorites.includes(quickBuyProduct.id)
-                      ? 'bg-rose-50 dark:bg-rose-950/90 text-rose-500 border-rose-300 dark:border-rose-800'
-                      : 'bg-white/90 dark:bg-zinc-900/90 text-gray-500 hover:text-rose-500 border border-white/80 dark:border-zinc-700'
+                      ? 'bg-red-50 dark:bg-red-950/90 text-red-600 border-red-300 dark:border-red-800 shadow-sm shadow-red-500/20'
+                      : 'bg-white/90 dark:bg-zinc-900/90 text-gray-500 hover:text-red-600 border border-white/80 dark:border-zinc-700'
                       }`}
                   >
-                    <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${favorites.includes(quickBuyProduct.id) ? 'fill-rose-500 text-rose-500' : ''}`} />
+                    <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${favorites.includes(quickBuyProduct.id) ? 'fill-red-600 text-red-600 scale-110' : ''}`} />
                   </button>
                 </div>
               </div>

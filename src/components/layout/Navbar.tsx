@@ -231,7 +231,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors shadow-xs">
+    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors shadow-xs">
       <div className="max-w-[1440px] mx-auto w-full px-3 sm:px-4 md:px-5 lg:px-8 py-2 sm:py-2.5 lg:py-3.5">
         <div className="flex items-center justify-between gap-1.5 sm:gap-2.5 md:gap-3 lg:gap-5">
 
@@ -463,9 +463,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               className="relative hidden min-[420px]:flex w-9 h-9 sm:w-10 sm:h-10 items-center justify-center text-slate-600 hover:text-slate-950 dark:text-zinc-300 dark:hover:text-zinc-100 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
               title={language === 'en' ? 'Wishlist' : 'ምኞት ዝርዝር'}
             >
-              <Heart className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-rose-500" />
+              <Heart className={`w-4.5 h-4.5 sm:w-5 sm:h-5 transition-transform ${favorites.length > 0 ? 'fill-red-600 text-red-600 scale-105' : 'text-slate-600 dark:text-zinc-300'}`} />
               {favorites.length > 0 && (
-                <span className="absolute top-0.5 right-0.5 bg-rose-500 text-white text-[10px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-xs">
+                <span className="absolute top-0.5 right-0.5 bg-red-600 text-white text-[10px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-xs">
                   {favorites.length}
                 </span>
               )}
@@ -657,24 +657,24 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] font-bold mt-0.5">{language === 'en' ? 'Cart' : 'ጋሪ'}</span>
+                <span className="text-xs font-bold mt-0.5">{language === 'en' ? 'Cart' : 'ጋሪ'}</span>
               </button>
 
               {/* Wishlist */}
               <button
                 type="button"
                 onClick={() => { setIsMobileMenuOpen(false); setIsWishlistOpen(true); }}
-                className="flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 cursor-pointer transition-transform active:scale-95"
+                className="flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl bg-red-50/70 dark:bg-red-950/30 border border-red-200/60 dark:border-red-900/50 text-red-600 dark:text-red-400 cursor-pointer transition-transform active:scale-95"
               >
                 <div className="relative">
-                  <Heart className="w-5 h-5" />
+                  <Heart className={`w-5 h-5 transition-transform ${favorites.length > 0 ? 'fill-red-600 text-red-600 scale-105' : ''}`} />
                   {favorites.length > 0 && (
-                    <span className="absolute -top-1.5 -right-2 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-2 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                       {favorites.length}
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] font-bold mt-0.5">{language === 'en' ? 'Wishlist' : 'ምኞቶች'}</span>
+                <span className="text-xs font-bold mt-0.5">{language === 'en' ? 'Wishlist' : 'ምኞቶች'}</span>
               </button>
 
               {/* Price Alerts */}
@@ -691,7 +691,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                     </span>
                   )}
                 </div>
-                <span className="text-[11px] font-bold mt-0.5">{language === 'en' ? 'Alerts' : 'ማንቂያዎች'}</span>
+                <span className="text-xs font-bold mt-0.5">{language === 'en' ? 'Alerts' : 'ማንቂያዎች'}</span>
               </button>
             </div>
 
@@ -768,10 +768,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
             {/* Partner Portals Switcher Chips (Courier & Merchant) */}
             <div className="pt-2 border-t border-slate-200/80 dark:border-zinc-800/80 space-y-1.5">
               <div className="flex items-center justify-between px-1">
-                <span className="text-[10.5px] font-black uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
                   {language === 'en' ? 'Partner Portals' : 'የአጋሮች መግቢያ'}
                 </span>
-                <span className="text-[10px] font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 rounded-full border border-slate-200/80 dark:border-zinc-700/80">
+                <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full border border-slate-200/80 dark:border-zinc-700/80">
                   {language === 'en' ? 'Quick Switch' : 'ቀጥታ መግቢያ'}
                 </span>
               </div>
@@ -790,7 +790,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                     <span className="text-xs font-black text-amber-700 dark:text-amber-300 truncate">
                       {language === 'en' ? 'Courier Portal' : 'የአሽከርካሪ ፖርታል'}
                     </span>
-                    <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold truncate">
+                    <span className="text-xs text-slate-500 dark:text-zinc-400 font-semibold truncate">
                       {language === 'en' ? 'Dispatch & PINs' : 'ማድረስ እና ፒን'}
                     </span>
                   </div>
@@ -809,7 +809,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                     <span className="text-xs font-black text-[#0052FF] dark:text-blue-400 truncate">
                       {language === 'en' ? 'Merchant Portal' : 'የነጋዴ ፖርታል'}
                     </span>
-                    <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold truncate">
+                    <span className="text-xs text-slate-500 dark:text-zinc-400 font-semibold truncate">
                       {language === 'en' ? 'Store & Orders' : 'ሱቅ እና ትዕዛዞች'}
                     </span>
                   </div>
@@ -820,7 +820,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
 
             {/* Mobile App Preferences Section (Language & Theme) */}
             <div className="p-3 bg-slate-100/80 dark:bg-zinc-800/80 rounded-2xl border border-slate-200/80 dark:border-zinc-700/80 flex flex-col gap-2.5 mt-1">
-              <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 dark:text-zinc-400">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
                 {language === 'en' ? 'Preferences' : 'ምርጫዎች'}
               </span>
 

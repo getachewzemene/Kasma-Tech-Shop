@@ -197,7 +197,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           isFlashCard
             ? 'border-orange-100 dark:border-zinc-800 hover:border-[#F97316]/50 shadow-xs hover:shadow-xl hover:-translate-y-1 rounded-2xl'
             : 'border-gray-200/80 dark:border-zinc-800 hover:border-[#155EEF] dark:hover:border-blue-500 shadow-xs hover:shadow-xl hover:-translate-y-1 rounded-2xl'
-        } overflow-hidden transition-all duration-300 cursor-pointer group flex flex-col justify-between relative ${containerLayoutClass} ${className}`}
+        } overflow-hidden transition-all duration-300 cursor-pointer group flex flex-col justify-between relative min-w-0 ${containerLayoutClass} ${className}`}
       >
         {/* Image container: clean 16:11 aspect ratio */}
         <div 
@@ -225,7 +225,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   handleCardClick();
                 }
               }}
-              className="px-3 py-1.5 bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-800 text-gray-950 dark:text-white text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-xl shadow-md flex items-center gap-1.5 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+              className="px-3 py-1.5 bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-800 text-gray-950 dark:text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md flex items-center gap-1.5 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5 text-[#155EEF]" />
               {language === 'en' ? 'Quick View' : 'ፈጣን እይታ'}
@@ -234,11 +234,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* Discount Badge */}
           {flashDiscountPct !== undefined ? (
-            <div className="absolute top-1.5 left-1.5 xs:top-2 xs:left-2 bg-[#F97316] text-white font-black text-[8.5px] xs:text-[9.5px] sm:text-[10px] tracking-wider px-1.5 xs:px-2 py-0.5 rounded-full flex items-center justify-center shadow-md z-20 pointer-events-none">
+            <div className="absolute top-1.5 left-1.5 xs:top-2 xs:left-2 bg-[#F97316] text-white font-black text-xs tracking-wider px-2 py-0.5 rounded-full flex items-center justify-center shadow-md z-20 pointer-events-none">
               <span>-{flashDiscountPct}%</span>
             </div>
           ) : badgeText ? (
-            <span className={`absolute top-1.5 left-1.5 xs:top-2 xs:left-2 ${badgeStyles[badgeColor]} text-[7.5px] xs:text-[8.5px] sm:text-[9px] font-black uppercase tracking-wider px-1.5 xs:px-2 py-0.5 rounded-md shadow-xs z-20 pointer-events-none whitespace-nowrap`}>
+            <span className={`absolute top-1.5 left-1.5 xs:top-2 xs:left-2 ${badgeStyles[badgeColor]} text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs z-20 pointer-events-none whitespace-nowrap`}>
               {badgeText}
             </span>
           ) : null}
@@ -255,83 +255,84 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 }}
                 className={`min-w-[28px] min-h-[28px] w-7 h-7 xs:w-8 xs:h-8 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-xs hover:scale-108 active:scale-95 flex items-center justify-center border ${
                   isFavorite
-                    ? 'bg-rose-50 dark:bg-rose-950/90 text-rose-500 dark:text-rose-400 border-rose-300 dark:border-rose-800 shadow-rose-500/20 shadow-sm'
-                    : 'bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-800 text-gray-500 hover:text-rose-500 border-white/80 dark:border-zinc-700/80'
+                    ? 'bg-red-50 dark:bg-red-950/90 text-red-600 dark:text-red-500 border-red-300 dark:border-red-800 shadow-red-500/20 shadow-sm'
+                    : 'bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-800 text-gray-500 hover:text-red-600 border-white/80 dark:border-zinc-700/80'
                 }`}
               >
-                <Heart className={`w-3.5 h-3.5 xs:w-4 xs:h-4 transition-transform ${isFavorite ? 'fill-rose-500 text-rose-500 scale-110' : ''}`} />
+                <Heart className={`w-3.5 h-3.5 xs:w-4 xs:h-4 transition-transform ${isFavorite ? 'fill-red-600 text-red-600 scale-110' : 'text-gray-400 dark:text-zinc-400'}`} />
               </button>
             </div>
           )}
         </div>
 
         {/* Card Content / Description Section: Natural, readable layout */}
-        <div className="p-2 xs:p-2.5 sm:p-3 md:p-3.5 flex flex-col justify-between flex-1 min-h-0 text-left gap-1.5 sm:gap-2">
-          <div className="space-y-1">
-            {/* Brand & Authentic Rating Capsule */}
-            <div className="flex items-center justify-between gap-1 min-w-0">
-              <div className="flex items-center gap-1 text-[10px] xs:text-[11px] sm:text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-wider truncate min-w-0">
-                <Tag className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-gray-400 shrink-0" />
+        <div className="p-2.5 sm:p-3.5 md:p-4 flex flex-col justify-between flex-1 min-h-0 text-left gap-2 sm:gap-2.5">
+          <div className="space-y-1 sm:space-y-1.5">
+            {/* Brand & Authentic Rating Capsule (12px tertiary labels) */}
+            <div className="flex items-center justify-between gap-1.5 min-w-0">
+              <div className="flex items-center gap-1 text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-wider truncate min-w-0">
+                <Tag className="w-3 h-3 text-gray-400 shrink-0" />
                 <span className="truncate">{product.brand}</span>
               </div>
 
-              {/* Authentic Product-Specific Rating or New Arrival */}
+              {/* Authentic Product-Specific Rating or New Arrival (12px tertiary labels) */}
               {avg !== null ? (
                 <div 
                   title={language === 'en' ? `${avg} out of 5 stars (${count} customer reviews)` : `${avg} ከ 5 ኮከቦች (${count} የደንበኛ አስተያየቶች)`}
-                  className="flex items-center gap-0.5 xs:gap-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-[9.5px] xs:text-[10.5px] sm:text-xs px-1.5 xs:px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap"
+                  className="flex items-center gap-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200/50 dark:border-amber-900/40 text-amber-800 dark:text-amber-300 font-bold text-xs px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap"
                 >
-                  <Star className="w-2.5 h-2.5 xs:w-3 xs:h-3 fill-amber-400 text-amber-400 shrink-0" />
+                  <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" />
                   <span className="font-bold text-amber-900 dark:text-amber-200">{avg}</span>
                   {count > 0 && (
-                    <span className="text-[9px] xs:text-[10px] sm:text-[11px] text-amber-700/90 dark:text-amber-400/90 font-medium hidden sm:inline">
+                    <span className="text-xs text-amber-700/90 dark:text-amber-400/90 font-medium hidden sm:inline">
                       ({count})
                     </span>
                   )}
                 </div>
               ) : (
-                <div className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 font-bold text-[9.5px] xs:text-[10.5px] sm:text-xs px-1.5 xs:px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
-                  <Sparkles className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-emerald-500 shrink-0" />
+                <div className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/50 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
+                  <Sparkles className="w-3 h-3 text-emerald-500 shrink-0" />
                   <span>{language === 'en' ? 'New' : 'አዲስ'}</span>
                 </div>
               )}
             </div>
 
-            {/* Product Title */}
+            {/* Product Title: Semibold at 14-15px, strictly single line with ellipses */}
             <h4 
-              title={typeof renderTitle() === 'string' ? (renderTitle() as string) : (language === 'en' ? product.nameEn : product.nameAm)} 
-              className="font-bold text-[#172033] dark:text-white group-hover:text-[#155EEF] transition-colors leading-snug text-[11px] xs:text-xs sm:text-sm line-clamp-2 min-h-[1.9rem] xs:min-h-[2.1rem] sm:min-h-[2.4rem] flex items-start"
+              title={language === 'en' ? product.nameEn : product.nameAm} 
+              className="font-semibold text-gray-800 dark:text-zinc-100 group-hover:text-[#155EEF] transition-colors leading-snug text-sm sm:text-[15px] truncate block w-full min-w-0"
             >
               {renderTitle()}
             </h4>
           </div>
 
           {/* Pricing & CTA Action Section */}
-          <div className="pt-1.5 xs:pt-2 border-t border-gray-150 dark:border-zinc-800/80 flex flex-col gap-1.5 xs:gap-2">
+          <div className="pt-2 border-t border-gray-150 dark:border-zinc-800/80 flex flex-col gap-2">
             <div className="flex items-center justify-between gap-1.5">
               <div className="flex flex-col min-w-0 pr-1">
+                {/* Price: Dominant, larger, and bolder than anything else on the card */}
                 <div className="flex items-baseline gap-1">
-                  <span className="text-xs xs:text-sm sm:text-base font-black font-mono text-[#172033] dark:text-white tracking-tight whitespace-nowrap">
+                  <span className="text-lg xs:text-xl sm:text-2xl font-black font-mono text-gray-950 dark:text-white tracking-tight whitespace-nowrap">
                     {displayPrice.toLocaleString()}
                   </span>
-                  <span className="text-[9px] xs:text-[10px] sm:text-xs font-mono font-bold text-[#155EEF] dark:text-blue-400 uppercase whitespace-nowrap">
+                  <span className="text-xs font-mono font-bold text-[#155EEF] dark:text-blue-400 uppercase whitespace-nowrap">
                     ETB
                   </span>
                 </div>
                 
                 <div className="flex items-center gap-1 min-w-0 mt-0.5">
                   {flashDiscountPct !== undefined ? (
-                    <span className="text-[9px] xs:text-[10px] sm:text-xs font-mono text-gray-400 line-through truncate">
+                    <span className="text-xs font-mono text-gray-400 dark:text-zinc-500 line-through truncate">
                       {originalPrice.toLocaleString()} ETB
                     </span>
                   ) : remainingQty !== undefined && remainingQty <= 5 ? (
-                    <span className="text-rose-500 dark:text-rose-400 font-extrabold text-[9px] xs:text-[10px] sm:text-xs flex items-center gap-0.5 truncate">
-                      <Flame className="w-2.5 h-2.5 xs:w-3 xs:h-3 fill-current shrink-0" />
+                    <span className="text-rose-500 dark:text-rose-400 font-extrabold text-xs flex items-center gap-0.5 truncate">
+                      <Flame className="w-3 h-3 fill-current shrink-0" />
                       <span className="truncate">{language === 'en' ? `${remainingQty} left` : `${remainingQty} ቀርቷል`}</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-0.5 text-[9px] xs:text-[10px] sm:text-xs text-emerald-600 dark:text-emerald-400 font-bold truncate">
-                      <ShieldCheck className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-emerald-500 shrink-0" />
+                    <span className="inline-flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-bold truncate">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                       <span className="truncate">{language === 'en' ? 'Genuine' : 'ኦሪጅናል'}</span>
                     </span>
                   )}
@@ -343,7 +344,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 type="button"
                 disabled={isOutOfStock}
                 onClick={handleInstantBuyClick}
-                className={`h-7 xs:h-7.5 sm:h-8.5 min-h-[28px] xs:min-h-[30px] sm:min-h-[34px] px-2 xs:px-2.5 sm:px-3 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-center gap-1 text-[10px] xs:text-[11px] sm:text-xs font-black shrink-0 whitespace-nowrap cursor-pointer shadow-xs active:scale-95 ${
+                className={`h-8 sm:h-9 min-h-[32px] sm:min-h-[36px] px-2.5 sm:px-3.5 rounded-lg sm:rounded-xl transition-all duration-200 flex items-center justify-center gap-1 text-xs font-bold shrink-0 whitespace-nowrap cursor-pointer shadow-xs active:scale-95 ${
                   isOutOfStock
                     ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed border border-zinc-200 dark:border-zinc-700'
                     : 'bg-[#155EEF] hover:bg-[#1044A5] active:scale-95 text-white shadow-xs hover:shadow-md'
@@ -361,7 +362,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {/* Flash Deals Stock Remaining Progress Bar */}
             {isFlashCard && (
               <div className="w-full pt-0.5">
-                <div className="flex items-center justify-between text-[8.5px] xs:text-[9.5px] sm:text-[10px] mb-0.5 font-semibold">
+                <div className="flex items-center justify-between text-xs mb-1 font-semibold">
                   <span className={isOutOfStock ? "text-zinc-400 font-bold" : remainingQty !== undefined && remainingQty <= 3 ? "text-rose-600 dark:text-rose-400 font-bold flex items-center gap-0.5" : "text-zinc-600 dark:text-zinc-400 flex items-center gap-0.5"}>
                     <Flame className="w-2.5 h-2.5 xs:w-3 xs:h-3 text-[#F97316] fill-[#F97316] shrink-0" />
                     <span>
@@ -373,7 +374,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     </span>
                   </span>
                   {claimedPct !== undefined && !isOutOfStock && (
-                    <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] text-zinc-500 font-mono">
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono font-medium">
                       {claimedPct}% {language === 'en' ? 'sold' : 'ተሽጧል'}
                     </span>
                   )}

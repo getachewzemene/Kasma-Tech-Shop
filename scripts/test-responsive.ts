@@ -99,7 +99,7 @@ console.log('🔍 [3/7] Auditing RootLayout.tsx Responsive Architecture...');
 const rootLayoutPath = path.join(projectRoot, 'src', 'components', 'layout', 'RootLayout.tsx');
 if (fs.existsSync(rootLayoutPath)) {
   const content = fs.readFileSync(rootLayoutPath, 'utf8');
-  const hasFluidMain = content.includes('max-w-full') && content.includes('overflow-x-hidden');
+  const hasFluidMain = content.includes('max-w-full') && (content.includes('overflow-x-clip') || content.includes('overflow-x-hidden'));
   const hasFluidOuter = content.includes('w-full') && content.includes('min-h-screen');
 
   if (hasFluidMain && hasFluidOuter) {
@@ -221,9 +221,9 @@ keyLayoutPages.forEach(({ path: pageRel, name }) => {
   const content = fs.readFileSync(fullPath, 'utf8');
   const hasSm = content.includes('sm:');
   const hasMdOrLg = content.includes('md:') || content.includes('lg:');
-  const hasResponsiveFlexOrGrid = 
-    content.includes('grid') || 
-    content.includes('flex-col') || 
+  const hasResponsiveFlexOrGrid =
+    content.includes('grid') ||
+    content.includes('flex-col') ||
     content.includes('flex-row');
 
   if (hasSm && hasMdOrLg && hasResponsiveFlexOrGrid) {

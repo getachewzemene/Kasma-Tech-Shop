@@ -208,27 +208,28 @@ export const HeroSalesBanner: React.FC<HeroSalesBannerProps> = ({
         {`${currentSlide + 1} / ${total}: ${productName}`}
       </div>
 
+      {/* Static Top-Left Corner Badge & Brand: Exactly aligned with text column and progress bar */}
+      <div className="absolute top-3 left-3 sm:top-4 sm:left-6 md:top-6 md:left-12 lg:top-7 lg:left-14 z-20 flex flex-wrap items-center gap-2 pointer-events-none">
+        <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-0.5 text-xs font-bold sm:gap-1.5 sm:px-3 sm:py-1 sm:text-sm shadow-md">
+          <Zap className="h-3 w-3 fill-white sm:h-4 sm:w-4" />
+          {language === 'en' ? `Limited offer · -${discountPct}%` : `ልዩ ቅናሽ · -${discountPct}%`}
+        </span>
+        <span className="hidden sm:inline text-xs sm:text-sm font-semibold text-slate-200 backdrop-blur-xs px-2.5 py-0.5 rounded-full bg-black/35 border border-white/10 shadow-xs">
+          Kasma · {campaign.brandTag}
+        </span>
+      </div>
+
       <div
         key={currentSlide}
         className="relative z-10 flex min-h-[200px] flex-row sm:min-h-0 sm:h-[300px] sm:items-center md:h-[400px] lg:h-[420px]"
       >
-        {/* ---------- Text column ---------- */}
-        <div className="hero-anim relative z-10 flex w-[54%] flex-col [text-shadow:0_1px_10px_rgba(0,0,0,0.55)] items-start justify-start gap-1.5 overflow-hidden px-3 pb-11 pt-3 sm:justify-center sm:w-[55%] sm:gap-3 sm:px-6 sm:pb-12 md:gap-4 md:py-8 md:pb-16 md:pl-12 md:pr-6 lg:pl-14 [animation:hero-text-in_500ms_ease-out_both]">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-bold sm:gap-1.5 sm:px-3 sm:py-1 sm:text-sm">
-              <Zap className="h-3 w-3 fill-white sm:h-4 sm:w-4" />
-              {language === 'en' ? `Limited offer · -${discountPct}%` : `ልዩ ቅናሽ · -${discountPct}%`}
-            </span>
-            <span className="hidden sm:inline text-sm font-medium text-slate-300">
-              Kasma · {campaign.brandTag}
-            </span>
-          </div>
-
+        {/* ---------- Text column (clean content flow with matching left alignment and comfortable top spacing) ---------- */}
+        <div className="hero-anim relative z-10 flex w-[54%] flex-col [text-shadow:0_1px_10px_rgba(0,0,0,0.55)] items-start justify-start pt-11 pb-8 sm:justify-center sm:w-[55%] sm:gap-3 px-3 sm:px-6 sm:pb-12 sm:pt-14 md:gap-3.5 md:py-8 md:pl-12 md:pr-6 lg:pl-14 [animation:hero-text-in_500ms_ease-out_both]">
           <div className="w-full">
-            <h2 className="line-clamp-2 text-[15px] font-black leading-snug tracking-tight sm:text-3xl sm:leading-tight lg:text-4xl">
+            <h2 className="line-clamp-2 text-base font-black leading-snug tracking-tight sm:text-3xl sm:leading-tight lg:text-4xl">
               {productName}
             </h2>
-            <p className="mt-1.5 line-clamp-1 hidden text-sm font-medium text-slate-300 sm:block sm:text-base">
+            <p className="mt-1 line-clamp-1 hidden text-sm font-medium text-slate-300 sm:block sm:text-base">
               {campaign.tagline}
             </p>
           </div>
@@ -245,14 +246,14 @@ export const HeroSalesBanner: React.FC<HeroSalesBannerProps> = ({
           </div>
 
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="font-mono text-lg font-black tracking-tight sm:text-4xl lg:text-5xl">
+            <span className="font-mono text-xl font-black tracking-tight sm:text-4xl lg:text-5xl">
               {slide.price.toLocaleString()}
-              <span className="ml-1 text-[11px] font-semibold text-slate-300 sm:ml-1.5 sm:text-lg">ETB</span>
+              <span className="ml-1 text-xs font-semibold text-slate-300 sm:ml-1.5 sm:text-lg">ETB</span>
             </span>
-            <span className="text-[11px] font-medium text-slate-400 line-through sm:text-base">
+            <span className="text-xs font-medium text-slate-400 line-through sm:text-base">
               {originalPrice.toLocaleString()} ETB
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-1.5 py-0.5 text-[11px] font-bold text-emerald-300 sm:px-2.5 sm:text-sm">
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-xs font-bold text-emerald-300 sm:px-2.5 sm:text-sm">
               <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
               {language === 'en'
                 ? `Save ${savingsAmount.toLocaleString()} ETB`
