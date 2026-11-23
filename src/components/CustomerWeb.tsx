@@ -34,6 +34,7 @@ import { sendTelegramOrderConfirmation, sendTelegramShippingUpdate, sendStoreOwn
 import { showTelegramMainButton, hideTelegramMainButton, setTelegramMainButtonProgress, isTelegramMiniApp } from '../utils/telegramWebApp';
 import { SUB_CITIES, SubCityOption } from '../constants/locations';
 export { SUB_CITIES, type SubCityOption };
+import { PriceRangeSlider } from './catalog/PriceRangeSlider';
 
 interface CustomerWebProps {
   products: Product[];
@@ -225,16 +226,21 @@ export default function CustomerWeb({
   const [filterSectionFocus, setFilterSectionFocus] = useState<'all' | 'brand' | 'price' | 'rating' | 'availability' | 'features'>('all');
 
   // Progressive Catalog Pagination & Batch Loading for High Usability
+  const [paginationMode, setPaginationMode] = useState<'load_more' | 'pages'>('load_more');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(12);
   const [visibleProductCount, setVisibleProductCount] = useState<number>(12);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [isPageTransitioning, setIsPageTransitioning] = useState<boolean>(false);
 
   // Trigger smooth shimmer transition when category or search changes
   useEffect(() => {
     setIsGridLoading(true);
+    setCurrentPage(1);
     setVisibleProductCount(12);
     const timer = setTimeout(() => setIsGridLoading(false), 200);
     return () => clearTimeout(timer);
-  }, [selectedCategory, searchQuery, sortBy, availabilityFilter, minPriceInput, maxPriceInput]);
+  }, [selectedCategory, searchQuery, sortBy, availabilityFilter, minPriceInput, maxPriceInput, selectedBrands, selectedRatingFilter]);
 
   // Dynamic brand list & price bounds derived from catalog
   const availableBrands = React.useMemo(() => {
@@ -1997,6 +2003,29 @@ export default function CustomerWeb({
     return 0;
   });
 
+  const totalPages = Math.max(1, Math.ceil(sortedAndFilteredProducts.length / pageSize));
+
+  const paginatedProducts = React.useMemo(() => {
+    if (paginationMode === 'pages') {
+      const start = (currentPage - 1) * pageSize;
+      return sortedAndFilteredProducts.slice(start, start + pageSize);
+    }
+    return sortedAndFilteredProducts.slice(0, visibleProductCount);
+  }, [sortedAndFilteredProducts, paginationMode, currentPage, pageSize, visibleProductCount]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage === currentPage || newPage < 1 || newPage > totalPages) return;
+    setIsPageTransitioning(true);
+    setCurrentPage(newPage);
+    const catalogEl = document.getElementById('products-catalog-grid');
+    if (catalogEl) {
+      catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    setTimeout(() => {
+      setIsPageTransitioning(false);
+    }, 220);
+  };
+
   // Pick active carousel slides from products based on current selection: 'featured' | 'new_arrivals' | 'top_sold'
   const activeSlides = React.useMemo(() => {
     if (carouselTab === 'new_arrivals') {
@@ -2714,22 +2743,28 @@ export default function CustomerWeb({
       </button>
     </div>
 
+    {/* Ambient radial glow on the right speaker side */}
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute -right-10 top-1/2 h-[350px] w-[350px] -translate-y-1/2 rounded-full blur-3xl bg-cyan-400/20"
+    />
+
     {/* Product stage: full-bleed right half background cover, exactly like HeroSalesBanner */}
-    <div className="absolute inset-y-0 right-0 z-0 block h-full w-[60%] sm:w-[58%] md:w-[54%] overflow-hidden pointer-events-none">
+    <div className="absolute inset-y-0 right-0 z-0 block h-full w-[65%] sm:w-[60%] md:w-[56%] overflow-hidden pointer-events-none">
       <div
         className="absolute inset-0 [&_img]:absolute [&_img]:inset-0 [&_img]:h-full [&_img]:w-full [&_img]:max-w-none [&_img]:object-cover [&_img]:object-center"
         style={{
           WebkitMaskImage:
-            'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.9) 35%, #000 60%)',
+            'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.85) 30%, #000 60%)',
           maskImage:
-            'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.9) 35%, #000 60%)',
+            'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.85) 30%, #000 60%)',
         }}
       >
         <LazyImage
           src="https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=1200&q=80"
           alt="Marshall Speaker"
           className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
-          containerClassName="h-full w-full"
+          containerClassName="h-full w-full !bg-transparent"
         />
       </div>
     </div>
@@ -2848,16 +2883,16 @@ export default function CustomerWeb({
       </div>
 
       {/* Right: Action Buttons - [ FILTER ] & [ SORT: Popular ] */}
-      <div className="flex items-center gap-2.5 sm:gap-3 self-start sm:self-auto shrink-0">
+      <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
 
-        {/* [ FILTER ] Button */}
+        {/* [ FILTER ] Button (Mobile Bottom Sheet & Filter Trigger) */}
         <button
           type="button"
           onClick={() => {
             setFilterSectionFocus('all');
             setIsAdvancedFilterOpen(true);
           }}
-          className={`h-10 sm:h-11 px-4 sm:px-5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all cursor-pointer border flex items-center gap-2 shadow-2xs ${activeFiltersCount > 0
+          className={`flex-1 sm:flex-initial justify-center h-10 sm:h-11 px-4 sm:px-5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all cursor-pointer border flex items-center gap-2 shadow-2xs ${activeFiltersCount > 0
             ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-[#0052FF]/20'
             : 'bg-gray-100/90 dark:bg-zinc-800/90 text-gray-800 dark:text-zinc-200 border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700'
             }`}
@@ -2872,11 +2907,11 @@ export default function CustomerWeb({
         </button>
 
         {/* [ SORT: Popular ] Dropdown */}
-        <div className="relative">
+        <div className="relative flex-1 sm:flex-initial">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="h-10 sm:h-11 appearance-none bg-gray-100/90 dark:bg-zinc-800/90 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700 rounded-xl sm:rounded-2xl px-4 pr-9 sm:pr-10 text-xs sm:text-sm font-black uppercase tracking-wider cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0052FF]/30 transition-all"
+            className="w-full sm:w-auto h-10 sm:h-11 appearance-none bg-gray-100/90 dark:bg-zinc-800/90 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700 rounded-xl sm:rounded-2xl px-4 pr-9 sm:pr-10 text-xs sm:text-sm font-black uppercase tracking-wider cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0052FF]/30 transition-all text-center sm:text-left"
           >
             <option value="default">{language === 'en' ? 'Sort: Popular' : 'በተወዳጅነት'}</option>
             <option value="priceAsc">{language === 'en' ? 'Price: Low → High' : 'ዋጋ፡ ዝቅተኛ'}</option>
@@ -3069,13 +3104,14 @@ export default function CustomerWeb({
           </span>
         )}
 
-        {/* Single Clear All Button */}
+        {/* Prominent Clear All Button with Icon */}
         <button
           type="button"
           onClick={handleClearAllFilters}
-          className="text-xs font-black text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:underline cursor-pointer ml-auto px-2 py-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-black text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:underline cursor-pointer ml-auto px-2.5 py-1 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-900/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-all shadow-2xs shrink-0"
         >
-          {language === 'en' ? 'Clear All' : 'ሁሉንም አጽዳ'}
+          <Trash2 className="w-3 h-3 text-rose-500" />
+          <span>{language === 'en' ? 'Clear all' : 'ሁሉንም አጽዳ'}</span>
         </button>
       </div>
     )}
@@ -3188,14 +3224,15 @@ export default function CustomerWeb({
             </div>
           </div>
 
-          {/* 2. PRICE SECTION */}
+          {/* 2. PRICE SECTION - INTERACTIVE DUAL-THUMB RANGE SLIDER */}
           <div className="space-y-3 pt-5">
             <div className="flex items-center justify-between">
               <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
-                {language === 'en' ? 'Price' : 'ዋጋ'}
+                {language === 'en' ? 'Price Range' : 'የዋጋ ክልል'}
               </span>
               {(minPriceInput !== '' || maxPriceInput !== '') && (
                 <button
+                  type="button"
                   onClick={() => {
                     setMinPriceInput('');
                     setMaxPriceInput('');
@@ -3207,37 +3244,17 @@ export default function CustomerWeb({
               )}
             </div>
 
-            <div className="space-y-2">
-              {[
-                { label: 'All Prices', min: '', max: '' },
-                { label: '< 5,000 ETB', min: '', max: '5000' },
-                { label: '5,000 – 10,000 ETB', min: '5000', max: '10000' },
-                { label: '10,000+ ETB', min: '10000', max: '' },
-              ].map((preset, idx) => {
-                const isSelected = minPriceInput === preset.min && maxPriceInput === preset.max;
-                return (
-                  <label
-                    key={`sheet-price-preset-${idx}`}
-                    className={`flex items-center gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${isSelected
-                      ? 'bg-blue-50/70 dark:bg-blue-950/50 border-[#0052FF] text-gray-900 dark:text-white font-black shadow-xs'
-                      : 'bg-gray-50/50 dark:bg-zinc-850/50 border-gray-200/80 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800'
-                      }`}
-                  >
-                    <input
-                      type="radio"
-                      name="sheet-price-preset"
-                      checked={isSelected}
-                      onChange={() => {
-                        setMinPriceInput(preset.min);
-                        setMaxPriceInput(preset.max);
-                      }}
-                      className="w-4.5 h-4.5 text-[#0052FF] focus:ring-[#0052FF] border-gray-300 cursor-pointer"
-                    />
-                    <span className="text-xs sm:text-sm font-bold">{preset.label}</span>
-                  </label>
-                );
-              })}
-            </div>
+            <PriceRangeSlider
+              min={0}
+              max={maxProductPriceInCatalog}
+              valueMin={minPriceInput ? Number(minPriceInput) : 0}
+              valueMax={maxPriceInput ? Number(maxPriceInput) : maxProductPriceInCatalog}
+              onChange={(newMin, newMax) => {
+                setMinPriceInput(newMin > 0 ? String(newMin) : '');
+                setMaxPriceInput(newMax < maxProductPriceInCatalog ? String(newMax) : '');
+              }}
+              language={language}
+            />
           </div>
 
           {/* 3. RATING SECTION */}
@@ -3339,37 +3356,38 @@ export default function CustomerWeb({
 {/* Main Grid Section */ }
 <div id="products-catalog-grid" className="w-full mt-6">
 
-  {isGridLoading ? (
+  {isGridLoading || isPageTransitioning ? (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={`grid-shimmer-${i}`} className="bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800/60 rounded-2xl overflow-hidden flex flex-col h-full space-y-3">
-          <Shimmer className="aspect-[16/11] w-full rounded-none" />
-          <div className="p-3.5 sm:p-4 space-y-2.5 flex flex-col flex-1 justify-between">
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Shimmer className="h-3 w-16" />
-                <Shimmer className="h-3 w-10" />
-              </div>
-              <Shimmer className="h-4 w-4/5 rounded" />
-            </div>
-            <div className="pt-2 border-t border-gray-100 dark:border-zinc-800/40 flex justify-between items-center mt-auto">
-              <Shimmer className="h-5 w-20" />
-              <Shimmer className="h-7 w-16 rounded-xl" />
-            </div>
-          </div>
-        </div>
+        <ProductCardSkeleton key={`grid-skeleton-${i}`} />
       ))}
     </div>
   ) : sortedAndFilteredProducts.length === 0 ? (
-    <div className="bg-white dark:bg-zinc-900 rounded-3xl p-16 text-center border border-gray-150 dark:border-zinc-800 shadow-xs">
-      <Search className="w-12 h-12 text-gray-300 dark:text-zinc-700 mx-auto mb-4" />
-      <p className="text-gray-950 dark:text-white font-extrabold mb-1">{language === 'en' ? 'No items matched' : 'ምንም ምርት አልተገኘም'}</p>
-      <p className="text-gray-400 dark:text-zinc-500 text-xs">{language === 'en' ? 'Try adjusting your search query or filters.' : 'እባክዎን ፍለጋዎን ያስተካክሉ።'}</p>
+    <div className="bg-white dark:bg-zinc-900 rounded-3xl p-12 sm:p-16 text-center border border-gray-150 dark:border-zinc-800 shadow-xs space-y-4">
+      <Search className="w-12 h-12 text-gray-300 dark:text-zinc-700 mx-auto" />
+      <div className="space-y-1">
+        <p className="text-gray-950 dark:text-white font-extrabold text-base sm:text-lg">
+          {language === 'en' ? 'No items matched your filters' : 'በተመረጡት ማጣሪያዎች ምንም ምርት አልተገኘም'}
+        </p>
+        <p className="text-gray-400 dark:text-zinc-500 text-xs sm:text-sm max-w-md mx-auto">
+          {language === 'en'
+            ? 'Try broadening your search term, clearing brand or price restrictions, or resetting filters.'
+            : 'እባክዎን የፍለጋ ቃላትን ይቀይሩ ወይም ማጣሪያዎችን ያጽዱ።'}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={handleClearAllFilters}
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#0052FF] text-white text-xs sm:text-sm font-bold shadow-md hover:bg-blue-600 transition-all cursor-pointer"
+      >
+        <RotateCcw className="w-4 h-4" />
+        <span>{language === 'en' ? 'Reset All Filters' : 'ሁሉንም ማጣሪያዎች አጽዳ'}</span>
+      </button>
     </div>
   ) : (
     <>
       <GridContainer cols="auto-fill" gap="normal">
-        {sortedAndFilteredProducts.slice(0, visibleProductCount).map((p) => {
+        {paginatedProducts.map((p) => {
           const isFavorite = favorites.includes(p.id);
           const isCompared = comparedProductIds.includes(p.id);
 
@@ -3393,7 +3411,7 @@ export default function CustomerWeb({
             />
           );
         })}
-        {/* Shimmer skeleton cards when loading subsequent batch */}
+        {/* Shimmer skeleton cards when loading subsequent batch in load_more mode */}
         {isLoadingMore && (
           <>
             {Array.from({ length: 4 }).map((_, i) => (
@@ -3403,59 +3421,192 @@ export default function CustomerWeb({
         )}
       </GridContainer>
 
-      {/* Progressive Loading & Large Dataset Controls */}
-      {visibleProductCount < sortedAndFilteredProducts.length && (
-        <div className="mt-10 mb-6 flex flex-col items-center justify-center space-y-3">
-          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-400 font-medium">
-            <span>
-              {language === 'en'
-                ? `Showing ${Math.min(visibleProductCount, sortedAndFilteredProducts.length)} of ${sortedAndFilteredProducts.length} products`
-                : `${sortedAndFilteredProducts.length} ውስጥ ${Math.min(visibleProductCount, sortedAndFilteredProducts.length)} ታይቷል`}
+      {/* Pagination & Progressive Loading Navigation Controls */}
+      <div className="mt-10 mb-6 bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xs space-y-4">
+        
+        {/* Header Bar: Status readouts & Mode Switcher */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pb-3 border-b border-gray-150 dark:border-zinc-800">
+          <div className="flex items-center gap-3">
+            <span className="text-xs sm:text-sm font-mono font-bold text-gray-600 dark:text-zinc-400">
+              {paginationMode === 'pages' ? (
+                language === 'en'
+                  ? `Showing ${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, sortedAndFilteredProducts.length)} of ${sortedAndFilteredProducts.length} items (Page ${currentPage} of ${totalPages})`
+                  : `${sortedAndFilteredProducts.length} ውስጥ ${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, sortedAndFilteredProducts.length)} (ገጽ ${currentPage} ከ ${totalPages})`
+              ) : (
+                language === 'en'
+                  ? `Showing ${Math.min(visibleProductCount, sortedAndFilteredProducts.length)} of ${sortedAndFilteredProducts.length} items`
+                  : `${sortedAndFilteredProducts.length} ውስጥ ${Math.min(visibleProductCount, sortedAndFilteredProducts.length)} ታይቷል`
+              )}
             </span>
-            <div className="w-24 bg-gray-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-              <div
-                className="bg-[#0052FF] h-full rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(100, Math.round((visibleProductCount / sortedAndFilteredProducts.length) * 100))}%` }}
-              />
-            </div>
+            {/* Visual progress bar for load-more mode */}
+            {paginationMode === 'load_more' && (
+              <div className="hidden xs:block w-24 bg-gray-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-[#0052FF] h-full rounded-full transition-all duration-300"
+                  style={{ width: `${Math.min(100, Math.round((visibleProductCount / sortedAndFilteredProducts.length) * 100))}%` }}
+                />
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Dual Mode Switcher: [ Load More ] | [ Pages ] */}
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-zinc-800 p-1 rounded-xl">
             <button
               type="button"
-              disabled={isLoadingMore}
-              onClick={() => {
-                setIsLoadingMore(true);
-                setTimeout(() => {
-                  setVisibleProductCount(prev => prev + 12);
-                  setIsLoadingMore(false);
-                }, 250);
-              }}
-              className="px-6 py-3 bg-[#0052FF] hover:bg-blue-600 active:scale-95 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-md hover:shadow-blue-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              onClick={() => setPaginationMode('load_more')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${paginationMode === 'load_more'
+                ? 'bg-white dark:bg-zinc-900 text-[#0052FF] dark:text-blue-400 shadow-2xs font-black'
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
             >
-              {isLoadingMore ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>{language === 'en' ? 'Loading Products...' : 'እየጫነ ነው...'}</span>
-                </>
-              ) : (
-                <>
-                  <span>{language === 'en' ? 'Load More Products' : 'ተጨማሪ ምርቶችን አሳይ'}</span>
-                  <ChevronDown className="w-4 h-4" />
-                </>
-              )}
+              <Layers className="w-3.5 h-3.5" />
+              <span>{language === 'en' ? 'Load More' : 'ቀጣይ ጫን'}</span>
             </button>
-
             <button
               type="button"
-              onClick={() => setVisibleProductCount(sortedAndFilteredProducts.length)}
-              className="px-4 py-3 bg-white dark:bg-zinc-850 hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 border border-gray-200 dark:border-zinc-700/80 rounded-2xl text-xs font-bold transition-all cursor-pointer"
+              onClick={() => {
+                setPaginationMode('pages');
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${paginationMode === 'pages'
+                ? 'bg-white dark:bg-zinc-900 text-[#0052FF] dark:text-blue-400 shadow-2xs font-black'
+                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
             >
-              {language === 'en' ? `Show All (${sortedAndFilteredProducts.length})` : `ሁሉንም አሳይ (${sortedAndFilteredProducts.length})`}
+              <Tag className="w-3.5 h-3.5" />
+              <span>{language === 'en' ? 'Pages' : 'ገጾች'}</span>
             </button>
           </div>
         </div>
-      )}
+
+        {/* MODE 1: Load More Controls */}
+        {paginationMode === 'load_more' && (
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+            {visibleProductCount < sortedAndFilteredProducts.length ? (
+              <>
+                <button
+                  type="button"
+                  disabled={isLoadingMore}
+                  onClick={() => {
+                    setIsLoadingMore(true);
+                    setTimeout(() => {
+                      setVisibleProductCount(prev => prev + 12);
+                      setIsLoadingMore(false);
+                    }, 300);
+                  }}
+                  className="px-6 py-3 bg-[#0052FF] hover:bg-blue-600 active:scale-95 text-white rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all shadow-md hover:shadow-blue-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>{language === 'en' ? 'Loading Products...' : 'እየጫነ ነው...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{language === 'en' ? 'Load More Products (+12)' : 'ተጨማሪ ምርቶችን አሳይ (+12)'}</span>
+                      <ChevronDown className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setVisibleProductCount(sortedAndFilteredProducts.length)}
+                  className="px-4 py-3 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700 rounded-2xl text-xs sm:text-sm font-bold transition-all cursor-pointer"
+                >
+                  {language === 'en' ? `Show All (${sortedAndFilteredProducts.length})` : `ሁሉንም አሳይ (${sortedAndFilteredProducts.length})`}
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2 rounded-xl border border-emerald-200 dark:border-emerald-900/40">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>{language === 'en' ? `All ${sortedAndFilteredProducts.length} products loaded` : `ሁሉም ${sortedAndFilteredProducts.length} ምርቶች ታይተዋል`}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* MODE 2: Numbered Pages Controls */}
+        {paginationMode === 'pages' && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-1">
+            {/* Page Size Selector */}
+            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-400 font-bold self-start sm:self-auto">
+              <span>{language === 'en' ? 'Items per page:' : 'በገጽ:'}</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-gray-800 dark:text-zinc-200 focus:outline-none focus:border-[#0052FF] cursor-pointer"
+              >
+                <option value={12}>12</option>
+                <option value={24}>24</option>
+                <option value={48}>48</option>
+              </select>
+            </div>
+
+            {/* Prev / Number Buttons / Next */}
+            <div className="flex items-center gap-1.5 flex-wrap justify-center">
+              {/* Prev Button */}
+              <button
+                type="button"
+                disabled={currentPage <= 1 || isPageTransitioning}
+                onClick={() => handlePageChange(currentPage - 1)}
+                className="p-2 sm:px-3 sm:py-2 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs sm:text-sm font-bold text-gray-700 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs transition-all"
+                title={language === 'en' ? 'Previous page' : 'ቀዳሚ ገጽ'}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline">{language === 'en' ? 'Prev' : 'ቀዳሚ'}</span>
+              </button>
+
+              {/* Numbered Page Buttons with Smart Truncation */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(pNum => {
+                  if (totalPages <= 7) return true;
+                  if (pNum === 1 || pNum === totalPages) return true;
+                  if (Math.abs(pNum - currentPage) <= 1) return true;
+                  return false;
+                })
+                .map((pNum, idx, arr) => {
+                  const prevVal = arr[idx - 1];
+                  const hasGap = prevVal && pNum - prevVal > 1;
+
+                  return (
+                    <React.Fragment key={`page-num-${pNum}`}>
+                      {hasGap && (
+                        <span className="px-1 text-gray-400 font-mono text-xs">...</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handlePageChange(pNum)}
+                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center ${pNum === currentPage
+                          ? 'bg-[#0052FF] text-white font-black shadow-md shadow-[#0052FF]/25 scale-105'
+                          : 'border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 shadow-2xs'
+                          }`}
+                      >
+                        {pNum}
+                      </button>
+                    </React.Fragment>
+                  );
+                })}
+
+              {/* Next Button */}
+              <button
+                type="button"
+                disabled={currentPage >= totalPages || isPageTransitioning}
+                onClick={() => handlePageChange(currentPage + 1)}
+                className="p-2 sm:px-3 sm:py-2 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs sm:text-sm font-bold text-gray-700 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs transition-all"
+                title={language === 'en' ? 'Next page' : 'ቀጣይ ገጽ'}
+              >
+                <span className="hidden sm:inline">{language === 'en' ? 'Next' : 'ቀጣይ'}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+      </div>
     </>
   )}
 </div>

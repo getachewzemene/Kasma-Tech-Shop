@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
 import { ThemeToggle } from '../ThemeToggle';
+import { SearchAutocomplete } from '../common/SearchAutocomplete';
 import {
   ShoppingBag,
   Search,
@@ -68,7 +69,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
   const [isDeptDropdownOpen, setIsDeptDropdownOpen] = useState(false);
   const [isMobileCatsExpanded, setIsMobileCatsExpanded] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -231,23 +242,33 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 transition-colors shadow-xs">
-      <div className="max-w-[1440px] mx-auto w-full px-3 sm:px-4 md:px-5 lg:px-8 py-2 sm:py-2.5 lg:py-3.5">
+    <header className={`sticky top-0 z-40 w-full transition-all duration-300 ease-in-out border-b ${
+      isScrolled
+        ? 'bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-xl border-slate-200/90 dark:border-slate-800 shadow-md py-1.5 sm:py-2'
+        : 'bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-md border-slate-200/80 dark:border-slate-800/80 shadow-xs py-2 sm:py-2.5 lg:py-3.5'
+    }`}>
+      <div className="max-w-[1440px] mx-auto w-full px-3 sm:px-4 md:px-5 lg:px-8">
         <div className="flex items-center justify-between gap-1.5 sm:gap-2.5 md:gap-3 lg:gap-5">
 
           {/* 1. Brand Logo & Category Explorer Dropdown */}
           <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3 shrink-0">
             <Link to="/" className="flex items-center gap-2 sm:gap-2.5 cursor-pointer select-none group shrink-0">
-              <div className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 bg-white rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center shadow-xs border border-slate-200/90 dark:border-zinc-800 transition-transform group-hover:scale-105 duration-200 p-0.5 sm:p-1 shrink-0">
+              <div className={`bg-white rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center shadow-xs border border-slate-200/90 dark:border-zinc-800 transition-all duration-300 group-hover:scale-105 p-0.5 sm:p-1 shrink-0 ${
+                isScrolled ? 'w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9' : 'w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11'
+              }`}>
                 <img src="/favicon.png" alt="Kasma Logo" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-1">
-                  <span className="text-sm sm:text-base md:text-base lg:text-xl font-black tracking-wider sm:tracking-widest text-slate-900 dark:text-white leading-none font-sans uppercase">
+                  <span className={`font-black tracking-wider sm:tracking-widest text-slate-900 dark:text-white leading-none font-sans uppercase transition-all duration-300 ${
+                    isScrolled ? 'text-xs sm:text-sm lg:text-base' : 'text-sm sm:text-base md:text-base lg:text-xl'
+                  }`}>
                     KASMA <span className="text-amber-500 font-bold">SHOP</span>
                   </span>
                 </div>
-                <span className="hidden sm:block text-[8px] sm:text-[9px] lg:text-[10px] text-slate-500 dark:text-zinc-500 tracking-wider font-extrabold uppercase leading-none mt-1">
+                <span className={`hidden sm:block text-[8px] sm:text-[9px] lg:text-[10px] text-slate-500 dark:text-zinc-500 tracking-wider font-extrabold uppercase leading-none transition-all duration-300 ${
+                  isScrolled ? 'h-0 opacity-0 overflow-hidden m-0' : 'opacity-100 mt-1'
+                }`}>
                   {language === 'en' ? 'PREMIUM MARKETPLACE' : 'ፕሪሚየም የገበያ ቦታ'}
                 </span>
               </div>
@@ -258,7 +279,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               <button
                 type="button"
                 onClick={() => setIsDeptDropdownOpen(!isDeptDropdownOpen)}
-                className={`h-9 lg:h-10 px-3 lg:px-3.5 rounded-xl font-bold text-xs lg:text-[13px] flex items-center gap-1.5 transition-all cursor-pointer border ${isDeptDropdownOpen
+                className={`px-3 lg:px-3.5 rounded-xl font-bold flex items-center gap-1.5 transition-all duration-300 cursor-pointer border ${
+                  isScrolled ? 'h-8.5 lg:h-9 text-xs' : 'h-9 lg:h-10 text-xs lg:text-[13px]'
+                } ${isDeptDropdownOpen
                     ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-xs'
                     : 'bg-slate-100 dark:bg-zinc-800/90 hover:bg-slate-200/80 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 border-slate-200/80 dark:border-zinc-700/80'
                   }`}
@@ -344,59 +367,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
             </div>
           </div>
 
-          {/* 2. Global Search Field (Desktop & Tablet) */}
+          {/* 2. Global Search Field with Autocomplete (Desktop & Tablet) */}
           <div className="flex-1 min-w-[200px] sm:min-w-[220px] md:min-w-[260px] max-w-2xl lg:max-w-3xl mx-2 sm:mx-2.5 md:mx-3 lg:mx-4 relative hidden sm:block">
-            <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-              <Search className="absolute left-3 w-4 h-4 text-slate-400 dark:text-zinc-500 pointer-events-none" />
-              <input
-                type="text"
-                placeholder={
-                  isListening
-                    ? (language === 'en' ? '🎙️ Listening... Speak now' : '🎙️ እያዳመጥን ነው... ይናገሩ')
-                    : (language === 'en' ? 'Search smartphones, Arctis, PS5...' : 'ስልኮችን፣ ማዳመጫዎችን፣ ፒኤስ5 ይፈልጉ...')
-                }
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 lg:h-10 pl-9 pr-14 lg:pr-28 rounded-xl border border-slate-200/90 dark:border-zinc-700/80 bg-slate-100/70 dark:bg-zinc-800/80 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0052FF]/30 focus:border-[#0052FF] dark:focus:border-blue-500 focus:bg-white dark:focus:bg-zinc-900 text-slate-900 dark:text-zinc-100 transition-all shadow-2xs"
-              />
-              <div className="absolute right-1.5 flex items-center gap-0.5 sm:gap-1 text-slate-400">
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="p-1 text-slate-400 hover:text-slate-950 dark:hover:text-white text-xs font-bold rounded-lg cursor-pointer"
-                    title="Clear search"
-                  >
-                    ✕
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setIsQrScannerOpen(true)}
-                  className="p-1 sm:p-1.5 bg-[#0052FF]/10 dark:bg-blue-500/20 text-[#0052FF] dark:text-blue-400 hover:bg-[#0052FF] hover:text-white dark:hover:bg-blue-600 dark:hover:text-white rounded-lg transition-all cursor-pointer font-bold flex items-center justify-center"
-                  title={language === 'en' ? 'Scan Product QR Tag' : 'የምርት QR ኮድ ያንብቡ'}
-                >
-                  <QrCode className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleImageSearchClick}
-                  className="hidden lg:flex p-1 sm:p-1.5 hover:bg-slate-200/80 dark:hover:bg-zinc-700/80 text-slate-500 hover:text-[#0052FF] dark:hover:text-blue-400 rounded-lg transition-colors cursor-pointer"
-                  title={language === 'en' ? 'Search by Image / Camera' : 'በምስል ይፈልጉ'}
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleVoiceSearch}
-                  className={`hidden lg:flex p-1 sm:p-1.5 hover:bg-slate-200/80 dark:hover:bg-zinc-700/80 rounded-lg transition-colors cursor-pointer ${isListening ? 'text-red-500 animate-pulse bg-red-50 dark:bg-red-950/40' : 'text-slate-500 hover:text-[#0052FF] dark:hover:text-blue-400'
-                    }`}
-                  title={language === 'en' ? 'Search by Voice' : 'በድምፅ ይፈልጉ'}
-                >
-                  <Mic className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </form>
+            <SearchAutocomplete
+              isCompact={isScrolled}
+              onVoiceSearch={handleVoiceSearch}
+              onImageSearch={handleImageSearchClick}
+              isListening={isListening}
+            />
           </div>
 
           {/* 3. Primary Desktop Navigation Links */}
@@ -546,59 +524,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
           </div>
         </div>
 
-        {/* Mobile Search Bar Row (Clean, touch-friendly, responsive) */}
+        {/* Mobile Search Bar Row with Autocomplete (Clean, touch-friendly, responsive) */}
         <div className="pt-2 sm:hidden">
-          <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-            <Search className="w-4 h-4 absolute left-3 text-slate-400 dark:text-zinc-500 pointer-events-none" />
-            <input
-              type="text"
-              placeholder={
-                isListening
-                  ? (language === 'en' ? '🎙️ Listening... Speak now' : '🎙️ እያዳመጥን ነው... ይናገሩ')
-                  : (language === 'en' ? 'Search smartphones, laptops, PS5...' : 'ስልኮችን፣ ላፕቶፖችን፣ ፒኤስ5 ይፈልጉ...')
-              }
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-10 pl-9 pr-20 rounded-xl text-xs sm:text-sm bg-slate-100 dark:bg-zinc-900 border border-slate-200/90 dark:border-zinc-800 focus:border-[#0052FF] text-slate-900 dark:text-zinc-100 outline-none transition-all placeholder:text-slate-400"
-            />
-            <div className="absolute right-2 flex items-center gap-1">
-              {searchQuery ? (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="p-1 text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-bold"
-                  title="Clear"
-                >
-                  ✕
-                </button>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => setIsQrScannerOpen(true)}
-                className="p-1.5 bg-[#0052FF]/10 text-[#0052FF] dark:text-blue-400 rounded-lg text-xs font-bold"
-                title={language === 'en' ? 'Scan QR' : 'QR ኮድ'}
-              >
-                <QrCode className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={handleImageSearchClick}
-                className="p-1.5 text-slate-400 hover:text-[#0052FF] rounded-lg text-xs cursor-pointer"
-                title={language === 'en' ? 'Image Search' : 'በምስል ይፈልጉ'}
-              >
-                <Camera className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={handleVoiceSearch}
-                className={`p-1.5 rounded-lg text-xs cursor-pointer ${isListening ? 'text-red-500 animate-pulse bg-red-50 dark:bg-red-950/40' : 'text-slate-400 hover:text-[#0052FF]'
-                  }`}
-                title={language === 'en' ? 'Voice Search' : 'በድምፅ ይፈልጉ'}
-              >
-                <Mic className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </form>
+          <SearchAutocomplete
+            isCompact={false}
+            onVoiceSearch={handleVoiceSearch}
+            onImageSearch={handleImageSearchClick}
+            isListening={isListening}
+          />
           {/* Hidden Image File Picker for Visual Search */}
           <input
             ref={fileInputRef}
