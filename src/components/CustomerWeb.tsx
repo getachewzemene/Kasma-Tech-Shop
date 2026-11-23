@@ -2401,7 +2401,7 @@ export default function CustomerWeb({
       {/* KASMA LIGHTNING FLASH DEALS SECTION */}
       {approvedProducts.length > 0 && (
         <section id="featured-deals-section" className="max-w-[1440px] mx-auto w-full px-2.5 xs:px-3 sm:px-6 lg:px-8 mt-12 lg:mt-16 scroll-mt-28">
-          {/* Unified SectionHeader: Flash Deals on Left Top End & Countdown + View All on Right Top End */}
+          {/* Unified SectionHeader: Flash Deals on Left & Countdown on Top Right (Mobile) / Countdown + View all (Desktop) */}
           <SectionHeader
             titleEn="Flash Deals"
             titleAm="ፈጣን ቅናሾች"
@@ -2415,22 +2415,23 @@ export default function CustomerWeb({
             }
             onViewAll={() => setIsFlashDealsOpen(true)}
             viewAllText={language === 'en' ? 'View all' : 'ሁሉንም እይ'}
+            viewAllClassName="!hidden sm:!inline-flex"
             rightContent={
-              <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 bg-orange-50 dark:bg-zinc-800/90 px-2 py-1 xs:px-2.5 xs:py-1.5 sm:px-3 sm:py-2 rounded-xl border border-orange-200/80 dark:border-zinc-700 shadow-2xs shrink-0">
-                <Clock className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-[#F97316] shrink-0" />
-                <span className="text-[11px] xs:text-xs text-zinc-600 dark:text-zinc-300 font-bold shrink-0 leading-none">
+              <div className="flex items-center gap-1 sm:gap-2 bg-orange-50/90 dark:bg-zinc-800/90 px-1.5 py-0.5 xs:px-2 xs:py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl border border-orange-200/80 dark:border-zinc-700 shadow-2xs shrink-0">
+                <Clock className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5 text-[#F97316] shrink-0" />
+                <span className="text-[9.5px] xs:text-[10px] sm:text-xs text-zinc-600 dark:text-zinc-300 font-semibold sm:font-bold shrink-0 leading-none">
                   {language === 'en' ? 'Ends in:' : 'የሚቀረው:'}
                 </span>
-                <div className="flex items-center gap-0.5 xs:gap-1 font-mono font-black text-xs sm:text-sm">
-                  <span className="bg-white dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-2xs leading-none">
+                <div className="flex items-center gap-0.5 sm:gap-1 font-mono font-bold sm:font-black text-[10px] xs:text-[11px] sm:text-sm">
+                  <span className="bg-white dark:bg-zinc-900 text-[#EA580C] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200/90 dark:border-orange-900/60 shadow-2xs leading-none">
                     {String(flashTimeLeft.hours).padStart(2, '0')}
                   </span>
-                  <span className="text-[#F97316] font-bold leading-none animate-pulse">:</span>
-                  <span className="bg-white dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-2xs leading-none">
+                  <span className="text-[#EA580C] font-bold text-[9px] sm:text-sm leading-none animate-pulse">:</span>
+                  <span className="bg-white dark:bg-zinc-900 text-[#EA580C] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200/90 dark:border-orange-900/60 shadow-2xs leading-none">
                     {String(flashTimeLeft.minutes).padStart(2, '0')}
                   </span>
-                  <span className="text-[#F97316] font-bold leading-none animate-pulse">:</span>
-                  <span className="bg-white dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-2xs leading-none">
+                  <span className="text-[#EA580C] font-bold text-[9px] sm:text-sm leading-none animate-pulse">:</span>
+                  <span className="bg-white dark:bg-zinc-900 text-[#EA580C] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200/90 dark:border-orange-900/60 shadow-2xs leading-none">
                     {String(flashTimeLeft.seconds).padStart(2, '0')}
                   </span>
                 </div>
@@ -2548,6 +2549,18 @@ export default function CustomerWeb({
                   });
                 })()}
           </GridContainer>
+
+          {/* Mobile Bottom-Right "View all" trigger */}
+          <div className="flex sm:hidden justify-end mt-2 xs:mt-2.5">
+            <button
+              type="button"
+              onClick={() => setIsFlashDealsOpen(true)}
+              className="group inline-flex items-center gap-1 text-xs font-bold text-[#0052FF] dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-all cursor-pointer whitespace-nowrap py-1 px-1 active:scale-95"
+            >
+              <span>{language === 'en' ? 'View all' : 'ሁሉንም እይ'}</span>
+              <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
         </section>
       )}
 

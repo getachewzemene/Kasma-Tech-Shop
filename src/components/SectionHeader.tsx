@@ -35,6 +35,9 @@ export interface SectionHeaderProps {
 
   /** Additional container classes */
   className?: string;
+
+  /** Optional classes for the "View all" action element (e.g. 'hidden sm:inline-flex') */
+  viewAllClassName?: string;
 }
 
 export const SectionHeader: React.FC<SectionHeaderProps> = ({
@@ -51,15 +54,19 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   viewAllText,
   viewAllHref,
   rightContent,
-  className = ''
+  className = '',
+  viewAllClassName = ''
 }) => {
   const displayTitle = title || (language === 'en' ? titleEn : titleAm) || '';
   const displaySubtitle = subtitle || (language === 'en' ? subtitleEn : subtitleAm);
   const defaultViewAllLabel = language === 'en' ? 'View all' : 'ሁሉንም እይ';
   const label = viewAllText || defaultViewAllLabel;
 
+  const hasDisplayClass = viewAllClassName && /\b(!?hidden|!?block|!?inline|!?flex|!?grid)\b/.test(viewAllClassName);
+  const displayClass = hasDisplayClass ? viewAllClassName : `inline-flex ${viewAllClassName}`.trim();
+
   return (
-    <div className={`flex items-center justify-between gap-4 mb-4 sm:mb-6 w-full min-w-0 ${className}`}>
+    <div className={`flex items-center justify-between gap-2 sm:gap-4 mb-3.5 sm:mb-6 w-full min-w-0 ${className}`}>
       {/* Left side: Icon + Title + Subtitle */}
       <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
         {icon && (
@@ -75,7 +82,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
             {badge && <div className="shrink-0">{badge}</div>}
           </div>
           {displaySubtitle && (
-            <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 font-medium mt-1 line-clamp-1">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-zinc-400 font-medium mt-0.5 sm:mt-1 line-clamp-1">
               {displaySubtitle}
             </p>
           )}
@@ -89,7 +96,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
           <button
             type="button"
             onClick={onViewAll}
-            className="group inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-[#0052FF] dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className={`group ${displayClass} items-center gap-1 text-xs sm:text-sm font-bold text-[#0052FF] dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-all cursor-pointer whitespace-nowrap shrink-0`}
           >
             <span>{label}</span>
             <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -98,7 +105,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
         {!onViewAll && viewAllHref && (
           <a
             href={viewAllHref}
-            className="group inline-flex items-center gap-1 text-xs sm:text-sm font-bold text-[#0052FF] dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-all cursor-pointer whitespace-nowrap shrink-0"
+            className={`group ${displayClass} items-center gap-1 text-xs sm:text-sm font-bold text-[#0052FF] dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-all cursor-pointer whitespace-nowrap shrink-0`}
           >
             <span>{label}</span>
             <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
