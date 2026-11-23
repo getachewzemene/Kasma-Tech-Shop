@@ -390,24 +390,23 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               <span>{language === 'en' ? 'Deals' : 'ቅናሾች'}</span>
             </button>
             {isCustomerLoggedIn && (
-              <>
-                <button
-                  type="button"
-                  onClick={onOpenMyOrders}
-                  className="h-9 lg:h-10 px-3 rounded-xl text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap text-xs lg:text-[13px] font-bold"
-                >
-                  <Package className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>{language === 'en' ? 'My Orders' : 'የእኔ ትዕዛዞች'}</span>
-                </button>
-                <Link
-                  to="/tracking"
-                  className="h-9 lg:h-10 px-3 rounded-xl text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-                >
-                  <Truck className="w-4 h-4 text-[#0052FF]" />
-                  <span>{language === 'en' ? 'Track Order' : 'ትዕዛዝ ተከታተል'}</span>
-                </Link>
-              </>
+              <button
+                type="button"
+                onClick={onOpenMyOrders}
+                className="h-9 lg:h-10 px-3 rounded-xl text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap text-xs lg:text-[13px] font-bold"
+              >
+                <Package className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>{language === 'en' ? 'My Orders' : 'የእኔ ትዕዛዞች'}</span>
+              </button>
             )}
+            <Link
+              to="/tracking"
+              className="h-9 lg:h-10 px-3 rounded-xl text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap text-xs lg:text-[13px] font-bold"
+              title={language === 'en' ? 'Track order delivery' : 'ትዕዛዝ ተከታተል'}
+            >
+              <Truck className="w-4 h-4 text-[#0052FF]" />
+              <span>{language === 'en' ? 'Track Order' : 'ትዕዛዝ ተከታተል'}</span>
+            </Link>
           </nav>
 
           {/* 4. Action Controls & Utilities (Strict Sequence: 1. Cart, 2. Wishlist, 3. Bell, 4. Sign In, 5. Language, 6. Theme) */}
@@ -676,26 +675,31 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               <span>{language === 'en' ? 'Flash Deals & Discounts' : 'ልዩ ቅናሾች'}</span>
             </button>
 
-            {/* Track Order & My Orders (Conditional upon user sign-in) */}
+            {/* Track Order (Always available for all guests & customers) */}
+            <Link
+              to="/tracking"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-800 dark:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center justify-between border border-blue-200/80 dark:border-blue-900/60 bg-blue-50/40 dark:bg-blue-950/20 shadow-2xs"
+            >
+              <div className="flex items-center gap-2.5">
+                <Truck className="w-4 h-4 text-[#0052FF]" />
+                <span>{language === 'en' ? 'Track Order / Status' : 'ትዕዛዝ ተከታተል'}</span>
+              </div>
+              <span className="text-[10px] font-bold text-[#0052FF] bg-blue-100/70 dark:bg-blue-900/60 px-2 py-0.5 rounded-full font-mono">
+                Live GPS
+              </span>
+            </Link>
+
+            {/* My Orders (Conditional upon user sign-in) */}
             {isCustomerLoggedIn && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => { setIsMobileMenuOpen(false); onOpenMyOrders?.(); }}
-                  className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center gap-2.5 border border-slate-200/80 dark:border-zinc-800 text-left cursor-pointer"
-                >
-                  <Package className="w-4 h-4 text-emerald-600" />
-                  <span>{language === 'en' ? 'My Orders & Warranties' : 'ትዕዛዞች እና ዋስትና'}</span>
-                </button>
-                <Link
-                  to="/tracking"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center gap-2.5 border border-slate-200/80 dark:border-zinc-800"
-                >
-                  <Truck className="w-4 h-4 text-[#0052FF]" />
-                  <span>{language === 'en' ? 'Track Order / Status' : 'ትዕዛዝ ተከታተል'}</span>
-                </Link>
-              </>
+              <button
+                type="button"
+                onClick={() => { setIsMobileMenuOpen(false); onOpenMyOrders?.(); }}
+                className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 flex items-center gap-2.5 border border-slate-200/80 dark:border-zinc-800 text-left cursor-pointer"
+              >
+                <Package className="w-4 h-4 text-emerald-600" />
+                <span>{language === 'en' ? 'My Orders & Warranties' : 'ትዕዛዞች እና ዋስትና'}</span>
+              </button>
             )}
 
             {/* Partner Portals Switcher Chips (Courier & Merchant) */}

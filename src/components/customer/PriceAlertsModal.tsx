@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Product, PriceAlert } from '../../types';
-import { Bell } from 'lucide-react';
+import { Bell, Send, CheckCircle2, Zap, Sparkles } from 'lucide-react';
 import { LazyImage } from '../LazyImage';
 
 export interface PriceAlertsModalProps {
@@ -24,6 +24,19 @@ export const PriceAlertsModal: React.FC<PriceAlertsModalProps> = ({
   onTogglePriceAlert,
   onOpenProduct,
 }) => {
+  const [telegramHandle, setTelegramHandle] = useState<string>(() => localStorage.getItem('kasma_telegram_alerts_handle') || '@kasma_buyer');
+  const [isTelegramEnabled, setIsTelegramEnabled] = useState<boolean>(true);
+  const [isTestSent, setIsTestSent] = useState<boolean>(false);
+
+  const handleSaveTelegram = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (telegramHandle) {
+      localStorage.setItem('kasma_telegram_alerts_handle', telegramHandle);
+      setIsTestSent(true);
+      setTimeout(() => setIsTestSent(false), 3000);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -60,6 +73,67 @@ export const PriceAlertsModal: React.FC<PriceAlertsModalProps> = ({
           >
             ✕
           </button>
+        </div>
+
+        {/* Telegram Price Drop & Restock Notification Banner */}
+        <div className="p-3.5 sm:p-4 bg-gradient-to-r from-sky-50 via-blue-50/50 to-indigo-50/40 dark:from-sky-950/40 dark:via-zinc-900 dark:to-indigo-950/30 border-b border-sky-100 dark:border-zinc-800 space-y-2.5 shrink-0">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-[#229ED9] text-white flex items-center justify-center shrink-0 shadow-xs">
+                <Send className="w-3.5 h-3.5" />
+              </div>
+              <div className="text-left">
+                <h4 className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">
+                  {language === 'en' ? 'Telegram Drop & Stock Alerts' : 'የቴሌግራም ዋጋ ቅናሽ እና ክምችት ማንቂያ'}
+                </h4>
+                <p className="text-[10px] text-gray-500 dark:text-zinc-400 font-medium">
+                  {language === 'en' ? 'Instant bot alerts for price drops & restocked items' : 'ዋጋ ሲቀንስ እና እቃ ሲገባ ወዲያውኑ በቴሌግራም ይነገርዎታል'}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsTelegramEnabled(!isTelegramEnabled)}
+              className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer border ${isTelegramEnabled
+                ? 'bg-sky-100 dark:bg-sky-950/60 text-[#229ED9] border-sky-300 dark:border-sky-800'
+                : 'bg-gray-100 dark:bg-zinc-800 text-gray-400 border-gray-200 dark:border-zinc-700'
+                }`}
+            >
+              {isTelegramEnabled ? (language === 'en' ? 'Active' : 'በርቷል') : (language === 'en' ? 'Disabled' : 'ጠፍቷል')}
+            </button>
+          </div>
+
+          {isTelegramEnabled && (
+            <form onSubmit={handleSaveTelegram} className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-mono font-bold">@</span>
+                <input
+                  type="text"
+                  value={telegramHandle.replace(/^@/, '')}
+                  onChange={(e) => setTelegramHandle(`@${e.target.value.replace(/^@/, '')}`)}
+                  placeholder="your_telegram_username"
+                  className="w-full pl-6 pr-3 py-1.5 bg-white dark:bg-zinc-800 border border-sky-200/80 dark:border-zinc-750 rounded-xl text-xs text-gray-800 dark:text-zinc-200 font-mono focus:outline-none focus:border-[#229ED9]"
+                />
+              </div>
+              <button
+                type="submit"
+                className="px-3 py-1.5 bg-[#229ED9] hover:bg-sky-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer flex items-center gap-1"
+              >
+                {isTestSent ? (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{language === 'en' ? 'Verified!' : 'ተረጋግጧል!'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-3 h-3 text-amber-300 fill-current" />
+                    <span>{language === 'en' ? 'Connect Bot' : 'ቦቱን አገናኝ'}</span>
+                  </>
+                )}
+              </button>
+            </form>
+          )}
         </div>
 
         {/* List Body */}

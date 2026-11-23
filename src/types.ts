@@ -19,6 +19,11 @@ export interface Product {
   featured?: boolean;
   createdAt?: string;
   reviews?: Review[];
+  qaItems?: QAItem[];
+  sellerRating?: number;
+  sellerOrderCount?: number;
+  sellerBadgeEn?: string;
+  sellerBadgeAm?: string;
   condition?: 'SEALED' | 'BRAND_NEW' | 'OPEN_BOX' | 'CERTIFIED_REFURBISHED' | 'BRAND_NEW_SEALED';
   conditionTextEn?: string;
   conditionTextAm?: string;
@@ -55,8 +60,22 @@ export interface Review {
   merchantId?: string;
   deliveryRating?: number;
   tags?: string[];
+  photos?: string[];
   createdAt: string;
   verifiedPurchase?: boolean;
+  verified?: boolean;
+}
+
+export interface QAItem {
+  id: string;
+  questionEn: string;
+  questionAm: string;
+  answerEn?: string;
+  answerAm?: string;
+  askedBy: string;
+  answeredBy?: string;
+  createdAt: string;
+  verifiedAnswer?: boolean;
 }
 
 export interface Variant {

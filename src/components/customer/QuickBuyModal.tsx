@@ -15,7 +15,8 @@ import {
   Check,
   ShoppingCart,
   Zap,
-  ChevronRight
+  ChevronRight,
+  CreditCard
 } from 'lucide-react';
 import { LazyImage } from '../LazyImage';
 import { getProductGallery } from '../../utils/productSpecs';
@@ -327,6 +328,25 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
                     )}
                   </div>
                 </div>
+
+                {/* High Price Device Installment & Pay on Delivery Banner */}
+                {totalPrice >= 30000 && (
+                  <div className="p-3 bg-indigo-50/60 dark:bg-indigo-950/30 rounded-2xl border border-indigo-200/80 dark:border-indigo-900/40 space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-bold text-indigo-900 dark:text-indigo-200">
+                      <span className="flex items-center gap-1.5">
+                        <CreditCard className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                        <span>{language === 'en' ? 'Flexible Installment Option' : 'የቀላል ወርሃዊ ክፍያ'}</span>
+                      </span>
+                      <span className="font-mono text-[11px] bg-white dark:bg-zinc-800 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800 font-black">
+                        3x {(Math.round(totalPrice / 3)).toLocaleString()} ETB/mo
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-300 font-bold">
+                      <Truck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span>{language === 'en' ? 'Pay on Delivery in Addis: Inspect & test before payment' : 'ሲደርስዎ ይክፈሉ፡ እቃውን ፈትሸውና ሞክረው ይክፈሉ'}</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Product Description Snippet: 14px minimum */}
                 <div className="text-sm text-gray-600 dark:text-zinc-300 leading-relaxed bg-gray-50/50 dark:bg-zinc-950/50 p-2.5 sm:p-3 rounded-2xl border border-gray-100 dark:border-zinc-800/80 line-clamp-2 sm:line-clamp-3">

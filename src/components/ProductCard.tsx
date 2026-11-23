@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Star, Eye, Flame, Tag, Zap, Sparkles, ShieldCheck } from 'lucide-react';
+import { Heart, Star, Eye, Flame, Tag, Zap, Sparkles, ShieldCheck, Truck, CreditCard } from 'lucide-react';
 import { Product, Variant } from '../types';
 import { LazyImage } from './LazyImage';
 
@@ -337,6 +337,31 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     </span>
                   )}
                 </div>
+
+                {/* Installment or Pay-on-Delivery badge for high price items (huge for 95k phones) */}
+                {displayPrice >= 30000 ? (
+                  <div className="flex items-center gap-1.5 flex-wrap pt-1 min-w-0">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded-md border border-indigo-200/60 dark:border-indigo-900/40 truncate">
+                      <CreditCard className="w-2.5 h-2.5 text-indigo-500 shrink-0" />
+                      <span className="truncate">
+                        {language === 'en'
+                          ? `3x ${(Math.round(displayPrice / 3)).toLocaleString()} ETB/mo`
+                          : `በ3 ወር ክፍያ`}
+                      </span>
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-900/40 truncate">
+                      <Truck className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
+                      <span className="truncate">
+                        {language === 'en' ? 'Pay on Delivery' : 'ሲደርስ ይክፈሉ'}
+                      </span>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-zinc-400 font-medium truncate pt-0.5">
+                    <Truck className="w-2.5 h-2.5 text-blue-500 shrink-0" />
+                    <span className="truncate">{language === 'en' ? 'Arrives in Addis today' : 'ዛሬ አዲስ አበባ ይደርሳል'}</span>
+                  </div>
+                )}
               </div>
 
               {/* Primary High-Contrast Buy Button */}

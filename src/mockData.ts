@@ -375,17 +375,52 @@ export const INITIAL_PRODUCTS: Product[] = [
                 "comment": "Galaxy AI circle-to-search and live call translate are game changers. Gorilla Armor screen cuts all glare.",
                 "reviewerName": "Nebiyu Kassa",
                 "createdAt": "2026-09-01",
-                "verifiedPurchase": true
+                "verifiedPurchase": true,
+                "photos": [
+                  "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=600&q=80",
+                  "https://images.unsplash.com/photo-1511707171634-5f897ff02560?auto=format&fit=crop&w=600&q=80"
+                ]
           },
           {
                 "id": "rev-p7-2",
                 "rating": 5,
-                "comment": "200MP camera zoom is unbelievable. Fast telebirr payment and prompt doorstep inspection.",
+                "comment": "200MP camera zoom is unbelievable. Fast telebirr payment and prompt doorstep inspection in Bole.",
                 "reviewerName": "Frehiwot Belay",
                 "createdAt": "2026-09-19",
-                "verifiedPurchase": true
+                "verifiedPurchase": true,
+                "photos": [
+                  "https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=600&q=80"
+                ]
           }
     ],
+    qaItems: [
+      {
+        id: "qa-p7-1",
+        questionEn: "Is this Samsung S24 Ultra original factory sealed with intact Ethiopian warranty?",
+        questionAm: "ይህ ሳምሰንግ S24 አልትራ ኦሪጅናል በፋብሪካው የታሸገ እና የኢትዮጵያ ዋስትና ያለው ነው?",
+        answerEn: "Yes! 100% brand new in original box with unbroken tamper-evident holographic seal and 24-month official warranty card.",
+        answerAm: "አዎ! 100% አዲስ በፋብሪካው የታሸገ ኦሪጅናል እቃ ከ24 ወራት ሙሉ የዋስትና ሰርተፍኬት ጋር ነው።",
+        askedBy: "Dawit M.",
+        answeredBy: "Abyssinia Electronics (Verified Merchant)",
+        createdAt: "2026-10-14",
+        verifiedAnswer: true
+      },
+      {
+        id: "qa-p7-2",
+        questionEn: "Can I pay using Telebirr or CBE Birr on delivery after inspecting the device?",
+        questionAm: "እቃውን ደጃፌ ላይ ፈትሼ ከተረከብኩ በኋላ በቴሌብር ወይም በCBE ብር መክፈል እችላለሁ?",
+        answerEn: "Absolutely. Our express Addis delivery driver brings Telebirr and CBE Birr QR stands. You can inspect the IMEI and seal first, then pay instantly.",
+        answerAm: "በእርግጥ ይችላሉ። አሽከርካሪዎቻችን የቴሌብር እና ሲቢኢ ብር የQR ስታንድ ይዘው ስለሚመጡ እቃውን መርምረው ከረኩ በኋላ በሰከንዶች ውስጥ ይከፍላሉ።",
+        askedBy: "Selamawit T.",
+        answeredBy: "Kasma Official Escrow",
+        createdAt: "2026-10-22",
+        verifiedAnswer: true
+      }
+    ],
+    sellerRating: 4.9,
+    sellerOrderCount: 1420,
+    sellerBadgeEn: "Verified Electronics Flagship",
+    sellerBadgeAm: "የተረጋገጠ የኤሌክትሮኒክስ ዋና ሱቅ",
     condition: 'SEALED',
     conditionTextEn: 'Factory Sealed',
     conditionTextAm: 'በፋብሪካው የታሸገ',
@@ -426,6 +461,60 @@ export const INITIAL_PRODUCTS: Product[] = [
       { sku: 'IP15PM-BLU-512', name: 'Blue Titanium 512GB', priceOffset: 16000, onHand: 3, reserved: 0 }
     ],
     featured: true,
+    rating: 4.9,
+    reviewsCount: 280,
+    reviews: [
+      {
+        "id": "rev-p10-1",
+        "rating": 5,
+        "comment": "Natural Titanium color is unbelievable in person. The 5x camera lens takes sharp portraits. Arrived in Bole in under 2 hours!",
+        "reviewerName": "Kidus Solomon",
+        "createdAt": "2026-10-05",
+        "verifiedPurchase": true,
+        "photos": [
+          "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=600&q=80"
+        ]
+      },
+      {
+        "id": "rev-p10-2",
+        "rating": 5,
+        "comment": "Brand new sealed US model with dual eSIM. Checked Apple serial number on coverage.apple.com before paying via CBE Birr.",
+        "reviewerName": "Rahel Mekonnen",
+        "createdAt": "2026-10-18",
+        "verifiedPurchase": true,
+        "photos": [
+          "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80"
+        ]
+      }
+    ],
+    qaItems: [
+      {
+        id: "qa-p10-1",
+        questionEn: "Does this iPhone 15 Pro Max support Ethio Telecom and Safaricom 5G eSIMs?",
+        questionAm: "ይህ አይፎን 15 ፕሮ ማክስ የኢትዮ ቴሌኮም እና የሳፋሪኮም 5G eSIM ይሰራል?",
+        answerEn: "Yes, fully compatible with both Ethio Telecom and Safaricom 5G networks in Addis Ababa and all regional cities.",
+        answerAm: "አዎ፣ በኢትዮ ቴሌኮምም ሆነ በሳፋሪኮም 5G ኔትወርክ አዲስ አበባም ሆነ በክልሎች ሙሉ በሙሉ ይሰራል።",
+        askedBy: "Binyam A.",
+        answeredBy: "Kasma Authorized Reseller",
+        createdAt: "2026-10-10",
+        verifiedAnswer: true
+      },
+      {
+        id: "qa-p10-2",
+        questionEn: "What are the installment options for this 112,000 ETB device?",
+        questionAm: "ለዚህ 112,000 ብር ስልክ የክፍያ አማራጮች ምንድን ናቸው?",
+        answerEn: "You can pay in 3 monthly installments of ~37,333 ETB with 0% interest via CBE Birr or Telebirr PayLater, or choose Pay on Delivery.",
+        answerAm: "በCBE ብር ወይም በቴሌብር የ3 ወራት እኩል ክፍያ (በወር ~37,333 ብር ያለ ምንም ወለድ) መክፈል ወይም ሲደርስዎ መክፈል ይችላሉ።",
+        askedBy: "Tigist G.",
+        answeredBy: "Kasma Escrow Finance",
+        createdAt: "2026-10-25",
+        verifiedAnswer: true
+      }
+    ],
+    sellerRating: 4.95,
+    sellerOrderCount: 2150,
+    sellerBadgeEn: "Apple Authorized Partner",
+    sellerBadgeAm: "የአፕል የተረጋገጠ አጋር",
     condition: 'SEALED',
     conditionTextEn: 'Factory Sealed',
     conditionTextAm: 'በፋብሪካው የታሸገ',
