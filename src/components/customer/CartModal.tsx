@@ -146,7 +146,7 @@ export const CartModal: React.FC<CartModalProps> = ({
               {/* PRIMARY OBJECT: Ordered Cart Items */}
               <div className="space-y-2.5 sm:space-y-3">
                 <div className="flex items-center justify-between px-1">
-                  <span className="text-[10px] font-black text-gray-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-gray-500 dark:text-zinc-400 flex items-center gap-1.5">
                     <Package className="w-3.5 h-3.5 text-[#0052FF]" />
                     <span>{language === 'en' ? 'Primary Ordered Items' : 'ዋና የተመረጡ እቃዎች'} ({cart.reduce((a, b) => a + b.quantity, 0)})</span>
                   </span>
@@ -272,7 +272,7 @@ export const CartModal: React.FC<CartModalProps> = ({
 
               {/* Promo Code Input & Discount Coupons Block */}
               <div className="bg-white dark:bg-zinc-900 p-3 sm:p-3.5 rounded-2xl border border-gray-150 dark:border-zinc-800 space-y-2.5 shadow-xs">
-                <span className="text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-wider block">
+                <span className="text-xs font-semibold text-gray-500 dark:text-zinc-400 block">
                   {language === 'en' ? '🏷️ PROMO CODE / DISCOUNT COUPON' : '🏷️ የቅናሽ ኩፖን ኮድ'}
                 </span>
 
@@ -372,7 +372,7 @@ export const CartModal: React.FC<CartModalProps> = ({
               {approvedProducts.filter(p => !cart.some(c => c.product.id === p.id)).length > 0 && (
                 <div className="bg-white dark:bg-zinc-900 p-3 sm:p-3.5 rounded-2xl border border-gray-150 dark:border-zinc-800 space-y-2.5 shadow-xs">
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-wider block">
+                    <span className="text-xs font-semibold text-gray-500 dark:text-zinc-400 block">
                       {language === 'en' ? '✨ YOU MIGHT ALSO LIKE' : '✨ እነዚህንም ሊወዱ ይችላሉ'}
                     </span>
                     <span className="text-[9px] text-[#0052FF] dark:text-blue-400 font-bold uppercase tracking-wider">
@@ -427,17 +427,17 @@ export const CartModal: React.FC<CartModalProps> = ({
               <div className="grid grid-cols-3 gap-2 pt-1 text-center">
                 <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl border border-gray-150 dark:border-zinc-800 shadow-2xs">
                   <div className="text-base mb-0.5">🛡️</div>
-                  <p className="text-[9px] font-bold text-gray-800 dark:text-zinc-300 uppercase tracking-tight">{language === 'en' ? 'Escrow Protected' : 'ኤስክሮው የተጠበቀ'}</p>
+                  <p className="text-[10px] font-semibold text-gray-800 dark:text-zinc-300">{language === 'en' ? 'Escrow Protected' : 'ኤስክሮው የተጠበቀ'}</p>
                   <p className="text-[8px] text-gray-400 dark:text-zinc-500">{language === 'en' ? 'Inspected On Delivery' : 'በፍተሻ የሚለቀቅ'}</p>
                 </div>
                 <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl border border-gray-150 dark:border-zinc-800 shadow-2xs">
                   <div className="text-base mb-0.5">⚡</div>
-                  <p className="text-[9px] font-bold text-gray-800 dark:text-zinc-300 uppercase tracking-tight">{language === 'en' ? '1-2 Hr Express' : 'ፈጣን ማድረሻ'}</p>
+                  <p className="text-[10px] font-semibold text-gray-800 dark:text-zinc-300">{language === 'en' ? '1-2 Hr Express' : 'ፈጣን ማድረሻ'}</p>
                   <p className="text-[8px] text-gray-400 dark:text-zinc-500">{language === 'en' ? 'Addis Ababa Wide' : 'በአዲስ አበባ አቀፍ'}</p>
                 </div>
                 <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl border border-gray-150 dark:border-zinc-800 shadow-2xs">
                   <div className="text-base mb-0.5">🔄</div>
-                  <p className="text-[9px] font-bold text-gray-800 dark:text-zinc-300 uppercase tracking-tight">{language === 'en' ? '7-Day Return' : '7-ቀን መመለሻ'}</p>
+                  <p className="text-[10px] font-semibold text-gray-800 dark:text-zinc-300">{language === 'en' ? '7-Day Return' : '7-ቀን መመለሻ'}</p>
                   <p className="text-[8px] text-gray-400 dark:text-zinc-500">{language === 'en' ? 'Money Back Guarantee' : 'ሙሉ ዋስትና'}</p>
                 </div>
               </div>
@@ -482,7 +482,7 @@ export const CartModal: React.FC<CartModalProps> = ({
                   {cartTotal.toLocaleString()} ETB
                 </span>
               </div>
-              <div className="flex items-center gap-1 text-xs font-black uppercase tracking-wider shrink-0 pl-2">
+              <div className="flex items-center gap-1 text-xs font-bold shrink-0 pl-2">
                 <span>{language === 'en' ? 'Checkout' : 'ወደ መክፈያ'}</span>
                 <ChevronRight className="w-4 h-4" />
               </div>

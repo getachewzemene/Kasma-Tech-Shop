@@ -126,7 +126,7 @@ export const Footer: React.FC = () => {
         <div className="w-full border-b border-gray-150 dark:border-zinc-850 pb-6 mb-8 sm:mb-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-gray-50/70 dark:bg-zinc-900/40 p-5 sm:p-6 lg:p-7 rounded-2xl lg:rounded-3xl border border-gray-150 dark:border-zinc-800">
             <div className="space-y-1 text-center md:text-left">
-              <h3 className="text-sm sm:text-base lg:text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider">
+              <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 dark:text-white">
                 {language === 'en' ? 'SUBSCRIBE TO NEWSLETTER' : 'ለልዩ ቅናሾች ይመዝገቡ'}
               </h3>
               <p className="text-xs sm:text-sm lg:text-base text-gray-600 dark:text-zinc-300 font-medium">
@@ -170,7 +170,7 @@ export const Footer: React.FC = () => {
           
           {/* Brand Card & Language Badge */}
           <div className="bg-gray-50 dark:bg-zinc-900/60 p-4 rounded-2xl border border-gray-150 dark:border-zinc-800 space-y-3">
-            <span className="text-base font-black uppercase tracking-widest text-[#0052FF] block">
+            <span className="text-base font-bold text-[#0052FF] block">
               KASMA <span className="text-gray-950 dark:text-white font-light">SHOP</span>
             </span>
             <p className="text-gray-600 dark:text-zinc-300 font-medium text-xs sm:text-sm leading-relaxed">
@@ -191,7 +191,7 @@ export const Footer: React.FC = () => {
             <button
               type="button"
               onClick={() => setOpenFooterAccordion(openFooterAccordion === 'shop' ? null : 'shop')}
-              className="w-full flex items-center justify-between p-3.5 text-left font-black text-xs sm:text-sm uppercase tracking-wider text-gray-900 dark:text-white cursor-pointer"
+              className="w-full flex items-center justify-between p-3.5 text-left font-bold text-xs sm:text-sm text-gray-900 dark:text-white cursor-pointer"
             >
               <span>{language === 'en' ? 'Shop & Discover' : 'ምድቦች እና ግዢ'}</span>
               <ChevronDown className={`w-4 h-4 text-[#0052FF] transition-transform duration-200 ${openFooterAccordion === 'shop' ? 'rotate-180' : ''}`} />
@@ -227,7 +227,7 @@ export const Footer: React.FC = () => {
             <button
               type="button"
               onClick={() => setOpenFooterAccordion(openFooterAccordion === 'policies' ? null : 'policies')}
-              className="w-full flex items-center justify-between p-3.5 text-left font-black text-xs sm:text-sm uppercase tracking-wider text-gray-900 dark:text-white cursor-pointer"
+              className="w-full flex items-center justify-between p-3.5 text-left font-bold text-xs sm:text-sm text-gray-900 dark:text-white cursor-pointer"
             >
               <span>{language === 'en' ? 'Policies & Support' : 'ፖሊሲዎች እና ህጎች'}</span>
               <ChevronDown className={`w-4 h-4 text-[#0052FF] transition-transform duration-200 ${openFooterAccordion === 'policies' ? 'rotate-180' : ''}`} />
@@ -263,7 +263,7 @@ export const Footer: React.FC = () => {
             <button
               type="button"
               onClick={() => setOpenFooterAccordion(openFooterAccordion === 'business' ? null : 'business')}
-              className="w-full flex items-center justify-between p-3.5 text-left font-black text-xs sm:text-sm uppercase tracking-wider text-gray-900 dark:text-white cursor-pointer"
+              className="w-full flex items-center justify-between p-3.5 text-left font-bold text-xs sm:text-sm text-gray-900 dark:text-white cursor-pointer"
             >
               <span>{language === 'en' ? 'Kasma Business' : 'ካስማ ለንግድ አጋሮች'}</span>
               <ChevronDown className={`w-4 h-4 text-[#0052FF] transition-transform duration-200 ${openFooterAccordion === 'business' ? 'rotate-180' : ''}`} />
@@ -296,7 +296,7 @@ export const Footer: React.FC = () => {
 
           {/* Accordion 4: Customer Support */}
           <div className="border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-900 p-4 space-y-3 text-xs sm:text-sm">
-            <h4 className="font-black text-gray-950 dark:text-white uppercase tracking-wider text-xs sm:text-sm">
+            <h4 className="font-bold text-gray-950 dark:text-white text-xs sm:text-sm">
               {language === 'en' ? 'Customer Support' : 'የደንበኞች አገልግሎት'}
             </h4>
             <div className="space-y-2.5 text-gray-600 dark:text-zinc-300 font-semibold">
@@ -334,7 +334,7 @@ export const Footer: React.FC = () => {
           {/* Column 1: Kasma Shop Identity, Location & Language */}
           <div className="space-y-4 text-left">
             <div className="space-y-2">
-              <span className="text-base sm:text-lg font-black uppercase tracking-widest text-[#0052FF] block">
+              <span className="text-base sm:text-lg font-bold text-[#0052FF] block">
                 KASMA <span className="text-gray-950 dark:text-white font-light">SHOP</span>
               </span>
               <p className="text-gray-600 dark:text-zinc-400 leading-relaxed font-medium text-xs sm:text-sm">
@@ -516,7 +516,7 @@ export const Footer: React.FC = () => {
           {/* Card 1: Secured Escrow Payments (2x2 Balanced Grid) */}
           <div className="bg-gray-50/70 dark:bg-zinc-900/50 border border-gray-200/80 dark:border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between shadow-2xs">
             <div className="flex items-center justify-between pb-3 border-b border-gray-200/70 dark:border-zinc-800">
-              <div className="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-white">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
                 <ShieldCheck className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>{language === 'en' ? 'Secured Escrow Payments' : 'የተረጋገጡ የክፍያ ዋስትና መንገዶች'}</span>
               </div>
@@ -591,7 +591,7 @@ export const Footer: React.FC = () => {
           {/* Card 2: Official Social Channels (3x2 Balanced Grid) */}
           <div className="bg-gray-50/70 dark:bg-zinc-900/50 border border-gray-200/80 dark:border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between shadow-2xs">
             <div className="flex items-center justify-between pb-3 border-b border-gray-200/70 dark:border-zinc-800">
-              <div className="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-white">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
                 <Share2 className="w-4 h-4 text-[#0052FF] shrink-0" />
                 <span>{language === 'en' ? 'Official Channels' : 'ይከተሉን / ማህበራዊ ሚዲያ'}</span>
               </div>
@@ -671,7 +671,7 @@ export const Footer: React.FC = () => {
           <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative text-left max-h-[85vh] overflow-y-auto space-y-4">
             
             <div className="flex items-center justify-between pb-3 border-b border-gray-150 dark:border-zinc-800">
-              <h3 className="text-base font-black text-gray-900 dark:text-white uppercase tracking-tight">
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">
                 {activePolicyModal === 'privacy' && (language === 'en' ? 'Privacy Policy' : 'የግላዊነት ፖሊሲ')}
                 {activePolicyModal === 'terms' && (language === 'en' ? 'Terms of Service' : 'የአገልግሎት ውሎች')}
                 {activePolicyModal === 'refunds' && (language === 'en' ? 'Returns & Refunds' : 'የምርት መልስ እና ተመላሽ')}

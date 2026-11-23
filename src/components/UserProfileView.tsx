@@ -2102,7 +2102,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
                   {/* Rewards Catalog */}
                   <div className="space-y-3">
-                    <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                       <Gift className="w-4 h-4 text-[#0052FF]" />
                       <span>{language === 'en' ? 'Redeem Points for Vouchers' : 'ነጥቦችን ወደ ቅናሽ ኩፖን ይለውጡ'}</span>
                     </h4>
@@ -2147,7 +2147,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
 
                   {/* Points Activity Log */}
                   <div className="p-4 bg-gray-50 dark:bg-zinc-850/60 rounded-2xl border border-gray-200 dark:border-zinc-800 space-y-2.5">
-                    <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-gray-400" />
                       <span>{language === 'en' ? 'Points Log' : 'የነጥቦች ታሪክ'}</span>
                     </h4>
@@ -2179,7 +2179,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                 <div className="space-y-4 animate-in fade-in duration-150">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                         <MapPin className="w-4 h-4 text-emerald-500" />
                         <span>{language === 'en' ? 'Saved Delivery Addresses' : 'የተቀመጡ የመድረሻ አድራሻዎች'}</span>
                       </h4>
@@ -2262,7 +2262,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
                 <div className="space-y-4 animate-in fade-in duration-150">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                         <CreditCard className="w-4 h-4 text-purple-500" />
                         <span>{language === 'en' ? 'Saved Payment Vault' : 'የተቀመጡ የክፍያ መንገዶች'}</span>
                       </h4>
@@ -2340,7 +2340,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               {/* TAB 4: ACCOUNT SETTINGS */}
               {activeTab === 'PROFILE' && (
                 <div className="p-5 bg-gray-50 dark:bg-zinc-850/60 rounded-2xl border border-gray-200 dark:border-zinc-800 space-y-4 animate-in fade-in duration-150">
-                  <h4 className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                     <User className="w-4 h-4 text-[#0052FF]" />
                     <span>{language === 'en' ? 'Personal Information' : 'የግል መረጃዎች'}</span>
                   </h4>
@@ -2426,7 +2426,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="text-sm font-black text-gray-950 dark:text-white uppercase tracking-tight flex items-center gap-2">
+            <h3 className="text-sm sm:text-base font-bold text-gray-950 dark:text-white flex items-center gap-2">
               <MapPin className="w-4 h-4 text-emerald-500" />
               <span>{language === 'en' ? 'Add Delivery Destination' : 'አዲስ የመድረሻ አድራሻ'}</span>
             </h3>
@@ -2530,7 +2530,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="text-sm font-black text-gray-950 dark:text-white uppercase tracking-tight flex items-center gap-2">
+            <h3 className="text-sm sm:text-base font-bold text-gray-950 dark:text-white flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-purple-500" />
               <span>Encrypt & Save Payment</span>
             </h3>

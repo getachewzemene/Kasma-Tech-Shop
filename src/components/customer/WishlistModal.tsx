@@ -53,7 +53,7 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({
               <Heart className="w-4.5 h-4.5 fill-current" />
             </div>
             <div>
-              <h3 className="font-extrabold text-sm uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+              <h3 className="font-bold text-sm text-gray-900 dark:text-zinc-100">
                 {language === 'en' ? 'My Wishlist' : 'የእኔ ምኞት ዝርዝር'}
               </h3>
               <p className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium">
@@ -168,7 +168,7 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({
                               );
                             }
                           }}
-                          className={`py-1.5 px-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-xs active:scale-95 ${isOutOfStock
+                          className={`py-1.5 px-3 rounded-xl text-[10px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-xs active:scale-95 ${isOutOfStock
                             ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 border border-zinc-200 dark:border-zinc-750 cursor-not-allowed'
                             : 'bg-[#0052FF] hover:bg-blue-600 text-white'
                             }`}

@@ -381,7 +381,7 @@ export const ProductDetailPage: React.FC = () => {
                 <div className="w-7 h-7 rounded-lg bg-[#0052FF] text-white flex items-center justify-center font-black">
                   <FileBadge className="w-4 h-4" />
                 </div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                <h4 className="text-xs font-bold text-gray-900 dark:text-zinc-100">
                   {language === 'en' ? 'Tamper-Evident Warranty Pass' : 'የዲጂታል ዋስትና ሰነድ እና መለያ ቁጥር'}
                 </h4>
               </div>
@@ -474,7 +474,7 @@ export const ProductDetailPage: React.FC = () => {
           {/* Variant Selector */}
           {product.variants && product.variants.length > 0 && (
             <div className="space-y-2.5">
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400">
+              <label className="block text-xs font-semibold text-gray-600 dark:text-zinc-300">
                 {language === 'en' ? 'Select Configuration / Variant:' : 'አማራጭ ይምረጡ፡'}
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">

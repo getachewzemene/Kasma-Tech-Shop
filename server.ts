@@ -38,14 +38,31 @@ async function startServer() {
   const app = express();
   const PORT = parseInt(process.env.PORT || '3000', 10);
 
+  const isDev = process.env.NODE_ENV !== 'production';
+
   // Security Headers for Production, CDN & Telegram WebApp Readiness
   app.use((_req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    // Content-Security-Policy with frame-ancestors to permit Telegram client framing (web.telegram.org)
-    // while preventing malicious third-party framing
+    
+    // Content-Security-Policy:
+    // In development: include 'unsafe-eval' so Vite HMR and dev source-maps run cleanly without browser CSP warnings
+    // In production: strict script-src without 'unsafe-eval' to prevent arbitrary string code injection
+    const scriptSrc = isDev
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://telegram.org https://*.telegram.org;"
+      : "script-src 'self' 'unsafe-inline' https://telegram.org https://*.telegram.org;";
+
     res.setHeader(
       'Content-Security-Policy',
-      "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org https://webk.telegram.org https://webz.telegram.org telegram:;"
+      [
+        "default-src 'self';",
+        scriptSrc,
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
+        "font-src 'self' https://fonts.gstatic.com data:;",
+        "img-src 'self' data: blob: https: https://images.unsplash.com;",
+        "connect-src 'self' https: wss: ws:;",
+        "frame-src 'self' https://web.telegram.org https://*.telegram.org https://webk.telegram.org https://webz.telegram.org telegram:;",
+        "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org https://webk.telegram.org https://webz.telegram.org telegram:;"
+      ].join(' ')
     );
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');

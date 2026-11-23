@@ -224,7 +224,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   handleCardClick();
                 }
               }}
-              className="px-3 py-1.5 bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-800 text-gray-950 dark:text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md flex items-center gap-1.5 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+              className="px-3 py-1.5 bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-800 text-gray-950 dark:text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-1.5 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
             >
               <Eye className="w-3.5 h-3.5 text-[#155EEF]" />
               {language === 'en' ? 'Quick View' : 'ፈጣን እይታ'}
@@ -237,7 +237,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <span>-{flashDiscountPct}%</span>
             </div>
           ) : badgeText ? (
-            <span className={`absolute top-1 left-1 xs:top-1.5 xs:left-1.5 sm:top-2 sm:left-2 ${badgeStyles[badgeColor]} text-[10px] xs:text-[11px] sm:text-xs font-bold uppercase tracking-wider px-1.5 xs:px-2 py-0.5 rounded-md shadow-xs z-20 pointer-events-none whitespace-nowrap`}>
+            <span className={`absolute top-1 left-1 xs:top-1.5 xs:left-1.5 sm:top-2 sm:left-2 ${badgeStyles[badgeColor]} text-[10px] xs:text-[11px] sm:text-xs font-bold px-1.5 xs:px-2 py-0.5 rounded-md shadow-xs z-20 pointer-events-none whitespace-nowrap`}>
               {badgeText}
             </span>
           ) : null}
@@ -271,7 +271,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <div className="space-y-1 sm:space-y-1.5">
             {/* Brand & Authentic Rating Capsule */}
             <div className="flex items-center justify-between gap-1 min-w-0">
-              <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-normal sm:tracking-wider truncate min-w-0">
+              <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-semibold text-gray-500 dark:text-zinc-400 truncate min-w-0">
                 <Tag className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-400 shrink-0" />
                 <span className="truncate">{product.brand}</span>
               </div>

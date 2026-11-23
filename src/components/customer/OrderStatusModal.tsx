@@ -98,7 +98,7 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({
           {allOrders.length > 0 && (
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <p className="text-[10px] uppercase font-black text-gray-400 tracking-wider">
+                <p className="text-xs font-semibold text-gray-500 dark:text-zinc-400">
                   {language === 'en' ? 'Your Order History' : 'የእርስዎ የትዕዛዝ ታሪክ'}
                 </p>
                 <span className="text-[9px] bg-blue-500/15 text-[#0052FF] px-2 py-0.5 rounded-full font-bold">
@@ -244,7 +244,7 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({
                 {/* Compact Summary Cards */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50/50 dark:bg-zinc-850 p-4 rounded-2xl border border-gray-150/40 dark:border-zinc-800/40 text-xs">
                   <div className="space-y-0.5">
-                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">
+                    <span className="text-xs text-gray-500 dark:text-zinc-400 font-medium">
                       {language === 'en' ? 'Recipient' : 'ተቀባይ'}
                     </span>
                     <p className="font-extrabold text-gray-900 dark:text-white truncate">
@@ -252,7 +252,7 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({
                     </p>
                   </div>
                   <div className="space-y-0.5">
-                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">
+                    <span className="text-xs text-gray-500 dark:text-zinc-400 font-medium">
                       {language === 'en' ? 'Phone' : 'ስልክ ቁጥር'}
                     </span>
                     <p className="font-mono text-gray-600 dark:text-zinc-300">
@@ -260,7 +260,7 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({
                     </p>
                   </div>
                   <div className="space-y-0.5">
-                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">
+                    <span className="text-xs text-gray-500 dark:text-zinc-400 font-medium">
                       {language === 'en' ? 'Total Amount' : 'ጠቅላላ ዋጋ'}
                     </span>
                     <p className="font-mono font-extrabold text-amber-500">
@@ -268,7 +268,7 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({
                     </p>
                   </div>
                   <div className="space-y-0.5 col-span-2 md:col-span-1">
-                    <span className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">
+                    <span className="text-xs text-gray-500 dark:text-zinc-400 font-medium">
                       {language === 'en' ? 'Destination' : 'የመድረሻ አድራሻ'}
                     </span>
                     <p
@@ -383,7 +383,7 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({
 
                     {/* Telemetry Timeline Progress Indicator */}
                     <div className="space-y-4">
-                      <h4 className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                      <h4 className="text-xs font-bold text-gray-500 dark:text-zinc-400">
                         {language === 'en' ? 'Real-Time Transit Progress' : 'የጭነት መከታተያ ሂደት'}
                       </h4>
 
@@ -547,7 +547,7 @@ export const OrderStatusModal: React.FC<OrderStatusModalProps> = ({
 
                 {/* Order Items List Breakdown */}
                 <div className="space-y-3">
-                  <h4 className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                  <h4 className="text-xs font-bold text-gray-500 dark:text-zinc-400">
                     {language === 'en' ? 'Items Ordered' : 'የታዘዙ ምርቶች ዝርዝር'}
                   </h4>
                   <div className="border border-gray-150/55 dark:border-zinc-800/55 rounded-2xl divide-y divide-gray-150/40 dark:divide-zinc-800/40 overflow-hidden">

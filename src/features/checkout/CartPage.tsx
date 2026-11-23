@@ -170,13 +170,13 @@ export const CartPage: React.FC = () => {
         {/* Order Summary Column */}
         <div className="lg:col-span-4 space-y-4">
           <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 space-y-5 shadow-sm">
-            <h2 className="text-sm font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+            <h2 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
               {language === 'en' ? 'Order Summary' : 'የትዕዛዝ ማጠቃለያ'}
             </h2>
 
             {/* Promo Code Form */}
             <form onSubmit={handleApplyPromo} className="space-y-2">
-              <label className="block text-[11px] font-bold text-gray-500 uppercase">
+              <label className="block text-xs font-semibold text-gray-500">
                 {language === 'en' ? 'Promo Code' : 'የቅናሽ ኮድ'}
               </label>
               <div className="flex gap-2">
@@ -241,7 +241,7 @@ export const CartPage: React.FC = () => {
                 }
                 navigate('/checkout');
               }}
-              className="w-full py-3.5 px-4 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-3.5 px-4 rounded-xl bg-[#0052FF] hover:bg-blue-600 text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>{language === 'en' ? 'Proceed to Checkout' : 'ወደ ክፍያ ቀጥል'}</span>
               <ArrowRight className="w-4 h-4" />

@@ -235,10 +235,10 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-xs sm:text-base font-black uppercase tracking-tight text-white font-sans truncate">
+                <h2 className="text-xs sm:text-base font-bold text-white font-sans truncate">
                   {language === 'en' ? 'My Orders & Purchase History' : 'የእኔ ትዕዛዞች እና የገዙት ታሪክ'}
                 </h2>
-                <span className="bg-white/10 text-white text-[9px] sm:text-[10px] font-mono font-extrabold uppercase px-2 py-0.5 rounded-full backdrop-blur-xs border border-white/10 shrink-0">
+                <span className="bg-white/10 text-white text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded-full backdrop-blur-xs border border-white/10 shrink-0">
                   {allOrders.length} {language === 'en' ? 'Total' : 'በጠቅላላ'}
                 </span>
               </div>
@@ -383,7 +383,7 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
                 <ShoppingBag className="w-8 h-8" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-base font-black text-gray-950 dark:text-white uppercase tracking-tight">
+                <h3 className="text-base font-bold text-gray-950 dark:text-white">
                   {language === 'en' ? 'No Orders Found' : 'ምንም ትዕዛዞች አልተገኙም'}
                 </h3>
                 <p className="text-xs text-gray-400 dark:text-zinc-500 font-medium">
@@ -957,7 +957,7 @@ export const MyOrdersView: React.FC<MyOrdersViewProps> = ({
                                 </div>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <h4 className="text-sm font-black uppercase tracking-wider text-gray-950 dark:text-white">
+                                    <h4 className="text-sm font-bold text-gray-950 dark:text-white">
                                       {language === 'en' ? 'Verified Post-Delivery Review' : 'የተረጋገጠ የገዢ ደረጃ እና አስተያየት'}
                                     </h4>
                                     {ord.reviewed && (

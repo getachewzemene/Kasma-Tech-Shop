@@ -94,7 +94,7 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-xs text-[#0052FF] dark:text-blue-400 uppercase tracking-widest font-black">
+                <span className="text-xs text-[#0052FF] dark:text-blue-400 font-bold">
                   {language === 'en' ? 'Quick Preview' : 'ፈጣን እይታ'}
                 </span>
                 <span className="text-xs bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 shrink-0">
@@ -292,7 +292,7 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
                 {/* Price Banner */}
                 <div className="p-3 sm:p-3.5 bg-gradient-to-r from-blue-50/70 via-indigo-50/40 to-transparent dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 rounded-2xl border border-blue-100/80 dark:border-zinc-800 flex items-center justify-between gap-2.5">
                   <div className="min-w-0">
-                    <span className="text-xs uppercase font-bold text-gray-400 tracking-wider block">
+                    <span className="text-xs font-semibold text-gray-500 dark:text-zinc-400 block">
                       {language === 'en' ? 'Calculated Price' : 'የተሰላ ዋጋ'}
                     </span>
                     <div className="flex items-baseline gap-1.5 mt-0.5 whitespace-nowrap">
@@ -356,7 +356,7 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
                 {/* Variant Selection Grid */}
                 {product.variants && product.variants.length > 0 && (
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-wider block">
+                    <label className="text-xs font-semibold text-gray-600 dark:text-zinc-300 block">
                       {language === 'en' ? 'Select Variant / Color' : 'አማራጭ / ቀለም ይምረጡ'}
                     </label>
                     <div
@@ -411,7 +411,7 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
                 {/* Quantity Controller */}
                 <div className="flex items-center justify-between p-2.5 sm:p-3 border border-gray-150 dark:border-zinc-800 rounded-2xl">
                   <div>
-                    <span className="text-xs font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-wider block">
+                    <span className="text-xs font-semibold text-gray-600 dark:text-zinc-300 block">
                       {language === 'en' ? 'Select Quantity' : 'ብዛት ይምረጡ'}
                     </span>
                   </div>

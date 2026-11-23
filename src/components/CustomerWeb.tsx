@@ -2418,7 +2418,7 @@ export default function CustomerWeb({
             rightContent={
               <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 bg-orange-50 dark:bg-zinc-800/90 px-2 py-1 xs:px-2.5 xs:py-1.5 sm:px-3 sm:py-2 rounded-xl border border-orange-200/80 dark:border-zinc-700 shadow-2xs shrink-0">
                 <Clock className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-[#F97316] shrink-0" />
-                <span className="text-[11px] xs:text-xs text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider shrink-0 leading-none">
+                <span className="text-[11px] xs:text-xs text-zinc-600 dark:text-zinc-300 font-bold shrink-0 leading-none">
                   {language === 'en' ? 'Ends in:' : 'የሚቀረው:'}
                 </span>
                 <div className="flex items-center gap-0.5 xs:gap-1 font-mono font-black text-xs sm:text-sm">
@@ -2793,11 +2793,11 @@ export default function CustomerWeb({
     />
 
     <div className="space-y-2.5 sm:space-y-4 z-10 text-left max-w-[58%] xs:max-w-[54%] sm:max-w-xs md:max-w-sm relative [text-shadow:0_1px_10px_rgba(0,0,0,0.7)]">
-      <span className="text-xs font-black text-kasma-gold bg-black/50 border border-white/15 px-2.5 py-1 rounded-md uppercase tracking-widest w-fit block shadow-sm backdrop-blur-xs">
-        {language === 'en' ? 'GET REWARDS' : 'ሽልማት ያግኙ'}
+      <span className="text-xs font-bold text-amber-300 bg-black/60 border border-white/15 px-2.5 py-1 rounded-lg w-fit block shadow-sm backdrop-blur-xs">
+        {language === 'en' ? 'Rewards Club' : 'ሽልማት ያግኙ'}
       </span>
       <div className="space-y-1">
-        <h2 className="text-base sm:text-2xl md:text-3xl font-black uppercase tracking-tight font-sans text-white leading-tight drop-shadow-md">
+        <h2 className="text-base sm:text-2xl md:text-3xl font-black font-sans text-white leading-tight drop-shadow-md">
           {language === 'en' ? 'Super Cheap Price' : 'እጅግ ቅናሽ ዋጋ'}
         </h2>
         <p className="text-xs sm:text-sm text-cyan-100/90 dark:text-zinc-200 font-medium line-clamp-2 sm:line-clamp-none leading-relaxed">
@@ -2811,7 +2811,7 @@ export default function CustomerWeb({
           const spProd = approvedProducts.find(p => p.id === 'p4');
           if (spProd) handleOpenProduct(spProd);
         }}
-        className="px-4 sm:px-5 py-2 sm:py-2.5 bg-white hover:bg-gray-100 active:scale-95 text-black font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg inline-flex items-center gap-1.5 cursor-pointer mt-1"
+        className="px-4 sm:px-5 py-2 sm:py-2.5 bg-white hover:bg-gray-100 active:scale-95 text-black font-bold text-xs sm:text-sm rounded-xl transition-all shadow-lg inline-flex items-center gap-1.5 cursor-pointer mt-1"
       >
         <span>{language === 'en' ? 'Shop Now' : 'አሁን ይግዙ'}</span>
         <ArrowRight className="w-3.5 h-3.5" />
@@ -2851,9 +2851,9 @@ export default function CustomerWeb({
     {/* Row 1: Power Bank */}
     <div className="bg-gray-100 dark:bg-zinc-900 rounded-xl sm:rounded-2xl p-2.5 sm:p-5 flex justify-between items-center border border-gray-150 dark:border-zinc-800 min-h-[85px] sm:min-h-[100px] hover:border-gray-250 transition-all relative group overflow-hidden">
       <div className="space-y-0.5 sm:space-y-1 text-left z-10 max-w-[62%] sm:max-w-[65%] min-w-0">
-        <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-zinc-50 uppercase tracking-tight line-clamp-2 leading-tight">{language === 'en' ? 'Charger Power Bank' : 'ፖርቴብል ቻርጀር'}</h4>
-        <p className="text-xs text-gray-400 font-bold uppercase line-clamp-1">{language === 'en' ? 'Starting at 2,400 ETB' : 'ዋጋው ከ 2,400 ብር ጀምሮ'}</p>
-        <button onClick={() => { setSelectedCategory('accessories'); const el = document.getElementById('products-grid-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }} className="text-xs font-bold text-[#0052FF] uppercase tracking-wider underline block pt-0.5 sm:pt-1 cursor-pointer">{language === 'en' ? 'Discover »' : 'ይጎብኙ »'}</button>
+        <h4 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-zinc-50 line-clamp-2 leading-tight">{language === 'en' ? 'Charger Power Bank' : 'ፖርቴብል ቻርጀር'}</h4>
+        <p className="text-[11px] sm:text-xs text-gray-500 dark:text-zinc-400 font-medium line-clamp-1">{language === 'en' ? 'Starting at 2,400 ETB' : 'ዋጋው ከ 2,400 ብር ጀምሮ'}</p>
+        <button onClick={() => { setSelectedCategory('accessories'); const el = document.getElementById('products-grid-section'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }} className="text-xs font-bold text-[#0052FF] hover:underline block pt-0.5 sm:pt-1 cursor-pointer">{language === 'en' ? 'Discover »' : 'ይጎብኙ »'}</button>
       </div>
       <div className="w-14 h-14 xs:w-16 xs:h-16 sm:w-20 sm:h-20 md:w-22 md:h-22 rounded-lg sm:rounded-xl overflow-hidden border border-gray-200/80 dark:border-zinc-700/80 shadow-xs shrink-0 group-hover:scale-105 transition-transform duration-300">
         <LazyImage
@@ -2891,7 +2891,7 @@ export default function CustomerWeb({
   <div className="flex justify-between items-center pb-1">
     <div className="flex items-center gap-2.5">
       <span className="w-2 h-5 lg:w-2.5 lg:h-6 bg-[#0052FF] rounded-full" />
-      <h3 className="text-sm sm:text-base lg:text-lg font-black uppercase tracking-widest text-gray-900 dark:text-zinc-100 font-sans">
+      <h3 className="text-sm sm:text-base lg:text-lg font-black text-gray-900 dark:text-zinc-100 font-sans">
         {language === 'en' ? 'Explore' : 'ምድቦች'}
       </h3>
     </div>
@@ -2904,7 +2904,7 @@ export default function CustomerWeb({
           setTrackOrderId('');
           setIsOrderStatusOpen(true);
         }}
-        className="flex items-center gap-2 px-4 py-2 sm:px-4.5 sm:py-2.5 bg-[#0052FF] text-white hover:bg-blue-700 font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-xl lg:rounded-2xl transition-all shadow-xs cursor-pointer"
+        className="flex items-center gap-2 px-3.5 py-2 sm:px-4.5 sm:py-2.5 bg-[#0052FF] text-white hover:bg-blue-700 font-bold text-xs sm:text-sm rounded-xl lg:rounded-2xl transition-all shadow-xs cursor-pointer"
       >
         <Truck className="w-4 h-4 shrink-0" />
         <span>{language === 'en' ? 'Track Shipment' : 'ጭነት ይከታተሉ'}</span>
@@ -2912,14 +2912,14 @@ export default function CustomerWeb({
     )}
   </div>
 
-  {/* Sticky Product Control Bar: Title/Count on Left, [ FILTER ] & [ SORT ] on Right */}
-  <div className="sticky top-[60px] sm:top-[68px] lg:top-[74px] z-30 bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-md p-4 sm:p-5 lg:p-6 rounded-2xl lg:rounded-3xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-all space-y-3.5">
+  {/* Sticky Product Control Bar: Sleek, compact on mobile, proper title case */}
+  <div className="sticky top-[56px] sm:top-[68px] lg:top-[74px] z-30 bg-white/95 dark:bg-[#0B0F17]/95 backdrop-blur-md p-2.5 xs:p-3 sm:p-5 lg:p-6 rounded-2xl lg:rounded-3xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-all space-y-2 sm:space-y-3.5">
 
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
 
-      {/* Left: Breadcrumb, Category Title & Product Count */}
-      <div className="space-y-1">
-        <nav className="flex items-center gap-1.5 text-xs font-bold text-gray-400 dark:text-zinc-500">
+      {/* Left: Breadcrumb (hidden on mobile), Category Title & Product Count */}
+      <div className="space-y-0.5 sm:space-y-1 min-w-0">
+        <nav className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-gray-400 dark:text-zinc-500">
           <button
             type="button"
             onClick={() => setSelectedCategory('all')}
@@ -2939,8 +2939,8 @@ export default function CustomerWeb({
           </span>
         </nav>
 
-        <div className="flex items-center gap-3 flex-wrap">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white tracking-tight font-sans leading-tight">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <h2 className="text-base sm:text-2xl lg:text-3xl font-black text-gray-900 dark:text-white tracking-tight font-sans leading-tight truncate">
             {selectedCategory === 'all'
               ? (language === 'en' ? 'All Tech Products' : 'ሁሉም ምርቶች')
               : selectedCategory === 'deals'
@@ -2949,7 +2949,7 @@ export default function CustomerWeb({
                   ? (categories.find(c => c.id === selectedCategory)?.nameEn || selectedCategory)
                   : (categories.find(c => c.id === selectedCategory)?.nameAm || selectedCategory))}
           </h2>
-          <span className="text-xs sm:text-sm font-mono font-bold px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border border-gray-200 dark:border-zinc-700">
+          <span className="text-[11px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 border border-gray-200 dark:border-zinc-700 shrink-0">
             {language === 'en'
               ? `${sortedAndFilteredProducts.length} ${sortedAndFilteredProducts.length === 1 ? 'item' : 'items'}`
               : `${sortedAndFilteredProducts.length} እቃዎች`}
@@ -2957,51 +2957,51 @@ export default function CustomerWeb({
         </div>
       </div>
 
-      {/* Right: Action Buttons - [ FILTER ] & [ SORT: Popular ] */}
+      {/* Right: Action Buttons - [ Filter ] & [ Sort ] */}
       <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
 
-        {/* [ FILTER ] Button (Mobile Bottom Sheet & Filter Trigger) */}
+        {/* [ Filter ] Button */}
         <button
           type="button"
           onClick={() => {
             setFilterSectionFocus('all');
             setIsAdvancedFilterOpen(true);
           }}
-          className={`flex-1 sm:flex-initial justify-center h-10 sm:h-11 px-4 sm:px-5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all cursor-pointer border flex items-center gap-2 shadow-2xs ${activeFiltersCount > 0
-            ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-[#0052FF]/20'
+          className={`flex-1 sm:flex-initial justify-center h-8.5 xs:h-9 sm:h-11 px-3 sm:px-5 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all cursor-pointer border flex items-center gap-2 shadow-2xs ${activeFiltersCount > 0
+            ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-xs shadow-[#0052FF]/20'
             : 'bg-gray-100/90 dark:bg-zinc-800/90 text-gray-800 dark:text-zinc-200 border-gray-200 dark:border-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-700'
             }`}
         >
-          <SlidersHorizontal className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+          <SlidersHorizontal className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 shrink-0" />
           <span>{language === 'en' ? 'Filter' : 'ማጣሪያ'}</span>
           {activeFiltersCount > 0 && (
-            <span className="bg-white text-[#0052FF] font-mono text-xs px-2 py-0.5 rounded-full font-black">
+            <span className="bg-white text-[#0052FF] font-mono text-[11px] sm:text-xs px-1.5 py-0.2 rounded-full font-bold">
               {activeFiltersCount}
             </span>
           )}
         </button>
 
-        {/* [ SORT: Popular ] Dropdown */}
+        {/* [ Sort ] Dropdown - Clean Title-Case without all-caps truncation */}
         <div className="relative flex-1 sm:flex-initial">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="w-full sm:w-auto h-10 sm:h-11 appearance-none bg-gray-100/90 dark:bg-zinc-800/90 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700 rounded-xl sm:rounded-2xl px-4 pr-9 sm:pr-10 text-xs sm:text-sm font-black uppercase tracking-wider cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0052FF]/30 transition-all text-center sm:text-left"
+            className="w-full sm:w-auto h-8.5 xs:h-9 sm:h-11 appearance-none bg-gray-100/90 dark:bg-zinc-800/90 text-gray-800 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700 rounded-xl sm:rounded-2xl pl-3 pr-7 sm:pl-4 sm:pr-9 text-xs sm:text-sm font-semibold cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0052FF]/30 transition-all text-left truncate"
           >
-            <option value="default">{language === 'en' ? 'Sort: Popular' : 'በተወዳጅነት'}</option>
+            <option value="default">{language === 'en' ? 'Popular' : 'በተወዳጅነት'}</option>
             <option value="priceAsc">{language === 'en' ? 'Price: Low → High' : 'ዋጋ፡ ዝቅተኛ'}</option>
             <option value="priceDesc">{language === 'en' ? 'Price: High → Low' : 'ዋጋ፡ ከፍተኛ'}</option>
-            <option value="newest">{language === 'en' ? 'Sort: Newest' : 'አዲስ የገቡ'}</option>
+            <option value="newest">{language === 'en' ? 'Newest' : 'አዲስ የገቡ'}</option>
           </select>
-          <ChevronDown className="w-4 h-4 text-gray-500 dark:text-zinc-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <ChevronDown className="w-3.5 h-3.5 text-gray-500 dark:text-zinc-400 absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
 
       </div>
 
     </div>
 
-    {/* Horizontal Filter Chips Row (Brand, Price, Rating, Availability, Features - 44px+ tap targets) */}
-    <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto scroll-smooth touch-pan-x py-1 no-scrollbar">
+    {/* Horizontal Filter Chips Row - Sleek compact height on mobile */}
+    <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scroll-smooth touch-pan-x py-0.5 no-scrollbar">
 
       {/* Brand Chip */}
       <button
@@ -3010,13 +3010,13 @@ export default function CustomerWeb({
           setFilterSectionFocus('brand');
           setIsAdvancedFilterOpen(true);
         }}
-        className={`h-11 min-h-[44px] px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 active:scale-95 ${selectedBrands.length > 0
-          ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 border-blue-200 dark:border-blue-900/60 font-black shadow-2xs'
+        className={`h-7.5 xs:h-8 sm:h-9 px-2.5 xs:px-3 rounded-full text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1 shrink-0 active:scale-95 ${selectedBrands.length > 0
+          ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 border-blue-200 dark:border-blue-900/60 font-bold shadow-2xs'
           : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
           }`}
       >
-        <span>{selectedBrands.length > 0 ? `Brand (${selectedBrands.length})` : 'Brand'}</span>
-        <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+        <span>{selectedBrands.length > 0 ? `Brand (${selectedBrands.length})` : (language === 'en' ? 'Brand' : 'ብራንድ')}</span>
+        <ChevronDown className="w-3 h-3 text-gray-400 shrink-0" />
       </button>
 
       {/* Price Chip */}
@@ -3026,17 +3026,17 @@ export default function CustomerWeb({
           setFilterSectionFocus('price');
           setIsAdvancedFilterOpen(true);
         }}
-        className={`h-11 min-h-[44px] px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 active:scale-95 ${minPriceInput !== '' || maxPriceInput !== ''
-          ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 border-blue-200 dark:border-blue-900/60 font-black shadow-2xs'
+        className={`h-7.5 xs:h-8 sm:h-9 px-2.5 xs:px-3 rounded-full text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1 shrink-0 active:scale-95 ${minPriceInput !== '' || maxPriceInput !== ''
+          ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 border-blue-200 dark:border-blue-900/60 font-bold shadow-2xs'
           : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
           }`}
       >
         <span>
           {minPriceInput !== '' || maxPriceInput !== ''
             ? `Price (${minPriceInput || '0'}-${maxPriceInput || '∞'})`
-            : 'Price'}
+            : (language === 'en' ? 'Price' : 'ዋጋ')}
         </span>
-        <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+        <ChevronDown className="w-3 h-3 text-gray-400 shrink-0" />
       </button>
 
       {/* Rating Chip */}
@@ -3046,13 +3046,13 @@ export default function CustomerWeb({
           setFilterSectionFocus('rating');
           setIsAdvancedFilterOpen(true);
         }}
-        className={`h-11 min-h-[44px] px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 active:scale-95 ${selectedRatingFilter > 0
-          ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/60 font-black shadow-2xs'
+        className={`h-7.5 xs:h-8 sm:h-9 px-2.5 xs:px-3 rounded-full text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1 shrink-0 active:scale-95 ${selectedRatingFilter > 0
+          ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/60 font-bold shadow-2xs'
           : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
           }`}
       >
-        <span>{selectedRatingFilter > 0 ? `Rating (${selectedRatingFilter}★+)` : 'Rating'}</span>
-        <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+        <span>{selectedRatingFilter > 0 ? `Rating (${selectedRatingFilter}★+)` : (language === 'en' ? 'Rating' : 'ደረጃ')}</span>
+        <ChevronDown className="w-3 h-3 text-gray-400 shrink-0" />
       </button>
 
       {/* Availability Chip */}
@@ -3062,15 +3062,15 @@ export default function CustomerWeb({
           setFilterSectionFocus('availability');
           setIsAdvancedFilterOpen(true);
         }}
-        className={`h-11 min-h-[44px] px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 active:scale-95 ${availabilityFilter !== 'ALL'
-          ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/60 font-black shadow-2xs'
+        className={`h-7.5 xs:h-8 sm:h-9 px-2.5 xs:px-3 rounded-full text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1 shrink-0 active:scale-95 ${availabilityFilter !== 'ALL'
+          ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/60 font-bold shadow-2xs'
           : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
           }`}
       >
         <span>
-          {availabilityFilter === 'IN_STOCK' ? 'In Stock' : availabilityFilter === 'ON_SALE' ? 'On Sale' : availabilityFilter === 'HIGHLY_RATED' ? '4★+ Rated' : 'Availability'}
+          {availabilityFilter === 'IN_STOCK' ? (language === 'en' ? 'In Stock' : 'ያለ') : availabilityFilter === 'ON_SALE' ? (language === 'en' ? 'On Sale' : 'ቅናሽ') : '4★+ Rated'}
         </span>
-        <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+        <ChevronDown className="w-3 h-3 text-gray-400 shrink-0" />
       </button>
 
       {/* Features Chip */}
@@ -3080,23 +3080,23 @@ export default function CustomerWeb({
           setFilterSectionFocus('features');
           setIsAdvancedFilterOpen(true);
         }}
-        className="h-11 min-h-[44px] px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800 active:scale-95"
+        className="h-7.5 xs:h-8 sm:h-9 px-2.5 xs:px-3 rounded-full text-[11px] sm:text-xs font-semibold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1 shrink-0 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800 active:scale-95"
       >
-        <span>Features</span>
-        <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+        <span>{language === 'en' ? 'Features' : 'ባህሪያት'}</span>
+        <ChevronDown className="w-3 h-3 text-gray-400 shrink-0" />
       </button>
     </div>
 
     {/* Active Refinements Badges (Integrated into Control Card) */}
     {(selectedCategory !== 'all' || searchQuery.trim() !== '' || minPriceInput !== '' || maxPriceInput !== '' || selectedBrands.length > 0 || availabilityFilter !== 'ALL' || selectedRatingFilter > 0) && (
-      <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-150 dark:border-slate-800/80">
-        <span className="text-xs font-bold uppercase text-gray-400 dark:text-zinc-500 tracking-wider">
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-2 sm:pt-3 border-t border-slate-150 dark:border-slate-800/80">
+        <span className="text-[11px] sm:text-xs font-semibold text-gray-400 dark:text-zinc-500">
           {language === 'en' ? 'Active:' : 'የተመረጡ፡'}
         </span>
 
         {/* Category chip if not 'all' */}
         {selectedCategory !== 'all' && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-300 border border-blue-200/80 dark:border-blue-900/60 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] sm:text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-300 border border-blue-200/80 dark:border-blue-900/60 shadow-2xs">
             <span>{categories.find(c => c.id === selectedCategory)?.nameEn || selectedCategory}</span>
             <button
               type="button"
@@ -3111,7 +3111,7 @@ export default function CustomerWeb({
 
         {/* Search query chip */}
         {searchQuery.trim() !== '' && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/60 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] sm:text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-900/60 shadow-2xs">
             <span>"{searchQuery}"</span>
             <button
               type="button"
@@ -3125,7 +3125,7 @@ export default function CustomerWeb({
 
         {/* Price range chip */}
         {(minPriceInput !== '' || maxPriceInput !== '') && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60 shadow-2xs font-mono">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] sm:text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60 shadow-2xs font-mono">
             <span>ETB {minPriceInput || '0'} - {maxPriceInput || '∞'}</span>
             <button
               type="button"
@@ -3139,7 +3139,7 @@ export default function CustomerWeb({
 
         {/* Brand chips */}
         {selectedBrands.map(b => (
-          <span key={`active-b-${b}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900/60 shadow-2xs">
+          <span key={`active-b-${b}`} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] sm:text-xs font-semibold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900/60 shadow-2xs">
             <span>{b}</span>
             <button
               type="button"
@@ -3153,8 +3153,8 @@ export default function CustomerWeb({
 
         {/* Availability chip */}
         {availabilityFilter !== 'ALL' && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 shadow-2xs">
-            <span>{availabilityFilter === 'IN_STOCK' ? 'In Stock' : availabilityFilter === 'ON_SALE' ? 'On Sale' : '4★+ Rated'}</span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] sm:text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 shadow-2xs">
+            <span>{availabilityFilter === 'IN_STOCK' ? (language === 'en' ? 'In Stock' : 'ያለ') : availabilityFilter === 'ON_SALE' ? (language === 'en' ? 'On Sale' : 'ቅናሽ') : '4★+ Rated'}</span>
             <button
               type="button"
               onClick={() => setAvailabilityFilter('ALL')}
@@ -3167,8 +3167,8 @@ export default function CustomerWeb({
 
         {/* Rating chip */}
         {selectedRatingFilter > 0 && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 shadow-2xs">
-            <span>{selectedRatingFilter}★+ Rating</span>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] sm:text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 shadow-2xs">
+            <span>{selectedRatingFilter}★+</span>
             <button
               type="button"
               onClick={() => setSelectedRatingFilter(0)}
@@ -3183,9 +3183,9 @@ export default function CustomerWeb({
         <button
           type="button"
           onClick={handleClearAllFilters}
-          className="inline-flex items-center gap-1.5 text-xs font-black text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:underline cursor-pointer ml-auto px-2.5 py-1 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-900/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-all shadow-2xs shrink-0"
+          className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:underline cursor-pointer ml-auto px-2 py-0.5 rounded-lg bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-900/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-all shadow-2xs shrink-0"
         >
-          <Trash2 className="w-3 h-3 text-rose-500" />
+          <Trash2 className="w-3 h-3 text-rose-500 shrink-0" />
           <span>{language === 'en' ? 'Clear all' : 'ሁሉንም አጽዳ'}</span>
         </button>
       </div>
@@ -3218,11 +3218,11 @@ export default function CustomerWeb({
         <div className="w-12 h-1.5 bg-gray-300 dark:bg-zinc-700 rounded-full mx-auto my-2.5 sm:hidden shrink-0" />
 
         {/* Bottom Sheet Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-150 dark:border-zinc-800 shrink-0">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 sm:py-4 border-b border-gray-150 dark:border-zinc-800 shrink-0">
           <div className="flex items-center gap-2.5">
-            <SlidersHorizontal className="w-5 h-5 text-[#0052FF]" />
-            <h3 className="text-base sm:text-lg font-black uppercase tracking-wider text-gray-900 dark:text-white font-sans">
-              {language === 'en' ? 'FILTER' : 'ማጣሪያ'}
+            <SlidersHorizontal className="w-4.5 h-4.5 text-[#0052FF]" />
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white font-sans">
+              {language === 'en' ? 'Filters' : 'ማጣሪያ'}
             </h3>
           </div>
 
@@ -3250,7 +3250,7 @@ export default function CustomerWeb({
           {/* 1. BRAND SECTION */}
           <div className="space-y-3 pt-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+              <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-zinc-100">
                 {language === 'en' ? 'Brand' : 'ብራንድ'}
               </span>
               {selectedBrands.length > 0 && (
@@ -3302,7 +3302,7 @@ export default function CustomerWeb({
           {/* 2. PRICE SECTION - INTERACTIVE DUAL-THUMB RANGE SLIDER */}
           <div className="space-y-3 pt-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+              <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-zinc-100">
                 {language === 'en' ? 'Price Range' : 'የዋጋ ክልል'}
               </span>
               {(minPriceInput !== '' || maxPriceInput !== '') && (
@@ -3334,7 +3334,7 @@ export default function CustomerWeb({
 
           {/* 3. RATING SECTION */}
           <div className="space-y-3 pt-5">
-            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+            <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-zinc-100">
               {language === 'en' ? 'Rating' : 'ደረጃ'}
             </span>
 
@@ -3369,7 +3369,7 @@ export default function CustomerWeb({
 
           {/* 4. AVAILABILITY SECTION */}
           <div className="space-y-3 pt-5">
-            <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+            <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-zinc-100">
               {language === 'en' ? 'Availability' : 'አቅርቦት'}
             </span>
 
@@ -3415,7 +3415,7 @@ export default function CustomerWeb({
 
           <button
             onClick={() => setIsAdvancedFilterOpen(false)}
-            className="flex-1 py-3.5 px-5 bg-[#0052FF] hover:bg-blue-700 text-white text-xs sm:text-sm font-black uppercase tracking-wider rounded-2xl transition-all shadow-md shadow-[#0052FF]/20 text-center cursor-pointer"
+            className="flex-1 py-3 px-5 bg-[#0052FF] hover:bg-blue-700 text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md shadow-[#0052FF]/20 text-center cursor-pointer"
           >
             {language === 'en'
               ? `Show ${sortedAndFilteredProducts.length} products`
@@ -3429,7 +3429,7 @@ export default function CustomerWeb({
 </AnimatePresence>
 
 {/* Main Grid Section */ }
-<div id="products-catalog-grid" className="w-full mt-6">
+<div id="products-catalog-grid" className="w-full mt-3 sm:mt-6">
 
   {isGridLoading ? (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 xs:gap-2.5 sm:gap-6">
@@ -3636,7 +3636,7 @@ export default function CustomerWeb({
                       alt={selectedProduct.nameEn}
                       className="w-full h-full object-cover transition-all duration-300 transform group-hover:scale-105"
                     />
-                    <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[8px] sm:text-[9px] font-bold uppercase tracking-wider px-1.5 sm:px-2 py-0.5 rounded-md sm:rounded-lg z-10 shadow-xs">
+                    <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[8px] sm:text-[9px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-md sm:rounded-lg z-10 shadow-xs">
                       {language === 'en' ? 'High-Res Preview' : 'ከፍተኛ ጥራት ቅድመ-ዕይታ'}
                     </div>
                   </div>
@@ -3665,7 +3665,7 @@ export default function CustomerWeb({
                   {/* Trust Badges on Desktop */}
                   <div className="hidden md:block space-y-2 pt-1">
                     <div className="bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 rounded-2xl p-3.5 space-y-2 shadow-2xs w-full min-w-0">
-                      <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-extrabold uppercase tracking-wider">
+                      <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-xs font-bold">
                         <ShieldCheck className="w-4 h-4 shrink-0 text-emerald-500" />
                         <span>{language === 'en' ? 'Verified Quality Guarantee' : 'የተረጋገጠ የጥራት ዋስትና'}</span>
                       </div>
@@ -3692,7 +3692,7 @@ export default function CustomerWeb({
                 <div className="space-y-3.5 sm:space-y-4 w-full min-w-0">
                   {/* Category & Brand Breadcrumb + Stock Badge */}
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-xs text-gray-400 dark:text-zinc-500 uppercase tracking-widest font-bold truncate max-w-[200px]">
+                    <span className="text-xs text-gray-500 dark:text-zinc-400 font-semibold truncate max-w-[200px]">
                       {selectedProduct.brand} • {categories.find(c => c.id === selectedProduct.category)?.nameEn}
                     </span>
 
@@ -3708,7 +3708,7 @@ export default function CustomerWeb({
                             }`} />
                         )}
                       </span>
-                      <span className="text-xs font-bold uppercase tracking-wider text-gray-600 dark:text-zinc-300 whitespace-nowrap">
+                      <span className="text-xs font-bold text-gray-600 dark:text-zinc-300 whitespace-nowrap">
                         {isOutOfStock
                           ? (language === 'en' ? 'Out of Stock' : 'ክምችት አልቋል')
                           : isLowStock
@@ -3728,22 +3728,22 @@ export default function CustomerWeb({
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-2 flex-wrap">
                         {selectedProduct.condition === 'SEALED' ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-emerald-100/90 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-100/90 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                             <Lock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                             <span>{language === 'en' ? 'Factory Sealed' : 'በፋብሪካው የታሸገ'}</span>
                           </span>
                         ) : selectedProduct.condition === 'BRAND_NEW' ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-blue-100/90 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-100/90 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800">
                             <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                             <span>{language === 'en' ? 'Brand New' : 'አዲስ (ያልተከፈተ)'}</span>
                           </span>
                         ) : selectedProduct.condition === 'OPEN_BOX' ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-amber-100/90 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-100/90 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
                             <Package className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                             <span>{language === 'en' ? 'Open Box' : 'ክፍት ሳጥን'}</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg bg-purple-100/90 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-lg bg-purple-100/90 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-800">
                             <RotateCcw className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                             <span>{language === 'en' ? 'Certified Refurbished' : 'የታደሰ'}</span>
                           </span>
@@ -3759,7 +3759,7 @@ export default function CustomerWeb({
                         </span>
                       </div>
 
-                      <span className="text-xs font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">
+                      <span className="text-xs font-bold text-gray-500 dark:text-zinc-400">
                         {language === 'en' ? 'Condition Verified' : 'ሁኔታው የተረጋገጠ'}
                       </span>
                     </div>
@@ -3824,7 +3824,7 @@ export default function CustomerWeb({
 
                   {/* Detailed Description */}
                   <div className="bg-gray-50/80 dark:bg-zinc-800/80 p-3.5 sm:p-4 rounded-2xl border border-gray-150 dark:border-zinc-700/80 space-y-1.5 shadow-2xs">
-                    <span className="text-xs text-gray-400 dark:text-zinc-400 font-bold uppercase tracking-widest block">
+                    <span className="text-xs text-gray-500 dark:text-zinc-400 font-bold block">
                       {language === 'en' ? 'Product Overview' : 'የምርት አጠቃላይ መግለጫ'}
                     </span>
                     <p className="text-gray-700 dark:text-zinc-200 text-sm leading-relaxed">
@@ -3838,7 +3838,7 @@ export default function CustomerWeb({
                     if (!specs || specs.length === 0) return null;
                     return (
                       <div className="space-y-2">
-                        <span className="text-xs text-gray-400 dark:text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-1.5">
+                        <span className="text-xs text-gray-500 dark:text-zinc-400 font-bold flex items-center gap-1.5">
                           <Box className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                           {language === 'en' ? 'Key Specifications' : 'ዋና ዋና መግለጫዎች'}
                         </span>
@@ -3852,7 +3852,7 @@ export default function CustomerWeb({
                                 key={sIdx}
                                 className="p-2.5 sm:p-3 rounded-xl border bg-white dark:bg-zinc-900 border-gray-200/80 dark:border-zinc-800 flex flex-col justify-between shadow-2xs"
                               >
-                                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-400 mb-0.5">
+                                <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-zinc-400 mb-0.5">
                                   {isWeight ? (
                                     <Scale className="w-3 h-3 text-amber-500 shrink-0" />
                                   ) : isBattery ? (
@@ -3877,7 +3877,7 @@ export default function CustomerWeb({
 
                   {/* SKU Options Selector */}
                   <div className="space-y-2 pt-1">
-                    <span className="text-xs text-gray-400 dark:text-zinc-500 font-bold uppercase tracking-widest block">
+                    <span className="text-xs text-gray-500 dark:text-zinc-400 font-bold block">
                       {language === 'en' ? 'Select Option / SKU' : 'የእቃውን አይነት / SKU ይምረጡ'}
                     </span>
                     <div className={`grid gap-2 ${selectedProduct.variants.length === 1 ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'}`}>
@@ -3951,7 +3951,7 @@ export default function CustomerWeb({
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-[10px] px-2.5 py-1.5 rounded-xl flex items-center gap-1 shadow-xs transition-all shrink-0 uppercase tracking-wider cursor-pointer"
+                        className="bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs px-2.5 py-1.5 rounded-xl flex items-center gap-1 shadow-xs transition-all shrink-0 cursor-pointer"
                       >
                         <MessageCircle className="w-3.5 h-3.5 fill-current shrink-0" />
                         <span>{language === 'en' ? 'Reserve on WhatsApp' : 'በዋትስአፕ ያዙ'}</span>
@@ -3963,7 +3963,7 @@ export default function CustomerWeb({
                   {((selectedVariant ? (selectedProduct.price + selectedVariant.priceOffset) : selectedProduct.price) >= 30000) && (
                     <div className="p-3.5 rounded-2xl bg-gradient-to-br from-blue-50/90 via-purple-50/70 to-emerald-50/80 dark:from-blue-950/40 dark:via-purple-950/30 dark:to-emerald-950/40 border border-blue-200/80 dark:border-blue-900/50 shadow-2xs space-y-2.5">
                       <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <div className="flex items-center gap-1.5 text-xs font-black text-blue-900 dark:text-blue-300 uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 dark:text-blue-300">
                           <CreditCard className="w-4 h-4 text-[#0052FF]" />
                           <span>{language === 'en' ? 'High-Value Device Financing' : 'የውድ እቃዎች ክፍያ እና ዋስትና'}</span>
                         </div>
@@ -4005,7 +4005,7 @@ export default function CustomerWeb({
                   {/* 2. Delivery Estimate by Area Selector */}
                   <div className="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200/90 dark:border-zinc-800 shadow-2xs space-y-2">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-gray-900 dark:text-white">
                         <Truck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                         <span>{language === 'en' ? 'Delivery Estimate by Area' : 'የማድረሻ ግምት በአካባቢ'}</span>
                       </div>
@@ -4119,7 +4119,7 @@ export default function CustomerWeb({
                     {/* Price & Status Header */}
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <span className="text-[10px] sm:text-[11px] text-gray-400 dark:text-zinc-500 uppercase font-black tracking-wider block">
+                        <span className="text-[10px] sm:text-[11px] text-gray-500 dark:text-zinc-400 font-bold block">
                           {language === 'en' ? 'Calculated Total' : 'የተሰላ ጠቅላላ ዋጋ'}
                         </span>
                         <div className="flex items-baseline gap-1.5 mt-0.5">
@@ -4171,7 +4171,7 @@ export default function CustomerWeb({
                             setIsCartOpen(true);
                           }
                         }}
-                        className={`w-full h-11 sm:h-12 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-xs whitespace-nowrap border ${(!selectedVariant || selectedVariant.onHand <= 0)
+                        className={`w-full h-11 sm:h-12 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-xs whitespace-nowrap border ${(!selectedVariant || selectedVariant.onHand <= 0)
                           ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed border-gray-200 dark:border-zinc-800'
                           : 'bg-white hover:bg-gray-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-gray-900 dark:text-zinc-100 border-gray-250 dark:border-zinc-700 active:scale-[0.98]'
                           }`}
@@ -4188,7 +4188,7 @@ export default function CustomerWeb({
                             handleInstantBuy(selectedProduct, selectedVariant);
                           }
                         }}
-                        className={`w-full h-11 sm:h-12 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-md shadow-blue-500/20 whitespace-nowrap active:scale-[0.98] ${(!selectedVariant || selectedVariant.onHand <= 0)
+                        className={`w-full h-11 sm:h-12 px-2.5 sm:px-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-md shadow-blue-500/20 whitespace-nowrap active:scale-[0.98] ${(!selectedVariant || selectedVariant.onHand <= 0)
                           ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed border border-gray-200 dark:border-zinc-800'
                           : 'bg-[#0052FF] hover:bg-blue-600 text-white'
                           }`}
@@ -4221,10 +4221,10 @@ export default function CustomerWeb({
               {/* AMAZON-STYLE FREQUENTLY BOUGHT TOGETHER BUNDLE SYSTEM */}
               {fbtProducts.length > 0 && (
                 <div className="col-span-full p-4 sm:p-6 md:p-8 bg-amber-500/[0.015] dark:bg-amber-500/[0.005] border-t border-gray-150 dark:border-zinc-800 transition-all">
-                  <h4 className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider mb-5 flex items-center gap-2 text-left">
+                  <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2 text-left">
                     <Sparkles className="w-4 h-4 text-amber-500 animate-pulse shrink-0" />
                     <span>{language === 'en' ? 'Frequently Bought Together' : 'ብዙ ጊዜ አብረው የሚገዙ ምርቶች'}</span>
-                    <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 font-extrabold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded ml-1.5 shrink-0">
+                    <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 font-bold text-[10px] px-2 py-0.5 rounded-full ml-1.5 shrink-0">
                       {language === 'en' ? 'Bundle Discount Active' : 'የጥቅል ቅናሽ አለ'}
                     </span>
                   </h4>
@@ -4239,8 +4239,8 @@ export default function CustomerWeb({
                       <div className="h-full flex flex-col justify-between p-2 sm:p-4 bg-white dark:bg-zinc-900 rounded-xl sm:rounded-2xl border border-amber-500/40 shadow-2xs hover:shadow-xs transition-all min-w-0">
                         <div>
                           <div className="flex items-center justify-between gap-1 mb-1.5 sm:mb-3">
-                            <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg truncate">
-                              {language === 'en' ? 'THIS ITEM' : 'ይህ ምርት'}
+                            <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg truncate">
+                              {language === 'en' ? 'This Item' : 'ይህ ምርት'}
                             </span>
                             <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
                           </div>
@@ -4413,7 +4413,7 @@ export default function CustomerWeb({
 
               {/* Reviews & Ratings Section */}
               <div id="reviews-section" className="col-span-full p-4 sm:p-6 md:p-8 bg-gray-50 dark:bg-zinc-950/40 border-t border-gray-150 dark:border-zinc-800 transition-all">
-                <h4 className="text-sm font-extrabold text-gray-950 dark:text-white uppercase tracking-wider mb-6 flex items-center gap-2">
+                <h4 className="text-sm sm:text-base font-bold text-gray-950 dark:text-white mb-6 flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-kasma-blue" />
                   {language === 'en' ? 'Ratings & Reviews' : 'ደረጃዎች እና ግምገማዎች'}
                 </h4>
@@ -4461,7 +4461,7 @@ export default function CustomerWeb({
                                 />
                               ))}
                             </div>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                            <p className="text-xs text-gray-500 dark:text-zinc-400 font-medium">
                               {count} {count === 1 ? 'Review' : 'Reviews'}
                             </p>
                           </div>
@@ -4552,7 +4552,7 @@ export default function CustomerWeb({
                   {/* Right: Submit Form */}
                   <div className="col-span-full lg:col-span-5 bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-gray-150 dark:border-zinc-800 h-fit space-y-4">
                     <div>
-                      <h5 className="font-bold text-gray-950 dark:text-white text-sm uppercase tracking-wider">
+                      <h5 className="font-bold text-gray-950 dark:text-white text-sm">
                         {language === 'en' ? 'Write a Review' : 'ግምገማ ይጻፉ'}
                       </h5>
                       <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1 mb-3.5">
@@ -4648,7 +4648,7 @@ export default function CustomerWeb({
                     <form onSubmit={(e) => handleReviewSubmit(e, selectedProduct.id)} className="space-y-4">
                       {/* Stars Selector */}
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest block">
+                        <label className="text-xs font-bold text-gray-600 dark:text-zinc-300 block">
                           {language === 'en' ? 'Your Rating' : 'የእርስዎ ደረጃ'}
                         </label>
                         <div className="flex gap-1.5">
@@ -4672,7 +4672,7 @@ export default function CustomerWeb({
 
                       {/* Reviewer Name */}
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest block">
+                        <label className="text-xs font-bold text-gray-600 dark:text-zinc-300 block">
                           {language === 'en' ? 'Full Name' : 'ሙሉ ስም'}
                         </label>
                         <input
@@ -4687,7 +4687,7 @@ export default function CustomerWeb({
 
                       {/* Reviewer Phone */}
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest block">
+                        <label className="text-xs font-bold text-gray-600 dark:text-zinc-300 block">
                           {language === 'en' ? 'Checkout Mobile Phone' : 'ትእዛዝ የፈጸሙበት ስልክ'}
                         </label>
                         <input
@@ -4707,7 +4707,7 @@ export default function CustomerWeb({
 
                       {/* Comment */}
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest block">
+                        <label className="text-xs font-bold text-gray-600 dark:text-zinc-300 block">
                           {language === 'en' ? 'Review Comments' : 'የግምገማው ዝርዝር'}
                         </label>
                         <textarea
@@ -4764,7 +4764,7 @@ export default function CustomerWeb({
                       <button
                         type="submit"
                         disabled={isSubmittingReview}
-                        className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${isSubmittingReview
+                        className={`w-full py-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${isSubmittingReview
                           ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed'
                           : 'bg-kasma-blue hover:bg-blue-600 text-white shadow-sm'
                           }`}
@@ -4789,7 +4789,7 @@ export default function CustomerWeb({
               {/* Community Questions & Answers (Q&A) Section */}
               <div id="qa-section" className="col-span-full p-4 sm:p-6 md:p-8 bg-white dark:bg-zinc-900 border-t border-gray-150 dark:border-zinc-800 transition-all">
                 <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
-                  <h4 className="text-sm font-extrabold text-gray-950 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                  <h4 className="text-sm sm:text-base font-bold text-gray-950 dark:text-white flex items-center gap-2">
                     <HelpCircle className="w-4.5 h-4.5 text-[#0052FF]" />
                     <span>{language === 'en' ? 'Questions & Answers' : 'ጥያቄዎች እና መልሶች'}</span>
                   </h4>
@@ -4861,7 +4861,7 @@ export default function CustomerWeb({
                   {/* Right: Ask Question Form */}
                   <div className="col-span-full lg:col-span-5 bg-gray-50/90 dark:bg-zinc-850/90 rounded-3xl p-5 sm:p-6 border border-gray-150 dark:border-zinc-800 h-fit space-y-3.5 text-left">
                     <div>
-                      <h5 className="font-bold text-gray-950 dark:text-white text-xs sm:text-sm uppercase tracking-wider">
+                      <h5 className="font-bold text-gray-950 dark:text-white text-xs sm:text-sm">
                         {language === 'en' ? 'Ask a Question' : 'ጥያቄ ይጠይቁ'}
                       </h5>
                       <p className="text-[11px] text-gray-400 dark:text-zinc-500 mt-1">
@@ -4873,7 +4873,7 @@ export default function CustomerWeb({
 
                     <form onSubmit={(e) => handleQuestionSubmit(e, selectedProduct.id)} className="space-y-3">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest block">
+                        <label className="text-xs font-bold text-gray-600 dark:text-zinc-300 block">
                           {language === 'en' ? 'Your Name' : 'የእርስዎ ስም'}
                         </label>
                         <input
@@ -4886,7 +4886,7 @@ export default function CustomerWeb({
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest block">
+                        <label className="text-xs font-bold text-gray-600 dark:text-zinc-300 block">
                           {language === 'en' ? 'Question' : 'ጥያቄዎ'}
                         </label>
                         <textarea

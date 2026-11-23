@@ -988,7 +988,7 @@ export const CheckoutPage: React.FC = () => {
             <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 space-y-4 shadow-sm">
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-[#0052FF]" />
-                <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                <h2 className="text-xs font-bold text-gray-900 dark:text-zinc-100">
                   {language === 'en' ? '1. Recipient Information' : '1. የተቀባይ መረጃ'}
                 </h2>
               </div>
@@ -1029,7 +1029,7 @@ export const CheckoutPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-[#0052FF]" />
-                  <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                  <h2 className="text-xs font-bold text-gray-900 dark:text-zinc-100">
                     {language === 'en' ? '2. Delivery Routing & Drop-Pin' : '2. የማድረሻ አድራሻ እና ካርታ'}
                   </h2>
                 </div>
@@ -1102,7 +1102,7 @@ export const CheckoutPage: React.FC = () => {
             <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 space-y-4 shadow-sm">
               <div className="flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-[#0052FF]" />
-                <h2 className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-zinc-100">
+                <h2 className="text-xs font-bold text-gray-900 dark:text-zinc-100">
                   {language === 'en' ? '3. Select Ethiopian Payment Method' : '3. የክፍያ መንገድ ይምረጡ'}
                 </h2>
               </div>

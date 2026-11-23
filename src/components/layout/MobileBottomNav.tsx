@@ -135,7 +135,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             <div className="flex items-center justify-between pb-2 border-b border-gray-150 dark:border-zinc-800">
               <div className="flex items-center gap-2">
                 <LayoutGrid className="w-5 h-5 text-[#0052FF]" />
-                <h3 className="text-base font-black text-gray-950 dark:text-white uppercase tracking-tight">
+                <h3 className="text-base font-black text-gray-950 dark:text-white">
                   {language === 'en' ? 'Shop by Category' : 'በምድብ ይፈልጉ'}
                 </h3>
               </div>

@@ -302,7 +302,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                   />
                   <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-2xl py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
                     <div className="px-4 py-2.5 flex items-center justify-between border-b border-slate-100 dark:border-zinc-800 mb-1.5">
-                      <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-zinc-400 flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-600 dark:text-zinc-400 flex items-center gap-2">
                         <Layers className="w-4 h-4 text-[#0052FF]" />
                         <span>{language === 'en' ? 'Electronics Catalog' : 'የኤሌክትሮኒክስ ዝርዝር'}</span>
                       </span>
@@ -717,7 +717,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
             {/* Partner Portals Switcher Chips (Courier & Merchant) */}
             <div className="pt-2 border-t border-slate-200/80 dark:border-zinc-800/80 space-y-1.5">
               <div className="flex items-center justify-between px-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+                <span className="text-xs font-bold text-slate-600 dark:text-zinc-400">
                   {language === 'en' ? 'Partner Portals' : 'የአጋሮች መግቢያ'}
                 </span>
                 <span className="text-xs font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full border border-slate-200/80 dark:border-zinc-700/80">
@@ -769,7 +769,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
 
             {/* Mobile App Preferences Section (Language & Theme) */}
             <div className="p-3 bg-slate-100/80 dark:bg-zinc-800/80 rounded-2xl border border-slate-200/80 dark:border-zinc-700/80 flex flex-col gap-2.5 mt-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
+              <span className="text-xs font-bold text-slate-600 dark:text-zinc-400">
                 {language === 'en' ? 'Preferences' : 'ምርጫዎች'}
               </span>
 

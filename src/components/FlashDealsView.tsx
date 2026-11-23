@@ -196,10 +196,10 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm sm:text-base md:text-lg font-black uppercase tracking-wider text-white truncate font-sans">
+                  <h2 className="text-sm sm:text-base md:text-lg font-black text-white truncate font-sans">
                     {language === 'en' ? 'Flash Deals' : 'ፈጣን የቅናሽ ሽያጭ'}
                   </h2>
-                  <span className="hidden sm:inline-block bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full shrink-0">
+                  <span className="hidden sm:inline-block bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0">
                     {language === 'en' ? 'Up to 50% OFF' : 'እስከ 50% ቅናሽ'}
                   </span>
                 </div>
@@ -216,7 +216,7 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
               {/* Compact Countdown Ticker */}
               <div className="flex items-center gap-1.5 bg-zinc-800/90 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-zinc-700/80 shadow-inner">
                 <Clock className="w-3.5 h-3.5 text-amber-400 animate-spin shrink-0" style={{ animationDuration: '8s' }} />
-                <span className="text-[10px] font-bold text-zinc-400 hidden sm:inline uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-zinc-400 hidden sm:inline">
                   {language === 'en' ? 'Ends in:' : 'የሚቀረው:'}
                 </span>
                 <div className="flex items-center font-mono font-black text-xs sm:text-sm text-amber-300">
@@ -319,7 +319,7 @@ export const FlashDealsView: React.FC<FlashDealsViewProps> = ({
 
             {/* Row 2: Category Filters */}
             <div className="flex items-center gap-2 pt-0.5 min-w-0 w-full">
-              <span className="text-[10px] sm:text-xs font-bold uppercase text-gray-400 dark:text-zinc-500 shrink-0 flex items-center gap-1 whitespace-nowrap">
+              <span className="text-[10px] sm:text-xs font-semibold text-gray-400 dark:text-zinc-500 shrink-0 flex items-center gap-1 whitespace-nowrap">
                 <Filter className="w-3 h-3 text-amber-500" />
                 {language === 'en' ? 'FILTER:' : 'ማጣሪያ:'}
               </span>
