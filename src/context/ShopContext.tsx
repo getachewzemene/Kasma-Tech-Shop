@@ -30,13 +30,13 @@ import {
   INITIAL_TELEGRAM_ALERTS,
   INITIAL_FLASH_DEALS
 } from '../mockData';
-import { 
-  initTelegramMiniApp, 
-  isTelegramWebApp, 
-  getTelegramUser, 
-  subscribeTelegramThemeChange, 
-  triggerHaptic, 
-  TelegramWebAppUser 
+import {
+  initTelegramMiniApp,
+  isTelegramWebApp,
+  getTelegramUser,
+  subscribeTelegramThemeChange,
+  triggerHaptic,
+  TelegramWebAppUser
 } from '../utils/telegramWebApp';
 
 export interface ToastNotification {
@@ -580,1152 +580,1154 @@ export const ShopProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Telegram Mini App Auto-Init & Real-time Two-Way Sync
   useEffect(() => {
+    if (!isTelegramApp) return;
     const tma = initTelegramMiniApp();
-    if (tma) {
-      if (tma.colorScheme === 'dark') {
-        setTheme('dark');
-      }
+    if (!tma) return;
 
-      // Synchronize theme changes from Telegram client in real-time
-      const unsubscribeTheme = subscribeTelegramThemeChange((scheme) => {
-        setTheme(scheme);
-      });
+    const storedTheme = localStorage.getItem('kasma_theme');
+    if (!storedTheme && tma.colorScheme === 'dark') {
+      setTheme('dark');
+    }
 
-      if (tma.user) {
-        setTelegramUser(tma.user);
-        try {
-          localStorage.setItem('kasma_telegram_user', JSON.stringify(tma.user));
-        } catch { }
+    // Synchronize theme changes from Telegram client in real-time
+    const unsubscribeTheme = subscribeTelegramThemeChange((scheme) => {
+      setTheme(scheme);
+    });
 
-        const fullName = `${tma.user.first_name || ''} ${tma.user.last_name || ''}`.trim() || tma.user.username || 'Telegram User';
-        setCustomerName(prev => prev || fullName);
-        setIsCustomerLoggedIn(true);
-        try {
-          localStorage.setItem('kasma_customer_logged_in', 'true');
-          localStorage.setItem('kasma_auth_provider', 'telegram');
-          if (!localStorage.getItem('kasma_customer_name')) {
-            localStorage.setItem('kasma_customer_name', fullName);
-          }
-        } catch { }
+    if (tma.user) {
+      setTelegramUser(tma.user);
+      try {
+        localStorage.setItem('kasma_telegram_user', JSON.stringify(tma.user));
+      } catch { }
 
-        // Match Telegram language if available and not manually overridden
-        if (tma.user.language_code === 'am' && !localStorage.getItem('kasma_lang_manual')) {
-          setLanguage('am');
+      const fullName = `${tma.user.first_name || ''} ${tma.user.last_name || ''}`.trim() || tma.user.username || 'Telegram User';
+      setCustomerName(prev => prev || fullName);
+      setIsCustomerLoggedIn(true);
+      try {
+        localStorage.setItem('kasma_customer_logged_in', 'true');
+        localStorage.setItem('kasma_auth_provider', 'telegram');
+        if (!localStorage.getItem('kasma_customer_name')) {
+          localStorage.setItem('kasma_customer_name', fullName);
         }
+      } catch { }
 
-        syncTelegramUserWithStore();
+      // Match Telegram language if available and not manually overridden
+      if (tma.user.language_code === 'am' && !localStorage.getItem('kasma_lang_manual')) {
+        setLanguage('am');
       }
 
-      return () => {
-        unsubscribeTheme();
-      };
+      syncTelegramUserWithStore();
     }
-  }, [syncTelegramUserWithStore]);
-
-  // Backend state fetcher with SWR multi-tier cache
-  const refreshState = useCallback(async (isSilentBackground = false) => {
-    if (!isSilentBackground) setIsSyncing(true);
-    try {
-      const { data } = await fetchWithSWR<{
-        products?: Product[];
-        merchants?: Merchant[];
-        orders?: Order[];
-        auditLogs?: AuditLog[];
-        alerts?: TelegramAlert[];
-        flashDeals?: FlashDealNomination[];
-      }>('/api/state', CACHE_KEYS.STATE, {
-        ttlMs: DEFAULT_TTLS.STATE,
-        onBackgroundUpdate: (freshData) => {
-          if (freshData.products && Array.isArray(freshData.products)) setProducts(freshData.products);
-          if (freshData.merchants && Array.isArray(freshData.merchants)) setMerchants(freshData.merchants);
-          if (freshData.orders && Array.isArray(freshData.orders) && freshData.orders.length > 0) setOrders(freshData.orders);
-          if (freshData.auditLogs && Array.isArray(freshData.auditLogs)) setAuditLogs(freshData.auditLogs);
-          if (freshData.alerts && Array.isArray(freshData.alerts)) setAlerts(freshData.alerts);
-          if (freshData.flashDeals && Array.isArray(freshData.flashDeals)) setFlashDeals(freshData.flashDeals);
-          setLastSyncTime(Date.now());
-        }
-      });
-
-      if (data) {
-        if (data.products && Array.isArray(data.products)) setProducts(data.products);
-        if (data.merchants && Array.isArray(data.merchants)) setMerchants(data.merchants);
-        if (data.orders && Array.isArray(data.orders) && data.orders.length > 0) setOrders(data.orders);
-        if (data.auditLogs && Array.isArray(data.auditLogs)) setAuditLogs(data.auditLogs);
-        if (data.alerts && Array.isArray(data.alerts)) setAlerts(data.alerts);
-        if (data.flashDeals && Array.isArray(data.flashDeals)) setFlashDeals(data.flashDeals);
-        setLastSyncTime(Date.now());
-      }
-    } catch (err) {
-      console.warn('API state sync fallback to offline store:', err);
-    } finally {
-      setIsInitializing(false);
-      if (!isSilentBackground) setIsSyncing(false);
-    }
-  }, []);
-
-  const handleForceSync = useCallback(async () => {
-    setIsSyncing(true);
-    try {
-      await refreshState(false);
-      showToast(language === 'en' ? 'Data synchronized successfully!' : 'ዳታ በተሳካ ሁኔታ ተመሳስሏል!', 'success');
-    } catch (e) {
-      showToast(language === 'en' ? 'Sync failed. Working in offline mode.' : 'ማመሳሰል አልተሳካም።', 'warning');
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [language, refreshState, showToast]);
-
-  // Periodic background revalidation & smart visibility/network synchronization
-  useEffect(() => {
-    // 1. Initial hydration fetch
-    refreshState();
-
-    // 2. Periodic polling interval (every 30 seconds for live freshness)
-    const intervalId = setInterval(() => {
-      if (document.visibilityState === 'visible' && navigator.onLine) {
-        refreshState(true);
-      }
-    }, 30000);
-
-    // 3. Tab visibility / window focus revalidation
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && navigator.onLine) {
-        refreshState(true);
-      }
-    };
-
-    // 4. Online reconnection revalidation
-    const handleOnline = () => {
-      setIsOfflineSimulated(false);
-      refreshState(false);
-      showToast(language === 'en' ? 'Back online! Re-synced catalog.' : 'መስመር ላይ ተመልሷል! ዳታ ተመሳስሏል።', 'info');
-    };
-
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleVisibilityChange);
-    window.addEventListener('online', handleOnline);
 
     return () => {
-      clearInterval(intervalId);
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleVisibilityChange);
-      window.removeEventListener('online', handleOnline);
+      unsubscribeTheme();
     };
-  }, [refreshState, language, showToast]);
+  }, [isTelegramApp, syncTelegramUserWithStore]);
 
-  // Cart operations
-  const addToCart = useCallback((product: Product, variantSku?: string, qty = 1) => {
-    const selectedVariant = variantSku
-      ? product.variants.find(v => v.sku === variantSku) || product.variants[0]
-      : product.variants[0];
-
-    const sku = selectedVariant?.sku || `SKU-${product.id}`;
-    const variantName = selectedVariant?.name || 'Standard';
-    const price = product.price + (selectedVariant?.priceOffset || 0);
-
-    setCart(prev => {
-      const existing = prev.find(item => item.sku === sku);
-      if (existing) {
-        return prev.map(item =>
-          item.sku === sku ? { ...item, quantity: item.quantity + qty } : item
-        );
+// Backend state fetcher with SWR multi-tier cache
+const refreshState = useCallback(async (isSilentBackground = false) => {
+  if (!isSilentBackground) setIsSyncing(true);
+  try {
+    const { data } = await fetchWithSWR<{
+      products?: Product[];
+      merchants?: Merchant[];
+      orders?: Order[];
+      auditLogs?: AuditLog[];
+      alerts?: TelegramAlert[];
+      flashDeals?: FlashDealNomination[];
+    }>('/api/state', CACHE_KEYS.STATE, {
+      ttlMs: DEFAULT_TTLS.STATE,
+      onBackgroundUpdate: (freshData) => {
+        if (freshData.products && Array.isArray(freshData.products)) setProducts(freshData.products);
+        if (freshData.merchants && Array.isArray(freshData.merchants)) setMerchants(freshData.merchants);
+        if (freshData.orders && Array.isArray(freshData.orders) && freshData.orders.length > 0) setOrders(freshData.orders);
+        if (freshData.auditLogs && Array.isArray(freshData.auditLogs)) setAuditLogs(freshData.auditLogs);
+        if (freshData.alerts && Array.isArray(freshData.alerts)) setAlerts(freshData.alerts);
+        if (freshData.flashDeals && Array.isArray(freshData.flashDeals)) setFlashDeals(freshData.flashDeals);
+        setLastSyncTime(Date.now());
       }
-      return [...prev, { product, sku, variantName, quantity: qty, price }];
     });
 
-    showToast(
-      language === 'en' ? `Added ${product.nameEn} to cart` : `${product.nameAm} ወደ ጋሪ ታክሏል`,
-      'success'
-    );
-  }, [language, showToast]);
-
-  const removeFromCart = useCallback((sku: string) => {
-    setCart(prev => prev.filter(item => item.sku !== sku));
-  }, []);
-
-  const updateCartQuantity = useCallback((sku: string, qty: number) => {
-    if (qty <= 0) {
-      removeFromCart(sku);
-      return;
+    if (data) {
+      if (data.products && Array.isArray(data.products)) setProducts(data.products);
+      if (data.merchants && Array.isArray(data.merchants)) setMerchants(data.merchants);
+      if (data.orders && Array.isArray(data.orders) && data.orders.length > 0) setOrders(data.orders);
+      if (data.auditLogs && Array.isArray(data.auditLogs)) setAuditLogs(data.auditLogs);
+      if (data.alerts && Array.isArray(data.alerts)) setAlerts(data.alerts);
+      if (data.flashDeals && Array.isArray(data.flashDeals)) setFlashDeals(data.flashDeals);
+      setLastSyncTime(Date.now());
     }
-    setCart(prev => prev.map(item => item.sku === sku ? { ...item, quantity: qty } : item));
-  }, [removeFromCart]);
+  } catch (err) {
+    console.warn('API state sync fallback to offline store:', err);
+  } finally {
+    setIsInitializing(false);
+    if (!isSilentBackground) setIsSyncing(false);
+  }
+}, []);
 
-  const clearCart = useCallback(() => {
-    setCart([]);
-  }, []);
+const handleForceSync = useCallback(async () => {
+  setIsSyncing(true);
+  try {
+    await refreshState(false);
+    showToast(language === 'en' ? 'Data synchronized successfully!' : 'ዳታ በተሳካ ሁኔታ ተመሳስሏል!', 'success');
+  } catch (e) {
+    showToast(language === 'en' ? 'Sync failed. Working in offline mode.' : 'ማመሳሰል አልተሳካም።', 'warning');
+  } finally {
+    setIsSyncing(false);
+  }
+}, [language, refreshState, showToast]);
 
-  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const cartSubtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+// Periodic background revalidation & smart visibility/network synchronization
+useEffect(() => {
+  // 1. Initial hydration fetch
+  refreshState();
 
-  // Favorites toggle
-  const toggleFavorite = useCallback((productId: string) => {
-    setFavorites(prev => {
-      const exists = prev.includes(productId);
-      const updated = exists ? prev.filter(id => id !== productId) : [...prev, productId];
-      showToast(
-        exists
-          ? (language === 'en' ? 'Removed from Wishlist' : 'ከምኞት ዝርዝር ተወግዷል')
-          : (language === 'en' ? 'Saved to Wishlist' : 'ወደ ምኞት ዝርዝር ተቀምጧል'),
-        'info'
+  // 2. Periodic polling interval (every 30 seconds for live freshness)
+  const intervalId = setInterval(() => {
+    if (document.visibilityState === 'visible' && navigator.onLine) {
+      refreshState(true);
+    }
+  }, 30000);
+
+  // 3. Tab visibility / window focus revalidation
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible' && navigator.onLine) {
+      refreshState(true);
+    }
+  };
+
+  // 4. Online reconnection revalidation
+  const handleOnline = () => {
+    setIsOfflineSimulated(false);
+    refreshState(false);
+    showToast(language === 'en' ? 'Back online! Re-synced catalog.' : 'መስመር ላይ ተመልሷል! ዳታ ተመሳስሏል።', 'info');
+  };
+
+  window.addEventListener('visibilitychange', handleVisibilityChange);
+  window.addEventListener('focus', handleVisibilityChange);
+  window.addEventListener('online', handleOnline);
+
+  return () => {
+    clearInterval(intervalId);
+    window.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener('focus', handleVisibilityChange);
+    window.removeEventListener('online', handleOnline);
+  };
+}, [refreshState, language, showToast]);
+
+// Cart operations
+const addToCart = useCallback((product: Product, variantSku?: string, qty = 1) => {
+  const selectedVariant = variantSku
+    ? product.variants.find(v => v.sku === variantSku) || product.variants[0]
+    : product.variants[0];
+
+  const sku = selectedVariant?.sku || `SKU-${product.id}`;
+  const variantName = selectedVariant?.name || 'Standard';
+  const price = product.price + (selectedVariant?.priceOffset || 0);
+
+  setCart(prev => {
+    const existing = prev.find(item => item.sku === sku);
+    if (existing) {
+      return prev.map(item =>
+        item.sku === sku ? { ...item, quantity: item.quantity + qty } : item
       );
-      return updated;
-    });
-  }, [language, showToast]);
+    }
+    return [...prev, { product, sku, variantName, quantity: qty, price }];
+  });
 
-  // Tech Specs Comparison Handlers (Side-by-Side comparison of 2 devices)
-  const toggleCompare = useCallback((productId: string, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setComparedProductIds(prev => {
-      if (prev.includes(productId)) {
-        const next = prev.filter(id => id !== productId);
-        showToast(language === 'en' ? 'Removed from Comparison' : 'ከማነጻጸሪያው ተወግዷል', 'info');
-        return next;
-      }
-      if (prev.length >= 2) {
-        // Swap 2nd slot to allow effortless replacement
-        const next = [prev[0], productId];
-        showToast(
-          language === 'en'
-            ? 'Side-by-side comparison slot updated'
-            : 'የጎን ለጎን ማነጻጸሪያው ተዘምኗል',
-          'success'
-        );
-        return next;
-      }
-      const next = [...prev, productId];
+  showToast(
+    language === 'en' ? `Added ${product.nameEn} to cart` : `${product.nameAm} ወደ ጋሪ ታክሏል`,
+    'success'
+  );
+}, [language, showToast]);
+
+const removeFromCart = useCallback((sku: string) => {
+  setCart(prev => prev.filter(item => item.sku !== sku));
+}, []);
+
+const updateCartQuantity = useCallback((sku: string, qty: number) => {
+  if (qty <= 0) {
+    removeFromCart(sku);
+    return;
+  }
+  setCart(prev => prev.map(item => item.sku === sku ? { ...item, quantity: qty } : item));
+}, [removeFromCart]);
+
+const clearCart = useCallback(() => {
+  setCart([]);
+}, []);
+
+const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+const cartSubtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+// Favorites toggle
+const toggleFavorite = useCallback((productId: string) => {
+  setFavorites(prev => {
+    const exists = prev.includes(productId);
+    const updated = exists ? prev.filter(id => id !== productId) : [...prev, productId];
+    showToast(
+      exists
+        ? (language === 'en' ? 'Removed from Wishlist' : 'ከምኞት ዝርዝር ተወግዷል')
+        : (language === 'en' ? 'Saved to Wishlist' : 'ወደ ምኞት ዝርዝር ተቀምጧል'),
+      'info'
+    );
+    return updated;
+  });
+}, [language, showToast]);
+
+// Tech Specs Comparison Handlers (Side-by-Side comparison of 2 devices)
+const toggleCompare = useCallback((productId: string, e?: React.MouseEvent) => {
+  if (e) e.stopPropagation();
+  setComparedProductIds(prev => {
+    if (prev.includes(productId)) {
+      const next = prev.filter(id => id !== productId);
+      showToast(language === 'en' ? 'Removed from Comparison' : 'ከማነጻጸሪያው ተወግዷል', 'info');
+      return next;
+    }
+    if (prev.length >= 2) {
+      // Swap 2nd slot to allow effortless replacement
+      const next = [prev[0], productId];
       showToast(
         language === 'en'
-          ? 'Added to Tech Specs Comparison'
-          : 'ወደ ቴክኖሎጂ ዝርዝር ማነጻጸሪያ ታክሏል',
+          ? 'Side-by-side comparison slot updated'
+          : 'የጎን ለጎን ማነጻጸሪያው ተዘምኗል',
         'success'
       );
       return next;
-    });
-  }, [language, showToast]);
-
-  const removeFromCompare = useCallback((productId: string) => {
-    setComparedProductIds(prev => prev.filter(id => id !== productId));
-  }, []);
-
-  const clearCompare = useCallback(() => {
-    setComparedProductIds([]);
-    showToast(language === 'en' ? 'Comparison cleared' : 'ማነጻጸሪያው ጸድቷል', 'info');
-  }, [language, showToast]);
-
-  const openCompareWith = useCallback((productIds: string[]) => {
-    setComparedProductIds(productIds.slice(0, 2));
-    setIsCompareModalOpen(true);
-  }, []);
-
-  // Promo code calculation
-  const applyPromoCode = useCallback((codeStr: string): boolean => {
-    const found = promoCodes.find(p => p.code.toUpperCase() === codeStr.trim().toUpperCase());
-    if (!found) {
-      showToast(language === 'en' ? 'Invalid promo code' : 'ትክክለኛ ያልሆነ የቅናሽ ኮድ', 'warning');
-      return false;
     }
-    if (found.minSubtotal && cartSubtotal < found.minSubtotal) {
-      showToast(
-        language === 'en'
-          ? `Minimum order of ${found.minSubtotal.toLocaleString()} ETB required for this code`
-          : `ይህንን ኮድ ለመጠቀም ቢያንስ ${found.minSubtotal.toLocaleString()} ብር ማዘዝ ያስፈልጋል`,
-        'warning'
-      );
-      return false;
-    }
-    setAppliedPromo(found);
-    showToast(
-      language === 'en' ? `Promo code "${found.code}" applied!` : `የቅናሽ ኮድ "${found.code}" ተተግብሯል!`,
-      'success'
-    );
-    return true;
-  }, [cartSubtotal, language, promoCodes, showToast]);
-
-  const removePromoCode = useCallback(() => {
-    setAppliedPromo(null);
-  }, []);
-
-  const discountAmount = appliedPromo
-    ? appliedPromo.type === 'PERCENTAGE'
-      ? Math.round((cartSubtotal * appliedPromo.value) / 100)
-      : appliedPromo.value
-    : 0;
-
-  // Orders
-  const addOrder = useCallback((order: Order) => {
-    const warranties = order.warranties && order.warranties.length > 0
-      ? order.warranties
-      : order.items.map(item => createDigitalWarrantyPass(order, item));
-
-    const handoverPin = order.handoverPin || String(Math.floor(1000 + Math.random() * 9000));
-    const escrowStatus = order.escrowStatus || 'HELD_IN_ESCROW';
-
-    const enrichedOrder: Order = {
-      ...order,
-      handoverPin,
-      escrowStatus,
-      warranties
-    };
-
-    setOrders(prev => [enrichedOrder, ...prev]);
-    clearCart();
-    setAppliedPromo(null);
-  }, [clearCart]);
-
-  // Helper to obtain admin token headers
-  const getAdminAuthHeaders = useCallback((): Record<string, string> => {
-    const token = localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
-  }, []);
-
-  // Helper to obtain merchant or admin token headers
-  const getMerchantAuthHeaders = useCallback((): Record<string, string> => {
-    const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
-  }, []);
-
-  const updateProductStock = useCallback(async (productId: string, sku: string, qtyChange: number, reason: string) => {
-    setProducts(prev => prev.map(p => {
-      if (p.id !== productId) return p;
-      return {
-        ...p,
-        variants: p.variants.map(v => v.sku === sku ? { ...v, onHand: Math.max(0, v.onHand + qtyChange) } : v)
-      };
-    }));
-    try {
-      await fetch(`/api/products/${productId}/stock`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getMerchantAuthHeaders()
-        },
-        body: JSON.stringify({ sku, change: qtyChange, reason })
-      });
-    } catch { }
-  }, [getMerchantAuthHeaders]);
-
-  const updateOrderStatus = useCallback(async (
-    orderId: string,
-    newStatus: Order['status'],
-    details?: { actor?: string; reason?: string; trackingNotes?: string; courierName?: string; courierPhone?: string }
-  ): Promise<boolean> => {
-    const now = new Date().toISOString();
-    setOrders(prev => prev.map(o => {
-      if (o.id !== orderId) return o;
-      return {
-        ...o,
-        status: newStatus,
-        packedAt: newStatus === 'PROCESSING' ? (o.packedAt || now) : o.packedAt,
-        shippedAt: newStatus === 'SHIPPED' ? (o.shippedAt || now) : o.shippedAt,
-        deliveredAt: newStatus === 'DELIVERED' ? (o.deliveredAt || now) : o.deliveredAt,
-        cancelledAt: newStatus === 'CANCELLED' ? (o.cancelledAt || now) : o.cancelledAt,
-        escrowStatus: newStatus === 'DELIVERED'
-          ? 'RELEASED_TO_MERCHANT'
-          : (newStatus === 'CANCELLED' ? 'REFUNDED_TO_BUYER' : o.escrowStatus),
-        trackingNotes: details?.trackingNotes || o.trackingNotes
-      };
-    }));
-
-    try {
-      const token = localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_auth_token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      const res = await fetch(`/api/orders/${orderId}/status`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({
-          status: newStatus,
-          actor: details?.actor || 'Administrator',
-          reason: details?.reason,
-          trackingNotes: details?.trackingNotes,
-          courierName: details?.courierName,
-          courierPhone: details?.courierPhone
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to update order status');
-      }
-
-      showToast(
-        language === 'en'
-          ? `Order #${orderId} status updated to ${newStatus}`
-          : `የትዕዛዝ #${orderId} ሁኔታ ወደ ${newStatus} ተዘምኗል`,
-        'success'
-      );
-      return true;
-    } catch (err: any) {
-      console.warn('Backend order status update warning:', err);
-      showToast(
-        language === 'en'
-          ? `Status changed: ${newStatus}`
-          : `የትዕዛዝ ሁኔታ ተቀይሯል: ${newStatus}`,
-        'info'
-      );
-      return false;
-    }
-  }, [language, showToast]);
-
-  const cancelOrder = useCallback(async (orderId: string, reason?: string): Promise<boolean> => {
-    return await updateOrderStatus(orderId, 'CANCELLED', {
-      actor: customerName ? `Customer (${customerName})` : 'Customer Self-Service',
-      reason: reason || 'Customer requested order cancellation before courier dispatch'
-    });
-  }, [customerName, updateOrderStatus]);
-
-  const updateCourierOrderStatus = useCallback(async (
-    orderId: string,
-    newStatus: Order['status'],
-    details?: {
-      courierName?: string;
-      courierPhone?: string;
-      trackingNotes?: string;
-      deliveredAt?: string;
-      gateNotes?: string;
-      handoverPin?: string;
-      deviceInspectionConfirmed?: boolean;
-      escrowStatus?: Order['escrowStatus'];
-      escrowReleasedAt?: string;
-    }
-  ): Promise<boolean> => {
-    const now = new Date().toISOString();
-    const isDelivered = newStatus === 'DELIVERED';
-
-    setOrders(prev => prev.map(o => {
-      if (o.id !== orderId) return o;
-      return {
-        ...o,
-        status: newStatus,
-        courierName: details?.courierName || o.courierName || 'Ermias Berhanu',
-        courierPhone: details?.courierPhone || o.courierPhone || '+251 91 199 8877',
-        trackingNotes: details?.trackingNotes || o.trackingNotes,
-        gateNotes: details?.gateNotes !== undefined ? details.gateNotes : o.gateNotes,
-        shippedAt: newStatus === 'SHIPPED' ? (o.shippedAt || now) : o.shippedAt,
-        deliveredAt: isDelivered ? (details?.deliveredAt || now) : o.deliveredAt,
-        handoverPin: details?.handoverPin || o.handoverPin,
-        deviceInspectionConfirmed: details?.deviceInspectionConfirmed ?? (isDelivered ? true : o.deviceInspectionConfirmed),
-        escrowStatus: isDelivered ? (details?.escrowStatus || 'RELEASED_TO_MERCHANT') : (o.escrowStatus || 'HELD_IN_ESCROW'),
-        escrowReleasedAt: isDelivered ? (details?.escrowReleasedAt || now) : o.escrowReleasedAt
-      };
-    }));
-
-    try {
-      await fetch(`/api/courier/orders/${orderId}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: newStatus,
-          courierName: details?.courierName || 'Ermias Berhanu',
-          courierPhone: details?.courierPhone || '+251 91 199 8877',
-          trackingNotes: details?.trackingNotes,
-          deliveredAt: details?.deliveredAt || now,
-          handoverPin: details?.handoverPin,
-          deviceInspectionConfirmed: details?.deviceInspectionConfirmed,
-          escrowStatus: details?.escrowStatus || (isDelivered ? 'RELEASED_TO_MERCHANT' : undefined),
-          escrowReleasedAt: details?.escrowReleasedAt || (isDelivered ? now : undefined)
-        })
-      });
-    } catch { }
-
-    const statusMessage =
-      newStatus === 'DELIVERED'
-        ? (language === 'en'
-          ? `Order #${orderId} delivered! PIN verified & escrow funds released to merchant.`
-          : `ትዕዛዝ #${orderId} ደርሷል! ሚስጥር ቁጥር ተረጋግጦ ክፍያው ለነጋዴው ተለቋል።`)
-        : newStatus === 'SHIPPED'
-          ? (language === 'en' ? `Order #${orderId} is out for delivery!` : `ትዕዛዝ #${orderId} በጉዞ ላይ ነው!`)
-          : (language === 'en' ? `Order #${orderId} updated to ${newStatus}` : `ትዕዛዝ #${orderId} ወደ ${newStatus} ተዘምኗል`);
-
-    showToast(statusMessage, 'success');
-    return true;
-  }, [language, showToast]);
-
-  // Customer Auth
-  const loginCustomer = useCallback((phone: string, name?: string, email?: string) => {
-    setCustomerPhone(phone);
-    if (name) setCustomerName(name);
-    if (email) setCustomerEmail(email);
-    setIsCustomerLoggedIn(true);
-    localStorage.setItem('kasma_customer_phone', phone);
-    if (name) localStorage.setItem('kasma_customer_name', name);
-    if (email) localStorage.setItem('kasma_customer_email', email);
-    localStorage.setItem('kasma_customer_logged_in', 'true');
-    localStorage.setItem('kasma_auth_token', `cust_jwt_${Date.now()}`);
-  }, []);
-
-  const loginWithSocial = useCallback(async (
-    provider: 'google' | 'facebook',
-    profile?: { name?: string; email?: string; phone?: string; avatarUrl?: string }
-  ) => {
-    const defaultProfile = provider === 'google'
-      ? {
-        name: profile?.name || 'Google Customer',
-        email: profile?.email || 'customer@gmail.com',
-        phone: profile?.phone || '+251 91 188 9900',
-        avatarUrl: profile?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop'
-      }
-      : {
-        name: profile?.name || 'Facebook Customer',
-        email: profile?.email || 'customer@facebook.com',
-        phone: profile?.phone || '+251 92 233 4455',
-        avatarUrl: profile?.avatarUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'
-      };
-
-    const finalName = profile?.name || defaultProfile.name;
-    const finalEmail = profile?.email || defaultProfile.email;
-    const finalPhone = profile?.phone || defaultProfile.phone;
-
-    try {
-      const res = await fetch('/api/auth/social-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider,
-          name: finalName,
-          email: finalEmail,
-          phone: finalPhone,
-          avatarUrl: defaultProfile.avatarUrl
-        })
-      });
-      const data = await res.json();
-      if (data.token) {
-        localStorage.setItem('kasma_auth_token', data.token);
-      }
-      if (data.user) {
-        localStorage.setItem('kasma_auth_user', JSON.stringify(data.user));
-      }
-    } catch {
-      localStorage.setItem('kasma_auth_token', `soc_${provider}_${Date.now()}`);
-    }
-
-    setCustomerName(finalName);
-    setCustomerEmail(finalEmail);
-    setCustomerPhone(finalPhone);
-    setIsCustomerLoggedIn(true);
-
-    localStorage.setItem('kasma_customer_name', finalName);
-    localStorage.setItem('kasma_customer_email', finalEmail);
-    localStorage.setItem('kasma_customer_phone', finalPhone);
-    localStorage.setItem('kasma_customer_logged_in', 'true');
-    localStorage.setItem('kasma_auth_provider', provider);
-
+    const next = [...prev, productId];
     showToast(
       language === 'en'
-        ? `Signed in successfully with ${provider === 'google' ? 'Google' : 'Facebook'}!`
-        : `በ${provider === 'google' ? 'ጉግል' : 'ፌስቡክ'} በተሳካ ሁኔታ ገብተዋል!`,
+        ? 'Added to Tech Specs Comparison'
+        : 'ወደ ቴክኖሎጂ ዝርዝር ማነጻጸሪያ ታክሏል',
       'success'
     );
+    return next;
+  });
+}, [language, showToast]);
 
-    return { success: true, user: { name: finalName, email: finalEmail, phone: finalPhone } };
-  }, [language, showToast]);
+const removeFromCompare = useCallback((productId: string) => {
+  setComparedProductIds(prev => prev.filter(id => id !== productId));
+}, []);
 
-  const logoutCustomer = useCallback(() => {
-    setIsCustomerLoggedIn(false);
-    setCustomerName('');
-    setCustomerPhone('');
-    setCustomerEmail('');
-    localStorage.removeItem('kasma_customer_logged_in');
-    localStorage.removeItem('kasma_customer_name');
-    localStorage.removeItem('kasma_customer_phone');
-    localStorage.removeItem('kasma_customer_email');
-    localStorage.removeItem('kasma_auth_token');
-    localStorage.removeItem('kasma_auth_user');
-    localStorage.removeItem('kasma_auth_provider');
-  }, []);
+const clearCompare = useCallback(() => {
+  setComparedProductIds([]);
+  showToast(language === 'en' ? 'Comparison cleared' : 'ማነጻጸሪያው ጸድቷል', 'info');
+}, [language, showToast]);
 
-  const addAddress = useCallback((addr: Omit<DeliveryAddress, 'id'>) => {
-    const newAddr: DeliveryAddress = { ...addr, id: `addr-${Date.now()}` };
-    if (newAddr.isDefault) {
-      setAddresses(prev => prev.map(a => ({ ...a, isDefault: false })).concat(newAddr));
-    } else {
-      setAddresses(prev => [...prev, newAddr]);
-    }
-  }, []);
+const openCompareWith = useCallback((productIds: string[]) => {
+  setComparedProductIds(productIds.slice(0, 2));
+  setIsCompareModalOpen(true);
+}, []);
 
-  const deleteAddress = useCallback((id: string) => {
-    setAddresses(prev => prev.filter(a => a.id !== id));
-    showToast(language === 'en' ? 'Address removed' : 'አድራሻ ተሰርዟል', 'info');
-  }, [language, showToast]);
-
-  const setDefaultAddress = useCallback((id: string) => {
-    setAddresses(prev => prev.map(a => ({ ...a, isDefault: a.id === id })));
-    showToast(language === 'en' ? 'Default delivery address updated!' : 'ዋና የመድረሻ አድራሻ ተቀይሯል!', 'success');
-  }, [language, showToast]);
-
-  const addPaymentMethod = useCallback((pm: Omit<SavedPaymentMethod, 'id'>) => {
-    const newPm: SavedPaymentMethod = { ...pm, id: `pm-${Date.now()}` };
-    if (newPm.isDefault) {
-      setPaymentMethods(prev => prev.map(p => ({ ...p, isDefault: false })).concat(newPm));
-    } else {
-      setPaymentMethods(prev => [...prev, newPm]);
-    }
-  }, []);
-
-  const deletePaymentMethod = useCallback((id: string) => {
-    setPaymentMethods(prev => prev.filter(p => p.id !== id));
-    showToast(language === 'en' ? 'Payment method removed' : 'የክፍያ መንገድ ተሰርዟል', 'info');
-  }, [language, showToast]);
-
-  const setDefaultPaymentMethod = useCallback((id: string) => {
-    setPaymentMethods(prev => prev.map(p => ({ ...p, isDefault: p.id === id })));
-    showToast(language === 'en' ? 'Default payment method set' : 'ዋና የክፍያ መንገድ ተዘጋጅቷል', 'success');
-  }, [language, showToast]);
-
-  const addPoints = useCallback((amount: number, reasonEn: string, reasonAm: string, type: 'EARNED' | 'REDEEMED' | 'BONUS' = 'EARNED') => {
-    setKasmaPoints(prev => Math.max(0, prev + amount));
-    const newLog: KasmaPointsLog = {
-      id: `pl-${Date.now()}`,
-      titleEn: reasonEn,
-      titleAm: reasonAm,
-      points: amount,
-      timestamp: new Date().toISOString(),
-      type
-    };
-    setPointsLogs(prev => [newLog, ...prev]);
-  }, []);
-
-  const redeemReward = useCallback((reward: KasmaPointsReward) => {
-    addPoints(-reward.pointsCost, `Redeemed ${reward.titleEn}`, `${reward.titleAm} ተወስዷል`, 'REDEEMED');
-    if (appliedPromo === null) {
-      setAppliedPromo({
-        code: reward.code,
-        type: reward.type === 'FLAT_DISCOUNT' ? 'FLAT' : 'FREE_SHIPPING',
-        value: reward.discountValue,
-        descriptionEn: reward.titleEn,
-        descriptionAm: reward.titleAm
-      });
-    }
+// Promo code calculation
+const applyPromoCode = useCallback((codeStr: string): boolean => {
+  const found = promoCodes.find(p => p.code.toUpperCase() === codeStr.trim().toUpperCase());
+  if (!found) {
+    showToast(language === 'en' ? 'Invalid promo code' : 'ትክክለኛ ያልሆነ የቅናሽ ኮድ', 'warning');
+    return false;
+  }
+  if (found.minSubtotal && cartSubtotal < found.minSubtotal) {
     showToast(
       language === 'en'
-        ? `Claimed reward voucher: ${reward.code}!`
-        : `የጉርሻ ቫውቸር ተወስዷል: ${reward.code}!`,
-      'success'
+        ? `Minimum order of ${found.minSubtotal.toLocaleString()} ETB required for this code`
+        : `ይህንን ኮድ ለመጠቀም ቢያንስ ${found.minSubtotal.toLocaleString()} ብር ማዘዝ ያስፈልጋል`,
+      'warning'
     );
-  }, [addPoints, appliedPromo, language, showToast]);
-
-  // Admin Actions with RBAC Bearer Headers
-  const approveProduct = useCallback(async (id: string) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, status: 'APPROVED' } : p));
-    try {
-      const res = await fetch(`/api/products/${id}/approve`, {
-        method: 'PUT',
-        headers: getAdminAuthHeaders()
-      });
-      if (res.ok) {
-        showToast('Product listing approved', 'success');
-      } else {
-        const err = await res.json();
-        showToast(err.error || 'Failed to approve product', 'warning');
-      }
-    } catch { }
-  }, [getAdminAuthHeaders, showToast]);
-
-  const rejectProduct = useCallback(async (id: string) => {
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, status: 'REJECTED' } : p));
-    try {
-      const res = await fetch(`/api/products/${id}/reject`, {
-        method: 'PUT',
-        headers: getAdminAuthHeaders()
-      });
-      if (res.ok) {
-        showToast('Product listing rejected', 'info');
-      } else {
-        const err = await res.json();
-        showToast(err.error || 'Failed to reject product', 'warning');
-      }
-    } catch { }
-  }, [getAdminAuthHeaders, showToast]);
-
-  const deleteProduct = useCallback(async (id: string): Promise<boolean> => {
-    setProducts(prev => prev.filter(p => p.id !== id));
-    try {
-      const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(`/api/products/${id}`, {
-        method: 'DELETE',
-        headers
-      });
-      if (res.ok) {
-        showToast('Product listing deleted', 'info');
-        await refreshState(true);
-        return true;
-      } else {
-        const err = await res.json().catch(() => ({}));
-        showToast(err.error || 'Failed to delete product', 'warning');
-        return false;
-      }
-    } catch {
-      showToast('Product removed locally', 'info');
-      return true;
-    }
-  }, [showToast, refreshState]);
-
-  const approveMerchantKyc = useCallback(async (merchantId: string) => {
-    setMerchants(prev => prev.map(m => m.id === merchantId ? { ...m, kycStatus: 'APPROVED', status: 'ACTIVE' } : m));
-    try {
-      const res = await fetch(`/api/merchants/${merchantId}/kyc/approve`, {
-        method: 'PUT',
-        headers: getAdminAuthHeaders()
-      });
-      if (res.ok) {
-        showToast('Merchant KYC approved', 'success');
-      } else {
-        const err = await res.json();
-        showToast(err.error || 'Failed to approve KYC', 'warning');
-      }
-    } catch { }
-  }, [getAdminAuthHeaders, showToast]);
-
-  const toggleMerchantStatus = useCallback(async (merchantId: string) => {
-    let nextStatus: 'ACTIVE' | 'SUSPENDED' = 'ACTIVE';
-    setMerchants(prev => prev.map(m => {
-      if (m.id !== merchantId) return m;
-      nextStatus = m.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-      return { ...m, status: nextStatus };
-    }));
-    try {
-      await fetch(`/api/merchants/${merchantId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAdminAuthHeaders()
-        },
-        body: JSON.stringify({ status: nextStatus })
-      });
-    } catch { }
-  }, [getAdminAuthHeaders]);
-
-  const approvePayout = useCallback(async (merchantId: string, payoutId: string) => {
-    setMerchants(prev => prev.map(m => {
-      if (m.id !== merchantId) return m;
-      return {
-        ...m,
-        payouts: m.payouts.map(p => p.id === payoutId ? { ...p, status: 'COMPLETED' } : p)
-      };
-    }));
-    try {
-      const res = await fetch(`/api/merchants/${merchantId}/payout/${payoutId}/approve`, {
-        method: 'PUT',
-        headers: getAdminAuthHeaders()
-      });
-      if (res.ok) {
-        showToast('Payout approved and wire settlement confirmed', 'success');
-      } else {
-        const err = await res.json();
-        showToast(err.error || 'Failed to approve payout', 'warning');
-      }
-    } catch { }
-  }, [getAdminAuthHeaders, showToast]);
-
-  // Post-Delivery Review Handler
-  const addProductReview = useCallback(async (params: {
-    orderId: string;
-    productId: string;
-    rating: number;
-    comment: string;
-    reviewerName?: string;
-    reviewerPhone?: string;
-    deliveryRating?: number;
-    tags?: string[];
-  }): Promise<boolean> => {
-    const { orderId, productId, rating, comment, reviewerName, reviewerPhone, deliveryRating, tags } = params;
-
-    const order = orders.find(o => o.id === orderId);
-    if (!order) {
-      showToast(language === 'en' ? 'Order record not found.' : 'የትዕዛዝ መረጃ አልተገኘም።', 'error');
-      return false;
-    }
-
-    if (order.status !== 'DELIVERED') {
-      showToast(
-        language === 'en'
-          ? 'Reviews can only be submitted for completed orders in DELIVERED status.'
-          : 'ግምገማ መስጠት የሚቻለው የደረሱ ትዕዛዞች ላይ ብቻ ነው።',
-        'warning'
-      );
-      return false;
-    }
-
-    const cleanAuthor = (reviewerName || order.customerName || customerName || 'Verified Customer').trim();
-    const cleanComment = comment.trim();
-
-    if (!cleanComment) {
-      showToast(language === 'en' ? 'Please provide feedback comments.' : 'እባክዎ አስተያየትዎን ይጻፉ።', 'warning');
-      return false;
-    }
-
-    const newReview: Review = {
-      id: `rev-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
-      rating,
-      comment: cleanComment,
-      reviewerName: cleanAuthor,
-      reviewerPhone: reviewerPhone || order.customerPhone || customerPhone,
-      orderId,
-      productId,
-      merchantId: order.items.find(i => i.product.id === productId)?.product.merchantId,
-      deliveryRating: deliveryRating || rating,
-      tags: tags || [],
-      createdAt: new Date().toISOString(),
-      verifiedPurchase: true,
-    };
-
-    // Update Product Reviews state locally
-    setProducts(prevProducts => {
-      return prevProducts.map(p => {
-        if (p.id === productId) {
-          const currentReviews = p.reviews || [];
-          const updatedReviews = [newReview, ...currentReviews];
-          const newAvg = Number((updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length).toFixed(1));
-          return {
-            ...p,
-            reviews: updatedReviews,
-            reviewsCount: (p.reviewsCount || currentReviews.length) + 1,
-            rating: newAvg
-          };
-        }
-        return p;
-      });
-    });
-
-    // Mark Order as reviewed
-    setOrders(prevOrders => {
-      return prevOrders.map(o => {
-        if (o.id === orderId) {
-          const prevOrderReviews = o.orderReviews || [];
-          return {
-            ...o,
-            reviewed: true,
-            reviewedAt: new Date().toISOString(),
-            orderReviews: [
-              ...prevOrderReviews,
-              { productId, rating, comment: cleanComment, createdAt: new Date().toISOString() }
-            ]
-          };
-        }
-        return o;
-      });
-    });
-
-    // Persist to backend API
-    try {
-      await fetch(`/api/products/${productId}/reviews`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          rating,
-          comment: cleanComment,
-          reviewerName: cleanAuthor,
-          reviewerPhone: reviewerPhone || order.customerPhone,
-          orderId
-        })
-      });
-    } catch (err) {
-      console.warn('Backend review persistence notice:', err);
-    }
-
-    showToast(
-      language === 'en'
-        ? `⭐ Thank you! Your verified ${rating}-star review has been published.`
-        : `⭐ እናመሰግናለን! የእርስዎ ባለ ${rating}-ኮከብ ግምገማ ታትሟል።`,
-      'success'
-    );
-    return true;
-  }, [orders, customerName, customerPhone, language, showToast]);
-
-  const getOrderWarranties = useCallback((order: Order): DigitalWarrantyPass[] => {
-    if (order.warranties && order.warranties.length > 0) {
-      return order.warranties;
-    }
-    return order.items.map(item => createDigitalWarrantyPass(order, item));
-  }, []);
-
-  const submitWarrantyClaim = useCallback(async (params: {
-    orderId: string;
-    warrantyId: string;
-    productId: string;
-    productName: string;
-    serialNumber: string;
-    customerName: string;
-    customerPhone: string;
-    issueType: WarrantyClaim['issueType'];
-    description: string;
-    serviceMethod: WarrantyClaim['serviceMethod'];
-  }): Promise<WarrantyClaim> => {
-    const claimId = `CLM-ET-${Date.now().toString().slice(-6)}`;
-    const newClaim: WarrantyClaim = {
-      id: claimId,
-      warrantyId: params.warrantyId,
-      orderId: params.orderId,
-      productId: params.productId,
-      productName: params.productName,
-      serialNumber: params.serialNumber,
-      customerName: params.customerName,
-      customerPhone: params.customerPhone,
-      issueType: params.issueType,
-      description: params.description,
-      serviceMethod: params.serviceMethod,
-      status: 'SUBMITTED',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    // Update local state orders
-    setOrders(prev => prev.map(o => {
-      if (o.id !== params.orderId) return o;
-      const existingClaims = o.warrantyClaims || [];
-      const updatedWarranties = (o.warranties || []).map(w =>
-        w.id === params.warrantyId ? { ...w, status: 'CLAIM_PENDING' as const } : w
-      );
-      return {
-        ...o,
-        warranties: updatedWarranties,
-        warrantyClaims: [newClaim, ...existingClaims]
-      };
-    }));
-
-    // Post to backend API
-    try {
-      await fetch('/api/warranties/claim', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newClaim)
-      });
-    } catch (err) {
-      console.warn('Backend warranty claim persistence notice:', err);
-    }
-
-    showToast(
-      language === 'en'
-        ? `🛡️ Warranty Claim #${claimId} submitted. Bole Hub team notified!`
-        : `🛡️ የዋስትና ጥያቄ #${claimId} ተመዝግቧል። የቦሌ ማዕከል ቡድናችን ይደውላል!`,
-      'success'
-    );
-
-    return newClaim;
-  }, [language, showToast]);
-
-  const nominateFlashDeal = useCallback(async (merchantId: string, nominationData: {
-    productId: string;
-    discountPct: number;
-    dealStock: number;
-    durationHours?: number;
-    bannerTag?: string;
-    campaignTitle?: string;
-    notes?: string;
-  }) => {
-    try {
-      const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_auth_token');
-      const res = await fetch(`/api/merchants/${merchantId}/flash-deals`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(nominationData)
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to submit flash deal nomination');
-      }
-      if (data.flashDeals && Array.isArray(data.flashDeals)) {
-        setFlashDeals(data.flashDeals);
-      } else if (data.flashDeal) {
-        setFlashDeals(prev => [data.flashDeal, ...prev.filter(d => d.id !== data.flashDeal.id)]);
-      }
-      await refreshState(true);
-      showToast(
-        language === 'en'
-          ? `🔥 Product successfully nominated for Kasma Flash Deals (${nominationData.discountPct}% OFF)!`
-          : `🔥 ምርቱ በተሳካ ሁኔታ ለካስማ ፈጣን ቅናሽ (${nominationData.discountPct}% ቅናሽ) ተመርጧል!`,
-        'success'
-      );
-      return { success: true, flashDeal: data.flashDeal };
-    } catch (err: any) {
-      console.error('nominateFlashDeal error:', err);
-      showToast(err.message || 'Error submitting flash deal nomination', 'error');
-      return { success: false, error: err.message || 'Error submitting flash deal' };
-    }
-  }, [language, refreshState, showToast]);
-
-  const cancelFlashDeal = useCallback(async (merchantId: string, dealId: string) => {
-    try {
-      const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_auth_token');
-      const res = await fetch(`/api/merchants/${merchantId}/flash-deals/${dealId}/cancel`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        }
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to cancel flash deal');
-      }
-      setFlashDeals(prev => prev.map(d => d.id === dealId ? { ...d, status: 'CANCELLED' } : d));
-      await refreshState(true);
-      showToast(
-        language === 'en' ? 'Flash Deal nomination cancelled' : 'የፈጣን ቅናሽ ዘመቻ ተሰርዟል',
-        'info'
-      );
-      return { success: true };
-    } catch (err: any) {
-      console.error('cancelFlashDeal error:', err);
-      showToast(err.message || 'Error cancelling flash deal', 'error');
-      return { success: false, error: err.message || 'Error cancelling flash deal' };
-    }
-  }, [language, refreshState, showToast]);
-
-  return (
-    <ShopContext.Provider
-      value={{
-        products,
-        categories: INITIAL_CATEGORIES,
-        merchants,
-        orders,
-        auditLogs,
-        alerts,
-        isInitializing,
-        refreshState,
-        lastSyncTime,
-
-        language,
-        setLanguage,
-        theme,
-        setTheme,
-
-        searchQuery,
-        setSearchQuery,
-        selectedCategory,
-        setSelectedCategory,
-
-        cart,
-        setCart,
-        addToCart,
-        removeFromCart,
-        updateCartQuantity,
-        clearCart,
-        cartCount,
-        cartSubtotal,
-        isCartOpen,
-        setIsCartOpen,
-
-        favorites,
-        setFavorites,
-        toggleFavorite,
-        isWishlistOpen,
-        setIsWishlistOpen,
-
-        priceAlerts,
-        setPriceAlerts,
-        isPriceAlertsOpen,
-        setIsPriceAlertsOpen,
-        isQrScannerOpen,
-        setIsQrScannerOpen,
-        isProductTourOpen,
-        setIsProductTourOpen,
-        selectedProduct,
-        setSelectedProduct,
-
-        offlineOrders,
-        setOfflineOrders,
-        isOfflineSimulated,
-        setIsOfflineSimulated,
-        isSyncing,
-        handleForceSync,
-
-        comparedProductIds,
-        toggleCompare,
-        removeFromCompare,
-        clearCompare,
-        isCompareModalOpen,
-        setIsCompareModalOpen,
-        openCompareWith,
-
-        promoCodes,
-        appliedPromo,
-        applyPromoCode,
-        removePromoCode,
-        discountAmount,
-
-        addOrder,
-        updateProductStock,
-        updateOrderStatus,
-        cancelOrder,
-        updateCourierOrderStatus,
-
-        toasts,
-        showToast,
-
-        customerName,
-        setCustomerName,
-        customerPhone,
-        setCustomerPhone,
-        customerEmail,
-        setCustomerEmail,
-        isCustomerLoggedIn,
-        loginCustomer,
-        loginWithSocial,
-        logoutCustomer,
-        addresses,
-        addAddress,
-        deleteAddress,
-        setDefaultAddress,
-        paymentMethods,
-        addPaymentMethod,
-        deletePaymentMethod,
-        setDefaultPaymentMethod,
-        kasmaPoints,
-        pointsLogs,
-        addPoints,
-        redeemReward,
-
-        // Telegram Mini App
-        isTelegramMiniApp: isTelegramApp,
-        telegramUser,
-        isTelegramSynced,
-        syncTelegramUserWithStore,
-
-        approveProduct,
-        rejectProduct,
-        approveMerchantKyc,
-        toggleMerchantStatus,
-        approvePayout,
-
-        addProductReview,
-        submitWarrantyClaim,
-        getOrderWarranties,
-        flashDeals,
-        nominateFlashDeal,
-        cancelFlashDeal,
-        deleteProduct
-      }}
-    >
-      {children}
-
-      {/* Floating Global Toasts */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">
-        {toasts.map(t => (
-          <div
-            key={t.id}
-            className={`pointer-events-auto px-4 py-3 rounded-2xl shadow-xl text-xs font-bold border flex items-center gap-2.5 transition-all transform animate-bounce-short ${t.type === 'success'
-                ? 'bg-emerald-600 text-white border-emerald-500'
-                : t.type === 'warning'
-                  ? 'bg-amber-500 text-black border-amber-400'
-                  : t.type === 'error'
-                    ? 'bg-rose-600 text-white border-rose-500'
-                    : 'bg-zinc-900 text-white border-zinc-700'
-              }`}
-          >
-            <span>{t.message}</span>
-          </div>
-        ))}
-      </div>
-    </ShopContext.Provider>
+    return false;
+  }
+  setAppliedPromo(found);
+  showToast(
+    language === 'en' ? `Promo code "${found.code}" applied!` : `የቅናሽ ኮድ "${found.code}" ተተግብሯል!`,
+    'success'
   );
+  return true;
+}, [cartSubtotal, language, promoCodes, showToast]);
+
+const removePromoCode = useCallback(() => {
+  setAppliedPromo(null);
+}, []);
+
+const discountAmount = appliedPromo
+  ? appliedPromo.type === 'PERCENTAGE'
+    ? Math.round((cartSubtotal * appliedPromo.value) / 100)
+    : appliedPromo.value
+  : 0;
+
+// Orders
+const addOrder = useCallback((order: Order) => {
+  const warranties = order.warranties && order.warranties.length > 0
+    ? order.warranties
+    : order.items.map(item => createDigitalWarrantyPass(order, item));
+
+  const handoverPin = order.handoverPin || String(Math.floor(1000 + Math.random() * 9000));
+  const escrowStatus = order.escrowStatus || 'HELD_IN_ESCROW';
+
+  const enrichedOrder: Order = {
+    ...order,
+    handoverPin,
+    escrowStatus,
+    warranties
+  };
+
+  setOrders(prev => [enrichedOrder, ...prev]);
+  clearCart();
+  setAppliedPromo(null);
+}, [clearCart]);
+
+// Helper to obtain admin token headers
+const getAdminAuthHeaders = useCallback((): Record<string, string> => {
+  const token = localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}, []);
+
+// Helper to obtain merchant or admin token headers
+const getMerchantAuthHeaders = useCallback((): Record<string, string> => {
+  const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+}, []);
+
+const updateProductStock = useCallback(async (productId: string, sku: string, qtyChange: number, reason: string) => {
+  setProducts(prev => prev.map(p => {
+    if (p.id !== productId) return p;
+    return {
+      ...p,
+      variants: p.variants.map(v => v.sku === sku ? { ...v, onHand: Math.max(0, v.onHand + qtyChange) } : v)
+    };
+  }));
+  try {
+    await fetch(`/api/products/${productId}/stock`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getMerchantAuthHeaders()
+      },
+      body: JSON.stringify({ sku, change: qtyChange, reason })
+    });
+  } catch { }
+}, [getMerchantAuthHeaders]);
+
+const updateOrderStatus = useCallback(async (
+  orderId: string,
+  newStatus: Order['status'],
+  details?: { actor?: string; reason?: string; trackingNotes?: string; courierName?: string; courierPhone?: string }
+): Promise<boolean> => {
+  const now = new Date().toISOString();
+  setOrders(prev => prev.map(o => {
+    if (o.id !== orderId) return o;
+    return {
+      ...o,
+      status: newStatus,
+      packedAt: newStatus === 'PROCESSING' ? (o.packedAt || now) : o.packedAt,
+      shippedAt: newStatus === 'SHIPPED' ? (o.shippedAt || now) : o.shippedAt,
+      deliveredAt: newStatus === 'DELIVERED' ? (o.deliveredAt || now) : o.deliveredAt,
+      cancelledAt: newStatus === 'CANCELLED' ? (o.cancelledAt || now) : o.cancelledAt,
+      escrowStatus: newStatus === 'DELIVERED'
+        ? 'RELEASED_TO_MERCHANT'
+        : (newStatus === 'CANCELLED' ? 'REFUNDED_TO_BUYER' : o.escrowStatus),
+      trackingNotes: details?.trackingNotes || o.trackingNotes
+    };
+  }));
+
+  try {
+    const token = localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_auth_token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(`/api/orders/${orderId}/status`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        status: newStatus,
+        actor: details?.actor || 'Administrator',
+        reason: details?.reason,
+        trackingNotes: details?.trackingNotes,
+        courierName: details?.courierName,
+        courierPhone: details?.courierPhone
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to update order status');
+    }
+
+    showToast(
+      language === 'en'
+        ? `Order #${orderId} status updated to ${newStatus}`
+        : `የትዕዛዝ #${orderId} ሁኔታ ወደ ${newStatus} ተዘምኗል`,
+      'success'
+    );
+    return true;
+  } catch (err: any) {
+    console.warn('Backend order status update warning:', err);
+    showToast(
+      language === 'en'
+        ? `Status changed: ${newStatus}`
+        : `የትዕዛዝ ሁኔታ ተቀይሯል: ${newStatus}`,
+      'info'
+    );
+    return false;
+  }
+}, [language, showToast]);
+
+const cancelOrder = useCallback(async (orderId: string, reason?: string): Promise<boolean> => {
+  return await updateOrderStatus(orderId, 'CANCELLED', {
+    actor: customerName ? `Customer (${customerName})` : 'Customer Self-Service',
+    reason: reason || 'Customer requested order cancellation before courier dispatch'
+  });
+}, [customerName, updateOrderStatus]);
+
+const updateCourierOrderStatus = useCallback(async (
+  orderId: string,
+  newStatus: Order['status'],
+  details?: {
+    courierName?: string;
+    courierPhone?: string;
+    trackingNotes?: string;
+    deliveredAt?: string;
+    gateNotes?: string;
+    handoverPin?: string;
+    deviceInspectionConfirmed?: boolean;
+    escrowStatus?: Order['escrowStatus'];
+    escrowReleasedAt?: string;
+  }
+): Promise<boolean> => {
+  const now = new Date().toISOString();
+  const isDelivered = newStatus === 'DELIVERED';
+
+  setOrders(prev => prev.map(o => {
+    if (o.id !== orderId) return o;
+    return {
+      ...o,
+      status: newStatus,
+      courierName: details?.courierName || o.courierName || 'Ermias Berhanu',
+      courierPhone: details?.courierPhone || o.courierPhone || '+251 91 199 8877',
+      trackingNotes: details?.trackingNotes || o.trackingNotes,
+      gateNotes: details?.gateNotes !== undefined ? details.gateNotes : o.gateNotes,
+      shippedAt: newStatus === 'SHIPPED' ? (o.shippedAt || now) : o.shippedAt,
+      deliveredAt: isDelivered ? (details?.deliveredAt || now) : o.deliveredAt,
+      handoverPin: details?.handoverPin || o.handoverPin,
+      deviceInspectionConfirmed: details?.deviceInspectionConfirmed ?? (isDelivered ? true : o.deviceInspectionConfirmed),
+      escrowStatus: isDelivered ? (details?.escrowStatus || 'RELEASED_TO_MERCHANT') : (o.escrowStatus || 'HELD_IN_ESCROW'),
+      escrowReleasedAt: isDelivered ? (details?.escrowReleasedAt || now) : o.escrowReleasedAt
+    };
+  }));
+
+  try {
+    await fetch(`/api/courier/orders/${orderId}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: newStatus,
+        courierName: details?.courierName || 'Ermias Berhanu',
+        courierPhone: details?.courierPhone || '+251 91 199 8877',
+        trackingNotes: details?.trackingNotes,
+        deliveredAt: details?.deliveredAt || now,
+        handoverPin: details?.handoverPin,
+        deviceInspectionConfirmed: details?.deviceInspectionConfirmed,
+        escrowStatus: details?.escrowStatus || (isDelivered ? 'RELEASED_TO_MERCHANT' : undefined),
+        escrowReleasedAt: details?.escrowReleasedAt || (isDelivered ? now : undefined)
+      })
+    });
+  } catch { }
+
+  const statusMessage =
+    newStatus === 'DELIVERED'
+      ? (language === 'en'
+        ? `Order #${orderId} delivered! PIN verified & escrow funds released to merchant.`
+        : `ትዕዛዝ #${orderId} ደርሷል! ሚስጥር ቁጥር ተረጋግጦ ክፍያው ለነጋዴው ተለቋል።`)
+      : newStatus === 'SHIPPED'
+        ? (language === 'en' ? `Order #${orderId} is out for delivery!` : `ትዕዛዝ #${orderId} በጉዞ ላይ ነው!`)
+        : (language === 'en' ? `Order #${orderId} updated to ${newStatus}` : `ትዕዛዝ #${orderId} ወደ ${newStatus} ተዘምኗል`);
+
+  showToast(statusMessage, 'success');
+  return true;
+}, [language, showToast]);
+
+// Customer Auth
+const loginCustomer = useCallback((phone: string, name?: string, email?: string) => {
+  setCustomerPhone(phone);
+  if (name) setCustomerName(name);
+  if (email) setCustomerEmail(email);
+  setIsCustomerLoggedIn(true);
+  localStorage.setItem('kasma_customer_phone', phone);
+  if (name) localStorage.setItem('kasma_customer_name', name);
+  if (email) localStorage.setItem('kasma_customer_email', email);
+  localStorage.setItem('kasma_customer_logged_in', 'true');
+  localStorage.setItem('kasma_auth_token', `cust_jwt_${Date.now()}`);
+}, []);
+
+const loginWithSocial = useCallback(async (
+  provider: 'google' | 'facebook',
+  profile?: { name?: string; email?: string; phone?: string; avatarUrl?: string }
+) => {
+  const defaultProfile = provider === 'google'
+    ? {
+      name: profile?.name || 'Google Customer',
+      email: profile?.email || 'customer@gmail.com',
+      phone: profile?.phone || '+251 91 188 9900',
+      avatarUrl: profile?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop'
+    }
+    : {
+      name: profile?.name || 'Facebook Customer',
+      email: profile?.email || 'customer@facebook.com',
+      phone: profile?.phone || '+251 92 233 4455',
+      avatarUrl: profile?.avatarUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'
+    };
+
+  const finalName = profile?.name || defaultProfile.name;
+  const finalEmail = profile?.email || defaultProfile.email;
+  const finalPhone = profile?.phone || defaultProfile.phone;
+
+  try {
+    const res = await fetch('/api/auth/social-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        provider,
+        name: finalName,
+        email: finalEmail,
+        phone: finalPhone,
+        avatarUrl: defaultProfile.avatarUrl
+      })
+    });
+    const data = await res.json();
+    if (data.token) {
+      localStorage.setItem('kasma_auth_token', data.token);
+    }
+    if (data.user) {
+      localStorage.setItem('kasma_auth_user', JSON.stringify(data.user));
+    }
+  } catch {
+    localStorage.setItem('kasma_auth_token', `soc_${provider}_${Date.now()}`);
+  }
+
+  setCustomerName(finalName);
+  setCustomerEmail(finalEmail);
+  setCustomerPhone(finalPhone);
+  setIsCustomerLoggedIn(true);
+
+  localStorage.setItem('kasma_customer_name', finalName);
+  localStorage.setItem('kasma_customer_email', finalEmail);
+  localStorage.setItem('kasma_customer_phone', finalPhone);
+  localStorage.setItem('kasma_customer_logged_in', 'true');
+  localStorage.setItem('kasma_auth_provider', provider);
+
+  showToast(
+    language === 'en'
+      ? `Signed in successfully with ${provider === 'google' ? 'Google' : 'Facebook'}!`
+      : `በ${provider === 'google' ? 'ጉግል' : 'ፌስቡክ'} በተሳካ ሁኔታ ገብተዋል!`,
+    'success'
+  );
+
+  return { success: true, user: { name: finalName, email: finalEmail, phone: finalPhone } };
+}, [language, showToast]);
+
+const logoutCustomer = useCallback(() => {
+  setIsCustomerLoggedIn(false);
+  setCustomerName('');
+  setCustomerPhone('');
+  setCustomerEmail('');
+  localStorage.removeItem('kasma_customer_logged_in');
+  localStorage.removeItem('kasma_customer_name');
+  localStorage.removeItem('kasma_customer_phone');
+  localStorage.removeItem('kasma_customer_email');
+  localStorage.removeItem('kasma_auth_token');
+  localStorage.removeItem('kasma_auth_user');
+  localStorage.removeItem('kasma_auth_provider');
+}, []);
+
+const addAddress = useCallback((addr: Omit<DeliveryAddress, 'id'>) => {
+  const newAddr: DeliveryAddress = { ...addr, id: `addr-${Date.now()}` };
+  if (newAddr.isDefault) {
+    setAddresses(prev => prev.map(a => ({ ...a, isDefault: false })).concat(newAddr));
+  } else {
+    setAddresses(prev => [...prev, newAddr]);
+  }
+}, []);
+
+const deleteAddress = useCallback((id: string) => {
+  setAddresses(prev => prev.filter(a => a.id !== id));
+  showToast(language === 'en' ? 'Address removed' : 'አድራሻ ተሰርዟል', 'info');
+}, [language, showToast]);
+
+const setDefaultAddress = useCallback((id: string) => {
+  setAddresses(prev => prev.map(a => ({ ...a, isDefault: a.id === id })));
+  showToast(language === 'en' ? 'Default delivery address updated!' : 'ዋና የመድረሻ አድራሻ ተቀይሯል!', 'success');
+}, [language, showToast]);
+
+const addPaymentMethod = useCallback((pm: Omit<SavedPaymentMethod, 'id'>) => {
+  const newPm: SavedPaymentMethod = { ...pm, id: `pm-${Date.now()}` };
+  if (newPm.isDefault) {
+    setPaymentMethods(prev => prev.map(p => ({ ...p, isDefault: false })).concat(newPm));
+  } else {
+    setPaymentMethods(prev => [...prev, newPm]);
+  }
+}, []);
+
+const deletePaymentMethod = useCallback((id: string) => {
+  setPaymentMethods(prev => prev.filter(p => p.id !== id));
+  showToast(language === 'en' ? 'Payment method removed' : 'የክፍያ መንገድ ተሰርዟል', 'info');
+}, [language, showToast]);
+
+const setDefaultPaymentMethod = useCallback((id: string) => {
+  setPaymentMethods(prev => prev.map(p => ({ ...p, isDefault: p.id === id })));
+  showToast(language === 'en' ? 'Default payment method set' : 'ዋና የክፍያ መንገድ ተዘጋጅቷል', 'success');
+}, [language, showToast]);
+
+const addPoints = useCallback((amount: number, reasonEn: string, reasonAm: string, type: 'EARNED' | 'REDEEMED' | 'BONUS' = 'EARNED') => {
+  setKasmaPoints(prev => Math.max(0, prev + amount));
+  const newLog: KasmaPointsLog = {
+    id: `pl-${Date.now()}`,
+    titleEn: reasonEn,
+    titleAm: reasonAm,
+    points: amount,
+    timestamp: new Date().toISOString(),
+    type
+  };
+  setPointsLogs(prev => [newLog, ...prev]);
+}, []);
+
+const redeemReward = useCallback((reward: KasmaPointsReward) => {
+  addPoints(-reward.pointsCost, `Redeemed ${reward.titleEn}`, `${reward.titleAm} ተወስዷል`, 'REDEEMED');
+  if (appliedPromo === null) {
+    setAppliedPromo({
+      code: reward.code,
+      type: reward.type === 'FLAT_DISCOUNT' ? 'FLAT' : 'FREE_SHIPPING',
+      value: reward.discountValue,
+      descriptionEn: reward.titleEn,
+      descriptionAm: reward.titleAm
+    });
+  }
+  showToast(
+    language === 'en'
+      ? `Claimed reward voucher: ${reward.code}!`
+      : `የጉርሻ ቫውቸር ተወስዷል: ${reward.code}!`,
+    'success'
+  );
+}, [addPoints, appliedPromo, language, showToast]);
+
+// Admin Actions with RBAC Bearer Headers
+const approveProduct = useCallback(async (id: string) => {
+  setProducts(prev => prev.map(p => p.id === id ? { ...p, status: 'APPROVED' } : p));
+  try {
+    const res = await fetch(`/api/products/${id}/approve`, {
+      method: 'PUT',
+      headers: getAdminAuthHeaders()
+    });
+    if (res.ok) {
+      showToast('Product listing approved', 'success');
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to approve product', 'warning');
+    }
+  } catch { }
+}, [getAdminAuthHeaders, showToast]);
+
+const rejectProduct = useCallback(async (id: string) => {
+  setProducts(prev => prev.map(p => p.id === id ? { ...p, status: 'REJECTED' } : p));
+  try {
+    const res = await fetch(`/api/products/${id}/reject`, {
+      method: 'PUT',
+      headers: getAdminAuthHeaders()
+    });
+    if (res.ok) {
+      showToast('Product listing rejected', 'info');
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to reject product', 'warning');
+    }
+  } catch { }
+}, [getAdminAuthHeaders, showToast]);
+
+const deleteProduct = useCallback(async (id: string): Promise<boolean> => {
+  setProducts(prev => prev.filter(p => p.id !== id));
+  try {
+    const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_admin_token') || localStorage.getItem('kasma_auth_token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`/api/products/${id}`, {
+      method: 'DELETE',
+      headers
+    });
+    if (res.ok) {
+      showToast('Product listing deleted', 'info');
+      await refreshState(true);
+      return true;
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showToast(err.error || 'Failed to delete product', 'warning');
+      return false;
+    }
+  } catch {
+    showToast('Product removed locally', 'info');
+    return true;
+  }
+}, [showToast, refreshState]);
+
+const approveMerchantKyc = useCallback(async (merchantId: string) => {
+  setMerchants(prev => prev.map(m => m.id === merchantId ? { ...m, kycStatus: 'APPROVED', status: 'ACTIVE' } : m));
+  try {
+    const res = await fetch(`/api/merchants/${merchantId}/kyc/approve`, {
+      method: 'PUT',
+      headers: getAdminAuthHeaders()
+    });
+    if (res.ok) {
+      showToast('Merchant KYC approved', 'success');
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to approve KYC', 'warning');
+    }
+  } catch { }
+}, [getAdminAuthHeaders, showToast]);
+
+const toggleMerchantStatus = useCallback(async (merchantId: string) => {
+  let nextStatus: 'ACTIVE' | 'SUSPENDED' = 'ACTIVE';
+  setMerchants(prev => prev.map(m => {
+    if (m.id !== merchantId) return m;
+    nextStatus = m.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+    return { ...m, status: nextStatus };
+  }));
+  try {
+    await fetch(`/api/merchants/${merchantId}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAdminAuthHeaders()
+      },
+      body: JSON.stringify({ status: nextStatus })
+    });
+  } catch { }
+}, [getAdminAuthHeaders]);
+
+const approvePayout = useCallback(async (merchantId: string, payoutId: string) => {
+  setMerchants(prev => prev.map(m => {
+    if (m.id !== merchantId) return m;
+    return {
+      ...m,
+      payouts: m.payouts.map(p => p.id === payoutId ? { ...p, status: 'COMPLETED' } : p)
+    };
+  }));
+  try {
+    const res = await fetch(`/api/merchants/${merchantId}/payout/${payoutId}/approve`, {
+      method: 'PUT',
+      headers: getAdminAuthHeaders()
+    });
+    if (res.ok) {
+      showToast('Payout approved and wire settlement confirmed', 'success');
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to approve payout', 'warning');
+    }
+  } catch { }
+}, [getAdminAuthHeaders, showToast]);
+
+// Post-Delivery Review Handler
+const addProductReview = useCallback(async (params: {
+  orderId: string;
+  productId: string;
+  rating: number;
+  comment: string;
+  reviewerName?: string;
+  reviewerPhone?: string;
+  deliveryRating?: number;
+  tags?: string[];
+}): Promise<boolean> => {
+  const { orderId, productId, rating, comment, reviewerName, reviewerPhone, deliveryRating, tags } = params;
+
+  const order = orders.find(o => o.id === orderId);
+  if (!order) {
+    showToast(language === 'en' ? 'Order record not found.' : 'የትዕዛዝ መረጃ አልተገኘም።', 'error');
+    return false;
+  }
+
+  if (order.status !== 'DELIVERED') {
+    showToast(
+      language === 'en'
+        ? 'Reviews can only be submitted for completed orders in DELIVERED status.'
+        : 'ግምገማ መስጠት የሚቻለው የደረሱ ትዕዛዞች ላይ ብቻ ነው።',
+      'warning'
+    );
+    return false;
+  }
+
+  const cleanAuthor = (reviewerName || order.customerName || customerName || 'Verified Customer').trim();
+  const cleanComment = comment.trim();
+
+  if (!cleanComment) {
+    showToast(language === 'en' ? 'Please provide feedback comments.' : 'እባክዎ አስተያየትዎን ይጻፉ።', 'warning');
+    return false;
+  }
+
+  const newReview: Review = {
+    id: `rev-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+    rating,
+    comment: cleanComment,
+    reviewerName: cleanAuthor,
+    reviewerPhone: reviewerPhone || order.customerPhone || customerPhone,
+    orderId,
+    productId,
+    merchantId: order.items.find(i => i.product.id === productId)?.product.merchantId,
+    deliveryRating: deliveryRating || rating,
+    tags: tags || [],
+    createdAt: new Date().toISOString(),
+    verifiedPurchase: true,
+  };
+
+  // Update Product Reviews state locally
+  setProducts(prevProducts => {
+    return prevProducts.map(p => {
+      if (p.id === productId) {
+        const currentReviews = p.reviews || [];
+        const updatedReviews = [newReview, ...currentReviews];
+        const newAvg = Number((updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length).toFixed(1));
+        return {
+          ...p,
+          reviews: updatedReviews,
+          reviewsCount: (p.reviewsCount || currentReviews.length) + 1,
+          rating: newAvg
+        };
+      }
+      return p;
+    });
+  });
+
+  // Mark Order as reviewed
+  setOrders(prevOrders => {
+    return prevOrders.map(o => {
+      if (o.id === orderId) {
+        const prevOrderReviews = o.orderReviews || [];
+        return {
+          ...o,
+          reviewed: true,
+          reviewedAt: new Date().toISOString(),
+          orderReviews: [
+            ...prevOrderReviews,
+            { productId, rating, comment: cleanComment, createdAt: new Date().toISOString() }
+          ]
+        };
+      }
+      return o;
+    });
+  });
+
+  // Persist to backend API
+  try {
+    await fetch(`/api/products/${productId}/reviews`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        rating,
+        comment: cleanComment,
+        reviewerName: cleanAuthor,
+        reviewerPhone: reviewerPhone || order.customerPhone,
+        orderId
+      })
+    });
+  } catch (err) {
+    console.warn('Backend review persistence notice:', err);
+  }
+
+  showToast(
+    language === 'en'
+      ? `⭐ Thank you! Your verified ${rating}-star review has been published.`
+      : `⭐ እናመሰግናለን! የእርስዎ ባለ ${rating}-ኮከብ ግምገማ ታትሟል።`,
+    'success'
+  );
+  return true;
+}, [orders, customerName, customerPhone, language, showToast]);
+
+const getOrderWarranties = useCallback((order: Order): DigitalWarrantyPass[] => {
+  if (order.warranties && order.warranties.length > 0) {
+    return order.warranties;
+  }
+  return order.items.map(item => createDigitalWarrantyPass(order, item));
+}, []);
+
+const submitWarrantyClaim = useCallback(async (params: {
+  orderId: string;
+  warrantyId: string;
+  productId: string;
+  productName: string;
+  serialNumber: string;
+  customerName: string;
+  customerPhone: string;
+  issueType: WarrantyClaim['issueType'];
+  description: string;
+  serviceMethod: WarrantyClaim['serviceMethod'];
+}): Promise<WarrantyClaim> => {
+  const claimId = `CLM-ET-${Date.now().toString().slice(-6)}`;
+  const newClaim: WarrantyClaim = {
+    id: claimId,
+    warrantyId: params.warrantyId,
+    orderId: params.orderId,
+    productId: params.productId,
+    productName: params.productName,
+    serialNumber: params.serialNumber,
+    customerName: params.customerName,
+    customerPhone: params.customerPhone,
+    issueType: params.issueType,
+    description: params.description,
+    serviceMethod: params.serviceMethod,
+    status: 'SUBMITTED',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  // Update local state orders
+  setOrders(prev => prev.map(o => {
+    if (o.id !== params.orderId) return o;
+    const existingClaims = o.warrantyClaims || [];
+    const updatedWarranties = (o.warranties || []).map(w =>
+      w.id === params.warrantyId ? { ...w, status: 'CLAIM_PENDING' as const } : w
+    );
+    return {
+      ...o,
+      warranties: updatedWarranties,
+      warrantyClaims: [newClaim, ...existingClaims]
+    };
+  }));
+
+  // Post to backend API
+  try {
+    await fetch('/api/warranties/claim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newClaim)
+    });
+  } catch (err) {
+    console.warn('Backend warranty claim persistence notice:', err);
+  }
+
+  showToast(
+    language === 'en'
+      ? `🛡️ Warranty Claim #${claimId} submitted. Bole Hub team notified!`
+      : `🛡️ የዋስትና ጥያቄ #${claimId} ተመዝግቧል። የቦሌ ማዕከል ቡድናችን ይደውላል!`,
+    'success'
+  );
+
+  return newClaim;
+}, [language, showToast]);
+
+const nominateFlashDeal = useCallback(async (merchantId: string, nominationData: {
+  productId: string;
+  discountPct: number;
+  dealStock: number;
+  durationHours?: number;
+  bannerTag?: string;
+  campaignTitle?: string;
+  notes?: string;
+}) => {
+  try {
+    const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_auth_token');
+    const res = await fetch(`/api/merchants/${merchantId}/flash-deals`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(nominationData)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to submit flash deal nomination');
+    }
+    if (data.flashDeals && Array.isArray(data.flashDeals)) {
+      setFlashDeals(data.flashDeals);
+    } else if (data.flashDeal) {
+      setFlashDeals(prev => [data.flashDeal, ...prev.filter(d => d.id !== data.flashDeal.id)]);
+    }
+    await refreshState(true);
+    showToast(
+      language === 'en'
+        ? `🔥 Product successfully nominated for Kasma Flash Deals (${nominationData.discountPct}% OFF)!`
+        : `🔥 ምርቱ በተሳካ ሁኔታ ለካስማ ፈጣን ቅናሽ (${nominationData.discountPct}% ቅናሽ) ተመርጧል!`,
+      'success'
+    );
+    return { success: true, flashDeal: data.flashDeal };
+  } catch (err: any) {
+    console.error('nominateFlashDeal error:', err);
+    showToast(err.message || 'Error submitting flash deal nomination', 'error');
+    return { success: false, error: err.message || 'Error submitting flash deal' };
+  }
+}, [language, refreshState, showToast]);
+
+const cancelFlashDeal = useCallback(async (merchantId: string, dealId: string) => {
+  try {
+    const token = localStorage.getItem('kasma_merchant_token') || localStorage.getItem('kasma_auth_token');
+    const res = await fetch(`/api/merchants/${merchantId}/flash-deals/${dealId}/cancel`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      }
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to cancel flash deal');
+    }
+    setFlashDeals(prev => prev.map(d => d.id === dealId ? { ...d, status: 'CANCELLED' } : d));
+    await refreshState(true);
+    showToast(
+      language === 'en' ? 'Flash Deal nomination cancelled' : 'የፈጣን ቅናሽ ዘመቻ ተሰርዟል',
+      'info'
+    );
+    return { success: true };
+  } catch (err: any) {
+    console.error('cancelFlashDeal error:', err);
+    showToast(err.message || 'Error cancelling flash deal', 'error');
+    return { success: false, error: err.message || 'Error cancelling flash deal' };
+  }
+}, [language, refreshState, showToast]);
+
+return (
+  <ShopContext.Provider
+    value={{
+      products,
+      categories: INITIAL_CATEGORIES,
+      merchants,
+      orders,
+      auditLogs,
+      alerts,
+      isInitializing,
+      refreshState,
+      lastSyncTime,
+
+      language,
+      setLanguage,
+      theme,
+      setTheme,
+
+      searchQuery,
+      setSearchQuery,
+      selectedCategory,
+      setSelectedCategory,
+
+      cart,
+      setCart,
+      addToCart,
+      removeFromCart,
+      updateCartQuantity,
+      clearCart,
+      cartCount,
+      cartSubtotal,
+      isCartOpen,
+      setIsCartOpen,
+
+      favorites,
+      setFavorites,
+      toggleFavorite,
+      isWishlistOpen,
+      setIsWishlistOpen,
+
+      priceAlerts,
+      setPriceAlerts,
+      isPriceAlertsOpen,
+      setIsPriceAlertsOpen,
+      isQrScannerOpen,
+      setIsQrScannerOpen,
+      isProductTourOpen,
+      setIsProductTourOpen,
+      selectedProduct,
+      setSelectedProduct,
+
+      offlineOrders,
+      setOfflineOrders,
+      isOfflineSimulated,
+      setIsOfflineSimulated,
+      isSyncing,
+      handleForceSync,
+
+      comparedProductIds,
+      toggleCompare,
+      removeFromCompare,
+      clearCompare,
+      isCompareModalOpen,
+      setIsCompareModalOpen,
+      openCompareWith,
+
+      promoCodes,
+      appliedPromo,
+      applyPromoCode,
+      removePromoCode,
+      discountAmount,
+
+      addOrder,
+      updateProductStock,
+      updateOrderStatus,
+      cancelOrder,
+      updateCourierOrderStatus,
+
+      toasts,
+      showToast,
+
+      customerName,
+      setCustomerName,
+      customerPhone,
+      setCustomerPhone,
+      customerEmail,
+      setCustomerEmail,
+      isCustomerLoggedIn,
+      loginCustomer,
+      loginWithSocial,
+      logoutCustomer,
+      addresses,
+      addAddress,
+      deleteAddress,
+      setDefaultAddress,
+      paymentMethods,
+      addPaymentMethod,
+      deletePaymentMethod,
+      setDefaultPaymentMethod,
+      kasmaPoints,
+      pointsLogs,
+      addPoints,
+      redeemReward,
+
+      // Telegram Mini App
+      isTelegramMiniApp: isTelegramApp,
+      telegramUser,
+      isTelegramSynced,
+      syncTelegramUserWithStore,
+
+      approveProduct,
+      rejectProduct,
+      approveMerchantKyc,
+      toggleMerchantStatus,
+      approvePayout,
+
+      addProductReview,
+      submitWarrantyClaim,
+      getOrderWarranties,
+      flashDeals,
+      nominateFlashDeal,
+      cancelFlashDeal,
+      deleteProduct
+    }}
+  >
+    {children}
+
+    {/* Floating Global Toasts */}
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">
+      {toasts.map(t => (
+        <div
+          key={t.id}
+          className={`pointer-events-auto px-4 py-3 rounded-2xl shadow-xl text-xs font-bold border flex items-center gap-2.5 transition-all transform animate-bounce-short ${t.type === 'success'
+            ? 'bg-emerald-600 text-white border-emerald-500'
+            : t.type === 'warning'
+              ? 'bg-amber-500 text-black border-amber-400'
+              : t.type === 'error'
+                ? 'bg-rose-600 text-white border-rose-500'
+                : 'bg-zinc-900 text-white border-zinc-700'
+            }`}
+        >
+          <span>{t.message}</span>
+        </div>
+      ))}
+    </div>
+  </ShopContext.Provider>
+);
 };
 
 export const useShop = () => {

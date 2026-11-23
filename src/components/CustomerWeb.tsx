@@ -2281,7 +2281,7 @@ export default function CustomerWeb({
                 </div>
               </div>
 
-              {/* MOBILE DEFAULT: Ultra-Compact Single-Row Horizontal Scrolling Rail (~40px high) */}
+              {/* MOBILE DEFAULT: Ultra-Compact Single-Row Horizontal Scrolling Rail (Ergonomic 44px tap targets) */}
               <div className={`${isCategoriesExpanded ? 'hidden' : 'flex md:hidden'} items-center gap-2 overflow-x-auto no-scrollbar scrollbar-touch py-1 px-0.5`}>
                 {/* All Products Pill */}
                 <button
@@ -2291,12 +2291,12 @@ export default function CustomerWeb({
                     const el = document.getElementById('products-grid-section');
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer active:scale-95 ${selectedCategory === 'all'
+                  className={`inline-flex items-center gap-2 px-3.5 min-h-[44px] h-11 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer active:scale-95 ${selectedCategory === 'all'
                     ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-blue-500/25 ring-2 ring-[#0052FF]/30'
                     : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/50'
                     }`}
                 >
-                  <Layers className="w-3.5 h-3.5" />
+                  <Layers className="w-4 h-4" />
                   <span>{language === 'en' ? 'All' : 'ሁሉም'}</span>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold ${selectedCategory === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
                     }`}>
@@ -2319,12 +2319,12 @@ export default function CustomerWeb({
                         const el = document.getElementById('products-grid-section');
                         if (el) el.scrollIntoView({ behavior: 'smooth' });
                       }}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer active:scale-95 ${isSelected
+                      className={`inline-flex items-center gap-2 px-3.5 min-h-[44px] h-11 rounded-xl text-sm font-bold whitespace-nowrap shrink-0 transition-all border cursor-pointer active:scale-95 ${isSelected
                         ? 'bg-[#0052FF] text-white border-[#0052FF] shadow-sm shadow-blue-500/25 ring-2 ring-[#0052FF]/30 scale-[1.02]'
                         : 'bg-white dark:bg-zinc-900 border-gray-200/90 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 hover:border-[#0052FF]/50'
                         }`}
                     >
-                      <DeptIcon className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-white' : dept.iconColor}`} />
+                      <DeptIcon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : dept.iconColor}`} />
                       <span>{language === 'en' ? dept.nameEn : dept.nameAm}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold ${isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400'
                         }`}>
@@ -2441,8 +2441,8 @@ export default function CustomerWeb({
               }
             />
 
-            {/* Fixed Grid: 4 columns on desktop, 2 on mobile */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 items-stretch gap-4 sm:gap-6 w-full min-w-0 relative z-10">
+            {/* Responsive Layout: Horizontal-scroll product row on mobile (<sm), balanced grid on desktop (>=sm) */}
+            <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 items-stretch gap-3 sm:gap-6 w-full min-w-0 relative z-10 overflow-x-auto sm:overflow-visible no-scrollbar pb-2.5 sm:pb-0 snap-x snap-mandatory touch-pan-x -mx-4 px-4 sm:mx-0 sm:px-0">
                 {(() => {
                   const now = Date.now();
                   // 1. Filter out expired or cancelled merchant flash deals automatically
@@ -2518,34 +2518,36 @@ export default function CustomerWeb({
                     });
                   }
 
-                  return items.slice(0, 4).map((item) => {
+                  return items.slice(0, 8).map((item) => {
                     const p = item.product;
                     const isFavorite = favorites.includes(p.id);
                     const isCompared = comparedProductIds.includes(p.id);
 
                     return (
-                      <ProductCard
-                        key={`flash-${p.id}`}
-                        product={p}
-                        language={language}
-                        isFavorite={isFavorite}
-                        onToggleFavorite={handleToggleFavorite}
-                        isCompared={isCompared}
-                        onToggleCompare={handleToggleCompare}
-                        onOpenProduct={handleOpenProduct}
-                        onQuickView={handleOpenQuickBuy}
-                        onAddToCart={addToCart}
-                        onInstantBuy={handleInstantBuy}
-                        showToast={showToast}
-                        originalPrice={item.originalPrice}
-                        flashDiscountPct={item.flashDiscountPct}
-                        flashPrice={item.flashPrice}
-                        claimedPct={item.claimedPct}
-                        remainingQty={item.remainingQty}
-                        badgeText={item.badgeText}
-                        badgeColor={item.isMerchantNominated ? 'amber' : 'indigo'}
-                        layout="flash"
-                      />
+                      <div key={`flash-${p.id}`} className="w-[170px] xs:w-[195px] sm:w-auto shrink-0 snap-start sm:shrink flex flex-col">
+                        <ProductCard
+                          product={p}
+                          language={language}
+                          isFavorite={isFavorite}
+                          onToggleFavorite={handleToggleFavorite}
+                          isCompared={isCompared}
+                          onToggleCompare={handleToggleCompare}
+                          onOpenProduct={handleOpenProduct}
+                          onQuickView={handleOpenQuickBuy}
+                          onAddToCart={addToCart}
+                          onInstantBuy={handleInstantBuy}
+                          showToast={showToast}
+                          originalPrice={item.originalPrice}
+                          flashDiscountPct={item.flashDiscountPct}
+                          flashPrice={item.flashPrice}
+                          claimedPct={item.claimedPct}
+                          remainingQty={item.remainingQty}
+                          badgeText={item.badgeText}
+                          badgeColor={item.isMerchantNominated ? 'amber' : 'indigo'}
+                          layout="flash"
+                          className="w-full h-full"
+                        />
+                      </div>
                     );
                   });
                 })()}
@@ -2585,31 +2587,32 @@ export default function CustomerWeb({
             viewAllText={language === 'en' ? 'View all' : 'ሁሉንም እይ'}
           />
 
-          {/* Fixed Grid: 4 columns on desktop, 2 on mobile with strict scale gap (16px / 24px) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 items-stretch gap-4 sm:gap-6 w-full min-w-0">
-            {recommendedProductsWithReasons.slice(0, 4).map((recItem) => {
+          {/* Responsive Layout: Horizontal-scroll product row on mobile (<sm), balanced grid on desktop (>=sm) */}
+          <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 items-stretch gap-3 sm:gap-6 w-full min-w-0 overflow-x-auto sm:overflow-visible no-scrollbar pb-2.5 sm:pb-0 snap-x snap-mandatory touch-pan-x -mx-4 px-4 sm:mx-0 sm:px-0">
+            {recommendedProductsWithReasons.slice(0, 8).map((recItem) => {
               const p = recItem.product;
               const isFavorite = favorites.includes(p.id);
               const isCompared = comparedProductIds.includes(p.id);
 
               return (
-                <ProductCard
-                  key={`rec-${p.id}`}
-                  product={p}
-                  language={language}
-                  isFavorite={isFavorite}
-                  onToggleFavorite={handleToggleFavorite}
-                  isCompared={isCompared}
-                  onToggleCompare={handleToggleCompare}
-                  onOpenProduct={handleOpenQuickBuy}
-                  onQuickView={handleOpenQuickBuy}
-                  onAddToCart={addToCart}
-                  onInstantBuy={handleInstantBuy}
-                  showToast={showToast}
-                  badgeColor="indigo"
-                  layout="grid"
-                  className="w-full"
-                />
+                <div key={`rec-${p.id}`} className="w-[170px] xs:w-[195px] sm:w-auto shrink-0 snap-start sm:shrink flex flex-col">
+                  <ProductCard
+                    product={p}
+                    language={language}
+                    isFavorite={isFavorite}
+                    onToggleFavorite={handleToggleFavorite}
+                    isCompared={isCompared}
+                    onToggleCompare={handleToggleCompare}
+                    onOpenProduct={handleOpenQuickBuy}
+                    onQuickView={handleOpenQuickBuy}
+                    onAddToCart={addToCart}
+                    onInstantBuy={handleInstantBuy}
+                    showToast={showToast}
+                    badgeColor="indigo"
+                    layout="grid"
+                    className="w-full h-full"
+                  />
+                </div>
               );
             })}
           </div>
@@ -3016,7 +3019,7 @@ export default function CustomerWeb({
 
     </div>
 
-    {/* Horizontal Filter Chips Row (Brand, Price, Rating, Availability, Features) */}
+    {/* Horizontal Filter Chips Row (Brand, Price, Rating, Availability, Features - 44px+ tap targets) */}
     <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto scroll-smooth touch-pan-x py-1 no-scrollbar">
 
       {/* Brand Chip */}
@@ -3026,7 +3029,7 @@ export default function CustomerWeb({
           setFilterSectionFocus('brand');
           setIsAdvancedFilterOpen(true);
         }}
-        className={`h-9 sm:h-10 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 ${selectedBrands.length > 0
+        className={`h-11 min-h-[44px] px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 active:scale-95 ${selectedBrands.length > 0
           ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 border-blue-200 dark:border-blue-900/60 font-black shadow-2xs'
           : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
           }`}
@@ -3042,7 +3045,7 @@ export default function CustomerWeb({
           setFilterSectionFocus('price');
           setIsAdvancedFilterOpen(true);
         }}
-        className={`h-9 sm:h-10 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 ${minPriceInput !== '' || maxPriceInput !== ''
+        className={`h-11 min-h-[44px] px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 active:scale-95 ${minPriceInput !== '' || maxPriceInput !== ''
           ? 'bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 border-blue-200 dark:border-blue-900/60 font-black shadow-2xs'
           : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
           }`}
@@ -3062,7 +3065,7 @@ export default function CustomerWeb({
           setFilterSectionFocus('rating');
           setIsAdvancedFilterOpen(true);
         }}
-        className={`h-9 sm:h-10 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 ${selectedRatingFilter > 0
+        className={`h-11 min-h-[44px] px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 active:scale-95 ${selectedRatingFilter > 0
           ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/60 font-black shadow-2xs'
           : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
           }`}
@@ -3078,7 +3081,7 @@ export default function CustomerWeb({
           setFilterSectionFocus('availability');
           setIsAdvancedFilterOpen(true);
         }}
-        className={`h-9 sm:h-10 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 ${availabilityFilter !== 'ALL'
+        className={`h-11 min-h-[44px] px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 active:scale-95 ${availabilityFilter !== 'ALL'
           ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/60 font-black shadow-2xs'
           : 'bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800'
           }`}
@@ -3096,7 +3099,7 @@ export default function CustomerWeb({
           setFilterSectionFocus('features');
           setIsAdvancedFilterOpen(true);
         }}
-        className="h-9 sm:h-10 px-3.5 sm:px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800"
+        className="h-11 min-h-[44px] px-4 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer border flex items-center gap-1.5 shrink-0 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 border-gray-250 dark:border-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-800 active:scale-95"
       >
         <span>Features</span>
         <ChevronDown className="w-3.5 h-3.5 text-gray-400" />

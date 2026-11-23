@@ -207,9 +207,9 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ language = '
         </div>
       )}
 
-      {/* OPTION 2: Full Bottom Banner (Prominent Mobile Bar) */}
+      {/* OPTION 2: Full Bottom Banner (Prominent Mobile Bar with Bottom Nav Clearance) */}
       {displayMode === 'banner' && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 p-3 sm:p-4 bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800/80 shadow-[0_-8px_30px_rgba(0,0,0,0.15)] animate-in slide-in-from-bottom duration-300">
+        <div className="fixed bottom-16 sm:bottom-0 left-0 right-0 z-40 p-3 sm:p-4 bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800/80 shadow-[0_-8px_30px_rgba(0,0,0,0.15)] animate-in slide-in-from-bottom duration-300">
           <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
             {/* App Branding & Highlights */}
             <div className="flex items-center gap-3 w-full sm:w-auto">

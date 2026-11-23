@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, Star, Eye, Flame, Tag, Zap, Sparkles, ShieldCheck, Truck, CreditCard } from 'lucide-react';
+import { Heart, Star, Eye, Flame, Tag, Zap, Sparkles, ShieldCheck } from 'lucide-react';
 import { Product, Variant } from '../types';
 import { LazyImage } from './LazyImage';
 
@@ -243,9 +243,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </span>
           ) : null}
 
-          {/* Action Buttons: Clean Wishlist Heart Only */}
+          {/* Action Buttons: Ergonomic 44px+ Hit Target Wishlist Heart */}
           {onToggleFavorite && (
-            <div className="absolute top-1.5 right-1.5 xs:top-2 xs:right-2 flex items-center z-30 pointer-events-auto">
+            <div className="absolute top-0 right-0 z-30 pointer-events-auto">
               <button
                 type="button"
                 title={language === 'en' ? (isFavorite ? 'Remove from Wishlist' : 'Save to Wishlist') : (isFavorite ? 'ከተወዳጆች አስወግድ' : 'ወደ ተወዳጆች አስቀምጥ')}
@@ -253,13 +253,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   e.stopPropagation();
                   onToggleFavorite(product.id, e);
                 }}
-                className={`min-w-[28px] min-h-[28px] w-7 h-7 xs:w-8 xs:h-8 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-xs hover:scale-108 active:scale-95 flex items-center justify-center border ${
+                className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer p-1.5 focus:outline-none"
+                aria-label={language === 'en' ? (isFavorite ? 'Remove from Wishlist' : 'Save to Wishlist') : (isFavorite ? 'ከተወዳጆች አስወግድ' : 'ወደ ተወዳጆች አስቀምጥ')}
+              >
+                <div className={`w-7 h-7 xs:w-8 xs:h-8 rounded-full backdrop-blur-md transition-all shadow-xs hover:scale-110 active:scale-95 flex items-center justify-center border ${
                   isFavorite
                     ? 'bg-red-50 dark:bg-red-950/90 text-red-600 dark:text-red-500 border-red-300 dark:border-red-800 shadow-red-500/20 shadow-sm'
                     : 'bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-800 text-gray-500 hover:text-red-600 border-white/80 dark:border-zinc-700/80'
-                }`}
-              >
-                <Heart className={`w-3.5 h-3.5 xs:w-4 xs:h-4 transition-transform ${isFavorite ? 'fill-red-600 text-red-600 scale-110' : 'text-gray-400 dark:text-zinc-400'}`} />
+                }`}>
+                  <Heart className={`w-3.5 h-3.5 xs:w-4 xs:h-4 transition-transform ${isFavorite ? 'fill-red-600 text-red-600 scale-110' : 'text-gray-400 dark:text-zinc-400'}`} />
+                </div>
               </button>
             </div>
           )}
@@ -337,31 +340,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     </span>
                   )}
                 </div>
-
-                {/* Installment or Pay-on-Delivery badge for high price items (huge for 95k phones) */}
-                {displayPrice >= 30000 ? (
-                  <div className="flex items-center gap-1.5 flex-wrap pt-1 min-w-0">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded-md border border-indigo-200/60 dark:border-indigo-900/40 truncate">
-                      <CreditCard className="w-2.5 h-2.5 text-indigo-500 shrink-0" />
-                      <span className="truncate">
-                        {language === 'en'
-                          ? `3x ${(Math.round(displayPrice / 3)).toLocaleString()} ETB/mo`
-                          : `በ3 ወር ክፍያ`}
-                      </span>
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-900/40 truncate">
-                      <Truck className="w-2.5 h-2.5 text-emerald-500 shrink-0" />
-                      <span className="truncate">
-                        {language === 'en' ? 'Pay on Delivery' : 'ሲደርስ ይክፈሉ'}
-                      </span>
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1 text-[10px] text-gray-500 dark:text-zinc-400 font-medium truncate pt-0.5">
-                    <Truck className="w-2.5 h-2.5 text-blue-500 shrink-0" />
-                    <span className="truncate">{language === 'en' ? 'Arrives in Addis today' : 'ዛሬ አዲስ አበባ ይደርሳል'}</span>
-                  </div>
-                )}
               </div>
 
               {/* Primary High-Contrast Buy Button */}

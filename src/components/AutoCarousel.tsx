@@ -72,30 +72,31 @@ export const AutoCarousel: React.FC<AutoCarouselProps> = ({
         }
       />
 
-      {/* Fixed Grid: 4 columns on desktop, 2 on mobile with strict scale gap (16px / 24px) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 items-stretch w-full min-w-0">
-        {products.slice(0, 4).map((p) => {
+      {/* Responsive Layout: Horizontal-scroll product row on mobile (<sm), balanced grid on desktop (>=sm) */}
+      <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 items-stretch w-full min-w-0 overflow-x-auto sm:overflow-visible no-scrollbar pb-2.5 sm:pb-0 snap-x snap-mandatory touch-pan-x -mx-4 px-4 sm:mx-0 sm:px-0">
+        {products.slice(0, 8).map((p) => {
           const isFavorite = favorites.includes(p.id);
           const isCompared = comparedProductIds.includes(p.id);
 
           return (
-            <ProductCard
-              key={p.id}
-              product={p}
-              language={language}
-              isFavorite={isFavorite}
-              onToggleFavorite={onToggleFavorite}
-              isCompared={isCompared}
-              onToggleCompare={onToggleCompare}
-              onOpenProduct={onProductClick}
-              onQuickView={onProductClick}
-              onAddToCart={onAddToCart}
-              showToast={showToast}
-              badgeText={undefined}
-              badgeColor={badgeColor}
-              layout="grid"
-              className="w-full"
-            />
+            <div key={p.id} className="w-[170px] xs:w-[195px] sm:w-auto shrink-0 snap-start sm:shrink flex flex-col">
+              <ProductCard
+                product={p}
+                language={language}
+                isFavorite={isFavorite}
+                onToggleFavorite={onToggleFavorite}
+                isCompared={isCompared}
+                onToggleCompare={onToggleCompare}
+                onOpenProduct={onProductClick}
+                onQuickView={onProductClick}
+                onAddToCart={onAddToCart}
+                showToast={showToast}
+                badgeText={undefined}
+                badgeColor={badgeColor}
+                layout="grid"
+                className="w-full h-full"
+              />
+            </div>
           );
         })}
       </div>

@@ -28,7 +28,8 @@ import {
   Sparkles,
   Phone,
   Package,
-  LogIn
+  LogIn,
+  Download
 } from 'lucide-react';
 import { isPwaStandalone, triggerPwaInstall } from '../../pwaRegister';
 
@@ -500,12 +501,23 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               </button>
             </div>
 
-            {/* 6. Theme Toggle Switch (Hidden on mobile/tablet < lg, visible on lg+ desktop) */}
+            {/* 6. Theme Toggle Switch (Desktop lg+) */}
             <div className="hidden lg:flex items-center shrink-0">
               <ThemeToggle
                 theme={theme}
                 onToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')}
                 language={language}
+                size="sm"
+              />
+            </div>
+
+            {/* Mobile / Tablet Direct Theme Toggle Icon Button (< lg) */}
+            <div className="flex lg:hidden items-center shrink-0">
+              <ThemeToggle
+                theme={theme}
+                onToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                language={language}
+                variant="icon"
                 size="sm"
               />
             </div>
@@ -523,10 +535,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
           </div>
         </div>
 
-        {/* Mobile Search Bar Row with Autocomplete (Clean, touch-friendly, responsive) */}
-        <div className="pt-2 sm:hidden">
+        {/* Mobile Search Bar Row with Autocomplete (Always visible in collapsed sticky header) */}
+        <div className={`sm:hidden transition-all duration-300 ${isScrolled ? 'pt-1 pb-0.5' : 'pt-2 pb-1'}`}>
           <SearchAutocomplete
-            isCompact={false}
+            isCompact={isScrolled}
             onVoiceSearch={handleVoiceSearch}
             onImageSearch={handleImageSearchClick}
             isListening={isListening}

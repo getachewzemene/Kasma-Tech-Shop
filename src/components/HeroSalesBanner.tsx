@@ -317,11 +317,11 @@ export const HeroSalesBanner: React.FC<HeroSalesBannerProps> = ({
       {/* ---------- Progress segments: full width on phones, bottom-left on desktop ---------- */}
       {total > 1 && (
         <div
-          className="absolute bottom-0 left-3 z-20 flex w-[calc(54%-1.5rem)] items-center sm:bottom-1 sm:left-6 sm:w-[200px] md:left-12 md:w-[260px] lg:left-14"
+          className="absolute bottom-0 left-3 z-20 flex w-auto min-w-[200px] max-w-[85%] items-center sm:bottom-1 sm:left-6 sm:w-[220px] md:left-12 md:w-[260px] lg:left-14"
           role="tablist"
           aria-label="Slides"
         >
-          <div className="flex w-full items-center gap-1">
+          <div className="flex w-full items-center gap-1.5">
             {activeSlides.map((_, index) => {
               const isActive = index === currentSlide;
               return (
@@ -332,7 +332,7 @@ export const HeroSalesBanner: React.FC<HeroSalesBannerProps> = ({
                   aria-selected={isActive}
                   aria-label={`${language === 'en' ? 'Go to slide' : 'ወደ ስላይድ'} ${index + 1}`}
                   onClick={() => setCurrentSlide(index)}
-                  className={`group/seg flex h-11 min-w-0 items-center transition-all duration-300 ${isActive ? 'flex-[3]' : 'flex-1'
+                  className={`group/seg flex h-11 min-h-[44px] min-w-[44px] items-center justify-center py-2 px-1 cursor-pointer transition-all duration-300 ${isActive ? 'flex-[3]' : 'flex-1'
                     }`}
                 >
                   <span className="relative block h-1.5 w-full overflow-hidden rounded-full bg-white/25 transition-colors group-hover/seg:bg-white/40">
