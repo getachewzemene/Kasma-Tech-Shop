@@ -236,18 +236,14 @@ export default function CustomerWeb({
   const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState<boolean>(false);
   const [filterSectionFocus, setFilterSectionFocus] = useState<'all' | 'brand' | 'price' | 'rating' | 'availability' | 'features'>('all');
 
-  // Progressive Catalog Pagination & Batch Loading for High Usability
-  const [paginationMode, setPaginationMode] = useState<'load_more' | 'pages'>('load_more');
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(12);
+  // Infinite Scroll & Progressive Catalog Loading
   const [visibleProductCount, setVisibleProductCount] = useState<number>(12);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
-  const [isPageTransitioning, setIsPageTransitioning] = useState<boolean>(false);
+  const scrollSentinelRef = React.useRef<HTMLDivElement | null>(null);
 
   // Trigger smooth shimmer transition when category or search changes
   useEffect(() => {
     setIsGridLoading(true);
-    setCurrentPage(1);
     setVisibleProductCount(12);
     const timer = setTimeout(() => setIsGridLoading(false), 200);
     return () => clearTimeout(timer);
@@ -2094,28 +2090,33 @@ export default function CustomerWeb({
     return 0;
   });
 
-  const totalPages = Math.max(1, Math.ceil(sortedAndFilteredProducts.length / pageSize));
-
   const paginatedProducts = React.useMemo(() => {
-    if (paginationMode === 'pages') {
-      const start = (currentPage - 1) * pageSize;
-      return sortedAndFilteredProducts.slice(start, start + pageSize);
-    }
     return sortedAndFilteredProducts.slice(0, visibleProductCount);
-  }, [sortedAndFilteredProducts, paginationMode, currentPage, pageSize, visibleProductCount]);
+  }, [sortedAndFilteredProducts, visibleProductCount]);
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage === currentPage || newPage < 1 || newPage > totalPages) return;
-    setIsPageTransitioning(true);
-    setCurrentPage(newPage);
-    const catalogEl = document.getElementById('products-catalog-grid');
-    if (catalogEl) {
-      catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    setTimeout(() => {
-      setIsPageTransitioning(false);
-    }, 220);
-  };
+  // Infinite Scroll: Seamlessly load next products when user scrolls down
+  useEffect(() => {
+    if (visibleProductCount >= sortedAndFilteredProducts.length) return;
+
+    const sentinel = scrollSentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoadingMore) {
+          setIsLoadingMore(true);
+          setTimeout(() => {
+            setVisibleProductCount(prev => Math.min(prev + 12, sortedAndFilteredProducts.length));
+            setIsLoadingMore(false);
+          }, 300);
+        }
+      },
+      { rootMargin: '350px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [visibleProductCount, sortedAndFilteredProducts.length, isLoadingMore]);
 
   // Pick active carousel slides from products based on current selection: 'featured' | 'new_arrivals' | 'top_sold'
   const activeSlides = React.useMemo(() => {
@@ -2399,50 +2400,46 @@ export default function CustomerWeb({
 
       {/* KASMA LIGHTNING FLASH DEALS SECTION */}
       {approvedProducts.length > 0 && (
-        <div id="featured-deals-section" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16 scroll-mt-28">
-          {/* Softer warm off-white background with subtle orange accents (#FFF7ED) */}
-          <div className="bg-[#FFF7ED] dark:bg-[#121620] p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl shadow-xs border border-orange-200/80 dark:border-zinc-800 text-[#172033] dark:text-slate-100 relative overflow-hidden transition-all duration-300">
-            {/* Subtle atmospheric warm glow */}
-            <div className="absolute -right-20 -top-20 w-80 h-80 bg-orange-200/30 dark:bg-orange-950/20 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-amber-100/50 dark:bg-amber-950/20 rounded-full blur-3xl pointer-events-none" />
-
-            {/* Unified SectionHeader: Flash Deals on Left Top End & Countdown on Right Top End in ONE Row */}
-            <SectionHeader
-              titleEn="Flash Deals"
-              titleAm="ፈጣን ቅናሾች"
-              subtitleEn="Supercharge your savings with authentic discounts and verified stock."
-              subtitleAm="በእውነተኛ ቅናሾች እና አስተማማኝ ክምችት ቁጠባዎን ያሳድጉ።"
-              language={language}
-              icon={
-                <div className="bg-[#F97316] text-white p-1.5 xs:p-2 rounded-xl shadow-md shadow-orange-500/25 shrink-0 flex items-center justify-center">
-                  <Zap className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 fill-white text-white animate-pulse" />
-                </div>
-              }
-              rightContent={
-                <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 bg-white dark:bg-zinc-800/90 px-2 py-1 xs:px-2.5 xs:py-1.5 sm:px-3 sm:py-2 rounded-xl border border-orange-200/80 dark:border-zinc-700 shadow-xs shrink-0">
-                  <Clock className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-[#F97316] shrink-0" />
-                  <span className="text-xs text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider shrink-0 leading-none">
-                    {language === 'en' ? 'Ends in:' : 'የሚቀረው:'}
+        <section id="featured-deals-section" className="max-w-[1440px] mx-auto w-full px-2.5 xs:px-3 sm:px-6 lg:px-8 mt-12 lg:mt-16 scroll-mt-28">
+          {/* Unified SectionHeader: Flash Deals on Left Top End & Countdown + View All on Right Top End */}
+          <SectionHeader
+            titleEn="Flash Deals"
+            titleAm="ፈጣን ቅናሾች"
+            subtitleEn="Supercharge your savings with authentic discounts and verified stock."
+            subtitleAm="በእውነተኛ ቅናሾች እና አስተማማኝ ክምችት ቁጠባዎን ያሳድጉ።"
+            language={language}
+            icon={
+              <div className="bg-[#F97316] text-white p-1.5 xs:p-2 rounded-xl shadow-md shadow-orange-500/25 shrink-0 flex items-center justify-center">
+                <Zap className="w-3.5 h-3.5 xs:w-4 xs:h-4 sm:w-5 sm:h-5 fill-white text-white animate-pulse" />
+              </div>
+            }
+            onViewAll={() => setIsFlashDealsOpen(true)}
+            viewAllText={language === 'en' ? 'View all' : 'ሁሉንም እይ'}
+            rightContent={
+              <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 bg-orange-50 dark:bg-zinc-800/90 px-2 py-1 xs:px-2.5 xs:py-1.5 sm:px-3 sm:py-2 rounded-xl border border-orange-200/80 dark:border-zinc-700 shadow-2xs shrink-0">
+                <Clock className="w-3 h-3 xs:w-3.5 xs:h-3.5 text-[#F97316] shrink-0" />
+                <span className="text-[11px] xs:text-xs text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider shrink-0 leading-none">
+                  {language === 'en' ? 'Ends in:' : 'የሚቀረው:'}
+                </span>
+                <div className="flex items-center gap-0.5 xs:gap-1 font-mono font-black text-xs sm:text-sm">
+                  <span className="bg-white dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-2xs leading-none">
+                    {String(flashTimeLeft.hours).padStart(2, '0')}
                   </span>
-                  <div className="flex items-center gap-0.5 xs:gap-1 font-mono font-black text-xs sm:text-sm">
-                    <span className="bg-[#FFF7ED] dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-xs leading-none">
-                      {String(flashTimeLeft.hours).padStart(2, '0')}
-                    </span>
-                    <span className="text-[#F97316] font-bold leading-none animate-pulse">:</span>
-                    <span className="bg-[#FFF7ED] dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-xs leading-none">
-                      {String(flashTimeLeft.minutes).padStart(2, '0')}
-                    </span>
-                    <span className="text-[#F97316] font-bold leading-none animate-pulse">:</span>
-                    <span className="bg-[#FFF7ED] dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-xs leading-none">
-                      {String(flashTimeLeft.seconds).padStart(2, '0')}
-                    </span>
-                  </div>
+                  <span className="text-[#F97316] font-bold leading-none animate-pulse">:</span>
+                  <span className="bg-white dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-2xs leading-none">
+                    {String(flashTimeLeft.minutes).padStart(2, '0')}
+                  </span>
+                  <span className="text-[#F97316] font-bold leading-none animate-pulse">:</span>
+                  <span className="bg-white dark:bg-zinc-900 text-[#F97316] dark:text-orange-400 px-1 xs:px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-900/60 shadow-2xs leading-none">
+                    {String(flashTimeLeft.seconds).padStart(2, '0')}
+                  </span>
                 </div>
-              }
-            />
+              </div>
+            }
+          />
 
-            {/* Responsive Layout: Horizontal-scroll product row on mobile (<sm), balanced grid on desktop (>=sm) */}
-            <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 items-stretch gap-3 sm:gap-6 w-full min-w-0 relative z-10 overflow-x-auto sm:overflow-visible no-scrollbar pb-2.5 sm:pb-0 snap-x snap-mandatory touch-pan-x -mx-4 px-4 sm:mx-0 sm:px-0">
+          {/* Safe-Zone Adaptive Grid: 2 columns on mobile, 4 columns on desktop (matches Explore section) */}
+          <GridContainer cols="auto-fill" gap="normal">
                 {(() => {
                   const now = Date.now();
                   // 1. Filter out expired or cancelled merchant flash deals automatically
@@ -2518,60 +2515,45 @@ export default function CustomerWeb({
                     });
                   }
 
-                  return items.slice(0, 8).map((item) => {
+                  return items.slice(0, 4).map((item) => {
                     const p = item.product;
                     const isFavorite = favorites.includes(p.id);
                     const isCompared = comparedProductIds.includes(p.id);
 
                     return (
-                      <div key={`flash-${p.id}`} className="w-[170px] xs:w-[195px] sm:w-auto shrink-0 snap-start sm:shrink flex flex-col">
-                        <ProductCard
-                          product={p}
-                          language={language}
-                          isFavorite={isFavorite}
-                          onToggleFavorite={handleToggleFavorite}
-                          isCompared={isCompared}
-                          onToggleCompare={handleToggleCompare}
-                          onOpenProduct={handleOpenProduct}
-                          onQuickView={handleOpenQuickBuy}
-                          onAddToCart={addToCart}
-                          onInstantBuy={handleInstantBuy}
-                          showToast={showToast}
-                          originalPrice={item.originalPrice}
-                          flashDiscountPct={item.flashDiscountPct}
-                          flashPrice={item.flashPrice}
-                          claimedPct={item.claimedPct}
-                          remainingQty={item.remainingQty}
-                          badgeText={item.badgeText}
-                          badgeColor={item.isMerchantNominated ? 'amber' : 'indigo'}
-                          layout="flash"
-                          className="w-full h-full"
-                        />
-                      </div>
+                      <ProductCard
+                        key={`flash-${p.id}`}
+                        product={p}
+                        language={language}
+                        isFavorite={isFavorite}
+                        onToggleFavorite={handleToggleFavorite}
+                        isCompared={isCompared}
+                        onToggleCompare={handleToggleCompare}
+                        onOpenProduct={handleOpenProduct}
+                        onQuickView={handleOpenQuickBuy}
+                        onAddToCart={addToCart}
+                        onInstantBuy={handleInstantBuy}
+                        showToast={showToast}
+                        originalPrice={item.originalPrice}
+                        flashDiscountPct={item.flashDiscountPct}
+                        flashPrice={item.flashPrice}
+                        claimedPct={item.claimedPct}
+                        remainingQty={item.remainingQty}
+                        badgeText={item.badgeText}
+                        badgeColor={item.isMerchantNominated ? 'amber' : 'amber'}
+                        layout="grid"
+                        className="w-full h-full"
+                      />
                     );
                   });
                 })()}
-              </div>
-
-            {/* Bottom View All Action Button */}
-            <div className="mt-6 sm:mt-8 text-center relative z-10">
-              <button
-                type="button"
-                onClick={() => setIsFlashDealsOpen(true)}
-                className="w-full sm:w-auto sm:px-8 py-2.5 sm:py-3 bg-orange-500/10 hover:bg-orange-500/20 active:scale-98 text-[#F97316] dark:text-orange-400 font-bold text-xs sm:text-sm rounded-xl border border-orange-300/40 dark:border-orange-900/40 transition-colors inline-flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-              >
-                <Flame className="w-4 h-4 fill-current text-[#F97316]" />
-                <span>{language === 'en' ? 'View All Flash Deals' : 'ሁሉንም ፈጣን ቅናሾች ይመልከቱ'}</span>
-                <ChevronRight className="w-4 h-4 text-[#F97316]" />
-              </button>
-            </div>
-          </div>
-        </div>
+          </GridContainer>
+        </section>
       )}
 
       {/* Recommended for You Personalized Section with Contextual Reasons */}
       {recommendedProductsWithReasons.length > 0 && (
-        <section className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16">
+        <section className="max-w-[1440px] mx-auto w-full px-2.5 xs:px-3 sm:px-6 lg:px-8 mt-12 lg:mt-16">
           {/* Unified SectionHeader */}
           <SectionHeader
             titleEn="Recommended For You"
@@ -2587,41 +2569,40 @@ export default function CustomerWeb({
             viewAllText={language === 'en' ? 'View all' : 'ሁሉንም እይ'}
           />
 
-          {/* Responsive Layout: Horizontal-scroll product row on mobile (<sm), balanced grid on desktop (>=sm) */}
-          <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 items-stretch gap-3 sm:gap-6 w-full min-w-0 overflow-x-auto sm:overflow-visible no-scrollbar pb-2.5 sm:pb-0 snap-x snap-mandatory touch-pan-x -mx-4 px-4 sm:mx-0 sm:px-0">
-            {recommendedProductsWithReasons.slice(0, 8).map((recItem) => {
+          {/* Safe-Zone Adaptive Grid: 2 columns on mobile, 4 columns on desktop (matches Explore section) */}
+          <GridContainer cols="auto-fill" gap="normal">
+            {recommendedProductsWithReasons.slice(0, 4).map((recItem) => {
               const p = recItem.product;
               const isFavorite = favorites.includes(p.id);
               const isCompared = comparedProductIds.includes(p.id);
 
               return (
-                <div key={`rec-${p.id}`} className="w-[170px] xs:w-[195px] sm:w-auto shrink-0 snap-start sm:shrink flex flex-col">
-                  <ProductCard
-                    product={p}
-                    language={language}
-                    isFavorite={isFavorite}
-                    onToggleFavorite={handleToggleFavorite}
-                    isCompared={isCompared}
-                    onToggleCompare={handleToggleCompare}
-                    onOpenProduct={handleOpenQuickBuy}
-                    onQuickView={handleOpenQuickBuy}
-                    onAddToCart={addToCart}
-                    onInstantBuy={handleInstantBuy}
-                    showToast={showToast}
-                    badgeColor="indigo"
-                    layout="grid"
-                    className="w-full h-full"
-                  />
-                </div>
+                <ProductCard
+                  key={`rec-${p.id}`}
+                  product={p}
+                  language={language}
+                  isFavorite={isFavorite}
+                  onToggleFavorite={handleToggleFavorite}
+                  isCompared={isCompared}
+                  onToggleCompare={handleToggleCompare}
+                  onOpenProduct={handleOpenQuickBuy}
+                  onQuickView={handleOpenQuickBuy}
+                  onAddToCart={addToCart}
+                  onInstantBuy={handleInstantBuy}
+                  showToast={showToast}
+                  badgeColor="indigo"
+                  layout="grid"
+                  className="w-full h-full"
+                />
               );
             })}
-          </div>
+          </GridContainer>
         </section>
       )}
 
       {/* RECENTLY VIEWED SECTION - STORES LAST 5 CLICKED PRODUCTS */}
       {recentlyViewedProducts.length > 0 && (
-        <section id="recently-viewed-section" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16">
+        <section id="recently-viewed-section" className="max-w-[1440px] mx-auto w-full px-2.5 xs:px-3 sm:px-6 lg:px-8 mt-12 lg:mt-16">
           {/* Unified SectionHeader */}
           <SectionHeader
             titleEn="Recently Viewed"
@@ -2653,8 +2634,8 @@ export default function CustomerWeb({
             }
           />
 
-          {/* Fixed Grid: 4 columns on desktop, 2 on mobile with strict scale gap (16px / 24px) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 items-stretch gap-4 sm:gap-6 w-full min-w-0">
+          {/* Safe-Zone Adaptive Grid: 2 columns on mobile, 4 columns on desktop (matches Explore section) */}
+          <GridContainer cols="auto-fill" gap="normal">
             {recentlyViewedProducts.slice(0, 4).map((p) => {
               const isFavorite = favorites.includes(p.id);
               const isCompared = comparedProductIds.includes(p.id);
@@ -2675,16 +2656,16 @@ export default function CustomerWeb({
                   showToast={showToast}
                   badgeColor="blue"
                   layout="grid"
-                  className="w-full"
+                  className="w-full h-full"
                 />
               );
             })}
-          </div>
+          </GridContainer>
         </section>
       )}
 
       {/* 5. DYNAMIC SPOTLIGHT & DEALS HUBS - 4 AUTO-SCROLL CAROUSELS */}
-      <div id="spotlight-carousels-section" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16 space-y-12 lg:space-y-16">
+      <div id="spotlight-carousels-section" className="max-w-[1440px] mx-auto w-full px-2.5 xs:px-3 sm:px-6 lg:px-8 mt-12 lg:mt-16 space-y-12 lg:space-y-16">
 
   {/* Carousel 1: Trending Tech & Editor's Choice */}
   <AutoCarousel
@@ -2904,7 +2885,7 @@ export default function CustomerWeb({
 </div>
 
 {/* Category Pills & Filters Section */ }
-<div id="products-grid-section" className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16 pb-12 lg:pb-16 space-y-6">
+<div id="products-grid-section" className="max-w-[1440px] mx-auto w-full px-2.5 xs:px-3 sm:px-6 lg:px-8 mt-12 lg:mt-16 pb-12 lg:pb-16 space-y-6">
 
   {/* Category Header with Track shipment */}
   <div className="flex justify-between items-center pb-1">
@@ -3450,8 +3431,8 @@ export default function CustomerWeb({
 {/* Main Grid Section */ }
 <div id="products-catalog-grid" className="w-full mt-6">
 
-  {isGridLoading || isPageTransitioning ? (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+  {isGridLoading ? (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 xs:gap-2.5 sm:gap-6">
       {Array.from({ length: 8 }).map((_, i) => (
         <ProductCardSkeleton key={`grid-skeleton-${i}`} />
       ))}
@@ -3515,192 +3496,17 @@ export default function CustomerWeb({
         )}
       </GridContainer>
 
-      {/* Pagination & Progressive Loading Navigation Controls */}
-      <div className="mt-10 mb-6 bg-white dark:bg-zinc-900 border border-gray-150 dark:border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xs space-y-4">
-        
-        {/* Header Bar: Status readouts & Mode Switcher */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pb-3 border-b border-gray-150 dark:border-zinc-800">
-          <div className="flex items-center gap-3">
-            <span className="text-xs sm:text-sm font-mono font-bold text-gray-600 dark:text-zinc-400">
-              {paginationMode === 'pages' ? (
-                language === 'en'
-                  ? `Showing ${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, sortedAndFilteredProducts.length)} of ${sortedAndFilteredProducts.length} items (Page ${currentPage} of ${totalPages})`
-                  : `${sortedAndFilteredProducts.length} ውስጥ ${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, sortedAndFilteredProducts.length)} (ገጽ ${currentPage} ከ ${totalPages})`
-              ) : (
-                language === 'en'
-                  ? `Showing ${Math.min(visibleProductCount, sortedAndFilteredProducts.length)} of ${sortedAndFilteredProducts.length} items`
-                  : `${sortedAndFilteredProducts.length} ውስጥ ${Math.min(visibleProductCount, sortedAndFilteredProducts.length)} ታይቷል`
-              )}
-            </span>
-            {/* Visual progress bar for load-more mode */}
-            {paginationMode === 'load_more' && (
-              <div className="hidden xs:block w-24 bg-gray-200 dark:bg-zinc-800 h-2 rounded-full overflow-hidden">
-                <div
-                  className="bg-[#0052FF] h-full rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min(100, Math.round((visibleProductCount / sortedAndFilteredProducts.length) * 100))}%` }}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Dual Mode Switcher: [ Load More ] | [ Pages ] */}
-          <div className="flex items-center gap-1 bg-gray-100 dark:bg-zinc-800 p-1 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setPaginationMode('load_more')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${paginationMode === 'load_more'
-                ? 'bg-white dark:bg-zinc-900 text-[#0052FF] dark:text-blue-400 shadow-2xs font-black'
-                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>{language === 'en' ? 'Load More' : 'ቀጣይ ጫን'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setPaginationMode('pages');
-                setCurrentPage(1);
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${paginationMode === 'pages'
-                ? 'bg-white dark:bg-zinc-900 text-[#0052FF] dark:text-blue-400 shadow-2xs font-black'
-                : 'text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-            >
-              <Tag className="w-3.5 h-3.5" />
-              <span>{language === 'en' ? 'Pages' : 'ገጾች'}</span>
-            </button>
-          </div>
+      {/* Dynamic Scroll-Load Sentinel (loads seamlessly as user scrolls, only if more products exist) */}
+      {visibleProductCount < sortedAndFilteredProducts.length && (
+        <div ref={scrollSentinelRef} className="w-full py-6 flex justify-center items-center">
+          {isLoadingMore && (
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-zinc-400">
+              <RefreshCw className="w-4 h-4 animate-spin text-[#0052FF]" />
+              <span>{language === 'en' ? 'Loading more products...' : 'ተጨማሪ ምርቶችን በመጫን ላይ...'}</span>
+            </div>
+          )}
         </div>
-
-        {/* MODE 1: Load More Controls */}
-        {paginationMode === 'load_more' && (
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
-            {visibleProductCount < sortedAndFilteredProducts.length ? (
-              <>
-                <button
-                  type="button"
-                  disabled={isLoadingMore}
-                  onClick={() => {
-                    setIsLoadingMore(true);
-                    setTimeout(() => {
-                      setVisibleProductCount(prev => prev + 12);
-                      setIsLoadingMore(false);
-                    }, 300);
-                  }}
-                  className="px-6 py-3 bg-[#0052FF] hover:bg-blue-600 active:scale-95 text-white rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all shadow-md hover:shadow-blue-500/25 flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {isLoadingMore ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>{language === 'en' ? 'Loading Products...' : 'እየጫነ ነው...'}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>{language === 'en' ? 'Load More Products (+12)' : 'ተጨማሪ ምርቶችን አሳይ (+12)'}</span>
-                      <ChevronDown className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setVisibleProductCount(sortedAndFilteredProducts.length)}
-                  className="px-4 py-3 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-200 border border-gray-200 dark:border-zinc-700 rounded-2xl text-xs sm:text-sm font-bold transition-all cursor-pointer"
-                >
-                  {language === 'en' ? `Show All (${sortedAndFilteredProducts.length})` : `ሁሉንም አሳይ (${sortedAndFilteredProducts.length})`}
-                </button>
-              </>
-            ) : (
-              <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2 rounded-xl border border-emerald-200 dark:border-emerald-900/40">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>{language === 'en' ? `All ${sortedAndFilteredProducts.length} products loaded` : `ሁሉም ${sortedAndFilteredProducts.length} ምርቶች ታይተዋል`}</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* MODE 2: Numbered Pages Controls */}
-        {paginationMode === 'pages' && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-1">
-            {/* Page Size Selector */}
-            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-zinc-400 font-bold self-start sm:self-auto">
-              <span>{language === 'en' ? 'Items per page:' : 'በገጽ:'}</span>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                className="bg-gray-100 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl px-2.5 py-1.5 text-xs font-bold text-gray-800 dark:text-zinc-200 focus:outline-none focus:border-[#0052FF] cursor-pointer"
-              >
-                <option value={12}>12</option>
-                <option value={24}>24</option>
-                <option value={48}>48</option>
-              </select>
-            </div>
-
-            {/* Prev / Number Buttons / Next */}
-            <div className="flex items-center gap-1.5 flex-wrap justify-center">
-              {/* Prev Button */}
-              <button
-                type="button"
-                disabled={currentPage <= 1 || isPageTransitioning}
-                onClick={() => handlePageChange(currentPage - 1)}
-                className="p-2 sm:px-3 sm:py-2 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs sm:text-sm font-bold text-gray-700 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs transition-all"
-                title={language === 'en' ? 'Previous page' : 'ቀዳሚ ገጽ'}
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span className="hidden sm:inline">{language === 'en' ? 'Prev' : 'ቀዳሚ'}</span>
-              </button>
-
-              {/* Numbered Page Buttons with Smart Truncation */}
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter(pNum => {
-                  if (totalPages <= 7) return true;
-                  if (pNum === 1 || pNum === totalPages) return true;
-                  if (Math.abs(pNum - currentPage) <= 1) return true;
-                  return false;
-                })
-                .map((pNum, idx, arr) => {
-                  const prevVal = arr[idx - 1];
-                  const hasGap = prevVal && pNum - prevVal > 1;
-
-                  return (
-                    <React.Fragment key={`page-num-${pNum}`}>
-                      {hasGap && (
-                        <span className="px-1 text-gray-400 font-mono text-xs">...</span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handlePageChange(pNum)}
-                        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center ${pNum === currentPage
-                          ? 'bg-[#0052FF] text-white font-black shadow-md shadow-[#0052FF]/25 scale-105'
-                          : 'border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-gray-700 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 shadow-2xs'
-                          }`}
-                      >
-                        {pNum}
-                      </button>
-                    </React.Fragment>
-                  );
-                })}
-
-              {/* Next Button */}
-              <button
-                type="button"
-                disabled={currentPage >= totalPages || isPageTransitioning}
-                onClick={() => handlePageChange(currentPage + 1)}
-                className="p-2 sm:px-3 sm:py-2 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs sm:text-sm font-bold text-gray-700 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1 shadow-2xs transition-all"
-                title={language === 'en' ? 'Next page' : 'ቀጣይ ገጽ'}
-              >
-                <span className="hidden sm:inline">{language === 'en' ? 'Next' : 'ቀጣይ'}</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-      </div>
+      )}
     </>
   )}
 </div>

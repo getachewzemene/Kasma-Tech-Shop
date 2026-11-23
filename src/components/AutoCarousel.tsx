@@ -2,6 +2,7 @@ import React from 'react';
 import { Product, Variant } from '../types';
 import { ProductCard } from './ProductCard';
 import { SectionHeader } from './SectionHeader';
+import { GridContainer } from './GridContainer';
 
 interface AutoCarouselProps {
   titleEn: string;
@@ -72,34 +73,33 @@ export const AutoCarousel: React.FC<AutoCarouselProps> = ({
         }
       />
 
-      {/* Responsive Layout: Horizontal-scroll product row on mobile (<sm), balanced grid on desktop (>=sm) */}
-      <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 items-stretch w-full min-w-0 overflow-x-auto sm:overflow-visible no-scrollbar pb-2.5 sm:pb-0 snap-x snap-mandatory touch-pan-x -mx-4 px-4 sm:mx-0 sm:px-0">
-        {products.slice(0, 8).map((p) => {
+      {/* Safe-Zone Adaptive Grid: 2 columns on mobile, 4 columns on desktop (matches Explore section) */}
+      <GridContainer cols="auto-fill" gap="normal">
+        {products.slice(0, 4).map((p) => {
           const isFavorite = favorites.includes(p.id);
           const isCompared = comparedProductIds.includes(p.id);
 
           return (
-            <div key={p.id} className="w-[170px] xs:w-[195px] sm:w-auto shrink-0 snap-start sm:shrink flex flex-col">
-              <ProductCard
-                product={p}
-                language={language}
-                isFavorite={isFavorite}
-                onToggleFavorite={onToggleFavorite}
-                isCompared={isCompared}
-                onToggleCompare={onToggleCompare}
-                onOpenProduct={onProductClick}
-                onQuickView={onProductClick}
-                onAddToCart={onAddToCart}
-                showToast={showToast}
-                badgeText={undefined}
-                badgeColor={badgeColor}
-                layout="grid"
-                className="w-full h-full"
-              />
-            </div>
+            <ProductCard
+              key={p.id}
+              product={p}
+              language={language}
+              isFavorite={isFavorite}
+              onToggleFavorite={onToggleFavorite}
+              isCompared={isCompared}
+              onToggleCompare={onToggleCompare}
+              onOpenProduct={onProductClick}
+              onQuickView={onProductClick}
+              onAddToCart={onAddToCart}
+              showToast={showToast}
+              badgeText={undefined}
+              badgeColor={badgeColor}
+              layout="grid"
+              className="w-full h-full"
+            />
           );
         })}
-      </div>
+      </GridContainer>
     </div>
   );
 };

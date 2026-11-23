@@ -14,9 +14,9 @@ export const GridContainer: React.FC<GridContainerProps> = ({
   className = ''
 }) => {
   const gapClasses = {
-    tight: 'gap-2 sm:gap-4',
-    normal: 'gap-4 sm:gap-6',
-    spacious: 'gap-6 lg:gap-8'
+    tight: 'gap-1.5 xs:gap-2 sm:gap-4',
+    normal: 'gap-2 xs:gap-2.5 sm:gap-6',
+    spacious: 'gap-2 xs:gap-2.5 sm:gap-6 lg:gap-8'
   };
 
   const colClasses: Record<string | number, string> = {
