@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useShop } from '../../context/ShopContext';
-import { SocialFooterSection } from '../SocialFooterSection';
+import { renderSocialIcon, getIconBadgeBg } from '../SocialFooterSection';
+import { SOCIAL_PLATFORMS_CONFIG } from '../../config/socialLinks';
 import { generateWhatsAppCustomerWelcomeUrl } from '../../utils/whatsappNotifications';
 import { 
   Truck, 
@@ -18,7 +19,10 @@ import {
   MessageCircle, 
   ExternalLink,
   X,
-  CheckCircle2
+  CheckCircle2,
+  Smartphone,
+  Building2,
+  Share2
 } from 'lucide-react';
 
 type PolicyModalType = 'privacy' | 'terms' | 'refunds' | 'faq' | 'escrow' | 'shipping' | null;
@@ -67,7 +71,7 @@ export const Footer: React.FC = () => {
                 <span className="font-extrabold text-xs sm:text-sm lg:text-base text-gray-900 dark:text-white block">
                   {language === 'en' ? 'Express Delivery' : 'ፈጣን ማድረሻ'}
                 </span>
-                <span className="text-[11px] sm:text-xs lg:text-[13px] text-gray-500 dark:text-zinc-400 font-medium">
+                <span className="text-xs sm:text-xs lg:text-[13px] text-gray-500 dark:text-zinc-400 font-medium">
                   {language === 'en' ? 'Addis Ababa & Regions' : 'አዲስ አበባ እና ክልሎች'}
                 </span>
               </div>
@@ -81,7 +85,7 @@ export const Footer: React.FC = () => {
                 <span className="font-extrabold text-xs sm:text-sm lg:text-base text-gray-900 dark:text-white block">
                   {language === 'en' ? 'Escrow Protection' : 'የእምነት ዋስትና'}
                 </span>
-                <span className="text-[11px] sm:text-xs lg:text-[13px] text-gray-500 dark:text-zinc-400 font-medium">
+                <span className="text-xs sm:text-xs lg:text-[13px] text-gray-500 dark:text-zinc-400 font-medium">
                   {language === 'en' ? 'Telebirr, CBE & Chapa' : 'ቴሌብር፣ ሲቢኢ እና ቻፓ'}
                 </span>
               </div>
@@ -95,7 +99,7 @@ export const Footer: React.FC = () => {
                 <span className="font-extrabold text-xs sm:text-sm lg:text-base text-gray-900 dark:text-white block">
                   {language === 'en' ? '7-Day Easy Returns' : 'የ7 ቀን ቀላል መመለስ'}
                 </span>
-                <span className="text-[11px] sm:text-xs lg:text-[13px] text-gray-500 dark:text-zinc-400 font-medium">
+                <span className="text-xs sm:text-xs lg:text-[13px] text-gray-500 dark:text-zinc-400 font-medium">
                   {language === 'en' ? '100% Refund Guarantee' : '100% የገንዘብ ተመላሽ'}
                 </span>
               </div>
@@ -109,7 +113,7 @@ export const Footer: React.FC = () => {
                 <span className="font-extrabold text-xs sm:text-sm lg:text-base text-gray-900 dark:text-white block">
                   {language === 'en' ? '1-Year Warranty' : 'የ1 ዓመት ዋስትና'}
                 </span>
-                <span className="text-[11px] sm:text-xs lg:text-[13px] text-gray-500 dark:text-zinc-400 font-medium">
+                <span className="text-xs sm:text-xs lg:text-[13px] text-gray-500 dark:text-zinc-400 font-medium">
                   {language === 'en' ? 'Verified Quality Guarantee' : 'የጥራት ዋስትና የተሸፈነ'}
                 </span>
               </div>
@@ -324,21 +328,38 @@ export const Footer: React.FC = () => {
 
         </div>
 
-        {/* 4. DESKTOP VIEW (>= md): Pristine 5-Column Grid */}
-        <div className="hidden md:grid w-full grid-cols-5 gap-6 lg:gap-8 text-xs sm:text-sm lg:text-[14px] leading-relaxed items-start pb-8 border-b border-gray-150 dark:border-zinc-850">
+        {/* 4. DESKTOP VIEW (>= md): Balanced 4-Column Grid (No cramped 5-column layout) */}
+        <div className="hidden md:grid w-full grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 text-xs sm:text-sm lg:text-[14px] leading-relaxed items-start pb-10 border-b border-gray-150 dark:border-zinc-850">
           
-          {/* Column 1: About & Language Selector */}
+          {/* Column 1: Kasma Shop Identity, Location & Language */}
           <div className="space-y-4 text-left">
             <div className="space-y-2">
               <span className="text-base sm:text-lg font-black uppercase tracking-widest text-[#0052FF] block">
                 KASMA <span className="text-gray-950 dark:text-white font-light">SHOP</span>
               </span>
-              <p className="text-gray-600 dark:text-zinc-400 leading-relaxed font-medium text-xs sm:text-sm lg:text-[14px]">
+              <p className="text-gray-600 dark:text-zinc-400 leading-relaxed font-medium text-xs sm:text-sm">
                 {language === 'en' 
                   ? "Ethiopia's trusted marketplace connecting verified local artisans and merchants under escrow buyer protection."
                   : 'ካስማ የሀገር ውስጥ አምራቾች እና ነጋዴዎችን በታማኝነት ከገዢዎች ጋር የሚያገናኝ የገበያ ቦታ ነው።'}
               </p>
             </div>
+
+            {/* Direct Contact Points */}
+            <div className="space-y-2 text-xs sm:text-sm text-gray-600 dark:text-zinc-300 font-semibold pt-1">
+              <div className="flex items-start gap-2.5">
+                <MapPin className="w-4 h-4 text-[#0052FF] shrink-0 mt-0.5" />
+                <span>Bole Sub-City, Addis Ababa, Ethiopia</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <Phone className="w-4 h-4 text-[#0052FF] shrink-0" />
+                <a href="tel:+251911223344" className="hover:underline hover:text-[#0052FF] transition-colors">+251 911 223 344</a>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <Mail className="w-4 h-4 text-[#0052FF] shrink-0" />
+                <a href="mailto:support@kasma.shop" className="hover:underline hover:text-[#0052FF] transition-colors">support@kasma.shop</a>
+              </div>
+            </div>
+
             {/* Language and Region Badge */}
             <div className="flex items-center gap-2.5 text-xs sm:text-sm text-gray-700 dark:text-zinc-300 bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl px-3.5 py-2 w-fit font-bold shadow-2xs">
               <Globe className="w-4 h-4 text-[#0052FF]" />
@@ -348,12 +369,12 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Column 2: Quick Links / Navigation */}
-          <div className="space-y-3.5 text-left">
+          {/* Column 2: Shop & Discover */}
+          <div className="space-y-4 text-left">
             <h4 className="font-black text-gray-950 dark:text-white uppercase tracking-wider text-xs sm:text-sm lg:text-[14px]">
               {language === 'en' ? 'SHOP & DISCOVER' : 'ምድቦች እና ግዢ'}
             </h4>
-            <ul className="space-y-2.5 text-gray-600 dark:text-zinc-300 font-semibold text-xs sm:text-sm lg:text-[14px]">
+            <ul className="space-y-3 text-gray-600 dark:text-zinc-300 font-semibold text-xs sm:text-sm">
               <li>
                 <Link to="/" onClick={scrollToTop} className="hover:text-[#0052FF] transition-colors cursor-pointer text-left block">
                   {language === 'en' ? 'Storefront / All Products' : 'ዋናው ሱቅ / ሁሉም ምርቶች'}
@@ -406,18 +427,26 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Column 3: Trust & Policies */}
-          <div className="space-y-3.5 text-left">
+          {/* Column 3: Customer Care & Policies */}
+          <div className="space-y-4 text-left">
             <h4 className="font-black text-gray-950 dark:text-white uppercase tracking-wider text-xs sm:text-sm lg:text-[14px]">
-              {language === 'en' ? 'POLICIES & SUPPORT' : 'ፖሊሲዎች እና ህጎች'}
+              {language === 'en' ? 'POLICIES & SUPPORT' : 'ፖሊሲዎች እና ድጋፍ'}
             </h4>
-            <ul className="space-y-2.5 text-gray-600 dark:text-zinc-300 font-semibold text-xs sm:text-sm lg:text-[14px]">
+            <ul className="space-y-3 text-gray-600 dark:text-zinc-300 font-semibold text-xs sm:text-sm">
               <li>
                 <button 
-                  onClick={() => setActivePolicyModal('privacy')} 
+                  onClick={() => setActivePolicyModal('faq')} 
                   className="hover:text-[#0052FF] transition-colors cursor-pointer text-left block"
                 >
-                  <span>{language === 'en' ? 'Privacy Policy' : 'የግላዊነት ፖሊሲ'}</span>
+                  <span>{language === 'en' ? 'Help Center & FAQ' : 'የእርዳታ ማዕከል እና ጥያቄዎች'}</span>
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => setActivePolicyModal('refunds')} 
+                  className="hover:text-[#0052FF] transition-colors cursor-pointer text-left block"
+                >
+                  <span>{language === 'en' ? '7-Day Returns & Refunds' : 'የምርት መልስ እና ተመላሽ'}</span>
                 </button>
               </li>
               <li>
@@ -430,29 +459,21 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <button 
-                  onClick={() => setActivePolicyModal('refunds')} 
+                  onClick={() => setActivePolicyModal('privacy')} 
                   className="hover:text-[#0052FF] transition-colors cursor-pointer text-left block"
                 >
-                  <span>{language === 'en' ? 'Returns & Refunds' : 'የምርት መልስ እና ተመላሽ'}</span>
-                </button>
-              </li>
-              <li>
-                <button 
-                  onClick={() => setActivePolicyModal('faq')} 
-                  className="hover:text-[#0052FF] transition-colors cursor-pointer text-left block"
-                >
-                  <span>{language === 'en' ? 'Help Center & FAQ' : 'የእርዳታ ማዕከል እና ጥያቄዎች'}</span>
+                  <span>{language === 'en' ? 'Privacy & Data Policy' : 'የግላዊነት ፖሊሲ'}</span>
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Column 4: Partner & Merchant Portal Links */}
-          <div className="space-y-3.5 text-left">
+          {/* Column 4: Kasma Business & Support Desk */}
+          <div className="space-y-4 text-left">
             <h4 className="font-black text-gray-950 dark:text-white uppercase tracking-wider text-xs sm:text-sm lg:text-[14px]">
-              {language === 'en' ? 'KASMA BUSINESS' : 'ካስማ ለንግድ አጋሮች'}
+              {language === 'en' ? 'MERCHANT & PARTNERS' : 'ንግድ እና አጋሮች'}
             </h4>
-            <ul className="space-y-2.5 text-gray-600 dark:text-zinc-300 font-semibold text-xs sm:text-sm lg:text-[14px]">
+            <ul className="space-y-3 text-gray-600 dark:text-zinc-300 font-semibold text-xs sm:text-sm">
               <li>
                 <Link to="/merchant" className="hover:text-[#0052FF] transition-colors block">
                   {language === 'en' ? 'Sell on Kasma' : 'ምርትዎን በካስማ ላይ ይሽጡ'}
@@ -464,44 +485,23 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/courier" className="hover:text-[#0052FF] text-amber-600 dark:text-amber-400 font-bold transition-colors block">
+                  {language === 'en' ? 'Addis Courier Portal (🛵)' : 'የአዲስ አበባ አሽከርካሪዎች (🛵)'}
+                </Link>
+              </li>
+              <li>
                 <Link to="/admin" className="hover:text-[#0052FF] transition-colors block">
                   {language === 'en' ? 'Admin Governance' : 'የአስተዳዳሪ ክፍል'}
                 </Link>
               </li>
-              <li>
-                <Link to="/courier" className="hover:text-[#0052FF] text-amber-600 dark:text-amber-400 font-extrabold transition-colors block">
-                  {language === 'en' ? 'Addis Courier Portal (🛵)' : 'የአዲስ አበባ አሽከርካሪዎች (🛵)'}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 5: Contact & Secure Support Desk */}
-          <div className="space-y-3.5 text-left">
-            <h4 className="font-black text-gray-950 dark:text-white uppercase tracking-wider text-xs sm:text-sm lg:text-[14px]">
-              {language === 'en' ? 'CUSTOMER SUPPORT' : 'የደንበኞች አገልግሎት'}
-            </h4>
-            <ul className="space-y-2.5 text-gray-600 dark:text-zinc-300 font-semibold text-xs sm:text-sm lg:text-[14px]">
-              <li className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-[#0052FF] shrink-0 mt-0.5" />
-                <span>Bole Sub-City, Addis Ababa, Ethiopia</span>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-[#0052FF] shrink-0" />
-                <a href="tel:+251911223344" className="hover:underline">+251 911 223 344</a>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-[#0052FF] shrink-0" />
-                <a href="mailto:support@kasma.shop" className="hover:underline">support@kasma.shop</a>
-              </li>
-              <li className="pt-2">
+              <li className="pt-1">
                 <a
                   href={generateWhatsAppCustomerWelcomeUrl(cart, language)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs sm:text-sm py-2.5 px-4 rounded-xl sm:rounded-2xl shadow-2xs hover:shadow-xs transition-all cursor-pointer w-full"
+                  className="inline-flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs sm:text-sm py-2 px-3.5 rounded-xl shadow-2xs hover:shadow-xs transition-all cursor-pointer w-full"
                 >
-                  <MessageCircle className="w-4.5 h-4.5 text-white fill-current shrink-0" />
+                  <MessageCircle className="w-4 h-4 text-white fill-current shrink-0" />
                   <span>{language === 'en' ? 'Chat on WhatsApp' : 'በዋትስአፕ ያወሩን'}</span>
                 </a>
               </li>
@@ -510,56 +510,154 @@ export const Footer: React.FC = () => {
 
         </div>
 
-        {/* 5. DEDICATED SOCIAL MEDIA SECTION */}
-        <div className="w-full pt-6 sm:pt-8">
-          <SocialFooterSection language={language} cart={cart} />
-        </div>
-
-        {/* 6. DIVIDER & SECURE PAYMENTS GATEWAYS BAR */}
-        <div className="w-full mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-150 dark:border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-5 sm:gap-6 text-xs sm:text-sm text-gray-500 dark:text-zinc-400 font-bold px-1 sm:px-4">
+        {/* 5. MERGED SOCIAL & SECURE PAYMENTS GRID (2 BALANCED CARDS: 2x2 ESCROW & 3x2 SOCIAL) */}
+        <div className="w-full pt-6 sm:pt-8 grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 items-stretch">
           
-          {/* Payment Badges */}
-          <div className="flex flex-wrap gap-2.5 items-center justify-center md:justify-start">
-            <span className="text-xs uppercase tracking-wider text-gray-500 dark:text-zinc-400 font-black mr-1">
-              {language === 'en' ? 'SECURED BY' : 'የክፍያ ዋስትና በ:'}
-            </span>
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-250 dark:border-zinc-800 px-3 py-1.5 rounded-xl text-gray-800 dark:text-zinc-200 font-mono text-[11px] sm:text-xs tracking-wide font-black shadow-2xs">
-                CHAPA
+          {/* Card 1: Secured Escrow Payments (2x2 Balanced Grid) */}
+          <div className="bg-gray-50/70 dark:bg-zinc-900/50 border border-gray-200/80 dark:border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between shadow-2xs">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-200/70 dark:border-zinc-800">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-white">
+                <ShieldCheck className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>{language === 'en' ? 'Secured Escrow Payments' : 'የተረጋገጡ የክፍያ ዋስትና መንገዶች'}</span>
               </div>
-              <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-250 dark:border-zinc-800 px-3 py-1.5 rounded-xl text-gray-800 dark:text-zinc-200 font-mono text-[11px] sm:text-xs tracking-wide font-black shadow-2xs">
-                TELEBIRR
+              <span className="text-[10px] sm:text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-100/70 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-300/40 dark:border-emerald-800/40 shrink-0">
+                100% Escrow
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-3.5">
+              {/* Telebirr */}
+              <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white dark:bg-zinc-900/90 border border-blue-200/80 dark:border-blue-900/40 hover:border-blue-500/50 shadow-2xs hover:shadow-xs transition-all group min-h-[54px] sm:min-h-[58px]">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#0052FF] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                  <Smartphone className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                </div>
+                <div className="min-w-0 text-left">
+                  <span className="text-xs sm:text-sm font-black text-gray-900 dark:text-white leading-tight block whitespace-nowrap">
+                    telebirr
+                  </span>
+                  <span className="text-[11px] sm:text-xs font-bold text-blue-600 dark:text-blue-400 leading-tight block whitespace-nowrap">
+                    SuperApp Pay
+                  </span>
+                </div>
               </div>
-              <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-250 dark:border-zinc-800 px-3 py-1.5 rounded-xl text-gray-800 dark:text-zinc-200 font-mono text-[11px] sm:text-xs tracking-wide font-black shadow-2xs">
-                CBE CUSTODY
+
+              {/* CBE Birr */}
+              <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white dark:bg-zinc-900/90 border border-purple-200/80 dark:border-purple-900/40 hover:border-purple-500/50 shadow-2xs hover:shadow-xs transition-all group min-h-[54px] sm:min-h-[58px]">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#7B1FA2] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                  <Building2 className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                </div>
+                <div className="min-w-0 text-left">
+                  <span className="text-xs sm:text-sm font-black text-gray-900 dark:text-white leading-tight block whitespace-nowrap">
+                    CBE Birr
+                  </span>
+                  <span className="text-[11px] sm:text-xs font-bold text-purple-600 dark:text-purple-400 leading-tight block whitespace-nowrap">
+                    Bank Escrow
+                  </span>
+                </div>
               </div>
-              <div className="bg-gray-50 dark:bg-zinc-900 border border-gray-250 dark:border-zinc-800 px-3 py-1.5 rounded-xl text-gray-800 dark:text-zinc-200 font-mono text-[11px] sm:text-xs tracking-wide font-black shadow-2xs">
-                AWASH TRUST
+
+              {/* Chapa */}
+              <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white dark:bg-zinc-900/90 border border-emerald-200/80 dark:border-emerald-900/40 hover:border-emerald-500/50 shadow-2xs hover:shadow-xs transition-all group min-h-[54px] sm:min-h-[58px]">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#00A389] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                  <ShieldCheck className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                </div>
+                <div className="min-w-0 text-left">
+                  <span className="text-xs sm:text-sm font-black text-gray-900 dark:text-white leading-tight block whitespace-nowrap">
+                    Chapa
+                  </span>
+                  <span className="text-[11px] sm:text-xs font-bold text-emerald-600 dark:text-emerald-400 leading-tight block whitespace-nowrap">
+                    Cards & Wallets
+                  </span>
+                </div>
+              </div>
+
+              {/* Awash Bank */}
+              <div className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white dark:bg-zinc-900/90 border border-amber-200/80 dark:border-amber-900/40 hover:border-amber-500/50 shadow-2xs hover:shadow-xs transition-all group min-h-[54px] sm:min-h-[58px]">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#D97706] text-white flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                  <Lock className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                </div>
+                <div className="min-w-0 text-left">
+                  <span className="text-xs sm:text-sm font-black text-gray-900 dark:text-white leading-tight block whitespace-nowrap">
+                    Awash Trust
+                  </span>
+                  <span className="text-[11px] sm:text-xs font-bold text-amber-600 dark:text-amber-400 leading-tight block whitespace-nowrap">
+                    Direct Custody
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
+          {/* Card 2: Official Social Channels (3x2 Balanced Grid) */}
+          <div className="bg-gray-50/70 dark:bg-zinc-900/50 border border-gray-200/80 dark:border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col justify-between shadow-2xs">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-200/70 dark:border-zinc-800">
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-black uppercase tracking-wider text-gray-900 dark:text-white">
+                <Share2 className="w-4 h-4 text-[#0052FF] shrink-0" />
+                <span>{language === 'en' ? 'Official Channels' : 'ይከተሉን / ማህበራዊ ሚዲያ'}</span>
+              </div>
+              <span className="text-[10px] sm:text-xs font-mono font-bold text-blue-700 dark:text-blue-400 bg-blue-100/70 dark:bg-blue-950/60 px-2.5 py-0.5 rounded-full border border-blue-300/40 dark:border-blue-800/40 shrink-0">
+                {SOCIAL_PLATFORMS_CONFIG.length} Channels
+              </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 sm:gap-2.5 pt-3.5">
+              {SOCIAL_PLATFORMS_CONFIG.map((platform) => {
+                const currentLang = language === 'am' ? 'am' : 'en';
+                const destinationUrl = platform.id === 'whatsapp'
+                  ? generateWhatsAppCustomerWelcomeUrl(cart, currentLang)
+                  : platform.url;
+                const cleanName = platform.name.replace(' Care', '');
+
+                return (
+                  <a
+                    key={platform.id}
+                    href={destinationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${cleanName} channel`}
+                    className="group flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-white dark:bg-zinc-900/90 border border-gray-200/80 dark:border-zinc-800 hover:border-[#0052FF]/50 text-gray-800 dark:text-zinc-200 transition-all duration-200 cursor-pointer shadow-2xs hover:shadow-xs active:scale-95 text-center sm:text-left min-h-[54px] sm:min-h-[58px]"
+                  >
+                    <div
+                      className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl ${getIconBadgeBg(platform)} flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}
+                      style={platform.brandColor !== 'gradient' && platform.brandColor !== '#000000' ? { backgroundColor: platform.brandColor } : {}}
+                    >
+                      {renderSocialIcon(platform.iconKey, "w-3.5 h-3.5 text-white")}
+                    </div>
+                    <span className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white whitespace-nowrap group-hover:text-[#0052FF] dark:group-hover:text-blue-400 transition-colors">
+                      {cleanName}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+
+        </div>
+
+        {/* 6. BOTTOM LEGAL & COPYRIGHT BAR */}
+        <div className="w-full pt-6 border-t border-gray-150 dark:border-zinc-850 flex flex-col md:flex-row justify-between items-center gap-4 text-xs sm:text-sm text-gray-500 dark:text-zinc-400 font-semibold px-1 sm:px-2">
+          
           {/* Quick Legal Links */}
-          <div className="flex items-center gap-4 text-xs sm:text-sm font-semibold text-gray-600 dark:text-zinc-300 flex-wrap justify-center">
-            <button onClick={() => setActivePolicyModal('privacy')} className="hover:text-[#0052FF] transition-colors cursor-pointer">
+          <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
+            <button onClick={() => setActivePolicyModal('privacy')} className="hover:text-[#0052FF] transition-colors cursor-pointer whitespace-nowrap">
               {language === 'en' ? 'Privacy Policy' : 'የግላዊነት ፖሊሲ'}
             </button>
             <span>•</span>
-            <button onClick={() => setActivePolicyModal('terms')} className="hover:text-[#0052FF] transition-colors cursor-pointer">
+            <button onClick={() => setActivePolicyModal('terms')} className="hover:text-[#0052FF] transition-colors cursor-pointer whitespace-nowrap">
               {language === 'en' ? 'Terms of Service' : 'የአገልግሎት ውሎች'}
             </button>
             <span>•</span>
-            <button onClick={() => setActivePolicyModal('refunds')} className="hover:text-[#0052FF] transition-colors cursor-pointer">
+            <button onClick={() => setActivePolicyModal('refunds')} className="hover:text-[#0052FF] transition-colors cursor-pointer whitespace-nowrap">
               {language === 'en' ? 'Returns & Refunds' : 'የተመላሽ ፖሊሲ'}
             </button>
             <span>•</span>
-            <button onClick={() => setActivePolicyModal('faq')} className="hover:text-[#0052FF] transition-colors cursor-pointer">
-              {language === 'en' ? 'FAQ' : 'ጥያቄዎች'}
+            <button onClick={() => setActivePolicyModal('faq')} className="hover:text-[#0052FF] transition-colors cursor-pointer whitespace-nowrap">
+              {language === 'en' ? 'Help Center & FAQ' : 'ጥያቄዎች'}
             </button>
           </div>
 
           {/* Copyright */}
-          <div className="text-xs sm:text-[13px] text-gray-500 dark:text-zinc-400 tracking-wide font-semibold text-center md:text-right">
+          <div className="text-xs sm:text-[13px] text-gray-500 dark:text-zinc-400 tracking-wide text-center md:text-right whitespace-nowrap">
             © {new Date().getFullYear()} KASMA ETHIOPIAN LOCALIZED COMMERCE. ALL RIGHTS RESERVED.
           </div>
 
@@ -609,7 +707,7 @@ export const Footer: React.FC = () => {
                   <p>
                     By placing an order or registering a vendor store on Kasma Shop, you agree to our localized escrow commerce terms:
                   </p>
-                  <ul className="list-disc pl-5 space-y-1 text-[11px]">
+                  <ul className="list-disc pl-5 space-y-1 text-xs">
                     <li>All electronics products must be factory sealed and genuine.</li>
                     <li>Payments are routed via Chapa / Telebirr bank escrow custody until item handover.</li>
                     <li>Merchants must maintain stock accuracy and dispatch orders within 2 hours of customer placement.</li>

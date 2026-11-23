@@ -20,7 +20,7 @@ interface SocialFooterSectionProps {
   cart?: CartItem[];
 }
 
-const renderSocialIcon = (iconKey: SocialIconKey, className: string = "w-4 h-4") => {
+export const renderSocialIcon = (iconKey: SocialIconKey, className: string = "w-4 h-4") => {
   switch (iconKey) {
     case 'telegram':
       return (
@@ -47,7 +47,7 @@ const renderSocialIcon = (iconKey: SocialIconKey, className: string = "w-4 h-4")
   }
 };
 
-const getIconBadgeBg = (platform: SocialPlatformConfig) => {
+export const getIconBadgeBg = (platform: SocialPlatformConfig) => {
   if (platform.brandColor === 'gradient') {
     return 'bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white';
   }
@@ -106,7 +106,7 @@ export const SocialFooterSection: React.FC<SocialFooterSectionProps> = ({ langua
           <Share2 className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#0052FF]" />
           <span>{language === 'en' ? 'Social Media' : 'ማህበራዊ ሚዲያ'}</span>
         </h4>
-        <span className="text-[11px] sm:text-xs font-mono font-extrabold text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 px-2.5 py-1 rounded-full flex items-center gap-1.5 shrink-0">
+        <span className="text-xs font-mono font-extrabold text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 px-2.5 py-1 rounded-full flex items-center gap-1.5 shrink-0">
           <Sparkles className="w-3 h-3 text-amber-500 animate-pulse" />
           {SOCIAL_PLATFORMS_CONFIG.length} {language === 'en' ? 'Channels' : 'ቻናሎች'}
         </span>
@@ -155,10 +155,10 @@ export const SocialFooterSection: React.FC<SocialFooterSectionProps> = ({ langua
                 </motion.div>
 
                 <div className="min-w-0 w-full flex-1">
-                  <span className="font-extrabold text-gray-900 dark:text-white text-xs sm:text-sm lg:text-[14px] leading-tight block group-hover:text-[#0052FF] dark:group-hover:text-blue-400 transition-colors truncate">
+                  <span className="font-extrabold text-gray-900 dark:text-white text-xs sm:text-sm lg:text-[14px] leading-tight block group-hover:text-[#0052FF] dark:group-hover:text-blue-400 transition-colors whitespace-nowrap">
                     {platform.name}
                   </span>
-                  <span className="hidden sm:block text-[11px] sm:text-xs text-gray-400 dark:text-zinc-500 font-mono font-medium truncate leading-tight mt-0.5">
+                  <span className="hidden sm:block text-xs text-gray-400 dark:text-zinc-500 font-mono font-medium whitespace-nowrap leading-tight mt-0.5">
                     {platform.handle}
                   </span>
                 </div>
@@ -166,7 +166,7 @@ export const SocialFooterSection: React.FC<SocialFooterSectionProps> = ({ langua
 
               {/* Followers count badge on right */}
               <div className="flex items-center justify-center sm:justify-end gap-1.5 shrink-0 w-full sm:w-auto mt-1 sm:mt-0">
-                <span className={`text-[9px] sm:text-[10px] lg:text-[11px] font-mono font-black uppercase px-2 py-0.5 rounded-md ${platform.badgeClass} shadow-2xs`}>
+                <span className={`text-[11px] sm:text-xs font-mono font-black uppercase px-2 py-0.5 rounded-md ${platform.badgeClass} shadow-2xs`}>
                   {platform.followerCount}
                 </span>
                 
