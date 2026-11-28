@@ -221,12 +221,12 @@ export const HeroSalesBanner: React.FC<HeroSalesBannerProps> = ({
 
       <div
         key={currentSlide}
-        className="relative z-10 flex min-h-[200px] flex-row sm:min-h-0 sm:h-[300px] sm:items-center md:h-[400px] lg:h-[420px]"
+        className="relative z-10 flex min-h-[210px] flex-row sm:min-h-0 sm:h-[300px] sm:items-center md:h-[400px] lg:h-[420px]"
       >
         {/* ---------- Text column (clean content flow with matching left alignment and comfortable top spacing) ---------- */}
-        <div className="hero-anim relative z-10 flex w-[54%] flex-col [text-shadow:0_1px_10px_rgba(0,0,0,0.55)] items-start justify-start pt-11 pb-8 sm:justify-center sm:w-[55%] sm:gap-3 px-3 sm:px-6 sm:pb-12 sm:pt-14 md:gap-3.5 md:py-8 md:pl-12 md:pr-6 lg:pl-14 [animation:hero-text-in_500ms_ease-out_both]">
+        <div className="hero-anim relative z-10 flex w-[64%] xs:w-[62%] flex-col gap-1.5 [text-shadow:0_1px_10px_rgba(0,0,0,0.55)] items-start justify-start pt-11 pb-10 sm:justify-center sm:w-[55%] sm:gap-3 px-3 sm:px-6 sm:pb-12 sm:pt-14 md:gap-3.5 md:py-8 md:pl-12 md:pr-6 lg:pl-14 [animation:hero-text-in_500ms_ease-out_both]">
           <div className="w-full">
-            <h2 className="line-clamp-2 text-base font-black leading-snug tracking-tight sm:text-3xl sm:leading-tight lg:text-4xl">
+            <h2 className="line-clamp-3 sm:line-clamp-2 text-sm xs:text-[15px] font-black leading-snug tracking-tight sm:text-3xl sm:leading-tight lg:text-4xl">
               {productName}
             </h2>
             <p className="mt-1 line-clamp-1 hidden text-sm font-medium text-slate-300 sm:block sm:text-base">
@@ -289,7 +289,7 @@ export const HeroSalesBanner: React.FC<HeroSalesBannerProps> = ({
           type="button"
           onClick={() => onOpenProduct(slide)}
           aria-label={productName}
-          className="hero-anim group/image absolute inset-y-0 right-0 z-0 block h-full w-[64%] cursor-pointer overflow-hidden focus-visible:outline-none sm:w-[62%] md:w-[60%] [animation:hero-img-in_600ms_ease-out_both]"
+          className="hero-anim group/image absolute inset-y-0 right-0 z-0 block h-full w-[58%] cursor-pointer overflow-hidden focus-visible:outline-none sm:w-[62%] md:w-[60%] [animation:hero-img-in_600ms_ease-out_both]"
         >
           {/*
             Background layer: the photo runs edge to edge on the right and slides in behind the
@@ -314,14 +314,14 @@ export const HeroSalesBanner: React.FC<HeroSalesBannerProps> = ({
         </button>
       </div>
 
-      {/* ---------- Progress segments: full width on phones, bottom-left on desktop ---------- */}
+      {/* ---------- Progress segments: compact bottom-left on phones, wider on desktop ---------- */}
       {total > 1 && (
         <div
-          className="absolute bottom-0 left-3 z-20 flex w-auto min-w-[200px] max-w-[85%] items-center sm:bottom-1 sm:left-6 sm:w-[220px] md:left-12 md:w-[260px] lg:left-14"
+          className="absolute bottom-0.5 left-3 z-20 flex w-[135px] xs:w-[155px] items-center sm:bottom-1 sm:left-6 sm:w-[220px] md:left-12 md:w-[260px] lg:left-14"
           role="tablist"
           aria-label="Slides"
         >
-          <div className="flex w-full items-center gap-1.5">
+          <div className="flex w-full items-center gap-1 sm:gap-1.5">
             {activeSlides.map((_, index) => {
               const isActive = index === currentSlide;
               return (
@@ -332,7 +332,7 @@ export const HeroSalesBanner: React.FC<HeroSalesBannerProps> = ({
                   aria-selected={isActive}
                   aria-label={`${language === 'en' ? 'Go to slide' : 'ወደ ስላይድ'} ${index + 1}`}
                   onClick={() => setCurrentSlide(index)}
-                  className={`group/seg flex h-11 min-h-[44px] min-w-[44px] items-center justify-center py-2 px-1 cursor-pointer transition-all duration-300 ${isActive ? 'flex-[3]' : 'flex-1'
+                  className={`group/seg flex h-11 min-h-[44px] min-w-0 items-center justify-center py-2 px-0.5 sm:px-1 cursor-pointer transition-all duration-300 ${isActive ? 'flex-[2.5] sm:flex-[3]' : 'flex-1'
                     }`}
                 >
                   <span className="relative block h-1.5 w-full overflow-hidden rounded-full bg-white/25 transition-colors group-hover/seg:bg-white/40">

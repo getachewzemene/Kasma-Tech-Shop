@@ -2,12 +2,11 @@ import React from 'react';
 import {
   GitCompare, Share2, Heart, ShieldCheck, Check, Truck, Lock, Sparkles,
   Package, RotateCcw, Star, Box, Scale, Battery, Wifi, MessageCircle,
-  CreditCard, MapPin, Award, Send, ShoppingCart, Zap, MessageSquare,
+  MapPin, Award, Send, ShoppingCart, Zap, MessageSquare,
   RefreshCw, HelpCircle, Camera
 } from 'lucide-react';
 import { Product, Variant, CartItem, Order, QAItem } from '../../types';
 import { LazyImage } from '../LazyImage';
-import DeliveryTimeEstimator from '../DeliveryTimeEstimator';
 import { getProductGallery, getProductSpecs } from '../../utils/productSpecs';
 
 const ADDIS_DELIVERY_AREAS = [
@@ -169,11 +168,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   title={language === 'en' ? 'Wishlist' : 'ተወዳጆች'}
                   onClick={(e) => onToggleFavorite(selectedProduct.id, e)}
                   className={`p-1.5 rounded-full border text-xs cursor-pointer transition-all ${favorites.includes(selectedProduct.id)
-                    ? 'bg-red-50 dark:bg-red-950/80 text-red-600 border-red-300 dark:border-red-800 shadow-sm shadow-red-500/20'
+                    ? 'bg-rose-50/90 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 border-rose-200 dark:border-rose-800/70 shadow-sm shadow-rose-500/15'
                     : 'bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 border-gray-200 dark:border-zinc-700'
                     }`}
                 >
-                  <Heart className={`w-3.5 h-3.5 transition-transform ${favorites.includes(selectedProduct.id) ? 'fill-red-600 text-red-600 scale-110' : ''}`} />
+                  <Heart className={`w-3.5 h-3.5 transition-transform ${favorites.includes(selectedProduct.id) ? 'fill-rose-500/25 text-rose-500 dark:fill-rose-400/30 dark:text-rose-400 scale-110' : ''}`} />
                 </button>
                 <button
                   onClick={() => setSelectedProduct(null)}
@@ -218,11 +217,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 title={language === 'en' ? 'Save to Wishlist' : 'ወደ ተወዳጆች ያስቀምጡ'}
                 onClick={(e) => onToggleFavorite(selectedProduct.id, e)}
                 className={`p-2 rounded-full transition-all cursor-pointer shadow-xs border ${favorites.includes(selectedProduct.id)
-                  ? 'bg-red-50 dark:bg-red-950/90 text-red-600 border-red-300 dark:border-red-800 shadow-sm shadow-red-500/20'
-                  : 'bg-white/95 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:text-red-600 border-gray-200 dark:border-zinc-700'
+                  ? 'bg-rose-50/90 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 border-rose-200 dark:border-rose-800/70 shadow-sm shadow-rose-500/15'
+                  : 'bg-white/95 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 hover:text-rose-500 border-gray-200 dark:border-zinc-700'
                   }`}
               >
-                <Heart className={`w-4 h-4 transition-transform ${favorites.includes(selectedProduct.id) ? 'fill-red-600 text-red-600 scale-110' : ''}`} />
+                <Heart className={`w-4 h-4 transition-transform ${favorites.includes(selectedProduct.id) ? 'fill-rose-500/25 text-rose-500 dark:fill-rose-400/30 dark:text-rose-400 scale-110' : ''}`} />
               </button>
 
               <button
@@ -296,8 +295,6 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                           </div>
                         </div>
                       </div>
-
-                      <DeliveryTimeEstimator language={language} />
                     </div>
                   </div>
 
@@ -570,49 +567,6 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         </div>
                       )}
 
-                      {/* High-Value Device Financing */}
-                      {((selectedVariant ? (selectedProduct.price + selectedVariant.priceOffset) : selectedProduct.price) >= 30000) && (
-                        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-blue-50/90 via-purple-50/70 to-emerald-50/80 dark:from-blue-950/40 dark:via-purple-950/30 dark:to-emerald-950/40 border border-blue-200/80 dark:border-blue-900/50 shadow-2xs space-y-2.5">
-                          <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-blue-900 dark:text-blue-300">
-                              <CreditCard className="w-4 h-4 text-[#0052FF]" />
-                              <span>{language === 'en' ? 'High-Value Device Financing' : 'የውድ እቃዎች ክፍያ እና ዋስትና'}</span>
-                            </div>
-                            <span className="text-[10px] font-mono font-bold text-blue-700 dark:text-blue-300 bg-white/90 dark:bg-blue-900/60 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-700 shrink-0">
-                              0% Interest • Telebirr / CBE
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                            <div className="p-2.5 rounded-xl bg-white/90 dark:bg-zinc-900/90 border border-blue-100 dark:border-blue-950 flex items-center gap-2.5">
-                              <span className="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950 flex items-center justify-center font-black text-[#0052FF] text-xs shrink-0">
-                                3x
-                              </span>
-                              <div className="min-w-0">
-                                <p className="font-bold text-gray-900 dark:text-white text-[11px] leading-tight">
-                                  {language === 'en' ? '3 Monthly Installments' : 'የ3 ወር ተከፋይ ክፍያ'}
-                                </p>
-                                <p className="text-[11px] text-[#0052FF] dark:text-blue-400 font-mono font-black leading-tight mt-0.5">
-                                  {Math.round((selectedVariant ? (selectedProduct.price + selectedVariant.priceOffset) : selectedProduct.price) / 3).toLocaleString()} ETB/mo
-                                </p>
-                              </div>
-                            </div>
-                            <div className="p-2.5 rounded-xl bg-white/90 dark:bg-zinc-900/90 border border-emerald-100 dark:border-emerald-950 flex items-center gap-2.5">
-                              <div className="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-emerald-600 shrink-0">
-                                <ShieldCheck className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-bold text-gray-900 dark:text-white text-[11px] leading-tight">
-                                  {language === 'en' ? 'Pay on Delivery in Addis' : 'አዲስ አበባ ደጃፍዎ ሲደርስ ይክፈሉ'}
-                                </p>
-                                <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold leading-tight mt-0.5">
-                                  {language === 'en' ? 'Inspect before payment' : 'እቃውን ፈትሸው ይክፈሉ'}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
                       {/* Delivery Estimate by Area Selector */}
                       <div className="p-3 sm:p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-gray-200/90 dark:border-zinc-800 shadow-2xs space-y-2">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -785,7 +739,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                               }`}
                           >
                             <ShoppingCart className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-gray-700 dark:text-zinc-300 shrink-0" />
-                            <span className="truncate">{language === 'en' ? 'Add To Cart' : 'ወደ ጋሪ አስገባ'}</span>
+                            <span className="truncate">{language === 'en' ? 'Add to Cart' : 'ወደ ጋሪ አስገባ'}</span>
                           </button>
 
                           <button
@@ -802,23 +756,21 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                               }`}
                           >
                             <Zap className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-current text-amber-300 shrink-0" />
-                            <span className="truncate">{language === 'en' ? '⚡ Buy Now' : '⚡ አሁን ግዛ'}</span>
+                            <span className="truncate">{language === 'en' ? 'Buy Now' : 'አሁን ግዛ'}</span>
                           </button>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-1.5 text-[10.5px] sm:text-xs text-gray-500 dark:text-zinc-400 font-medium py-1 px-1 text-center">
-                        <span className="inline-flex items-center gap-1.5 text-gray-700 dark:text-zinc-300">
+                      <div className="flex items-center justify-center flex-wrap gap-1.5 sm:gap-2.5 text-[11px] sm:text-xs text-gray-600 dark:text-zinc-400 font-medium py-1">
+                        <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-zinc-800/70 px-2.5 py-1 rounded-lg border border-gray-150 dark:border-zinc-800 text-gray-700 dark:text-zinc-300">
                           <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                           <span>{language === 'en' ? 'Doorstep Inspection' : 'ደጃፍ ላይ ፈትሾ መረከብ'}</span>
                         </span>
-                        <span className="text-gray-300 dark:text-zinc-700 font-bold">•</span>
-                        <span className="inline-flex items-center gap-1.5 text-gray-700 dark:text-zinc-300">
+                        <span className="inline-flex items-center gap-1 bg-gray-50 dark:bg-zinc-800/70 px-2.5 py-1 rounded-lg border border-gray-150 dark:border-zinc-800 text-gray-700 dark:text-zinc-300">
                           <Award className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                           <span>{language === 'en' ? 'Store Warranty' : 'የሱቅ ዋስትና'}</span>
                         </span>
-                        <span className="text-gray-300 dark:text-zinc-700 font-bold">•</span>
-                        <span className="font-semibold text-gray-700 dark:text-zinc-300">
+                        <span className="inline-flex items-center bg-gray-50 dark:bg-zinc-800/70 px-2.5 py-1 rounded-lg border border-gray-150 dark:border-zinc-800 font-semibold text-gray-700 dark:text-zinc-300">
                           telebirr / CBE Birr / Chapa / VISA
                         </span>
                       </div>
@@ -827,29 +779,31 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
                   {/* FREQUENTLY BOUGHT TOGETHER BUNDLE SYSTEM */}
                   {fbtProducts.length > 0 && (
-                    <div className="col-span-full p-4 sm:p-6 md:p-8 bg-amber-500/[0.015] dark:bg-amber-500/[0.005] border-t border-gray-150 dark:border-zinc-800 transition-all">
-                      <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2 text-left">
-                        <Sparkles className="w-4 h-4 text-amber-500 animate-pulse shrink-0" />
-                        <span>{language === 'en' ? 'Frequently Bought Together' : 'ብዙ ጊዜ አብረው የሚገዙ ምርቶች'}</span>
-                        <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 font-bold text-[10px] px-2 py-0.5 rounded-full ml-1.5 shrink-0">
+                    <div className="col-span-full p-3.5 sm:p-6 md:p-8 bg-amber-500/[0.02] dark:bg-amber-500/[0.005] border-t border-gray-150 dark:border-zinc-800 transition-all">
+                      <div className="flex items-center justify-between gap-2 flex-wrap mb-4 sm:mb-5">
+                        <h4 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white flex items-center gap-2 text-left">
+                          <Sparkles className="w-4 h-4 text-amber-500 animate-pulse shrink-0" />
+                          <span>{language === 'en' ? 'Frequently Bought Together' : 'ብዙ ጊዜ አብረው የሚገዙ ምርቶች'}</span>
+                        </h4>
+                        <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 font-bold text-[11px] px-2.5 py-0.5 rounded-full shrink-0">
                           {language === 'en' ? 'Bundle Discount Active' : 'የጥቅል ቅናሽ አለ'}
                         </span>
-                      </h4>
+                      </div>
 
-                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-start">
                         <div className={`col-span-full lg:col-span-8 grid ${1 + fbtProducts.length >= 4
-                          ? 'grid-cols-3 sm:grid-cols-4'
-                          : 'grid-cols-3 sm:grid-cols-3'
-                          } gap-1.5 sm:gap-4 items-stretch`}>
-                          <div className="h-full flex flex-col justify-between p-2 sm:p-4 bg-white dark:bg-zinc-900 rounded-xl sm:rounded-2xl border border-amber-500/40 shadow-2xs hover:shadow-xs transition-all min-w-0">
+                          ? 'grid-cols-2 sm:grid-cols-4'
+                          : 'grid-cols-2 sm:grid-cols-3'
+                          } gap-2 sm:gap-4 items-stretch`}>
+                          <div className="h-full flex flex-col justify-between p-2.5 sm:p-4 bg-white dark:bg-zinc-900 rounded-xl sm:rounded-2xl border border-amber-500/40 shadow-2xs hover:shadow-xs transition-all min-w-0">
                             <div>
-                              <div className="flex items-center justify-between gap-1 mb-1.5 sm:mb-3">
-                                <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg truncate">
+                              <div className="flex items-center justify-between gap-1 mb-2 sm:mb-3">
+                                <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-md truncate">
                                   {language === 'en' ? 'This Item' : 'ይህ ምርት'}
                                 </span>
-                                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
                               </div>
-                              <div className="w-full aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-gray-50 dark:bg-zinc-850 border border-gray-100 dark:border-zinc-800 mb-1.5 sm:mb-3">
+                              <div className="w-full aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-gray-50 dark:bg-zinc-850 border border-gray-100 dark:border-zinc-800 mb-2 sm:mb-3">
                                 <img
                                   src={selectedProduct.image}
                                   alt={selectedProduct.nameEn}
@@ -858,11 +812,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                 />
                               </div>
                             </div>
-                            <div className="text-left space-y-0.5 sm:space-y-1 min-w-0">
-                              <p className="font-extrabold text-[10px] sm:text-xs text-gray-900 dark:text-white line-clamp-1 truncate leading-tight">
+                            <div className="text-left space-y-1 min-w-0">
+                              <p className="font-bold text-xs text-gray-900 dark:text-white line-clamp-1 leading-tight">
                                 {language === 'en' ? selectedProduct.nameEn : selectedProduct.nameAm}
                               </p>
-                              <p className="font-mono text-[11px] sm:text-sm font-black text-gray-950 dark:text-white pt-0.5 sm:pt-1 truncate">
+                              <p className="font-mono text-xs sm:text-sm font-black text-gray-950 dark:text-white truncate">
                                 {selectedProduct.price.toLocaleString()} ETB
                               </p>
                             </div>
@@ -880,28 +834,28 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                     setFbtSelectedIds([...fbtSelectedIds, p.id]);
                                   }
                                 }}
-                                className={`group h-full flex flex-col justify-between p-2 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer shadow-2xs min-w-0 ${isChecked
+                                className={`group h-full flex flex-col justify-between p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all cursor-pointer shadow-2xs min-w-0 ${isChecked
                                   ? 'bg-white dark:bg-zinc-900 border-amber-500/40 ring-1 ring-amber-500/20'
                                   : 'bg-gray-50/80 dark:bg-zinc-950/40 border-gray-200/80 dark:border-zinc-800 opacity-60 hover:opacity-100'
                                   }`}
                               >
                                 <div>
-                                  <div className="flex items-center justify-between gap-1 mb-1.5 sm:mb-3">
-                                    <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-                                      <div className={`w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 rounded sm:rounded-md border flex items-center justify-center shrink-0 transition-all ${isChecked
+                                  <div className="flex items-center justify-between gap-1 mb-2 sm:mb-3">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <div className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-all ${isChecked
                                         ? 'bg-amber-500 border-amber-500 text-white shadow-2xs'
                                         : 'border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900'
                                         }`}>
-                                        {isChecked && <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[3]" />}
+                                        {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                                       </div>
-                                      <span className={`text-[8px] sm:text-[10px] font-black uppercase tracking-wider truncate ${isChecked ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-zinc-400'}`}>
-                                        {isChecked ? (language === 'en' ? 'INCLUDED' : 'ተካቷል') : (language === 'en' ? 'ADD ITEM' : 'ጨምር')}
+                                      <span className={`text-[10.5px] font-bold truncate ${isChecked ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-zinc-400'}`}>
+                                        {isChecked ? (language === 'en' ? 'Included' : 'ተካቷል') : (language === 'en' ? 'Add' : 'ጨምር')}
                                       </span>
                                     </div>
                                     <span className="text-amber-500 font-black text-xs sm:text-sm shrink-0">+</span>
                                   </div>
 
-                                  <div className="w-full aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-gray-50 dark:bg-zinc-850 border border-gray-100 dark:border-zinc-800 mb-1.5 sm:mb-3">
+                                  <div className="w-full aspect-square rounded-lg sm:rounded-xl overflow-hidden bg-gray-50 dark:bg-zinc-850 border border-gray-100 dark:border-zinc-800 mb-2 sm:mb-3">
                                     <img
                                       src={p.image}
                                       alt={p.nameEn}
@@ -911,16 +865,16 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                   </div>
                                 </div>
 
-                                <div className="text-left space-y-0.5 sm:space-y-1 min-w-0">
+                                <div className="text-left space-y-1 min-w-0">
                                   <div className="flex items-center gap-1 overflow-hidden">
-                                    <span className="text-[8px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded truncate">
+                                    <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded truncate">
                                       {categories.find(c => c.id === p.category)?.nameEn || p.category}
                                     </span>
                                   </div>
-                                  <p className="font-extrabold text-[10px] sm:text-xs text-gray-900 dark:text-white line-clamp-1 truncate leading-tight">
+                                  <p className="font-bold text-xs text-gray-900 dark:text-white line-clamp-1 leading-tight">
                                     {language === 'en' ? p.nameEn : p.nameAm}
                                   </p>
-                                  <p className="font-mono text-[11px] sm:text-sm font-black text-gray-950 dark:text-white pt-0.5 sm:pt-1 truncate">
+                                  <p className="font-mono text-xs sm:text-sm font-black text-gray-950 dark:text-white truncate">
                                     {p.price.toLocaleString()} ETB
                                   </p>
                                 </div>
@@ -951,14 +905,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                           }));
 
                           return (
-                            <div className="col-span-full lg:col-span-4 bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 p-5 sm:p-6 rounded-2xl flex flex-col justify-between space-y-5 shadow-2xs h-full">
-                              <div className="text-left space-y-3">
-                                <span className="text-[9px] font-extrabold uppercase tracking-widest text-[#0052FF] bg-blue-50 dark:bg-zinc-800 px-2.5 py-1 rounded-md w-fit block">
+                            <div className="col-span-full lg:col-span-4 bg-white dark:bg-zinc-900 border border-gray-200/80 dark:border-zinc-800 p-4 sm:p-6 rounded-2xl flex flex-col justify-between space-y-4 sm:space-y-5 shadow-2xs h-full">
+                              <div className="text-left space-y-2.5 sm:space-y-3">
+                                <span className="text-[11px] font-bold text-[#0052FF] bg-blue-50 dark:bg-zinc-800 px-2.5 py-1 rounded-md w-fit block">
                                   {language === 'en' ? 'Bundle Summary' : 'የጥቅል መግለጫ'}
                                 </span>
 
-                                <div className="pt-2 flex justify-between items-baseline gap-2">
-                                  <span className="text-xs font-black text-gray-500 uppercase tracking-wider">
+                                <div className="pt-1 flex justify-between items-baseline gap-2">
+                                  <span className="text-xs font-bold text-gray-500">
                                     {language === 'en' ? `Total (${checkedCount} items)` : `ድምር (${checkedCount} እቃዎች)`}
                                   </span>
                                   <div className="text-right shrink-0 whitespace-nowrap">
@@ -971,7 +925,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                       <span className="text-xl sm:text-2xl font-black font-mono text-gray-950 dark:text-white">
                                         {discountedBundlePrice.toLocaleString()}
                                       </span>
-                                      <span className="text-xs font-mono font-black text-[#0052FF] dark:text-blue-400 uppercase">
+                                      <span className="text-xs font-mono font-black text-[#0052FF] dark:text-blue-400">
                                         ETB
                                       </span>
                                     </div>
@@ -979,8 +933,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                 </div>
 
                                 {discountPct > 0 && (
-                                  <div className="pt-1 flex justify-between items-center text-xs text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-wider">
-                                    <span>{language === 'en' ? 'Bundle Savings' : 'የጥቅል ቁጠባ'}:</span>
+                                  <div className="pt-1 flex justify-between items-center text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                                    <span>{language === 'en' ? 'Bundle Savings:' : 'የጥቅል ቁጠባ:'}</span>
                                     <span className="bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200/60 dark:border-emerald-900/40 font-bold font-mono text-xs whitespace-nowrap">
                                       {savingsAmount.toLocaleString()} ETB ({discountPct}%)
                                     </span>
@@ -991,7 +945,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                               <button
                                 disabled={checkedCount === 0}
                                 onClick={() => addBundleToCart(finalItemsWithSaving)}
-                                className={`w-full h-11 sm:h-12 px-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md whitespace-nowrap active:scale-[0.98] ${checkedCount === 0
+                                className={`w-full h-11 sm:h-12 px-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md whitespace-nowrap active:scale-[0.98] ${checkedCount === 0
                                   ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed border border-gray-200 dark:border-zinc-800'
                                   : 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20'
                                   }`}

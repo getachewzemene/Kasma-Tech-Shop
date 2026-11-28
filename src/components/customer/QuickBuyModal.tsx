@@ -15,8 +15,7 @@ import {
   Check,
   ShoppingCart,
   Zap,
-  ChevronRight,
-  CreditCard
+  ChevronRight
 } from 'lucide-react';
 import { LazyImage } from '../LazyImage';
 import { getProductGallery } from '../../utils/productSpecs';
@@ -86,8 +85,11 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
         onClick={(e) => e.stopPropagation()}
         className="bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl max-w-3xl w-full shadow-2xl relative border-t sm:border border-gray-150 dark:border-zinc-800 text-gray-900 dark:text-zinc-100 max-h-[92vh] sm:max-h-[88vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 my-0 sm:my-auto"
       >
+        {/* Mobile Sheet Handle */}
+        <div className="w-10 h-1 bg-gray-300 dark:bg-zinc-700 rounded-full mx-auto mt-2.5 sm:hidden shrink-0" />
+
         {/* Modal Fixed Header Bar */}
-        <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-100 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900 z-10">
+        <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-6 sm:py-4 border-b border-gray-100 dark:border-zinc-800 shrink-0 bg-white dark:bg-zinc-900 z-10">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-[#0052FF] dark:text-blue-400 flex items-center justify-center font-bold shrink-0">
               <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -120,14 +122,14 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
         </div>
 
         {/* Modal Inner Scroll Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar space-y-4 sm:space-y-6 flex-1">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 md:gap-8 items-start">
+        <div className="p-3.5 pb-5 sm:p-6 overflow-y-auto custom-scrollbar space-y-3.5 sm:space-y-6 flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-6 md:gap-8 items-start">
             {/* Left Column / Mobile Image Gallery */}
             <div className="md:col-span-5 flex flex-col gap-2.5">
               {/* Title & Rating (Mobile Only) */}
               <div className="md:hidden space-y-1.5">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 rounded-md border border-indigo-100 dark:border-indigo-900/40">
+                  <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-0.5 rounded-md border border-indigo-100 dark:border-indigo-900/40">
                     {product.brand}
                   </span>
                   {avg > 0 && (
@@ -154,7 +156,7 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
                 />
 
                 {/* Category Pill Tag */}
-                <span className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[9px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-md">
+                <span className="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold capitalize px-2 py-0.5 rounded-md">
                   {product.category}
                 </span>
 
@@ -198,13 +200,13 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
                     onClick={(e) => onToggleFavorite(product.id, e)}
                     className={`p-1.5 sm:p-2 rounded-full backdrop-blur-md transition-all cursor-pointer shadow-md hover:scale-110 active:scale-95 border ${
                       favorites.includes(product.id)
-                        ? 'bg-red-50 dark:bg-red-950/90 text-red-600 border-red-300 dark:border-red-800 shadow-sm shadow-red-500/20'
-                        : 'bg-white/90 dark:bg-zinc-900/90 text-gray-500 hover:text-red-600 border border-white/80 dark:border-zinc-700'
+                        ? 'bg-rose-50/90 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 border-rose-200 dark:border-rose-800/70 shadow-sm shadow-rose-500/15'
+                        : 'bg-white/90 dark:bg-zinc-900/90 text-gray-500 hover:text-rose-500 border border-white/80 dark:border-zinc-700'
                     }`}
                   >
                     <Heart
                       className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${
-                        favorites.includes(product.id) ? 'fill-red-600 text-red-600 scale-110' : ''
+                        favorites.includes(product.id) ? 'fill-rose-500/25 text-rose-500 dark:fill-rose-400/30 dark:text-rose-400 scale-110' : ''
                       }`}
                     />
                   </button>
@@ -263,7 +265,7 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
               <div className="space-y-3 min-w-0">
                 {/* Brand & Rating Row (Desktop View) */}
                 <div className="hidden md:flex items-center justify-between gap-2 flex-wrap">
-                  <span className="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-900/40">
+                  <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-100 dark:border-indigo-900/40">
                     <Tag className="w-3.5 h-3.5 inline mr-1" />
                     {product.brand}
                   </span>
@@ -329,28 +331,11 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
                   </div>
                 </div>
 
-                {/* High Price Device Installment & Pay on Delivery Banner */}
-                {totalPrice >= 30000 && (
-                  <div className="p-3 bg-indigo-50/60 dark:bg-indigo-950/30 rounded-2xl border border-indigo-200/80 dark:border-indigo-900/40 space-y-1.5">
-                    <div className="flex items-center justify-between text-xs font-bold text-indigo-900 dark:text-indigo-200">
-                      <span className="flex items-center gap-1.5">
-                        <CreditCard className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                        <span>{language === 'en' ? 'Flexible Installment Option' : 'የቀላል ወርሃዊ ክፍያ'}</span>
-                      </span>
-                      <span className="font-mono text-[11px] bg-white dark:bg-zinc-800 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800 font-black">
-                        3x {(Math.round(totalPrice / 3)).toLocaleString()} ETB/mo
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-emerald-700 dark:text-emerald-300 font-bold">
-                      <Truck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                      <span>{language === 'en' ? 'Pay on Delivery in Addis: Inspect & test before payment' : 'ሲደርስዎ ይክፈሉ፡ እቃውን ፈትሸውና ሞክረው ይክፈሉ'}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Product Description Snippet: 14px minimum */}
-                <div className="text-sm text-gray-600 dark:text-zinc-300 leading-relaxed bg-gray-50/50 dark:bg-zinc-950/50 p-2.5 sm:p-3 rounded-2xl border border-gray-100 dark:border-zinc-800/80 line-clamp-2 sm:line-clamp-3">
-                  {language === 'en' ? product.descriptionEn : product.descriptionAm}
+                {/* Product Description Snippet: inner <p> prevents line-clamp padding clipping */}
+                <div className="bg-gray-50/70 dark:bg-zinc-950/50 p-2.5 sm:p-3 rounded-2xl border border-gray-100 dark:border-zinc-800/80">
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-zinc-300 leading-relaxed line-clamp-2 sm:line-clamp-3">
+                    {language === 'en' ? product.descriptionEn : product.descriptionAm}
+                  </p>
                 </div>
 
                 {/* Variant Selection Grid */}
@@ -451,7 +436,7 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
               </div>
 
               {/* Primary Action Buttons */}
-              <div className="space-y-2 pt-2 border-t border-gray-100 dark:border-zinc-800">
+              <div className="space-y-2.5 pt-2 border-t border-gray-100 dark:border-zinc-800">
                 <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
                   {/* Add to Cart Button */}
                   <button
@@ -468,14 +453,14 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
                         'success'
                       );
                     }}
-                    className={`h-11 sm:h-12 w-full px-2.5 sm:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap ${
+                    className={`h-11 sm:h-12 w-full px-3 sm:px-4 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap ${
                       !quickBuyVariant || quickBuyVariant.onHand <= 0
                         ? 'bg-gray-100 dark:bg-zinc-800 text-gray-400 dark:text-zinc-600 cursor-not-allowed border border-gray-200 dark:border-zinc-800'
                         : 'bg-[#0052FF] hover:bg-blue-600 text-white shadow-md shadow-blue-500/20 active:scale-[0.98]'
                     }`}
                   >
                     <ShoppingCart className="w-4 h-4 shrink-0" />
-                    <span className="truncate">{language === 'en' ? 'Add To Cart' : 'ወደ ጋሪ አስገባ'}</span>
+                    <span className="truncate">{language === 'en' ? 'Add to Cart' : 'ወደ ጋሪ አስገባ'}</span>
                   </button>
 
                   {/* Instant Buy Button */}
@@ -491,7 +476,7 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
                         'info'
                       );
                     }}
-                    className={`h-11 sm:h-12 w-full px-2.5 sm:px-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer border whitespace-nowrap shadow-xs active:scale-[0.98] ${
+                    className={`h-11 sm:h-12 w-full px-3 sm:px-4 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer border whitespace-nowrap shadow-xs active:scale-[0.98] ${
                       !quickBuyVariant || quickBuyVariant.onHand <= 0
                         ? 'bg-gray-100 dark:bg-zinc-800 border-transparent text-gray-400 dark:text-zinc-600 cursor-not-allowed'
                         : 'bg-amber-400 hover:bg-amber-500 text-black border-amber-500 shadow-md shadow-amber-500/20'
@@ -503,48 +488,19 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
                 </div>
 
                 {/* Compact Mobile Trust Ribbon */}
-                <div className="md:hidden flex items-center justify-center flex-wrap gap-2 text-xs text-gray-500 dark:text-zinc-400 font-bold pt-1.5 border-t border-gray-100 dark:border-zinc-800/80">
-                  <span>🛡️ 100% Authentic</span>
-                  <span>·</span>
-                  <span>🚚 Express Delivery</span>
-                  <span>·</span>
-                  <span>🔄 Easy Returns</span>
-                </div>
-
-                {/* Compare & Share Action Buttons in QuickView */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={(e) => onToggleCompare(product.id, e)}
-                    className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                      comparedProductIds.includes(product.id)
-                        ? 'bg-blue-50 dark:bg-blue-950/50 border-[#0052FF] text-[#0052FF]'
-                        : 'bg-white dark:bg-zinc-900 border-gray-200 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-800'
-                    }`}
-                  >
-                    <GitCompare className="w-3.5 h-3.5 text-[#0052FF]" />
-                    <span>
-                      {comparedProductIds.includes(product.id)
-                        ? language === 'en'
-                          ? 'Compared ✓'
-                          : 'ተነጻጽሯል ✓'
-                        : language === 'en'
-                          ? 'Compare'
-                          : 'አነጻጽር'}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onShareProduct(product);
-                    }}
-                    className="py-2 px-3 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-700 dark:text-zinc-300 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <Share2 className="w-3.5 h-3.5 text-indigo-500" />
-                    <span>{language === 'en' ? 'Share' : 'አጋራ'}</span>
-                  </button>
+                <div className="md:hidden grid grid-cols-3 gap-1.5 text-[10.5px] text-gray-600 dark:text-zinc-400 font-semibold pt-2 border-t border-gray-100 dark:border-zinc-800/80 text-center">
+                  <span className="inline-flex items-center justify-center gap-1 bg-gray-50 dark:bg-zinc-800/60 py-1.5 px-1 rounded-lg">
+                    <ShieldCheck className="w-3 h-3 text-emerald-500 shrink-0" />
+                    <span className="truncate">{language === 'en' ? 'Authentic' : 'ኦሪጅናል'}</span>
+                  </span>
+                  <span className="inline-flex items-center justify-center gap-1 bg-gray-50 dark:bg-zinc-800/60 py-1.5 px-1 rounded-lg">
+                    <Truck className="w-3 h-3 text-[#0052FF] shrink-0" />
+                    <span className="truncate">{language === 'en' ? 'Fast Delivery' : 'ፈጣን ማድረሻ'}</span>
+                  </span>
+                  <span className="inline-flex items-center justify-center gap-1 bg-gray-50 dark:bg-zinc-800/60 py-1.5 px-1 rounded-lg">
+                    <RotateCcw className="w-3 h-3 text-amber-500 shrink-0" />
+                    <span className="truncate">{language === 'en' ? 'Easy Returns' : 'ቀላል ተመላሽ'}</span>
+                  </span>
                 </div>
 
                 {/* View Full Page & Reviews button */}
@@ -554,7 +510,7 @@ export const QuickBuyModal: React.FC<QuickBuyModalProps> = ({
                     onClose();
                     onOpenProduct(product);
                   }}
-                  className="w-full py-2.5 bg-gray-50 dark:bg-zinc-850 hover:bg-gray-100 dark:hover:bg-zinc-800 border border-gray-150 dark:border-zinc-800 text-gray-700 dark:text-zinc-300 rounded-xl font-bold text-xs uppercase tracking-widest transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 bg-gray-50 dark:bg-zinc-850 hover:bg-gray-100 dark:hover:bg-zinc-800 border border-gray-150 dark:border-zinc-800 text-gray-800 dark:text-zinc-200 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <span>
                     {language === 'en' ? 'View Full Page & Reviews' : 'ሙሉ ገጽ እና ግምገማዎችን እይ'}

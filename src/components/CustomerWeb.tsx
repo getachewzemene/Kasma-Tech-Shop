@@ -2516,6 +2516,13 @@ export default function CustomerWeb({
         showToast={showToast}
       />
 
+      {/* Dedicated Storefront Delivery Time & Fee Estimator Section */}
+      <section className="max-w-[1440px] mx-auto w-full px-2.5 xs:px-3 sm:px-6 lg:px-8 pb-10 lg:pb-14">
+        <div className="max-w-xl mx-auto">
+          <DeliveryTimeEstimator language={language} />
+        </div>
+      </section>
+
       {/* Modular Product Detail Modal */}
       <ProductDetailModal
         selectedProduct={selectedProduct}

@@ -434,16 +434,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               )}
             </button>
 
-            {/* 2. Wishlist Button (Hidden on xs phones <420px, visible on larger phones & tablets/desktop) */}
+            {/* 2. Wishlist Button (Always visible in top-right header across mobile & desktop) */}
             <button
               type="button"
               onClick={() => setIsWishlistOpen(true)}
-              className="relative hidden min-[420px]:flex w-9 h-9 sm:w-10 sm:h-10 items-center justify-center text-slate-600 hover:text-slate-950 dark:text-zinc-300 dark:hover:text-zinc-100 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
+              className="relative flex w-9 h-9 sm:w-10 sm:h-10 items-center justify-center text-slate-600 hover:text-slate-950 dark:text-zinc-300 dark:hover:text-zinc-100 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
               title={language === 'en' ? 'Wishlist' : 'ምኞት ዝርዝር'}
             >
-              <Heart className={`w-4.5 h-4.5 sm:w-5 sm:h-5 transition-transform ${favorites.length > 0 ? 'fill-red-600 text-red-600 scale-105' : 'text-slate-600 dark:text-zinc-300'}`} />
+              <Heart className={`w-4.5 h-4.5 sm:w-5 sm:h-5 transition-transform ${favorites.length > 0 ? 'fill-rose-500/25 text-rose-500 dark:fill-rose-400/30 dark:text-rose-400 scale-105' : 'text-slate-600 dark:text-zinc-300'}`} />
               {favorites.length > 0 && (
-                <span className="absolute top-0.5 right-0.5 bg-red-600 text-white text-[10px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-xs">
+                <span className="absolute top-0.5 right-0.5 bg-rose-500 text-white text-[10px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-white dark:border-zinc-900 shadow-xs">
                   {favorites.length}
                 </span>
               )}
@@ -464,22 +464,22 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               )}
             </button>
 
-            {/* 4. Customer Account / Sign In Button (Always visible) */}
+            {/* 4. Customer Account / Sign In Button (Icon-only matching other icons on mobile; pill button on lg+ desktop) */}
             <button
               type="button"
               onClick={onOpenProfile}
-              className={`h-9 sm:h-10 px-2.5 lg:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold flex items-center gap-1.5 sm:gap-2 transition-all cursor-pointer border shrink-0 ${isCustomerLoggedIn
-                  ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300/80 dark:border-amber-800/80 hover:bg-amber-100'
-                  : 'bg-[#0052FF] hover:bg-blue-600 text-white border-transparent shadow-xs hover:shadow-blue-600/20'
+              className={`relative w-9 h-9 sm:w-10 sm:h-10 lg:w-auto lg:px-3.5 rounded-xl text-xs sm:text-[13px] font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all cursor-pointer border border-transparent shrink-0 ${isCustomerLoggedIn
+                  ? 'text-amber-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-zinc-800 lg:bg-amber-50 lg:dark:bg-amber-950/40 lg:text-amber-800 lg:dark:text-amber-300 lg:border-amber-300/80 lg:dark:border-amber-800/80 lg:hover:bg-amber-100'
+                  : 'text-[#0052FF] dark:text-blue-400 hover:bg-slate-100 dark:hover:bg-zinc-800 lg:bg-[#0052FF] lg:hover:bg-blue-600 lg:text-white lg:shadow-xs lg:hover:shadow-blue-600/20'
                 }`}
               title={isCustomerLoggedIn ? (customerName || 'My Account') : (language === 'en' ? 'Sign In / Account' : 'ይግቡ / መለያ')}
             >
-              <User className="w-4 h-4 shrink-0" />
+              <User className="w-4.5 h-4.5 sm:w-5 sm:h-5 lg:w-4 lg:h-4 shrink-0" />
               <span className="hidden lg:inline max-w-[120px] truncate">
                 {isCustomerLoggedIn ? (customerName || (language === 'en' ? 'Account' : 'መለያ')) : (language === 'en' ? 'Sign In' : 'ይግቡ')}
               </span>
               {isCustomerLoggedIn && (
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                <span className="absolute top-1.5 right-1.5 lg:static w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
               )}
             </button>
 
@@ -529,7 +529,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
               className="xl:hidden w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 cursor-pointer shrink-0"
               aria-label={isMobileMenuOpen ? 'Close Menu' : 'Open Menu'}
             >
-              {isMobileMenuOpen ? <X className="w-5 h-5 text-slate-900 dark:text-white" /> : <Menu className="w-5 h-5" />}
+              {isMobileMenuOpen ? <X className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-slate-900 dark:text-white" /> : <Menu className="w-4.5 h-4.5 sm:w-5 sm:h-5" />}
             </button>
 
           </div>
@@ -611,9 +611,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenProfile, onOpenMyOrders })
                 className="flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl bg-red-50/70 dark:bg-red-950/30 border border-red-200/60 dark:border-red-900/50 text-red-600 dark:text-red-400 cursor-pointer transition-transform active:scale-95"
               >
                 <div className="relative">
-                  <Heart className={`w-5 h-5 transition-transform ${favorites.length > 0 ? 'fill-red-600 text-red-600 scale-105' : ''}`} />
+                  <Heart className={`w-5 h-5 transition-transform ${favorites.length > 0 ? 'fill-rose-500/25 text-rose-500 dark:fill-rose-400/30 dark:text-rose-400 scale-105' : ''}`} />
                   {favorites.length > 0 && (
-                    <span className="absolute -top-1.5 -right-2 bg-red-600 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1.5 -right-2 bg-rose-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                       {favorites.length}
                     </span>
                   )}

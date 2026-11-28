@@ -29,7 +29,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
         type="button"
         aria-label={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         title={isDark ? (isEn ? 'Switch to Light Mode' : 'ወደ ብሩህ ሁነታ ቀይር') : (isEn ? 'Switch to Dark Mode' : 'ወደ ጨለማ ሁነታ ቀይር')}
-        className="relative p-2 rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer overflow-hidden group focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+        className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer overflow-hidden group focus:outline-none focus:ring-2 focus:ring-blue-500/50"
       >
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
@@ -41,9 +41,9 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
             className="flex items-center justify-center"
           >
             {isDark ? (
-              <Sun className="w-5 h-5 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
+              <Sun className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
             ) : (
-              <Moon className="w-5 h-5 text-indigo-600 dark:text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.3)]" />
+              <Moon className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.3)]" />
             )}
           </motion.div>
         </AnimatePresence>

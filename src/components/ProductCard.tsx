@@ -256,10 +256,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 aria-label={language === 'en' ? (isFavorite ? 'Remove from Wishlist' : 'Save to Wishlist') : (isFavorite ? 'ከተወዳጆች አስወግድ' : 'ወደ ተወዳጆች አስቀምጥ')}
               >
                 <div className={`w-7 h-7 xs:w-8 xs:h-8 rounded-full backdrop-blur-md transition-all shadow-xs hover:scale-110 active:scale-95 flex items-center justify-center border ${isFavorite
-                  ? 'bg-red-50 dark:bg-red-950/90 text-red-600 dark:text-red-500 border-red-300 dark:border-red-800 shadow-red-500/20 shadow-sm'
-                  : 'bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-800 text-gray-500 hover:text-red-600 border-white/80 dark:border-zinc-700/80'
+                  ? 'bg-rose-50/90 dark:bg-rose-950/60 text-rose-500 dark:text-rose-400 border-rose-200 dark:border-rose-800/70 shadow-rose-500/15 shadow-sm'
+                  : 'bg-white/95 dark:bg-zinc-900/95 hover:bg-white dark:hover:bg-zinc-800 text-gray-500 hover:text-rose-500 border-white/80 dark:border-zinc-700/80'
                   }`}>
-                  <Heart className={`w-3.5 h-3.5 xs:w-4 xs:h-4 transition-transform ${isFavorite ? 'fill-red-600 text-red-600 scale-110' : 'text-gray-400 dark:text-zinc-400'}`} />
+                  <Heart className={`w-3.5 h-3.5 xs:w-4 xs:h-4 transition-transform ${isFavorite ? 'fill-rose-500/25 text-rose-500 dark:fill-rose-400/30 dark:text-rose-400 scale-110' : 'text-gray-400 dark:text-zinc-400'}`} />
                 </div>
               </button>
             </div>
